@@ -1,0 +1,10 @@
+{
+    "name": "Cms",
+    "alias": "cms",
+    "description": "Functionalities for a basic cms system.",
+    "keywords": ["editorial", "cms"],
+    "priority": 0,
+    "providers": ["Modules\\Cms\\Providers\\CmsServiceProvider"],
+    "files": [],
+    "requires": ["Core"]
+}
