@@ -72,10 +72,10 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 
 	protected $with = [
 		'entity', 
-		'authors', 
-		'categories', 
-		'catego	ries.ancestors', 
-		'media',
+		// 'authors', 
+		// 'categories', 
+		// 'categories.ancestors', 
+		// 'media',
 	];
 
 	protected $hidden = [
@@ -230,7 +230,20 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 
 	protected static function newFactory(): ContentFactory
     {
-        return ContentFactory::new();
+        $factory = ContentFactory::new();
+		// this if ensure that the factory is created for the correct derived entity
+		if (static::class !== self::class) {
+			$factory->state(function (array $attributes) {
+				return [
+					'entity_id' => Entity::query()
+						->where('name', strtolower(class_basename(static::class)))
+						->firstOrFail()
+						->id
+				];
+			});
+		}
+
+		return $factory;
     }
 
 	#region Scopes
@@ -396,8 +409,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 	 * @return BelongsToMany<Content>
 	 */
 	public function related(?bool $withInverse = false): BelongsToMany
-	{
-		// $relation = $this->hasChildrenBelongsToMany(Content::class, 'relatables')->using(Relatable::class)->withTimestamps();
+	{	
 		$relation = $this->belongsToMany(Content::class, 'relatables')->using(Relatable::class)->withTimestamps();
 		if ($withInverse) {
 			$relation->orWhere(fn($query) => $query->where('related_content_id', $this->id));

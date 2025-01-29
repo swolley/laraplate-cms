@@ -38,6 +38,7 @@ class ContentFactory extends Factory
     public function configure(): static
     {
         return $this->afterMaking(function (Content $content) {
+            $content->without(['authors']);
             $preset = Preset::where('entity_id', $content->entity_id)->inRandomOrder()->first();
             $content->components = $preset->fields->mapWithKeys(function (Field $field) {
                 $value = $field->default;
@@ -68,6 +69,8 @@ class ContentFactory extends Factory
             
             $tags = Tag::inRandomOrder()->limit(fake()->numberBetween(1, 5))->get();
             $content->tags()->attach($tags->isNotEmpty() ? $tags->pluck('id') : Tag::factory()->count(rand(1, 3))->create());
+
+            $content->load('authors');
         });
     }
 }

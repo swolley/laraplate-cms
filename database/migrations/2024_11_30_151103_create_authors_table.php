@@ -14,11 +14,12 @@ return new class extends Migration
     {
         Schema::create('authors', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users', 'id', 'authors_user_id_FK');
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->string('name');
             $table->string('public_email')->nullable();
             CommonMigrationColumns::timestamps($table, true, true);
-
+            
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
             $table->unique(['user_id', 'name', 'deleted_at'], 'authors_UN');
         });
     }

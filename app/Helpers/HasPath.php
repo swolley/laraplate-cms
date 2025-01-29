@@ -25,7 +25,8 @@ trait HasPath
 	 */
 	protected function getPathSuffix(): ?string
 	{
-		return $this->getKey();
+		$key = $this->getKey();
+		return $key ? (string) $key : null;
 	}
 
 	/**
@@ -41,7 +42,9 @@ trait HasPath
 	public function getFullPath(): string
 	{
 		$suffix = $this->getPathSuffix();
-		return $this->getPathPrefix() . '/' . ($this->getPath() ?? 'undefined') . '/' . ($this->slug ?? 'undefined') . ($suffix ? '/' . $suffix : '');
+		$prefix = $this->getPathPrefix();
+		$path = $this->getPath();
+		return $prefix . '/' . ($path ?? 'undefined') . '/' . ($this->slug ?? 'undefined') . ($suffix ? '/' . $suffix : '');
 	}
 
 	protected function path(): Attribute

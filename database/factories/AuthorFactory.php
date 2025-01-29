@@ -18,8 +18,8 @@ class AuthorFactory extends Factory
     {
         $user = fake()->boolean() ? user_class()::inRandomOrder()->first() : null;
         return [
-            'name' => $user ? $user->name : fake()->name(),
-            'public_email' => fake()->boolean() ? fake()->email() : null,
+            'name' => $user ? $user->name : fake()->unique()->name(),
+            'public_email' => fake()->boolean() ? fake()->unique()->email() : null,
             'user_id' => $user?->id,
         ];
     }
