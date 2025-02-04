@@ -26,11 +26,10 @@ class CmsServiceProvider extends ServiceProvider
         $this->registerCommands();
         $this->registerCommandSchedules();
         $this->registerTranslations();
-        $this->registerConfig();
         // $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
     }
-
+    
     /**
      * Register the service provider.
      */
@@ -39,6 +38,8 @@ class CmsServiceProvider extends ServiceProvider
         if (!Module::find('Core')/*->isEnabled()*/) {
             throw new \Exception('Core is required and must be enabled');
         }
+        
+        $this->registerConfig();
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
