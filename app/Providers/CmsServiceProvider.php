@@ -44,12 +44,20 @@ class CmsServiceProvider extends ServiceProvider
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
 
-        // runtme contents aliases declarations
+        // runtime contents aliases declarations
         $entity_cache_key = (new Entity())->getCacheKey();
-        $entities = Cache::get($entity_cache_key, collect());
+        try {
+            $entities = Cache::get($entity_cache_key, collect());
+        } catch (\Exception $e) {
+            $entities = collect();
+        }
         if ($entities->isEmpty()) {
             $entities = Entity::query()->withoutGlobalScopes()->get();
-            Cache::forever($entity_cache_key, $entities);
+            try {
+                Cache::forever($entity_cache_key, $entities);
+            } catch (\Exception $e) {
+                // do nothing
+            }
             Content::resolveChildTypes($entities);
         }
     }
