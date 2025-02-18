@@ -4,7 +4,7 @@ namespace Modules\Cms\Console;
 
 use Illuminate\Support\Str;
 use Modules\Cms\Models\Entity;
-use Illuminate\Console\Command;
+use Modules\Core\Overrides\Command;
 use Symfony\Component\Console\Input\InputArgument;
 
 class CreateContentModelCommand extends Command

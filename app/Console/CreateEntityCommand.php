@@ -6,7 +6,7 @@ use Illuminate\Support\Str;
 use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Preset;
-use Illuminate\Console\Command;
+use Modules\Core\Overrides\Command;
 use Modules\Cms\Casts\FieldType;
 use function Laravel\Prompts\text;
 use Illuminate\Support\Facades\DB;
