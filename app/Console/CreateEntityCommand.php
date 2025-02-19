@@ -2,6 +2,7 @@
 
 namespace Modules\Cms\Console;
 
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Str;
 use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Entity;
@@ -9,14 +10,11 @@ use Modules\Cms\Models\Preset;
 use Modules\Core\Overrides\Command;
 use Modules\Cms\Casts\FieldType;
 use function Laravel\Prompts\text;
-use Illuminate\Support\Facades\DB;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use Modules\Core\Helpers\HasCommandUtils;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
-// use Symfony\Component\Console\Input\InputOption;
-// use Symfony\Component\Console\Input\InputArgument;
 
 class CreateEntityCommand extends Command
 {
@@ -32,12 +30,17 @@ class CreateEntityCommand extends Command
      */
     protected $description = 'Create new cms entity <comment>(✎ Modules\Cms)</comment>';
 
+    public function __construct(DatabaseManager $db)
+    {
+        parent::__construct($db);
+    }
+
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        DB::transaction(function () {
+        $this->db->transaction(function () {
             $entity = new Entity();
             $fillables = $entity->getFillable();
             $validations = $entity->getOperationRules('create');

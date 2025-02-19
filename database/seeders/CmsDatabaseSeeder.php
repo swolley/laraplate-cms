@@ -8,27 +8,25 @@ use Modules\Cms\Models\Field;
 use Modules\Core\Models\Role;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Preset;
-use Illuminate\Database\Seeder;
 use Modules\Cms\Casts\FieldType;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Casts\ActionEnum;
 use Modules\Core\Models\Permission;
-use Modules\Core\Helpers\HasSeedersUtils;
+use Modules\Core\Overrides\Seeder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 
 class CmsDatabaseSeeder extends Seeder
 {
-    use HasSeedersUtils;
-
     /**
      * @var Collection<string, Entity>
      */
     private Collection $entities;
 
-    /**
-     * @var Collection<string, Preset>
-     */
-    private Collection $presets;
+    // /**
+    //  * @var Collection<string, Preset>
+    //  */
+    // private Collection $presets;
 
     /**
      * @var Collection<string, Field>
@@ -40,9 +38,11 @@ class CmsDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->createDefaultFields();
-        $this->createDefaultEntities();
-        $this->createDefaultRoles();
+        Model::unguarded(function (): void {
+            $this->createDefaultFields();
+            $this->createDefaultEntities();
+            $this->createDefaultRoles();
+        });
     }
 
     private function createDefaultFields(): void
@@ -51,7 +51,7 @@ class CmsDatabaseSeeder extends Seeder
 
         $this->fields = Field::query()->withoutGlobalScopes()->get()->keyBy('name');
 
-        DB::transaction(function () {
+        $this->db->transaction(function () {
             $text_fields = ['kicker', 'title', 'subtitle'];
             foreach ($text_fields as $field) {
                 if (!$this->fields->has($field)) {
@@ -105,7 +105,7 @@ class CmsDatabaseSeeder extends Seeder
 
         $this->entities = Entity::query()->withoutGlobalScopes()->get()->keyBy('name');
 
-        DB::transaction(function () {
+        $this->db->transaction(function () {
             $standard = 'standard';
 
             $entity_name = 'article';

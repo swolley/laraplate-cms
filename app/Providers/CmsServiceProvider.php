@@ -5,8 +5,9 @@ namespace Modules\Cms\Providers;
 use Illuminate\Support\Str;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Content;
+use Illuminate\Cache\CacheManager;
 use Nwidart\Modules\Facades\Module;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use Nwidart\Modules\Traits\PathNamespace;
 use Modules\Core\Overrides\ServiceProvider;
 
@@ -29,7 +30,7 @@ class CmsServiceProvider extends ServiceProvider
         // $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
     }
-    
+
     /**
      * Register the service provider.
      */
@@ -38,28 +39,13 @@ class CmsServiceProvider extends ServiceProvider
         if (!Module::find('Core')/*->isEnabled()*/) {
             throw new \Exception('Core is required and must be enabled');
         }
-        
+
         $this->registerConfig();
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
 
-        // runtime contents aliases declarations
-        $entity_cache_key = (new Entity())->getCacheKey();
-        try {
-            $entities = Cache::get($entity_cache_key, collect());
-        } catch (\Exception $e) {
-            $entities = collect();
-        }
-        if ($entities->isEmpty()) {
-            $entities = Entity::query()->withoutGlobalScopes()->get();
-            try {
-                Cache::forever($entity_cache_key, $entities);
-            } catch (\Exception $e) {
-                // do nothing
-            }
-            Content::resolveChildTypes($entities);
-        }
+        $this->initializeEntities();
     }
 
     /**
@@ -154,4 +140,26 @@ class CmsServiceProvider extends ServiceProvider
 
     //     return $paths;
     // }
+
+    protected function initializeEntities(): void
+    {
+
+        try {
+            if (!Schema::hasTable('entities')) {
+                return;
+            }
+            $cache = $this->app->make(CacheManager::class);
+            $entity_cache_key = 'cms.entities.cache';
+
+            $entities = $cache->get($entity_cache_key, collect());
+
+            if ($entities->isEmpty()) {
+                $entities = Entity::query()->withoutGlobalScopes()->get();
+                $cache->forever($entity_cache_key, $entities);
+                Content::resolveChildTypes($entities);
+            }
+        } catch (\Exception $e) {
+            report($e);
+        }
+    }
 }
