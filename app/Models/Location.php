@@ -17,7 +17,7 @@ class Location extends Model
         prepareElasticDocument as prepareElasticDocumentTrait;
     }
 
-    protected array $textOnlyFields = ['address', 'city', 'province', 'country', 'postcode'];
+    protected array $textOnlyFields = ['address', 'city', 'province', 'country', 'postcode', 'zone'];
 
     /**
      * The attributes that are mass assignable.
@@ -30,6 +30,7 @@ class Location extends Model
         'postcode',
         'latitude',
         'longitude',
+        'zone',
     ];
 
     protected $casts = [
@@ -43,8 +44,8 @@ class Location extends Model
     }
 
     public function prepareElasticDocument(): array
-	{
-		$document = $this->prepareElasticDocumentTrait();
+    {
+        $document = $this->prepareElasticDocumentTrait();
         $document['id'] = $this->id;
         $document['geocode'] = [
             'lat' => (float)$this->latitude,
@@ -52,22 +53,22 @@ class Location extends Model
         ];
         unset($document['latitude'], $document['longitude']);
 
-		return $document;
-	}
+        return $document;
+    }
 
     // protected function slugFields(): array
-	// {
-	// 	return ['name'];
-	// }
+    // {
+    // 	return ['name'];
+    // }
 
     public function getPathPrefix(): string
-	{
-		return '';
-	}
+    {
+        return '';
+    }
 
-	#[\Override]
-	public function getPath(): ?string
-	{
-		return '';
-	}
+    #[\Override]
+    public function getPath(): ?string
+    {
+        return '';
+    }
 }
