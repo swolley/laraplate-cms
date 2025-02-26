@@ -11,8 +11,11 @@ class Relatable extends Pivot
 {
 	protected $table = 'relatables';
 
-	protected $casts = [
-		'created_at' => 'immutable_datetime',
-		'updated_at' => 'datetime',
-	];
+	protected function casts()
+	{
+		return [
+			'created_at' => 'immutable_datetime',
+			'updated_at' => 'datetime',
+		];
+	}
 }

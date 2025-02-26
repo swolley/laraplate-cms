@@ -23,13 +23,16 @@ class Fieldable extends Pivot implements Sortable
 		'order_column' => 0,
 	];
 
-	protected $casts = [
-		'is_required' => 'boolean',
-		'order_column' => 'integer',
-		'default' => 'json',
-		'created_at' => 'immutable_datetime',
-		'updated_at' => 'datetime',
-	];
+	protected function casts()
+	{
+		return [
+			'is_required' => 'boolean',
+			'order_column' => 'integer',
+			'default' => 'json',
+			'created_at' => 'immutable_datetime',
+			'updated_at' => 'datetime',
+		];
+	}
 
 	protected $sortable = [
 		'order_column_name' => 'order_column',

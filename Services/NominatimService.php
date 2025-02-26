@@ -2,16 +2,17 @@
 
 namespace Modules\Cms\Services;
 
+use Modules\Cms\Models\Location;
+use Illuminate\Support\Facades\Log;
+use Modules\Core\Cache\CacheManager;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
-use Modules\Cms\Models\Location;
 use Modules\Cms\Services\Contracts\GeocodingServiceInterface;
 
 class NominatimService implements GeocodingServiceInterface
 {
     private const BASE_URL = 'https://nominatim.openstreetmap.org';
-    private const CACHE_TTL = 86400; // 24 hours
 
     public function search(
         string $query,
@@ -20,47 +21,87 @@ class NominatimService implements GeocodingServiceInterface
         ?string $country = null,
         int $limit = 1
     ): array|Location|null {
-        $cache_key = 'nominatim_' . md5($query . $city . $province . $country . $limit);
+        return RateLimiter::attempt(
+            'nominatim',
+            1,
+            function () use ($query, $city, $province, $country, $limit) {
+                try {
+                    // Genera una chiave cache più robusta
+                    $cache_key = $this->generateCacheKey($query, $city, $province, $country, $limit);
 
-        return Cache::remember($cache_key, self::CACHE_TTL, function () use ($query, $city, $province, $country, $limit) {
-            return RateLimiter::attempt(
-                'nominatim',
-                1,
-                function () use ($query, $city, $province, $country, $limit) {
-                    $params = [
-                        'q' => $query,
-                        'format' => 'json',
-                        'addressdetails' => 1,
-                        'limit' => $limit
-                    ];
-                    if ($city) {
-                        $params['city'] = $city;
-                    }
-                    if ($province) {
-                        $params['province'] = $province;
-                    }
-                    if ($country) {
-                        $params['country'] = $country;
+                    if (Cache::has($cache_key)) {
+                        return Cache::get($cache_key);
                     }
 
-                    $response = Http::withHeaders([
-                        'User-Agent' => config('app.name') . ' Application'
-                    ])->get(self::BASE_URL . '/search', $params);
+                    $result = $this->performSearch($query, $city, $province, $country, $limit);
 
-                    if (!$response->successful() || empty($response->json())) {
-                        return $limit > 1 ? [] : null;
+                    // Prova prima con i tag
+                    if (CacheManager::supportsTagging()) {
+                        Cache::tags('geocoding')->put($cache_key, $result, config('cache.duration.long'));
+                    } else {
+                        Cache::put($cache_key, $result, config('cache.duration.long'));
                     }
 
-                    $result = $response->json();
-                    if ($limit > 1) {
-                        return array_map(fn(array $result) => $this->getAddressDetails($result), $result);
-                    }
+                    return $result;
+                } catch (\Exception $e) {
+                    Log::error('Nominatim geocoding cache error: ' . $e->getMessage());
+                    // Se la cache fallisce, esegui comunque la ricerca
+                    return $result ?? null;
+                }
+            },
+            1
+        );
+    }
 
-                    return $this->getAddressDetails($result[0]);
-                },
-                1
-            );
-        });
+    private function generateCacheKey(
+        string $query,
+        ?string $city,
+        ?string $province,
+        ?string $country,
+        int $limit
+    ): string {
+        $params = compact('query', 'city', 'province', 'country', 'limit');
+        return md5(serialize(array_filter($params)));
+    }
+
+    private function performSearch(
+        string $query,
+        ?string $city,
+        ?string $province,
+        ?string $country,
+        int $limit
+    ): array|Location|null {
+        $params = [
+            'q' => $query,
+            'format' => 'json',
+            'addressdetails' => 1,
+            'limit' => $limit
+        ];
+
+        if ($city) {
+            $params['city'] = $city;
+        }
+        if ($province) {
+            $params['province'] = $province;
+        }
+        if ($country) {
+            $params['country'] = $country;
+        }
+
+        $response = Http::withHeaders([
+            'User-Agent' => config('app.name') . ' Application'
+        ])->get(self::BASE_URL . '/search', $params);
+
+        if (!$response->successful() || empty($response->json())) {
+            return $limit > 1 ? [] : null;
+        }
+
+        $result = $response->json();
+        if ($limit > 1) {
+            return array_map(fn(array $result) => $this->getAddressDetails($result), $result);
+        }
+
+        return $this->getAddressDetails($result[0]);
     }
 
     private function getAddressDetails(array $result): Location

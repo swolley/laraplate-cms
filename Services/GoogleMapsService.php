@@ -2,16 +2,17 @@
 
 namespace Modules\Cms\Services;
 
+use Modules\Cms\Models\Location;
+use Illuminate\Support\Facades\Log;
+use Modules\Core\Cache\CacheManager;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
-use Modules\Cms\Models\Location;
 use Modules\Cms\Services\Contracts\GeocodingServiceInterface;
 
 class GoogleMapsService implements GeocodingServiceInterface
 {
     private const BASE_URL = 'https://maps.googleapis.com/maps/api/geocode';
-    private const CACHE_TTL = 86400; // 24 hours
 
     public function __construct(
         private readonly string $api_key = ''
@@ -28,38 +29,77 @@ class GoogleMapsService implements GeocodingServiceInterface
         ?string $country = null,
         int $limit = 1
     ): array|Location|null {
-        $cache_key = 'gmaps_' . md5($query . $city . $province . $country . $limit);
+        return RateLimiter::attempt(
+            'google_maps',
+            1,
+            function () use ($query, $city, $province, $country, $limit) {
+                try {
+                    // Genera una chiave cache più robusta
+                    $cache_key = $this->generateCacheKey($query, $city, $province, $country, $limit);
 
-        return Cache::remember($cache_key, self::CACHE_TTL, function () use ($query, $city, $province, $country, $limit) {
-            return RateLimiter::attempt(
-                'google_maps',
-                1,
-                function () use ($query, $city, $province, $country, $limit) {
-                    // Costruiamo l'indirizzo completo
-                    $address_components = array_filter([$query, $city, $province, $country]);
-                    $full_address = implode(', ', $address_components);
-
-                    $response = Http::get(self::BASE_URL . '/json', [
-                        'address' => $full_address,
-                        'key' => $this->api_key,
-                        'limit' => $limit
-                    ]);
-
-                    if (!$response->successful() || $response->json()['status'] !== 'OK') {
-                        return $limit > 1 ? [] : null;
+                    if (Cache::has($cache_key)) {
+                        return Cache::get($cache_key);
                     }
 
-                    $results = $response->json()['results'];
+                    $result = $this->performSearch($query, $city, $province, $country, $limit);
 
-                    if ($limit > 1) {
-                        return array_map(fn(array $result) => $this->getAddressDetails($result), $results);
+                    // Prova prima con i tag
+                    if (CacheManager::supportsTagging()) {
+                        Cache::tags('geocoding')->put($cache_key, $result, config('cache.duration.long'));
+                    } else {
+                        Cache::put($cache_key, $result, config('cache.duration.long'));
                     }
 
-                    return $this->getAddressDetails($results[0]);
-                },
-                1
-            );
-        });
+                    return $result;
+                } catch (\Exception $e) {
+                    Log::error('Google Maps geocoding cache error: ' . $e->getMessage());
+                    // Se la cache fallisce, esegui comunque la ricerca
+                    return $result ?? null;
+                }
+            },
+            1
+        );
+    }
+
+    private function generateCacheKey(
+        string $query,
+        ?string $city,
+        ?string $province,
+        ?string $country,
+        int $limit
+    ): string {
+        $params = compact('query', 'city', 'province', 'country', 'limit');
+        return md5(serialize(array_filter($params)));
+    }
+
+    private function performSearch(
+        string $query,
+        ?string $city,
+        ?string $province,
+        ?string $country,
+        int $limit
+    ): array|Location|null {
+        // Costruiamo l'indirizzo completo
+        $address_components = array_filter([$query, $city, $province, $country]);
+        $full_address = implode(', ', $address_components);
+
+        $response = Http::get(self::BASE_URL . '/json', [
+            'address' => $full_address,
+            'key' => $this->api_key,
+            'limit' => $limit
+        ]);
+
+        if (!$response->successful() || $response->json()['status'] !== 'OK') {
+            return $limit > 1 ? [] : null;
+        }
+
+        $results = $response->json()['results'];
+
+        if ($limit > 1) {
+            return array_map(fn(array $result) => $this->getAddressDetails($result), $results);
+        }
+
+        return $this->getAddressDetails($results[0]);
     }
 
     private function getAddressDetails(array $result): Location

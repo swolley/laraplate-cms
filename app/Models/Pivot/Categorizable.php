@@ -11,8 +11,11 @@ class Categorizable extends Pivot
 {
 	protected $table = 'categorizables';
 
-	protected $casts = [
-		'created_at' => 'immutable_datetime',
-		'updated_at' => 'datetime',
-	];
+	protected function casts()
+	{
+		return [
+			'created_at' => 'immutable_datetime',
+			'updated_at' => 'datetime',
+		];
+	}
 }

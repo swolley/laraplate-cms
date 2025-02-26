@@ -33,10 +33,13 @@ class Location extends Model
         'zone',
     ];
 
-    protected $casts = [
-        'latitude' => 'float',
-        'longitude' => 'float',
-    ];
+    protected function casts()
+    {
+        return [
+            'latitude' => 'float',
+            'longitude' => 'float',
+        ];
+    }
 
     protected static function newFactory(): LocationFactory
     {
