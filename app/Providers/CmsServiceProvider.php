@@ -34,6 +34,7 @@ class CmsServiceProvider extends ServiceProvider
     /**
      * Register the service provider.
      */
+    #[\Override]
     public function register(): void
     {
         if (!Module::find('Core')/*->isEnabled()*/) {
@@ -89,6 +90,7 @@ class CmsServiceProvider extends ServiceProvider
     /**
      * Register config.
      */
+    #[\Override]
     protected function registerConfig(): void
     {
         parent::registerConfig();
@@ -124,6 +126,7 @@ class CmsServiceProvider extends ServiceProvider
     /**
      * Get the services provided by the provider.
      */
+    #[\Override]
     public function provides(): array
     {
         return [];

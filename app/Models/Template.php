@@ -31,6 +31,7 @@ class Template extends Model
         'deleted_at',
     ];
 
+    #[\Override]
     protected function casts(): array
     {
         return [

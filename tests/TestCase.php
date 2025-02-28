@@ -6,6 +6,7 @@ use Tests\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -14,6 +15,7 @@ abstract class TestCase extends BaseTestCase
         $this->withoutExceptionHandling();
     }
 
+    #[\Override]
     protected function getPackageProviders($app): array
     {
         return [

@@ -70,6 +70,7 @@ class Category extends Model implements Sortable
         'deleted_at',
     ];
 
+    #[\Override]
     protected function casts(): array
     {
         return [
@@ -84,6 +85,7 @@ class Category extends Model implements Sortable
         ];
     }
 
+    #[\Override]
     protected static function booted(): void
     {
         static::saving(function (Category $category) {
@@ -126,6 +128,7 @@ class Category extends Model implements Sortable
         return $rules;
     }
 
+    #[\Override]
     public function getPath(): ?string
     {
         $ancestors = $this->ancestors()->pluck('slug');

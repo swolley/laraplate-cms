@@ -9,37 +9,32 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 trait HasPath
 {
 	/** @class-property string|null $slug */
-
-	/**
-	 * get prefix for full path
-	 * @return string 
-	 */
-	protected function getPathPrefix(): string
+ /**
+  * get prefix for full path
+  */
+ protected function getPathPrefix(): string
 	{
 		return $this->getTable();
 	}
 
 	/**
-	 * get suffix for full path
-	 * @return string|null 
-	 */
-	protected function getPathSuffix(): ?string
+  * get suffix for full path
+  */
+ protected function getPathSuffix(): ?string
 	{
 		$key = $this->getKey();
 		return $key ? (string) $key : null;
 	}
 
 	/**
-	 * get path for full path
-	 * @return string|null 
-	 */
-	abstract public function getPath(): ?string;
+  * get path for full path
+  */
+ abstract public function getPath(): ?string;
 
 	/**
-	 * get full path
-	 * @return string 
-	 */
-	public function getFullPath(): string
+  * get full path
+  */
+ public function getFullPath(): string
 	{
 		$suffix = $this->getPathSuffix();
 		$prefix = $this->getPathPrefix();

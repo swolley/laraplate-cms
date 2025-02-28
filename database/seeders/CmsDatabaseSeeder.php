@@ -203,7 +203,7 @@ class CmsDatabaseSeeder extends Seeder
     {
         return match ($field->type) {
             FieldType::SELECT && isset($field->options->multiple) && $field->options->multiple => [],
-            FieldType::SWITCH => $is_required ? true : false,
+            FieldType::SWITCH => $is_required,
             FieldType::CHECKBOX => [],
             default => null,
         };

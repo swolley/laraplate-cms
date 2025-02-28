@@ -45,6 +45,7 @@ class CreateContentModelCommand extends Command
     /**
      * Get the console command arguments.
      */
+    #[\Override]
     protected function getArguments(): array
     {
         return [

@@ -10,11 +10,8 @@ use Modules\Cms\Services\Contracts\GeocodingServiceInterface;
 
 class LocationsController extends Controller
 {
-    private readonly GeocodingServiceInterface $geocoding_service;
-
-    public function __construct(GeocodingServiceInterface $geocoding_service)
+    public function __construct(private readonly GeocodingServiceInterface $geocoding_service)
     {
-        $this->geocoding_service = $geocoding_service;
     }
 
     public function geocode(GeocodeRequest $request): JsonResponse

@@ -114,7 +114,8 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 	// TODO: capire come estrarre i contenuti dinamici per l'embedding
 	// protected $embed = ['components'];
 
-	protected function casts(): array
+	#[\Override]
+ protected function casts(): array
 	{
 		return [
 			'components' => 'json',
@@ -128,23 +129,22 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 
 	protected function getChildTypes(): array
 	{
-		if (empty(static::$childTypes)) {
+		if (static::$childTypes === []) {
 			static::resolveChildTypes();
 		}
 		return static::$childTypes;
 	}
 
 	/**
-	 * 
-	 * @param Collection<Entity> $entities 
-	 * @return void 
-	 */
-	protected static function resolveChildTypes(?Collection $entities = null): void
+  *
+  * @param Collection<Entity> $entities
+  */
+ protected static function resolveChildTypes(?Collection $entities = null): void
 	{
 		static::$childTypes = [];
 		static::$all_presets = null;
 
-		if ($entities === null) {
+		if (!$entities instanceof \Illuminate\Support\Collection) {
 			$entities = Entity::query()->withoutGlobalScopes()->get();
 			Cache::forever((new Entity())->getCacheKey(), $entities);
 		}
@@ -163,22 +163,22 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 
 	public static function makeFromEntity(Entity|string|int $entity): static
 	{
-		if (static::$all_presets === null) {
+		if (!static::$all_presets instanceof \Illuminate\Support\Collection) {
 			static::resolveChildTypes();
 		}
 
 		if (is_int($entity)) {
-			$entity_id = array_key_exists($entity, static::$childTypes) ? $entity : null;
-		} else if (is_string($entity)) {
-			$entity_id = array_key_first(array_filter(static::$childTypes, fn($class) => Str::endsWith($class, '\\' . Str::studly($entity))));
-		} else if (is_object($entity) && array_key_exists($entity->id, static::$childTypes)) {
-			$entity_id = $entity->id;
-		}
+      $entity_id = array_key_exists($entity, static::$childTypes) ? $entity : null;
+  } elseif (is_string($entity)) {
+      $entity_id = array_key_first(array_filter(static::$childTypes, fn($class) => Str::endsWith($class, '\\' . Str::studly($entity))));
+  } elseif (is_object($entity) && array_key_exists($entity->id, static::$childTypes)) {
+      $entity_id = $entity->id;
+  }
 		if (!$entity_id) {
 			throw new \InvalidArgumentException("Invalid entity: " . $entity);
 		}
 
-		if (static::$all_presets === null) {
+		if (!static::$all_presets instanceof \Illuminate\Support\Collection) {
 			static::$all_presets = Cache::rememberForever(
 				(new Preset())->getCacheKey(),
 				fn() => Preset::withoutGlobalScopes()->get()
@@ -200,12 +200,10 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 		if (isset($content['components'])) {
 			$components = $content['components'];
 			unset($content['components']);
-			$content = array_merge($content, $components);
-		} else {
-			$content = array_merge($content, $this->getComponentsAttribute());
+			return array_merge($content, $components);
 		}
 
-		return $content;
+		return array_merge($content, $this->getComponentsAttribute());
 	}
 
 	#[\Override]
@@ -233,14 +231,12 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         $factory = ContentFactory::new();
 		// this if ensure that the factory is created for the correct derived entity
 		if (static::class !== self::class) {
-			$factory->state(function (array $attributes) {
-				return [
+			$factory->state(fn(array $attributes) => [
 					'entity_id' => Entity::query()
 						->where('name', strtolower(class_basename(static::class)))
 						->firstOrFail()
 						->id
-				];
-			});
+				]);
 		}
 
 		return $factory;
@@ -321,7 +317,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 
 	protected function getComponentsAttribute(): array
 	{
-		return $this->mergeComponentsValues(json_decode($this->attributes['components'], true));
+		return $this->mergeComponentsValues(json_decode((string) $this->attributes['components'], true));
 	}
 
 	protected function setComponentsAttribute(array $components): void
@@ -331,9 +327,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 
 	private function mergeComponentsValues(array $components): array
 	{
-		return $this->fields()->mapWithKeys(function (Field $field) use ($components) {
-			return [$field->name => data_get($components, $field->name) ?? $field->default];
-		})->toArray();
+		return $this->fields()->mapWithKeys(fn(Field $field) => [$field->name => data_get($components, $field->name) ?? $field->default])->toArray();
 	}
 
 	#endregion
@@ -404,11 +398,10 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 	}
 
 	/**
-	 * The related contents that belong to the content.
-	 * @param bool|null $withInverse 
-	 * @return BelongsToMany<Content>
-	 */
-	public function related(?bool $withInverse = false): BelongsToMany
+  * The related contents that belong to the content.
+  * @return BelongsToMany<Content>
+  */
+ public function related(?bool $withInverse = false): BelongsToMany
 	{	
 		$relation = $this->belongsToMany(Content::class, 'relatables')->using(Relatable::class)->withTimestamps();
 		if ($withInverse) {
@@ -437,7 +430,8 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 		return $document;
 	}
 
-	public function registerMediaCollections(): void
+	#[\Override]
+ public function registerMediaCollections(): void
 	{
 		$this->addMediaCollection('cover')->singleFile();
 		$this->addMediaCollection('images');
@@ -447,17 +441,14 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 	}
 
 
-	public function registerMediaConversions(?Media $media = null): void
+	#[\Override]
+ public function registerMediaConversions(?Media $media = null): void
 	{
-		self::commonThumbSizes(
-			$this->addMediaConversion('thumb')->performOnCollections('images', 'cover')
-		);
-		self::commonThumbSizes(
-			$this->addMediaConversion('video_thumb')->performOnCollections('videos')->extractVideoFrameAtSecond(2)
-		);
+		$this->commonThumbSizes($this->addMediaConversion('thumb')->performOnCollections('images', 'cover'));
+		$this->commonThumbSizes($this->addMediaConversion('video_thumb')->performOnCollections('videos')->extractVideoFrameAtSecond(2));
 	}
 
-	private static function commonThumbSizes(Conversion $conversion): void
+	private function commonThumbSizes(Conversion $conversion): void
 	{
 		$conversion->width(300)
 			->height(300)
@@ -479,7 +470,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 			if (isset($field->options->max)) {
 				$rule .= '|max:' . $field->options->max;
 			}
-			$fields[$field->name] = trim($rule, '|');
+			$fields[$field->name] = trim((string) $rule, '|');
 		}
 
 		$rules = $this->getRulesTrait();

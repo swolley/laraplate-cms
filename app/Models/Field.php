@@ -44,6 +44,7 @@ class Field extends Model
         'is_active' => true,
     ];
 
+    #[\Override]
     protected function casts(): array
     {
         return [
@@ -72,9 +73,10 @@ class Field extends Model
         return $this->belongsToMany(Preset::class, 'fieldables')->using(Fieldable::class)->withTimestamps()->withPivot(['order_column', 'is_required', 'default']);
     }
 
+    #[\Override]
     public function __get($key)
     {
-        if (isset($this->pivot) && isset($this->pivot->{$key})) {
+        if (property_exists($this, 'pivot') && $this->pivot !== null && isset($this->pivot->{$key})) {
             return $this->pivot->{$key};
         }
 
@@ -88,7 +90,7 @@ class Field extends Model
         //     parent::__set($key, $value);
         //     return;
         // }
-        if (isset($this->pivot) && array_key_exists($key, $this->pivot->getAttributes())) {
+        if (property_exists($this, 'pivot') && $this->pivot !== null && array_key_exists($key, $this->pivot->getAttributes())) {
             data_set($this->pivot, $key, $value);
             return;
         }
@@ -103,7 +105,7 @@ class Field extends Model
             $pivot = $field['pivot'];
             unset($field['pivot']);
             $field = array_merge($field, $pivot);
-        } else if (isset($this->pivot)) {
+        } elseif (property_exists($this, 'pivot') && $this->pivot !== null) {
             $field = array_merge($field, $this->pivot->toArray());
         }
 

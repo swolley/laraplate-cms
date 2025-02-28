@@ -43,6 +43,7 @@ class Author extends Model
 
     protected $tempUser;
 
+    #[\Override]
     protected function casts(): array
     {
         return [
@@ -106,10 +107,10 @@ class Author extends Model
                 throw new UnauthorizedException("User cannot insert $entity");
             }
 
-            if (!$this->user && !isset($this->tempUser) && $user_can_insert) {
+            if (!$this->user && $this->tempUser === null && $user_can_insert) {
                 $this->tempUser = new User();
                 $this->tempUser->{$key} = $value;
-            } else if ($user_can_update) {
+            } elseif ($user_can_update) {
                 $this->user->{$key} = $value;
             }
             return;
@@ -121,12 +122,12 @@ class Author extends Model
     #[\Override]
     public function save(array $options = [])
     {
-        if (isset($this->tempUser) && $this->tempUser->isDirty()) {
+        if ($this->tempUser !== null && $this->tempUser->isDirty()) {
             $this->tempUser->save();
             $this->user_id = $this->tempUser->id;
             unset($this->tempUser);
             $this->load('user');
-        } else if ($this->user && $this->user->isDirty()) {
+        } elseif ($this->user && $this->user->isDirty()) {
             $this->user->save();
         }
         parent::save($options);

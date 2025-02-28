@@ -19,22 +19,21 @@ class ContentsController extends CrudController
 {
     /**
      * Get contents by tag
-     * 
-     * @param ListRequest $request 
+     *
      * @param string $relation relation name
      * @param string $value relation value
      * @param string $entity entity name or slug
-     * @return Response 
-     * @throws BadRequestException 
-     * @throws InvalidArgumentException 
-     * @throws BindingResolutionException 
-     * @throws Throwable 
-     * @throws UnexpectedValueException 
+     * @return Response
+     * @throws BadRequestException
+     * @throws InvalidArgumentException
+     * @throws BindingResolutionException
+     * @throws Throwable
+     * @throws UnexpectedValueException
      */
     public function getContentsByRelation(ListRequest $request, string $relation, string $value, string $entity)
     {
         $filters = $this->createCommonFilters($request, $relation, $value);
-        
+
         if ($entity !== 'contents') {
             $entity = Str::singular($entity);
             $filters['filters'][] = [
@@ -58,16 +57,17 @@ class ContentsController extends CrudController
             'entity' => 'contents',
             'filters' => $filters,
         ]);
-        
+
         return $this->list($request);
     }
 
     private function createCommonFilters(ListRequest $request, string $relation, string $value): array
     {
-        $filters = $request->get('filters');
         $filters = [
-            'operator' => WhereClause::AND->value,
-            'filters' => $filters ?? [],
+            [
+                'operator' => WhereClause::AND->value,
+                'filters' => $request->get('filters') ?? [],
+            ],
         ];
 
         if (!method_exists(Content::class, $relation)) {
@@ -77,23 +77,19 @@ class ContentsController extends CrudController
             throw new BadRequestException('Invalid relation');
         }
 
-        $filters = [
-            'operator' => WhereClause::AND->value,
+        $filters[0]['filters'][] = [
+
+            'operator' => WhereClause::OR->value,
             'filters' => [
                 [
-                    'operator' => WhereClause::OR->value,
-                    'filters' => [
-                        [
-                            'property' => "contents.{$relation}.name",
-                            'value' => $value,
-                            'operator' => FilterOperator::EQUALS->value,
-                        ],
-                        [
-                            'property' => "contents.{$relation}.slug",
-                            'value' => $value,
-                            'operator' => FilterOperator::EQUALS->value,
-                        ],
-                    ],
+                    'property' => "contents.{$relation}.name",
+                    'value' => $value,
+                    'operator' => FilterOperator::EQUALS->value,
+                ],
+                [
+                    'property' => "contents.{$relation}.slug",
+                    'value' => $value,
+                    'operator' => FilterOperator::EQUALS->value,
                 ],
             ],
         ];

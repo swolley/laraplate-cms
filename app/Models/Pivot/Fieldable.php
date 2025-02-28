@@ -23,7 +23,8 @@ class Fieldable extends Pivot implements Sortable
 		'order_column' => 0,
 	];
 
-	protected function casts()
+	#[\Override]
+ protected function casts()
 	{
 		return [
 			'is_required' => 'boolean',

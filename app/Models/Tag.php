@@ -41,6 +41,7 @@ class Tag extends Model implements Sortable
         'deleted_at',
     ];
 
+    #[\Override]
     protected function casts(): array
     {
         return [
@@ -68,6 +69,7 @@ class Tag extends Model implements Sortable
         return $rules;
     }
 
+    #[\Override]
     public function getPath(): ?string
     {
         return null;
@@ -84,7 +86,7 @@ class Tag extends Model implements Sortable
 
     public function scopeContaining(Builder $query, string $name, $locale = null): Builder
     {
-        $locale = $locale ?? static::getLocale();
+        $locale ?? static::getLocale();
 
         return $query->whereRaw('lower(' . $this->getQuery()->getGrammar()->wrap('name') . ') like ?', ['%' . mb_strtolower($name) . '%']);
     }
@@ -99,7 +101,7 @@ class Tag extends Model implements Sortable
                 return $value;
             }
 
-            return static::findOrCreateFromString($value, $type, $locale);
+            return static::findOrCreateFromString($value, $type);
         });
 
         return is_string($values) ? $tags->first() : $tags;
@@ -112,7 +114,7 @@ class Tag extends Model implements Sortable
 
     public static function findFromString(string $name, ?string $type = null)
     {
-        $locale = $locale ?? static::getLocale();
+        $locale ?? static::getLocale();
 
         return static::query()
             ->where('type', $type)
@@ -136,7 +138,7 @@ class Tag extends Model implements Sortable
         $tag = static::findFromString($name, $type);
 
         if (! $tag) {
-            $tag = static::create([
+            return static::create([
                 'name' => $name,
                 'type' => $type,
             ]);
@@ -150,6 +152,7 @@ class Tag extends Model implements Sortable
         return static::groupBy('type')->pluck('type');
     }
 
+    #[\Override]
     public function setAttribute($key, $value)
     {
         return parent::setAttribute($key, $value);

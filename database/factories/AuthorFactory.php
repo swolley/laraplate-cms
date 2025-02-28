@@ -14,6 +14,7 @@ class AuthorFactory extends Factory
     /**
      * Define the model's default state.
      */
+    #[\Override]
     public function definition(): array
     {
         $user = fake()->boolean() ? user_class()::inRandomOrder()->first() : null;

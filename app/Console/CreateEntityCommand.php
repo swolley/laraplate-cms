@@ -51,7 +51,9 @@ class CreateEntityCommand extends Command
                 $entity->name = $this->argument('entity');
             }
             foreach ($fillables as $attribute) {
-                if ($attribute === 'name' && $entity->name) continue;
+                if ($attribute === 'name' && $entity->name) {
+                    continue;
+                }
                 $entity->{$attribute} = text(ucfirst($attribute), '', $attribute === 'slug' ? Str::slug($entity->name) : '', true, fn(string $value) => $this->validationCallback($attribute, $value, $validations));
             }
 
@@ -103,11 +105,11 @@ class CreateEntityCommand extends Command
         );
         if ($default === 'null') {
             $default = null;
-        } else if (preg_match("/\d+/", $default)) {
+        } elseif (preg_match("/\d+/", $default)) {
             $default = Str::contains($default, '.') ? (float) $default : (int) $default;
-        } else if (in_array($default, ['true', 'false'])) {
+        } elseif (in_array($default, ['true', 'false'])) {
             $default = $default === 'true';
-        } else if (preg_match('/^\[.*\]$/', $default)) {
+        } elseif (preg_match('/^\[.*\]$/', $default)) {
             $default = json_decode($default);
         }
 
@@ -117,6 +119,7 @@ class CreateEntityCommand extends Command
     /**
      * Get the console command arguments.
      */
+    #[\Override]
     protected function getArguments(): array
     {
         return [
@@ -127,6 +130,7 @@ class CreateEntityCommand extends Command
     /**
      * Get the console command options.
      */
+    #[\Override]
     protected function getOptions(): array
     {
         return [

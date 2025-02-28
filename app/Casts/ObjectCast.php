@@ -10,10 +10,11 @@ class ObjectCast implements CastsInboundAttributes
 {
 	public function get($model, $key, $value, $attributes): object
 	{
-		return json_decode($value) ?? new \stdClass();
+		return json_decode((string) $value) ?? new \stdClass();
 	}
 
-	public function set($model, $key, $value, $attributes): string
+	#[\Override]
+ public function set($model, $key, $value, $attributes): string
 	{
 		return json_encode($value);
 	}

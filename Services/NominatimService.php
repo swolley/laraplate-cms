@@ -12,8 +12,9 @@ use Modules\Cms\Services\Contracts\GeocodingServiceInterface;
 
 class NominatimService implements GeocodingServiceInterface
 {
-    private const BASE_URL = 'https://nominatim.openstreetmap.org';
+    private const string BASE_URL = 'https://nominatim.openstreetmap.org';
 
+    #[\Override]
     public function search(
         string $query,
         ?string $city = null,
@@ -60,7 +61,7 @@ class NominatimService implements GeocodingServiceInterface
         ?string $country,
         int $limit
     ): string {
-        $params = compact('query', 'city', 'province', 'country', 'limit');
+        $params = ['query' => $query, 'city' => $city, 'province' => $province, 'country' => $country, 'limit' => $limit];
         return md5(serialize(array_filter($params)));
     }
 

@@ -43,6 +43,7 @@ class Entity extends Model
         'is_active' => true,
     ];
 
+    #[\Override]
     protected function casts(): array
     {
         return [
@@ -58,6 +59,7 @@ class Entity extends Model
         return EntityFactory::new();
     }
 
+    #[\Override]
     protected static function boot()
     {
         parent::boot();
@@ -69,6 +71,7 @@ class Entity extends Model
         });
     }
 
+    #[\Override]
     protected static function booted(): void
     {
         static::saved(function (Entity $entity) {
@@ -113,6 +116,7 @@ class Entity extends Model
         return $rules;
     }
 
+    #[\Override]
     public function getPath(): ?string
     {
         return null;

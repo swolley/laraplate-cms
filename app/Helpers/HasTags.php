@@ -239,14 +239,14 @@ trait HasTags
 
         // Compare to the list of ids given to find the tags to remove
         $detach = array_diff($current, $ids);
-        if ($detaching && count($detach) > 0) {
+        if ($detaching && $detach !== []) {
             $this->tags()->detach($detach);
             $isUpdated = true;
         }
 
         // Attach any new ids
         $attach = array_unique(array_diff($ids, $current));
-        if (count($attach) > 0) {
+        if ($attach !== []) {
             $this->tags()->attach($attach, []);
 
             $isUpdated = true;
@@ -264,8 +264,6 @@ trait HasTags
     {
         return $this->tags
             ->when($type !== null, fn ($query) => $query->where('type', $type))
-            ->contains(function ($modelTag) use ($tag) {
-                return $modelTag->name === $tag || $modelTag->id === $tag;
-            });
+            ->contains(fn($modelTag) => $modelTag->name === $tag || $modelTag->id === $tag);
     }
 }

@@ -22,6 +22,7 @@ class ContentFactory extends Factory
     /**
      * Define the model's default state.
      */
+    #[\Override]
     public function definition(): array
     {
         $entity = Entity::inRandomOrder()->first();
@@ -35,6 +36,7 @@ class ContentFactory extends Factory
         ];
     }
     
+    #[\Override]
     public function configure(): static
     {
         return $this->afterMaking(function (Content $content) {
@@ -43,32 +45,25 @@ class ContentFactory extends Factory
             $content->components = $preset->fields->mapWithKeys(function (Field $field) {
                 $value = $field->default;
                 if ($field->required || fake()->boolean()) {
-                    switch ($field->type) {
-                        case FieldType::TEXTAREA:
-                            $value = fake()->paragraphs(fake()->numberBetween(1, 3), true);
-                            break;
-                        case FieldType::TEXT:
-                            $value = fake()->text(fake()->numberBetween(100, 255));
-                            break;
-                        case FieldType::NUMBER:
-                            $value = fake()->randomNumber();
-                            break;
-                        default:
-                            $value = $field->default;
-                    }
+                    $value = match ($field->type) {
+                        FieldType::TEXTAREA => fake()->paragraphs(fake()->numberBetween(1, 3), true),
+                        FieldType::TEXT => fake()->text(fake()->numberBetween(100, 255)),
+                        FieldType::NUMBER => fake()->randomNumber(),
+                        default => $field->default,
+                    };
                 }
     
                 return [$field->name => $value];
             })->toArray();
         })->afterCreating(function (Content $content) {
             $authors = Author::inRandomOrder()->limit(fake()->numberBetween(1, 3))->get();
-            $content->authors()->attach($authors->isNotEmpty() ? $authors->pluck('id') : Author::factory()->count(rand(1, 3))->create());
+            $content->authors()->attach($authors->isNotEmpty() ? $authors->pluck('id') : Author::factory()->count(random_int(1, 3))->create());
 
             $categories = Category::inRandomOrder()->limit(fake()->numberBetween(1, 2))->get();
-            $content->categories()->attach($categories->isNotEmpty() ? $categories->pluck('id') : Category::factory()->count(rand(1, 3))->create());
+            $content->categories()->attach($categories->isNotEmpty() ? $categories->pluck('id') : Category::factory()->count(random_int(1, 3))->create());
             
             $tags = Tag::inRandomOrder()->limit(fake()->numberBetween(1, 5))->get();
-            $content->tags()->attach($tags->isNotEmpty() ? $tags->pluck('id') : Tag::factory()->count(rand(1, 3))->create());
+            $content->tags()->attach($tags->isNotEmpty() ? $tags->pluck('id') : Tag::factory()->count(random_int(1, 3))->create());
 
             $content->load('authors');
         });

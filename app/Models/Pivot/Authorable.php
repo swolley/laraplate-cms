@@ -11,6 +11,7 @@ class Authorable extends Pivot
 {
     protected $table = 'authorables';
 
+    #[\Override]
     protected function casts()
     {
         return [

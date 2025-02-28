@@ -33,6 +33,7 @@ class Location extends Model
         'zone',
     ];
 
+    #[\Override]
     protected function casts()
     {
         return [

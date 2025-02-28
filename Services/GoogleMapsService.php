@@ -12,16 +12,17 @@ use Modules\Cms\Services\Contracts\GeocodingServiceInterface;
 
 class GoogleMapsService implements GeocodingServiceInterface
 {
-    private const BASE_URL = 'https://maps.googleapis.com/maps/api/geocode';
+    private const string BASE_URL = 'https://maps.googleapis.com/maps/api/geocode';
 
     public function __construct(
         private readonly string $api_key = ''
     ) {
-        if (empty($this->api_key)) {
+        if ($this->api_key === '' || $this->api_key === '0') {
             $this->api_key = config('services.geocoding.api_key');
         }
     }
 
+    #[\Override]
     public function search(
         string $query,
         ?string $city = null,
@@ -68,7 +69,7 @@ class GoogleMapsService implements GeocodingServiceInterface
         ?string $country,
         int $limit
     ): string {
-        $params = compact('query', 'city', 'province', 'country', 'limit');
+        $params = ['query' => $query, 'city' => $city, 'province' => $province, 'country' => $country, 'limit' => $limit];
         return md5(serialize(array_filter($params)));
     }
 

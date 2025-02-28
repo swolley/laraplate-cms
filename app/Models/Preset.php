@@ -51,6 +51,7 @@ class Preset extends Model
         'is_active' => true,
     ];
 
+    #[\Override]
     protected function casts(): array
     {
         return [
@@ -78,6 +79,7 @@ class Preset extends Model
     //     });
     // }
 
+    #[\Override]
     protected static function booted(): void
     {
         static::saved(function (Preset $preset) {
