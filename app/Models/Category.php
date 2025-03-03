@@ -8,7 +8,6 @@ use Awobaz\Compoships\Compoships;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
 use Spatie\EloquentSortable\Sortable;
-use Modules\Core\Helpers\HasApprovals;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Core\Helpers\HasValidations;
 use Spatie\EloquentSortable\SortableTrait;
@@ -25,16 +24,16 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  */
 class Category extends Model implements Sortable
 {
-    use HasFactory, 
-        HasRecursiveRelationships, 
-        SoftDeletes, 
-        HasValidity, 
-        /*HasApprovals,*/ 
-        HasVersions, 
-        SortableTrait, 
-        HasSlug, 
-        HasPath, 
-        HasValidations, 
+    use HasFactory,
+        HasRecursiveRelationships,
+        SoftDeletes,
+        HasValidity,
+        /*HasApprovals,*/
+        HasVersions,
+        SortableTrait,
+        HasSlug,
+        HasPath,
+        HasValidations,
         Compoships {
         getRules as protected getRulesTrait;
         getFullPath as protected getFullPathTrait;
