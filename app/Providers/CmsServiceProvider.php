@@ -7,10 +7,14 @@ use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Content;
 use Illuminate\Cache\CacheManager;
 use Nwidart\Modules\Facades\Module;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Schema;
 use Nwidart\Modules\Traits\PathNamespace;
 use Modules\Core\Overrides\ServiceProvider;
 
+/**
+ * @property \Illuminate\Foundation\Application $app
+ */
 class CmsServiceProvider extends ServiceProvider
 {
     use PathNamespace;
@@ -27,7 +31,7 @@ class CmsServiceProvider extends ServiceProvider
         $this->registerCommands();
         $this->registerCommandSchedules();
         $this->registerTranslations();
-        // $this->registerViews();
+        $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
     }
 
@@ -37,7 +41,7 @@ class CmsServiceProvider extends ServiceProvider
     #[\Override]
     public function register(): void
     {
-        if (!Module::find('Core')/*->isEnabled()*/) {
+        if (!Module::find('Core')) {
             throw new \Exception('Core is required and must be enabled');
         }
 
@@ -88,29 +92,20 @@ class CmsServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register config.
-     */
-    #[\Override]
-    protected function registerConfig(): void
-    {
-        parent::registerConfig();
-    }
-
-    /**
      * Register views.
      */
-    // public function registerViews(): void
-    // {
-    //     $viewPath = resource_path('views/modules/' . $this->nameLower);
-    //     $sourcePath = module_path($this->name, 'resources/views');
+    public function registerViews(): void
+    {
+        $viewPath = resource_path('views/modules/' . $this->nameLower);
+        $sourcePath = module_path($this->name, 'resources/views');
 
-    //     $this->publishes([$sourcePath => $viewPath], ['views', $this->nameLower . '-module-views']);
+        $this->publishes([$sourcePath => $viewPath], ['views', $this->nameLower . '-module-views']);
 
-    //     $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePath]), $this->nameLower);
+        $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePath]), $this->nameLower);
 
-    //     $componentNamespace = $this->module_namespace($this->name, $this->app_path(config('modules.paths.generator.component-class.path')));
-    //     Blade::componentNamespace($componentNamespace, $this->nameLower);
-    // }
+        $componentNamespace = $this->module_namespace($this->name, $this->app_path(config('modules.paths.generator.component-class.path')));
+        Blade::componentNamespace($componentNamespace, $this->nameLower);
+    }
 
     private function inspectFolderCommands(string $commandsSubpath)
     {
@@ -126,23 +121,22 @@ class CmsServiceProvider extends ServiceProvider
     /**
      * Get the services provided by the provider.
      */
-    #[\Override]
     public function provides(): array
     {
         return [];
     }
 
-    // private function getPublishableViewPaths(): array
-    // {
-    //     $paths = [];
-    //     foreach (config('view.paths') as $path) {
-    //         if (is_dir($path . '/modules/' . $this->nameLower)) {
-    //             $paths[] = $path . '/modules/' . $this->nameLower;
-    //         }
-    //     }
+    private function getPublishableViewPaths(): array
+    {
+        $paths = [];
+        foreach (config('view.paths') as $path) {
+            if (is_dir($path . '/modules/' . $this->nameLower)) {
+                $paths[] = $path . '/modules/' . $this->nameLower;
+            }
+        }
 
-    //     return $paths;
-    // }
+        return $paths;
+    }
 
     protected function initializeEntities(): void
     {

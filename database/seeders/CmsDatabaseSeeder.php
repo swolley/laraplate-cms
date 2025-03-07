@@ -9,7 +9,6 @@ use Modules\Core\Models\Role;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Preset;
 use Modules\Cms\Casts\FieldType;
-use Illuminate\Support\Facades\DB;
 use Modules\Core\Casts\ActionEnum;
 use Modules\Core\Models\Permission;
 use Modules\Core\Overrides\Seeder;
