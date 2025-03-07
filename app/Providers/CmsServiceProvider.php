@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Schema;
 use Nwidart\Modules\Traits\PathNamespace;
 use Modules\Core\Overrides\ServiceProvider;
+use Modules\Cms\Providers\GeocodingServiceProvider;
 
 /**
  * @property \Illuminate\Foundation\Application $app
@@ -49,6 +50,7 @@ class CmsServiceProvider extends ServiceProvider
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+        $this->app->register(GeocodingServiceProvider::class);
 
         $this->initializeEntities();
     }
