@@ -8,14 +8,14 @@ use Spatie\Image\Enums\Fit;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
-use Spatie\MediaLibrary\HasMedia;
+use Modules\Cms\Helpers\HasMedia;
 use Illuminate\Support\Collection;
 use Modules\Core\Cache\Searchable;
 use Illuminate\Support\Facades\Cache;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
 use Spatie\EloquentSortable\Sortable;
-use Modules\Core\Helpers\HasApprovals;
+// use Modules\Core\Helpers\HasApprovals;
 use Modules\Cms\Models\Pivot\Relatable;
 use Modules\Cms\Models\Pivot\Authorable;
 use Modules\Core\Helpers\HasValidations;
@@ -24,7 +24,6 @@ use Modules\Core\Locking\Traits\HasLocks;
 use Spatie\EloquentSortable\SortableTrait;
 use Modules\Cms\Models\Pivot\Categorizable;
 use Modules\Core\Overrides\ComposhipsModel;
-use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Core\Locking\HasOptimisticLocking;
 use Spatie\MediaLibrary\Conversions\Conversion;
@@ -38,23 +37,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 /**
  * @mixin IdeHelperContent
  */
-class Content extends ComposhipsModel implements HasMedia, Sortable
+class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, Sortable
 {
-	use HasFactory, 
-		SoftDeletes, 
-		HasTags, 
-		HasValidity, 
-		HasLocks, 
-		HasOptimisticLocking, 
-		HasVersions, 
-		HasChildren, 
-		SortableTrait, 
-		InteractsWithMedia, 
-		HasSlug, 
-		HasPath, 
-		HasValidations, 
+	use HasFactory,
+		SoftDeletes,
+		HasTags,
+		HasValidity,
+		HasLocks,
+		HasOptimisticLocking,
+		HasVersions,
+		HasChildren,
+		SortableTrait,
+		HasMedia,
+		HasSlug,
+		HasPath,
+		HasValidations,
 		Searchable
-		/*, HasApprovals*/ {
+	/*, HasApprovals*/ {
 		prepareElasticDocument as protected prepareElasticDocumentTrait;
 		getRules as protected getRulesTrait;
 		HasChildren::hasMany as protected hasChildrenHasMany;
@@ -63,15 +62,15 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 	}
 
 	protected $fillable = [
-		'valid_from', 
-		'valid_to', 
+		'valid_from',
+		'valid_to',
 		'preset_id',
 		'entity_id',
 		'components',
 	];
 
 	protected $with = [
-		'entity', 
+		'entity',
 		// 'authors', 
 		// 'categories', 
 		// 'categories.ancestors', 
@@ -79,15 +78,15 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 	];
 
 	protected $hidden = [
-		'preset_id', 
-		'entity_id', 
-		'created_at', 
-		'updated_at', 
-		'deleted_at', 
-		'entity', 
-		'components', 
-		'preset', 
-		'withCaching', 
+		'preset_id',
+		'entity_id',
+		'created_at',
+		'updated_at',
+		'deleted_at',
+		'entity',
+		'components',
+		'preset',
+		'withCaching',
 		'withoutObjectCaching',
 	];
 
@@ -103,7 +102,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 	];
 
 	protected $appends = [
-		'cover', 
+		'cover',
 		'path',
 	];
 
@@ -115,7 +114,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 	// protected $embed = ['components'];
 
 	#[\Override]
- protected function casts(): array
+	protected function casts(): array
 	{
 		return [
 			'components' => 'json',
@@ -136,10 +135,10 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 	}
 
 	/**
-  *
-  * @param Collection<Entity> $entities
-  */
- protected static function resolveChildTypes(?Collection $entities = null): void
+	 *
+	 * @param Collection<Entity> $entities
+	 */
+	protected static function resolveChildTypes(?Collection $entities = null): void
 	{
 		static::$childTypes = [];
 		static::$all_presets = null;
@@ -168,12 +167,12 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 		}
 
 		if (is_int($entity)) {
-      $entity_id = array_key_exists($entity, static::$childTypes) ? $entity : null;
-  } elseif (is_string($entity)) {
-      $entity_id = array_key_first(array_filter(static::$childTypes, fn($class) => Str::endsWith($class, '\\' . Str::studly($entity))));
-  } elseif (is_object($entity) && array_key_exists($entity->id, static::$childTypes)) {
-      $entity_id = $entity->id;
-  }
+			$entity_id = array_key_exists($entity, static::$childTypes) ? $entity : null;
+		} elseif (is_string($entity)) {
+			$entity_id = array_key_first(array_filter(static::$childTypes, fn($class) => Str::endsWith($class, '\\' . Str::studly($entity))));
+		} elseif (is_object($entity) && array_key_exists($entity->id, static::$childTypes)) {
+			$entity_id = $entity->id;
+		}
 		if (!$entity_id) {
 			throw new \InvalidArgumentException("Invalid entity: " . $entity);
 		}
@@ -227,20 +226,20 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 	}
 
 	protected static function newFactory(): ContentFactory
-    {
-        $factory = ContentFactory::new();
+	{
+		$factory = ContentFactory::new();
 		// this if ensure that the factory is created for the correct derived entity
 		if (static::class !== self::class) {
 			$factory->state(fn(array $attributes) => [
-					'entity_id' => Entity::query()
-						->where('name', strtolower(class_basename(static::class)))
-						->firstOrFail()
-						->id
-				]);
+				'entity_id' => Entity::query()
+					->where('name', strtolower(class_basename(static::class)))
+					->firstOrFail()
+					->id
+			]);
 		}
 
 		return $factory;
-    }
+	}
 
 	#region Scopes
 
@@ -398,11 +397,11 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 	}
 
 	/**
-  * The related contents that belong to the content.
-  * @return BelongsToMany<Content>
-  */
- public function related(?bool $withInverse = false): BelongsToMany
-	{	
+	 * The related contents that belong to the content.
+	 * @return BelongsToMany<Content>
+	 */
+	public function related(?bool $withInverse = false): BelongsToMany
+	{
 		$relation = $this->belongsToMany(Content::class, 'relatables')->using(Relatable::class)->withTimestamps();
 		if ($withInverse) {
 			$relation->orWhere(fn($query) => $query->where('related_content_id', $this->id));
@@ -431,7 +430,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 	}
 
 	#[\Override]
- public function registerMediaCollections(): void
+	public function registerMediaCollections(): void
 	{
 		$this->addMediaCollection('cover')->singleFile();
 		$this->addMediaCollection('images');
@@ -442,7 +441,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 
 
 	#[\Override]
- public function registerMediaConversions(?Media $media = null): void
+	public function registerMediaConversions(?Media $media = null): void
 	{
 		$this->commonThumbSizes($this->addMediaConversion('thumb')->performOnCollections('images', 'cover'));
 		$this->commonThumbSizes($this->addMediaConversion('video_thumb')->performOnCollections('videos')->extractVideoFrameAtSecond(2));
