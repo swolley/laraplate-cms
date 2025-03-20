@@ -23,12 +23,12 @@ class CreateEntityCommand extends Command
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'cms:create-entity {entity?} {--content-model}';
+    protected $signature = 'model:create-entity {entity?} {--content-model}';
 
     /**
      * The console command description.
      */
-    protected $description = 'Create new cms entity <comment>(✎ Modules\Cms)</comment>';
+    protected $description = 'Create new cms entity <fg=blue>(✎ Modules\Cms)</fg=blue>';
 
     public function __construct(DatabaseManager $db)
     {

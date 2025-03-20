@@ -12,12 +12,12 @@ class CreateContentModelCommand extends Command
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'cms:make-content-model {entity}';
+    protected $signature = 'model:make-content-model {entity}';
 
     /**
      * The console command description.
      */
-    protected $description = 'Create a new content model <comment>(✎ Modules\Cms)</comment>';
+    protected $description = 'Create a new content model <fg=blue>(✎ Modules\Cms)</fg=blue>';
 
     /**
      * Execute the console command.

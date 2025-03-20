@@ -368,12 +368,12 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 	}
 
 	/**
-	 * The location that belongs to the content.
-	 * @return BelongsTo<Location>
+	 * The locations that belong to the content.
+	 * @return BelongsToMany<Location>
 	 */
-	public function location(): BelongsTo
+	public function locations(): BelongsToMany
 	{
-		return $this->belongsTo(Location::class, 'content_id', 'location_id', 'id')->withTrashed();
+		return $this->belongsToMany(Location::class, 'content_id', 'location_id', 'id')->withTrashed();
 	}
 
 	/**
