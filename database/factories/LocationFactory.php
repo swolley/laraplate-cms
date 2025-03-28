@@ -2,6 +2,7 @@
 
 namespace Modules\Cms\Database\Factories;
 
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class LocationFactory extends Factory
@@ -17,8 +18,10 @@ class LocationFactory extends Factory
     #[\Override]
     public function definition(): array
     {
+        $name = fake()->unique()->text(fake()->numberBetween(50, 255));
         return [
-            'name' => fake()->unique()->location(),
+            'name' => $name,
+            'slug' => Str::slug($name),
             'address' => fake()->streetAddress(),
             'city' => fake()->city(),
             'province' => fake()->state(),
@@ -29,4 +32,3 @@ class LocationFactory extends Factory
         ];
     }
 }
-

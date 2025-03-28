@@ -26,22 +26,34 @@ class ContentFactory extends Factory
     public function definition(): array
     {
         $entity = Entity::inRandomOrder()->first();
+        $preset = Preset::where('entity_id', $entity->id)->inRandomOrder()->first();
+
+        if (!$preset) {
+            throw new \RuntimeException("No preset found for entity: {$entity->name}");
+        }
+
         $valid_from = fake()->boolean() ? now()->addDays(fake()->numberBetween(-10, 10)) : null;
         $valid_to = $valid_from && fake()->boolean() ? $valid_from->addDays(fake()->numberBetween(-10, 10)) : null;
-        
+
         return [
             'entity_id' => $entity->id,
+            'preset_id' => $preset->id,
             'valid_from' => $valid_from,
             'valid_to' => $valid_to,
         ];
     }
-    
+
     #[\Override]
     public function configure(): static
     {
         return $this->afterMaking(function (Content $content) {
             $content->without(['authors']);
             $preset = Preset::where('entity_id', $content->entity_id)->inRandomOrder()->first();
+
+            if (!$content->preset) {
+                throw new \RuntimeException("No preset found for entity_id: {$content->entity_id}");
+            }
+
             $content->components = $preset->fields->mapWithKeys(function (Field $field) {
                 $value = $field->default;
                 if ($field->required || fake()->boolean()) {
@@ -52,7 +64,7 @@ class ContentFactory extends Factory
                         default => $field->default,
                     };
                 }
-    
+
                 return [$field->name => $value];
             })->toArray();
         })->afterCreating(function (Content $content) {
@@ -61,7 +73,7 @@ class ContentFactory extends Factory
 
             $categories = Category::inRandomOrder()->limit(fake()->numberBetween(1, 2))->get();
             $content->categories()->attach($categories->isNotEmpty() ? $categories->pluck('id') : Category::factory()->count(random_int(1, 3))->create());
-            
+
             $tags = Tag::inRandomOrder()->limit(fake()->numberBetween(1, 5))->get();
             $content->tags()->attach($tags->isNotEmpty() ? $tags->pluck('id') : Tag::factory()->count(random_int(1, 3))->create());
 
@@ -69,4 +81,3 @@ class ContentFactory extends Factory
         });
     }
 }
-

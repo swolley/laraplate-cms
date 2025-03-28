@@ -232,7 +232,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		if (static::class !== self::class) {
 			$factory->state(fn(array $attributes) => [
 				'entity_id' => Entity::query()
-					->where('name', strtolower(class_basename(static::class)))
+					->where('name', Str::lower(class_basename(static::class)))
 					->firstOrFail()
 					->id
 			]);
@@ -303,7 +303,12 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 
 	protected function slugFields(): array
 	{
-		return [$this->preset?->fields()->select(['name', 'is_slug'])->firstWhere('is_slug', true)?->name];
+		$slug_field = $this->preset?->fields()
+			->select(['name', 'is_slug'])
+			->where('is_slug', true)
+			->first()?->name;
+
+		return $slug_field ? [$slug_field] : [];
 	}
 
 	protected function cover(): Attribute

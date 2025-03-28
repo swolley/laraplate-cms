@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Modules\Cms\Helpers;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 trait HasSlug
 {
 	public static function bootHasSlug()
 	{
 		static::saving(function (Model $model) {
-			if (!$model->slug || !$model->isDirty(static::slugFields())) {
+			if (!$model->getAttribute('slug')) {
 				$model->slug = $model->generateSlug();
 			}
 		});
@@ -24,15 +25,21 @@ trait HasSlug
 
 	protected function slugValues(): array
 	{
-		return [$this->name];
+		return array_map(fn($name) => $this->{$name}, $this->slugFields());
 	}
 
 	public function generateSlug(): string
 	{
 		$slugger = config('cms.slugger', '\Illuminate\Support\Str::slug');
-
-		$slug = array_reduce($this->slugValues(), fn($slug, $value) => $slug . '-' . $value, '');
+		$slug = array_reduce($this->slugValues(), fn($slug, $value) => $slug . '-' . ($value ? trim($value) : ''), '');
 
 		return call_user_func($slugger, ltrim($slug, '-'));
+	}
+
+	protected function slug(): Attribute
+	{
+		return Attribute::make(
+			get: fn() => $this->attributes['slug'] ?? $this->generateSlug(),
+		);
 	}
 }

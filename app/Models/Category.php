@@ -115,9 +115,9 @@ class Category extends Model implements Sortable
     public function getRules(): array
     {
         $rules = $this->getRulesTrait();
-        $rules[static::DEFAULT_RULE] = array_merge($rules[static::DEFAULT_RULE], [
-            'name' => ['required', 'string', 'max:255'],
-        ]);
+        // $rules[static::DEFAULT_RULE] = array_merge($rules[static::DEFAULT_RULE], [
+        //     'name' => ['required', 'string', 'max:255'],
+        // ]);
         $rules['create'] = array_merge($rules['create'], [
             'name' => ['required', 'string', 'max:255', 'unique:categories,name'],
         ]);

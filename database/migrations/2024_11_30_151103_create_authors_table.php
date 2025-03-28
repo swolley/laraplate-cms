@@ -18,9 +18,9 @@ return new class extends Migration
             $table->string('name');
             $table->string('public_email')->nullable();
             CommonMigrationColumns::timestamps($table, true, true);
-            
+
             $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
-            $table->unique(['user_id', 'name', 'deleted_at'], 'authors_UN');
+            $table->unique(['user_id', 'name', 'public_email', 'deleted_at'], 'authors_UN');
         });
     }
 

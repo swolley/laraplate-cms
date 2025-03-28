@@ -20,7 +20,7 @@ class CategoryFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            'name' => fake()->words(fake()->numberBetween(1, 3), true),
             'entity_id' => Entity::inRandomOrder()->first()?->id,
             'parent_id' => fake()->boolean() ? Category::inRandomOrder()->first() : null,
             'description' => fake()->boolean() ? fake()->text() : null,

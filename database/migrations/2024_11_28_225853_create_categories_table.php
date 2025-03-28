@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('logo_full')->nullable(true);
             $table->boolean('is_active')->default(true)->nullable(false);
             $table->integer('order_column')->nullable();
-            CommonMigrationColumns::timestamps($table, true, true, true);
+            CommonMigrationColumns::timestamps($table, true, true, true, true);
 
             $table->unique(['entity_id', 'name', 'deleted_at'], 'categories_UN');
             $table->unique(['entity_id', 'slug', 'deleted_at'], 'categories_slug_UN');
