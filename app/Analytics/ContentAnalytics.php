@@ -4,22 +4,25 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Analytics;
 
-use Illuminate\Support\Facades\Cache;
 use Modules\Cms\Models\Content;
+use Modules\Core\Cache\CacheManager;
+use Illuminate\Support\Facades\Cache;
 
 class ContentAnalytics extends AbstractAnalytics
 {
     public function __construct(private Content $model) {}
+
+    private static array $cache_duration = [555, 600];
 
     /**
      * Get content publication trends
      */
     public function getPublicationTrends(array $filters = []): array
     {
-        return Cache::remember(
+        return CacheManager::remember(
             $this->getCacheKey('publication_trends', $filters),
-            now()->addHour(),
-            fn() => $this->getTimeBasedMetrics($this->model, $filters)
+            fn() => $this->getTimeBasedMetrics($this->model, $filters),
+            self::$cache_duration
         );
     }
 
@@ -28,10 +31,10 @@ class ContentAnalytics extends AbstractAnalytics
      */
     public function getAuthorMetrics(array $filters = []): array
     {
-        return Cache::remember(
+        return CacheManager::remember(
             $this->getCacheKey('author_metrics', $filters),
-            now()->addHour(),
-            fn() => $this->getTermBasedMetrics($this->model, 'authors_id', $filters)
+            fn() => $this->getTermBasedMetrics($this->model, 'authors_id', $filters),
+            self::$cache_duration
         );
     }
 
@@ -40,10 +43,10 @@ class ContentAnalytics extends AbstractAnalytics
      */
     public function getCategoryDistribution(array $filters = []): array
     {
-        return Cache::remember(
+        return CacheManager::remember(
             $this->getCacheKey('category_distribution', $filters),
-            now()->addHour(),
-            fn() => $this->getTermBasedMetrics($this->model, 'categories_id', $filters)
+            fn() => $this->getTermBasedMetrics($this->model, 'categories_id', $filters),
+            self::$cache_duration
         );
     }
 
@@ -52,10 +55,10 @@ class ContentAnalytics extends AbstractAnalytics
      */
     public function getTagMetrics(array $filters = []): array
     {
-        return Cache::remember(
+        return CacheManager::remember(
             $this->getCacheKey('tag_metrics', $filters),
-            now()->addHour(),
-            fn() => $this->getTermBasedMetrics($this->model, 'tags_id', $filters)
+            fn() => $this->getTermBasedMetrics($this->model, 'tags_id', $filters),
+            self::$cache_duration
         );
     }
 
@@ -64,10 +67,10 @@ class ContentAnalytics extends AbstractAnalytics
      */
     public function getGeographicDistribution(array $filters = []): array
     {
-        return Cache::remember(
+        return CacheManager::remember(
             $this->getCacheKey('geographic_distribution', $filters),
-            now()->addHour(),
-            fn() => $this->getGeoBasedMetrics($this->model, 'location.geocode', $filters)
+            fn() => $this->getGeoBasedMetrics($this->model, 'location.geocode', $filters),
+            self::$cache_duration
         );
     }
 
@@ -76,9 +79,8 @@ class ContentAnalytics extends AbstractAnalytics
      */
     public function getQualityMetrics(array $filters = []): array
     {
-        return Cache::remember(
+        return CacheManager::remember(
             $this->getCacheKey('quality_metrics', $filters),
-            now()->addHour(),
             function () use ($filters) {
                 $client = $this->model->getElasticsearchClient();
 
@@ -90,7 +92,8 @@ class ContentAnalytics extends AbstractAnalytics
                 // - Score basati su embedding
 
                 return [];
-            }
+            },
+            self::$cache_duration
         );
     }
 

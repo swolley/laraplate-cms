@@ -2,12 +2,13 @@
 
 namespace Modules\Cms\Console;
 
+use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Illuminate\Support\Str;
 use Modules\Cms\Models\Entity;
 use Modules\Core\Overrides\Command;
 use Symfony\Component\Console\Input\InputArgument;
 
-class CreateContentModelCommand extends Command
+class CreateContentModelCommand extends Command implements PromptsForMissingInput
 {
     /**
      * The name and signature of the console command.
@@ -30,7 +31,7 @@ class CreateContentModelCommand extends Command
         if (!file_exists($file_path)) {
             if (!Entity::query()->withoutGlobalScopes()->where('name', $entity)->exists()) {
                 if ($this->confirm("Entity '{$entity}' not found, do you want to create it?", false)) {
-                    $this->call('cms:create-entity', ['entity' => $entity, '--content-model' => true]);
+                    $this->call(CreateEntityCommand::class, ['entity' => $entity, '--content-model' => true]);
                 }
 
                 return;

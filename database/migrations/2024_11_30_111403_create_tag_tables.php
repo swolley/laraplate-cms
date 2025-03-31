@@ -14,7 +14,7 @@ return new class extends Migration
 
             $table->string('name')->unique('tags_name_UN');
             $table->string('slug')->unique('tags_slug_UN');
-            $table->string('type')->nullable();
+            $table->string('type')->nullable()->index('tags_type_IDX');
             $table->integer('order_column')->nullable();
             CommonMigrationColumns::timestamps($table);
         });

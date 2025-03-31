@@ -105,7 +105,7 @@ class Entity extends Model
         $rules = $this->getRulesTrait();
         $rules[static::DEFAULT_RULE] = array_merge($rules[static::DEFAULT_RULE], [
             'is_active' => 'boolean',
-            'slug' => 'sometimes|string|max:255',
+            'slug' => 'nullable|string|max:255',
         ]);
         $rules['create'] = array_merge($rules['create'], [
             'name' => ['required', 'string', 'max:255', 'unique:entities,name'],

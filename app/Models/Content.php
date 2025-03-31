@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Cache;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
 use Spatie\EloquentSortable\Sortable;
-// use Modules\Core\Helpers\HasApprovals;
+use Modules\Core\Helpers\HasApprovals;
 use Modules\Cms\Models\Pivot\Relatable;
 use Modules\Cms\Models\Pivot\Authorable;
 use Modules\Core\Helpers\HasValidations;
@@ -52,13 +52,14 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		HasSlug,
 		HasPath,
 		HasValidations,
-		Searchable
-	/*, HasApprovals*/ {
+		Searchable,
+		HasApprovals {
 		prepareElasticDocument as protected prepareElasticDocumentTrait;
 		getRules as protected getRulesTrait;
 		HasChildren::hasMany as protected hasChildrenHasMany;
 		HasChildren::belongsTo as protected hasChildrenBelongsTo;
 		HasChildren::belongsToMany as protected hasChildrenBelongsToMany;
+		HasApprovals::requiresApprovalWhen as protected requiresApprovalWhenTrait;
 	}
 
 	protected $fillable = [
@@ -151,11 +152,16 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		foreach ($entities as $entity) {
 			$class_name = Str::studly($entity->name);
 			$full_class_name = 'Modules\\Cms\\Models\\Contents\\' . $class_name;
+
 			if (!class_exists($full_class_name)) {
 				$class_definition = file_get_contents(module_path('Cms', 'stubs/content.stub'));
 				$class_definition = str_replace(['$CLASS$', '<?php'], [$class_name, ''], $class_definition);
+
+				// Genera la classe a runtime
+				$class_definition = "<?php\n\n" . $class_definition;
 				eval($class_definition);
 			}
+
 			static::$childTypes[$entity->id] = $full_class_name;
 		}
 	}
@@ -495,5 +501,10 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 	public function getPath(): ?string
 	{
 		return $this->categories->first()?->getPath();
+	}
+
+	protected function requiresApprovalWhen($modifications): bool
+	{
+		return $this->requiresApprovalWhenTrait($modifications);
 	}
 }

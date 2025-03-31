@@ -20,14 +20,16 @@ class AuthorFactory extends Factory
     {
         $user = fake()->boolean() ? user_class()::inRandomOrder()->first() : null;
 
-        if ($user && Author::where('user_id', $user->id)->exists()) {
-            $user = null;
+        if (!$user || Author::where('name', $user->name)->exists()) {
+            $name = fake()->boolean() ? fake()->name() : fake()->userName();
+        } else {
+            $name = $user->name;
         }
 
         // Se abbiamo un utente, usiamo il suo nome
         if ($user) {
             return [
-                'name' => $user->name,
+                'name' => $name,
                 'public_email' => fake()->boolean() ? fake()->unique()->email() : null,
                 'user_id' => $user->id,
             ];

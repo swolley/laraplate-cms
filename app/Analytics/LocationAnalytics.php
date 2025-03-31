@@ -4,22 +4,25 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Analytics;
 
-use Illuminate\Support\Facades\Cache;
 use Modules\Cms\Models\Location;
+use Modules\Core\Cache\CacheManager;
+use Illuminate\Support\Facades\Cache;
 
 class LocationAnalytics extends AbstractAnalytics
 {
     public function __construct(private Location $model) {}
+
+    private static array $cache_duration = [3555, 3600];
 
     /**
      * Get location clusters
      */
     public function getLocationClusters(array $filters = []): array
     {
-        return Cache::remember(
+        return CacheManager::remember(
             $this->getCacheKey('location_clusters', $filters),
-            now()->addHour(),
-            fn() => $this->getGeoBasedMetrics($this->model, 'geocode', $filters)
+            fn() => $this->getGeoBasedMetrics($this->model, 'geocode', $filters),
+            self::$cache_duration
         );
     }
 
@@ -28,9 +31,8 @@ class LocationAnalytics extends AbstractAnalytics
      */
     public function getContentDistribution(array $filters = []): array
     {
-        return Cache::remember(
+        return CacheManager::remember(
             $this->getCacheKey('content_distribution', $filters),
-            now()->addHour(),
             function () use ($filters) {
                 $client = $this->model->getElasticsearchClient();
 
@@ -65,7 +67,8 @@ class LocationAnalytics extends AbstractAnalytics
 
                 $response = $client->search($query);
                 return $response['aggregations']['locations']['buckets'];
-            }
+            },
+            self::$cache_duration
         );
     }
 
@@ -74,10 +77,10 @@ class LocationAnalytics extends AbstractAnalytics
      */
     public function getZoneMetrics(array $filters = []): array
     {
-        return Cache::remember(
+        return CacheManager::remember(
             $this->getCacheKey('zone_metrics', $filters),
-            now()->addHour(),
-            fn() => $this->getTermBasedMetrics($this->model, 'zone', $filters)
+            fn() => $this->getTermBasedMetrics($this->model, 'zone', $filters),
+            self::$cache_duration
         );
     }
 
@@ -86,10 +89,10 @@ class LocationAnalytics extends AbstractAnalytics
      */
     public function getCityMetrics(array $filters = []): array
     {
-        return Cache::remember(
+        return CacheManager::remember(
             $this->getCacheKey('city_metrics', $filters),
-            now()->addHour(),
-            fn() => $this->getTermBasedMetrics($this->model, 'city', $filters)
+            fn() => $this->getTermBasedMetrics($this->model, 'city', $filters),
+            self::$cache_duration
         );
     }
 

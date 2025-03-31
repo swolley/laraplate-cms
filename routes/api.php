@@ -20,6 +20,6 @@ use Modules\Cms\Http\Controllers\ContentsController;
 // });
 Route::group(['prefix' => '{relation}'], function () {
     $entities = ['contents', ...Cache::get('entities', collect())->pluck('name')->toArray()];
-    $entities = implode('|', array_map(fn($entity) => Str::plural($entity), $entities));
-    Route::get('/{value}/{entity}', [ContentsController::class, 'getContentsByRelation'])->name('relation.contents')->where('relation', 'tags|categories|locations|authors')->where('entity', $entities);
+    $entities = array_map(fn($entity) => Str::plural($entity), $entities);
+    Route::get('/{value}/{entity}', [ContentsController::class, 'getContentsByRelation'])->name('relation.contents')->whereIn('relation', ['tags', 'categories', 'locations', 'authors'])->whereIn('entity', $entities);
 });

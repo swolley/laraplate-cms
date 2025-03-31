@@ -75,7 +75,7 @@ class CreateEntityCommand extends Command
             }
 
             if ($this->option('content-model') || confirm("Do you want to create a content model file for this entity?", false)) {
-                $this->call('cms:make-content-model', ['entity' => $entity->name]);
+                $this->call(CreateContentModelCommand::class, ['entity' => $entity->name]);
             }
 
             $this->info("Entity '{$entity->name}' created");
