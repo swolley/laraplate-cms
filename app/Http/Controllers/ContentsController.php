@@ -29,6 +29,10 @@ class ContentsController extends CrudController
      * @throws BindingResolutionException
      * @throws Throwable
      * @throws UnexpectedValueException
+     * @route-comment
+     * Route: GET|HEAD api/v1/{relation}/{value}/{entity}
+     * Name: cms.api.relation.contents
+     * Middleware: api
      */
     public function getContentsByRelation(ListRequest $request, string $relation, string $value, string $entity)
     {

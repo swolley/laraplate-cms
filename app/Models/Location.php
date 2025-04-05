@@ -6,17 +6,30 @@ use Illuminate\Support\Str;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Core\Cache\Searchable;
+use Modules\Core\Helpers\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Core\Helpers\HasValidations;
+use MatanYadaev\EloquentSpatial\Objects\Point;
+use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
 use Modules\Cms\Database\Factories\LocationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
+ * @method static whereDistance(Point $point, float $distance)
+ * @method static orderByDistance(Point $point, string $direction = 'asc')
+ * @method static whereDistanceSphere(Point $point, float $distance)
+ * @method static orderByDistanceSphere(Point $point, string $direction = 'asc')
+ * @method static whereWithin(Polygon $polygon)
+ * @method static whereNotWithin(Polygon $polygon)
+ * @method static whereContains(Polygon $polygon)
+ * @method static whereNotContains(Polygon $polygon)
+ * @method static whereEquals(Point $point)
  * @mixin IdeHelperLocation
  */
 class Location extends Model
 {
-    use HasFactory, HasSlug, HasPath, HasValidations, Searchable {
+    use HasFactory, HasSlug, HasPath, HasValidations, Searchable, HasSpatial, SoftDeletes {
         prepareElasticDocument as prepareElasticDocumentTrait;
         getRules as protected getRulesTrait;
     }
@@ -33,8 +46,7 @@ class Location extends Model
         'province',
         'country',
         'postcode',
-        'latitude',
-        'longitude',
+        'geolocation',
         'zone',
         'slug',
     ];
@@ -42,21 +54,39 @@ class Location extends Model
     protected $hidden = [
         'created_at',
         'updated_at',
-        'deleted_at',
     ];
 
     #[\Override]
     protected function casts()
     {
         return [
-            'latitude' => 'float',
-            'longitude' => 'float',
+            'geolocation' => Point::class,
         ];
     }
 
     protected static function newFactory(): LocationFactory
     {
         return LocationFactory::new();
+    }
+
+    protected function getLatitudeAttribute(): ?float
+    {
+        return $this->geolocation?->getLatitude();
+    }
+
+    protected function getLongitudeAttribute(): ?float
+    {
+        return $this->geolocation?->getLongitude();
+    }
+
+    protected function setLatitudeAttribute(float $value): void
+    {
+        $this->geolocation = new Point($value, $this->geolocation?->getLongitude());
+    }
+
+    protected function setLongitudeAttribute(float $value): void
+    {
+        $this->geolocation = new Point($this->geolocation?->getLatitude(), $value);
     }
 
     public function prepareElasticDocument(): array
@@ -75,10 +105,10 @@ class Location extends Model
     public function getRules(): array
     {
         $rules = $this->getRulesTrait();
-        $rules[static::DEFAULT_RULE] = array_merge($rules[static::DEFAULT_RULE], [
-            'latitude' => ['sometimes', 'numeric', 'min:-90', 'max:90'],
-            'longitude' => ['sometimes', 'numeric', 'min:-180', 'max:180'],
-        ]);
+        // $rules[static::DEFAULT_RULE] = array_merge($rules[static::DEFAULT_RULE], [
+        //     'latitude' => ['sometimes', 'numeric', 'min:-90', 'max:90'],
+        //     'longitude' => ['sometimes', 'numeric', 'min:-180', 'max:180'],
+        // ]);
         $rules['create'] = array_merge($rules['create'], [
             'name' => ['required', 'string', 'max:255', 'unique:locations,name'],
             'country' => ['required', 'string', 'max:255'],
@@ -99,5 +129,14 @@ class Location extends Model
     public function getPath(): ?string
     {
         return Str::slug($this->country);
+    }
+
+    /**
+     * The contents that belong to the location.
+     * @return BelongsToMany<Content>
+     */
+    public function contents(): BelongsToMany
+    {
+        return $this->belongsToMany(Content::class);
     }
 }

@@ -2,12 +2,14 @@
 
 namespace Modules\Cms\Models;
 
+use Illuminate\Validation\Rule;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Awobaz\Compoships\Compoships;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
 use Spatie\EloquentSortable\Sortable;
+use Modules\Core\Helpers\HasApprovals;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Core\Helpers\HasValidations;
 use Spatie\EloquentSortable\SortableTrait;
@@ -28,7 +30,7 @@ class Category extends Model implements Sortable
         HasRecursiveRelationships,
         SoftDeletes,
         HasValidity,
-        /*HasApprovals,*/
+        HasApprovals,
         HasVersions,
         SortableTrait,
         HasSlug,
@@ -48,7 +50,8 @@ class Category extends Model implements Sortable
         'parent_id',
         'name',
         'slug',
-        'description',
+        'short_content',
+        'content',
         'model_type_id',
         'order',
         'persistence',
@@ -66,7 +69,6 @@ class Category extends Model implements Sortable
         'is_active',
         'created_at',
         'updated_at',
-        'deleted_at',
     ];
 
     #[\Override]
@@ -80,7 +82,7 @@ class Category extends Model implements Sortable
             'is_active' => 'boolean',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
-            'deleted_at' => 'datetime',
+            'content' => 'json',
         ];
     }
 
@@ -88,10 +90,10 @@ class Category extends Model implements Sortable
     protected static function booted(): void
     {
         static::saving(function (Category $category) {
-            if ($category->parent_id) {
-                if ($category->entity_id && $category->entity_id !== $category->parent->entity_id) {
-                    throw new \UnexpectedValueException("Entity mismatch: {$category->entity->name} is not compatible with {$category->parent->name}");
-                }
+            if ($category->isDirty('parent_id')) {
+                // if ($category->entity_id && $category->entity_id !== $category->parent->entity_id) {
+                //     throw new \UnexpectedValueException("Entity mismatch: {$category->entity->name} is not compatible with {$category->parent->name}");
+                // }
                 $category->entity_id = $category->parent->entity_id;
             }
         });
@@ -102,11 +104,19 @@ class Category extends Model implements Sortable
         return CategoryFactory::new();
     }
 
+    /**
+     * The entity that belongs to the category.
+     * @return BelongsTo<Entity>
+     */
     public function entity(): BelongsTo
     {
         return $this->belongsTo(Entity::class);
     }
 
+    /**
+     * The contents that belong to the category.
+     * @return BelongsToMany<Content>
+     */
     public function contents(): BelongsToMany
     {
         return $this->belongsToMany(Content::class, 'categorizables', ['category_id', 'entity_id'], ['id', 'entity_id'])->using(Categorizable::class)->withTimestamps();
@@ -119,10 +129,24 @@ class Category extends Model implements Sortable
         //     'name' => ['required', 'string', 'max:255'],
         // ]);
         $rules['create'] = array_merge($rules['create'], [
-            'name' => ['required', 'string', 'max:255', 'unique:categories,name'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('categories')->where(function ($query) {
+                    $query->where(['parent_id' => request('parent_id'), 'entity_id' => request('entity_id'), 'deleted_at' => null]);
+                })
+            ],
         ]);
         $rules['update'] = array_merge($rules['update'], [
-            'name' => ['sometimes', 'string', 'max:255', 'unique:categories,name,' . $this->id],
+            'name' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('categories')->where(function ($query) {
+                    $query->where(['parent_id' => request('parent_id'), 'entity_id' => request('entity_id'), 'deleted_at' => null]);
+                })->ignore($this->id, 'id')
+            ],
         ]);
         return $rules;
     }

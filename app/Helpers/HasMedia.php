@@ -39,10 +39,7 @@ trait HasMedia
         }
     }
 
-    /**
-     * @return $this
-     */
-    public function forceClearMediaCollection(string $collectionName = 'default'): HasMedia
+    public function forceClearMediaCollection(string $collectionName = 'default'): static
     {
         $this
             ->getMedia($collectionName)
@@ -57,13 +54,10 @@ trait HasMedia
         return $this;
     }
 
-    /**
-     * @return $this
-     */
     public function forceClearMediaCollectionExcept(
         string $collectionName = 'default',
         array|Collection|Media $excludedMedia = []
-    ): HasMedia {
+    ): static {
         if ($excludedMedia instanceof Media) {
             $excludedMedia = collect()->push($excludedMedia);
         }

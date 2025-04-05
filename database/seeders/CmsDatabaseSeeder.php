@@ -51,8 +51,7 @@ class CmsDatabaseSeeder extends Seeder
         $this->fields = Field::query()->withoutGlobalScopes()->get()->keyBy('name');
 
         $this->db->transaction(function () {
-            $text_fields = ['kicker', 'title', 'subtitle'];
-            foreach ($text_fields as $field) {
+            foreach (['kicker', 'title', 'subtitle'] as $field) {
                 if (!$this->fields->has($field)) {
                     $options = (object) ['max_length' => 255];
                     $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::TEXT, 'options' => $options]));
@@ -62,8 +61,7 @@ class CmsDatabaseSeeder extends Seeder
                 }
             }
 
-            $text_area_fields = ['short_content'];
-            foreach ($text_area_fields as $field) {
+            foreach (['short_content'] as $field) {
                 if (!$this->fields->has($field)) {
                     $options = (object) ['max_length' => 65535];
                     $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::TEXTAREA, 'options' => $options]));
@@ -73,8 +71,7 @@ class CmsDatabaseSeeder extends Seeder
                 }
             }
 
-            $json_fields = ['content'];
-            foreach ($json_fields as $field) {
+            foreach (['content'] as $field) {
                 if (!$this->fields->has($field)) {
                     $options = new \stdClass();
                     $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::JSON, 'options' => $options]));
@@ -84,8 +81,7 @@ class CmsDatabaseSeeder extends Seeder
                 }
             }
 
-            $date_fields = ['period_from', 'period_to'];
-            foreach ($date_fields as $field) {
+            foreach (['period_from', 'period_to'] as $field) {
                 if (!$this->fields->has($field)) {
                     $options = (object) ['format' => 'Y-m-d H:i:s'];
                     $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::DATETIME, 'options' => $options]));

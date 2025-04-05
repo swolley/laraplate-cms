@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Cache;
 
 class LocationAnalytics extends AbstractAnalytics
 {
-    public function __construct(private Location $model) {}
+    public function __construct(private readonly Location $model) {}
 
     private static array $cache_duration = [3555, 3600];
 

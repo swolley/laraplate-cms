@@ -11,13 +11,6 @@ abstract class AbstractAnalytics
     /**
      * Get time-based aggregations from Elasticsearch
      */
-    /**
-     * 
-     * @param Model $model 
-     * @param array $filters 
-     * @param string $interval 
-     * @return array 
-     */
     protected function getTimeBasedMetrics(Model $model, array $filters = [], string $interval = '1M'): array
     {
         $client = $model->getElasticsearchClient();

@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Modules\Core\Helpers\CommonMigrationColumns;
+use Modules\Core\Helpers\CommonMigrationFunctions;
 
 return new class extends Migration
 {
@@ -14,21 +14,27 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('entity_id')->nullable(false)->constrained('entities', 'id', 'categories_entity_id_FK')->cascadeOnDelete();
-            $table->foreignId('parent_id')->nullable()->constrained('categories', 'id', 'categories_parent_id_FK')->cascadeOnDelete();
+            $table->foreignId('entity_id')->nullable(true)->constrained('entities', 'id', 'categories_entity_id_FK')->cascadeOnDelete();
+            $table->foreignId('parent_id')->nullable(true)->constrained('categories', 'id', 'categories_parent_id_FK')->cascadeOnDelete();
             $table->string('name')->nullable(false);
-            $table->string('slug')->nullable(false);
+            $table->string('slug')->nullable(false)->index('categories_slug_IDX');
             $table->text('description')->nullable(true);
-            $table->integer('order')->default(0)->nullable(false);
-            $table->integer('persistence')->default(99999)->nullable(false);
+            $table->integer('persistence')->nullable(true);
             $table->string('logo')->nullable(true);
             $table->string('logo_full')->nullable(true);
-            $table->boolean('is_active')->default(true)->nullable(false);
-            $table->integer('order_column')->nullable();
-            CommonMigrationColumns::timestamps($table, true, true, true, true);
+            $table->boolean('is_active')->default(true)->nullable(false)->index('categories_is_active_IDX');
+            $table->integer('order_column')->nullable(false)->default(0)->index('categories_order_column_IDX');
+            CommonMigrationFunctions::timestamps(
+                $table,
+                hasCreateUpdate: true,
+                hasSoftDelete: true,
+                hasLocks: true,
+                hasValidity: true
+            );
 
-            $table->unique(['entity_id', 'name', 'deleted_at'], 'categories_UN');
-            $table->unique(['entity_id', 'slug', 'deleted_at'], 'categories_slug_UN');
+            $table->unique(['entity_id', 'parent_id', 'name', 'deleted_at'], 'categories_name_UN');
+            $table->unique(['entity_id', 'parent_id', 'slug', 'deleted_at'], 'categories_slug_UN');
+            $table->unique(['id', 'parent_id'], 'category_parent_UN');
             $table->unique(['id', 'entity_id'], 'category_entity_UN');
         });
     }

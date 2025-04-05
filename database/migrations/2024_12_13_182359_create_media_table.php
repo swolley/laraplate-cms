@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+use Modules\Core\Helpers\CommonMigrationFunctions;
 
 return new class extends Migration
 {
@@ -24,9 +25,13 @@ return new class extends Migration
             $table->json('custom_properties');
             $table->json('generated_conversions');
             $table->json('responsive_images');
-            $table->unsignedInteger('order_column')->nullable()->index();
+            $table->integer('order_column')->nullable(false)->default(0)->index('media_order_column_IDX');
 
-            $table->nullableTimestamps();
+            CommonMigrationFunctions::timestamps(
+                $table,
+                hasCreateUpdate: true,
+                hasSoftDelete: true
+            );
         });
     }
 };

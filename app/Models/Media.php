@@ -17,13 +17,6 @@ class Media extends BaseMedia
         'expires_at',
     ];
 
-    protected function casts(): array
-    {
-        return $this->casts + [
-            'deleted_at' => 'datetime',
-        ];
-    }
-
     public function getExpiresAtAttribute(): ?Carbon
     {
         $expirationDays = config('core.soft_deletes_expiration_days');

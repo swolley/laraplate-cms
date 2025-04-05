@@ -36,7 +36,6 @@ class Field extends Model
     protected $hidden = [
         'created_at',
         'updated_at',
-        'deleted_at',
         'is_active',
     ];
 
@@ -53,7 +52,6 @@ class Field extends Model
             'type' => FieldType::class,
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
-            'deleted_at' => 'datetime',
         ];
     }
 

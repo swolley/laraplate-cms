@@ -10,10 +10,14 @@ use Modules\Cms\Services\Contracts\GeocodingServiceInterface;
 
 class LocationsController extends Controller
 {
-    public function __construct(private readonly GeocodingServiceInterface $geocoding_service)
-    {
-    }
+    public function __construct(private readonly GeocodingServiceInterface $geocoding_service) {}
 
+    /**
+     * @route-comment
+     * Route: GET|HEAD app/locations/geocode
+     * Name: cms.locations.geocode
+     * Middleware: web
+     */
     public function geocode(GeocodeRequest $request): JsonResponse
     {
         $response = new ResponseBuilder($request);

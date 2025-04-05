@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Modules\Core\Helpers\CommonMigrationColumns;
+use Modules\Core\Helpers\CommonMigrationFunctions;
 
 return new class extends Migration
 {
@@ -17,7 +17,10 @@ return new class extends Migration
             $table->foreignId('content_id')->constrained('contents')->cascadeOnDelete();
             $table->foreignId('field_id')->constrained('fields')->cascadeOnDelete();
             $table->json('value')->nullable();
-            CommonMigrationColumns::timestamps($table, true);
+            CommonMigrationFunctions::timestamps(
+                $table,
+                hasCreateUpdate: true
+            );
         });
     }
 

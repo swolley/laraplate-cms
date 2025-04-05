@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Modules\Core\Helpers\CommonMigrationColumns;
+use Modules\Core\Helpers\CommonMigrationFunctions;
 
 return new class extends Migration
 {
@@ -17,7 +17,11 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->nullable();
             $table->string('name');
             $table->string('public_email')->nullable();
-            CommonMigrationColumns::timestamps($table, true, true);
+            CommonMigrationFunctions::timestamps(
+                $table,
+                hasCreateUpdate: true,
+                hasSoftDelete: true
+            );
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
             $table->unique(['user_id', 'name', 'deleted_at'], 'authors_UN');

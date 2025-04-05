@@ -38,7 +38,6 @@ class Author extends Model
         'user',
         'created_at',
         'updated_at',
-        'deleted_at',
     ];
 
     protected $tempUser;
@@ -50,7 +49,6 @@ class Author extends Model
             'user_id' => 'integer',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
-            'deleted_at' => 'datetime',
         ];
     }
 
@@ -77,6 +75,10 @@ class Author extends Model
         return $this->belongsTo(user_class());
     }
 
+    /**
+     * The contents that belong to the author.
+     * @return BelongsToMany<Content>
+     */
     public function contents(): BelongsToMany
     {
         return $this->belongsToMany(Content::class, 'authorables')->using(Authorable::class)->withTimestamps();

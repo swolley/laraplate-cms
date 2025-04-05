@@ -123,6 +123,7 @@ class CmsServiceProvider extends ServiceProvider
     /**
      * Get the services provided by the provider.
      */
+    #[\Override]
     public function provides(): array
     {
         return [];

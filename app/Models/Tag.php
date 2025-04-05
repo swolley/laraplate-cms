@@ -3,24 +3,26 @@
 namespace Modules\Cms\Models;
 
 use ArrayAccess;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Validation\Rule;
 use Modules\Cms\Helpers\HasPath;
+use Modules\Cms\Helpers\HasSlug;
+use Illuminate\Support\Collection;
+use Modules\Core\Helpers\SoftDeletes;
 use Spatie\EloquentSortable\Sortable;
-use Spatie\EloquentSortable\SortableTrait;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Core\Helpers\HasValidations;
+use Illuminate\Database\Eloquent\Builder;
+use Spatie\EloquentSortable\SortableTrait;
 use Modules\Cms\Database\Factories\TagFactory;
-use Modules\Cms\Helpers\HasSlug;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Collection as DbCollection;
-use Illuminate\Support\Collection;
 
 /**
  * @mixin IdeHelperTag
  */
 class Tag extends Model implements Sortable
 {
-    use HasValidations, HasPath, SortableTrait, HasSlug, HasFactory {
+    use HasValidations, HasPath, SortableTrait, HasSlug, HasFactory, SoftDeletes {
         getRules as protected getRulesTrait;
     }
 
@@ -38,7 +40,6 @@ class Tag extends Model implements Sortable
         'order_column',
         'created_at',
         'updated_at',
-        'deleted_at',
     ];
 
     #[\Override]
@@ -48,7 +49,6 @@ class Tag extends Model implements Sortable
             'order_column' => 'integer',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
-            'deleted_at' => 'datetime',
         ];
     }
 
@@ -61,10 +61,24 @@ class Tag extends Model implements Sortable
     {
         $rules = $this->getRulesTrait();
         $rules['create'] = array_merge($rules['create'], [
-            'name' => ['required', 'string', 'max:255', 'unique:tags,name'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('tags')->where(function ($query) {
+                    $query->where('deleted_at', null);
+                })
+            ],
         ]);
         $rules['update'] = array_merge($rules['update'], [
-            'name' => ['sometimes', 'string', 'max:255', 'unique:tags,name,' . $this->id],
+            'name' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('tags')->where(function ($query) {
+                    $query->where('deleted_at', null);
+                })->ignore($this->id, 'id')
+            ],
         ]);
         return $rules;
     }
@@ -75,20 +89,19 @@ class Tag extends Model implements Sortable
         return null;
     }
 
-    public function scopeWithType(Builder $query, ?string $type = null): Builder
+    public function scopeWithType(Builder $query, ?string $type = null)
     {
-        if (is_null($type)) {
-            return $query;
+        if (!is_null($type)) {
+            $query->where('type', $type)->ordered();
         }
-
-        return $query->where('type', $type)->ordered();
     }
 
-    public function scopeContaining(Builder $query, string $name, $locale = null): Builder
+    public function scopeContaining(Builder $query, string $name, $locale = null)
     {
-        $locale ?? static::getLocale();
-
-        return $query->whereRaw('lower(' . $this->getQuery()->getGrammar()->wrap('name') . ') like ?', ['%' . mb_strtolower($name) . '%']);
+        // if (is_null($locale)) {
+        //     $locale = static::getLocale();
+        // }
+        $query->whereRaw('lower(' . $this->getQuery()->getGrammar()->wrap('name') . ') like ?', ['%' . mb_strtolower($name) . '%']);
     }
 
     public static function findOrCreate(
@@ -97,6 +110,10 @@ class Tag extends Model implements Sortable
         string | null $locale = null,
     ): Collection | Tag | static {
         $tags = collect($values)->map(function ($value) use ($type, $locale) {
+            // if (is_null($locale)) {
+            //     $locale = static::getLocale();
+            // }
+
             if ($value instanceof self) {
                 return $value;
             }

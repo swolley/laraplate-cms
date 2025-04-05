@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Modules\Core\Helpers\CommonMigrationColumns;
+use Modules\Core\Helpers\CommonMigrationFunctions;
 
 return new class extends Migration
 {
@@ -16,9 +16,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('entity_id')->nullable(false)->constrained('entities', 'id', 'presets_entity_id_FK')->cascadeOnDelete();
             $table->string('name')->nullable(false);
-            $table->boolean('is_active')->default(true)->nullable(false);
+            $table->boolean('is_active')->default(true)->nullable(false)->index('presets_is_active_IDX');
             $table->foreignId('template_id')->nullable(true)->constrained('templates', 'id', 'presets_template_id_FK')->cascadeOnDelete();
-            CommonMigrationColumns::timestamps($table, true, true);
+            CommonMigrationFunctions::timestamps(
+                $table,
+                hasCreateUpdate: true,
+                hasSoftDelete: true,
+            );
 
             $table->unique(['entity_id', 'name', 'deleted_at'], 'presets_UN');
             $table->unique(['entity_id', 'id'], 'presets_ids_UN');

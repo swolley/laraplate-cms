@@ -31,7 +31,7 @@ trait HasSlug
 	public function generateSlug(): string
 	{
 		$slugger = config('cms.slugger', '\Illuminate\Support\Str::slug');
-		$slug = array_reduce($this->slugValues(), fn($slug, $value) => $slug . '-' . ($value ? trim($value) : ''), '');
+		$slug = array_reduce($this->slugValues(), fn($slug, $value) => $slug . '-' . ($value ? trim((string) $value) : ''), '');
 
 		return call_user_func($slugger, ltrim($slug, '-'));
 	}

@@ -2,6 +2,7 @@
 
 namespace Modules\Cms\Database\Factories;
 
+use Illuminate\Support\Str;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -19,11 +20,15 @@ class CategoryFactory extends Factory
     #[\Override]
     public function definition(): array
     {
+        $parent = fake()->boolean() ? Category::inRandomOrder()->first() : null;
+        $name = fake()->unique()->words(fake()->numberBetween(1, 3), true);
         return [
-            'name' => fake()->words(fake()->numberBetween(1, 3), true),
-            'entity_id' => Entity::inRandomOrder()->first()?->id,
-            'parent_id' => fake()->boolean() ? Category::inRandomOrder()->first() : null,
+            'name' => $name,
+            'slug' => Str::slug($name),
+            'entity_id' => $parent?->entity_id ?? Entity::inRandomOrder()->first()?->id,
+            'parent_id' => $parent?->id ?? null,
             'description' => fake()->boolean() ? fake()->text() : null,
+            'persistence' => fake()->boolean() ? fake()->numberBetween(1, 1000) : null,
         ];
     }
 }

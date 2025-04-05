@@ -35,7 +35,6 @@ class Entity extends Model
     protected $hidden = [
         'created_at',
         'updated_at',
-        'deleted_at',
         'is_active',
     ];
 
@@ -50,7 +49,6 @@ class Entity extends Model
             'is_active' => 'boolean',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
-            'deleted_at' => 'datetime',
         ];
     }
 
@@ -75,26 +73,38 @@ class Entity extends Model
     protected static function booted(): void
     {
         static::saved(function (Entity $entity) {
-            Cache::forget((new Preset())->getCacheKey());
+            Cache::forget(new Preset()->getCacheKey());
             Content::resolveChildTypes();
         });
 
         static::forceDeleted(function (Entity $entity) {
-            Cache::forget((new Preset())->getCacheKey());
+            Cache::forget(new Preset()->getCacheKey());
             Content::resolveChildTypes();
         });
     }
 
+    /**
+     * The presets that belong to the entity.
+     * @return HasMany<Preset>
+     */
     public function presets(): HasMany
     {
         return $this->hasMany(Preset::class);
     }
 
+    /**
+     * The contents that belong to the entity.
+     * @return HasManyThrough<Content>
+     */
     public function contents(): HasManyThrough
     {
         return $this->hasManyThrough(Content::class, Preset::class);
     }
 
+    /**
+     * The categories that belong to the entity.
+     * @return HasMany<Category>
+     */
     public function categories(): HasMany
     {
         return $this->hasMany(Category::class);

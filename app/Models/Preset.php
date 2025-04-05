@@ -44,7 +44,6 @@ class Preset extends Model
         'is_active',
         'created_at',
         'updated_at',
-        'deleted_at',
     ];
 
     protected $attributes = [
@@ -59,7 +58,6 @@ class Preset extends Model
             'is_active' => 'boolean',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
-            'deleted_at' => 'datetime',
         ];
     }
 
@@ -101,16 +99,25 @@ class Preset extends Model
         return $this->belongsTo(Template::class);
     }
 
+    /**
+     * @return BelongsTo<Entity>
+     */
     public function entity(): BelongsTo
     {
         return $this->belongsTo(Entity::class);
     }
 
+    /**
+     * @return HasMany<Content>
+     */
     public function contents(): HasMany
     {
         return $this->hasMany(Content::class, ['preset_id', 'entity_id'], ['id', 'entity_id']);
     }
 
+    /**
+     * @return BelongsToMany<Field>
+     */
     public function fields(): BelongsToMany
     {
         return $this->belongsToMany(Field::class, 'fieldables')->using(Fieldable::class)->withTimestamps()->withPivot(['order_column', 'is_required', 'default']);

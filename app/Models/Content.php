@@ -67,6 +67,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		'valid_to',
 		'preset_id',
 		'entity_id',
+		'title',
 		'components',
 	];
 
@@ -83,7 +84,6 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		'entity_id',
 		'created_at',
 		'updated_at',
-		'deleted_at',
 		'entity',
 		'components',
 		'preset',
@@ -123,7 +123,6 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 			'entity_id' => 'integer',
 			'created_at' => 'immutable_datetime',
 			'updated_at' => 'datetime',
-			'deleted_at' => 'datetime',
 		];
 	}
 
@@ -146,7 +145,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 
 		if (!$entities instanceof \Illuminate\Support\Collection) {
 			$entities = Entity::query()->withoutGlobalScopes()->get();
-			Cache::forever((new Entity())->getCacheKey(), $entities);
+			Cache::forever(new Entity()->getCacheKey(), $entities);
 		}
 
 		foreach ($entities as $entity) {
@@ -185,7 +184,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 
 		if (!static::$all_presets instanceof \Illuminate\Support\Collection) {
 			static::$all_presets = Cache::rememberForever(
-				(new Preset())->getCacheKey(),
+				new Preset()->getCacheKey(),
 				fn() => Preset::withoutGlobalScopes()->get()
 			);
 		}
@@ -249,31 +248,31 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 
 	#region Scopes
 
-	protected function scopeForEntity(Builder $query, Entity $entity): Builder
+	protected function scopeForEntity(Builder $query, Entity $entity)
 	{
-		return $query->where('entity_id', $entity->id);
+		$query->where('entity_id', $entity->id);
 	}
 
-	public function scopePublished(Builder $query): Builder
+	public function scopePublished(Builder $query)
 	{
-		return $query->where('valid_from', '<=', now())->where(function ($query) {
+		$query->where('valid_from', '<=', now())->where(function ($query) {
 			$query->where('valid_to', '>=', now())->orWhereNull('valid_to');
 		});
 	}
 
-	public function scopeExpired(Builder $query): Builder
+	public function scopeExpired(Builder $query)
 	{
-		return $query->whereNotNull('valid_to')->where('valid_to', '<', now());
+		$query->whereNotNull('valid_to')->where('valid_to', '<', now());
 	}
 
-	public function scopeDraft(Builder $query): Builder
+	public function scopeDraft(Builder $query)
 	{
-		return $query->whereNull('valid_from');
+		$query->whereNull('valid_from');
 	}
 
-	public function scopeScheduled(Builder $query): Builder
+	public function scopeScheduled(Builder $query)
 	{
-		return $query->whereNotNull('valid_from')->where('valid_from', '>', now());
+		$query->whereNotNull('valid_from')->where('valid_from', '>', now());
 	}
 
 	#endregion

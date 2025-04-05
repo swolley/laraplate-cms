@@ -3,7 +3,8 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Modules\Core\Helpers\CommonMigrationColumns;
+use Modules\Core\Helpers\CommonMigrationFunctions;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -14,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('locations', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable(false);
+            $table->string('name')->nullable(false)->fulltext('locations_name_IDX');
             $table->string('slug')->nullable(false);
             $table->string('address')->nullable(true);
             $table->string('city')->nullable(true);
@@ -22,18 +23,28 @@ return new class extends Migration
             $table->string('country')->nullable(false)->index('locations_country_IDX');
             $table->string('postcode')->nullable(true);
             $table->string('zone')->nullable(true);
-            $table->decimal('latitude', 10, 8)->nullable(true);
-            $table->decimal('longitude', 11, 8)->nullable(true);
-            CommonMigrationColumns::timestamps($table, true, true, true);
+
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                // Create PostGIS extension first
+                DB::unprepared('CREATE EXTENSION IF NOT EXISTS postgis;');
+                $table->geometry('geolocation', 'point', 4326)->nullable()->spatialIndex();
+            } else {
+                $table->geometry('geolocation')->nullable()->spatialIndex();
+            }
+
+            CommonMigrationFunctions::timestamps(
+                $table,
+                hasCreateUpdate: true,
+                hasSoftDelete: true,
+                hasLocks: true
+            );
 
             $table->unique(['name', 'deleted_at'], 'locations_name_UN');
             $table->unique(['slug', 'deleted_at'], 'locations_slug_UN');
-            $table->unique(['latitude', 'longitude', 'deleted_at'], 'locations_lat_long_UN');
-
-            if (in_array(DB::connection()->getDriverName(), ['oracle', 'pgsql'])) {
-                $table->index('city', 'locations_city_IDX');
-                $table->index('province', 'locations_province_IDX');
-            }
+            // if (in_array(DB::connection()->getDriverName(), ['oracle', 'pgsql'])) {
+            $table->index('city', 'locations_city_IDX');
+            $table->index('province', 'locations_province_IDX');
+            // }
         });
     }
 

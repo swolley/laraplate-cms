@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Cache;
 
 class ContentAnalytics extends AbstractAnalytics
 {
-    public function __construct(private Content $model) {}
+    public function __construct(private readonly Content $model) {}
 
     private static array $cache_duration = [555, 600];
 
