@@ -1,7 +1,7 @@
 {
     "name": "swolley/laraplate-cms",
     "description": "Cms Module contains all the necessary functionalities for build up a new Cms system.",
-    "version": "1.10.3",
+    "version": "1.10.4",
     "keywords": [
         "laravel",
         "laraplate",
