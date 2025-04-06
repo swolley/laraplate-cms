@@ -21,11 +21,16 @@ class CategoryFactory extends Factory
     public function definition(): array
     {
         $parent = fake()->boolean() ? Category::inRandomOrder()->first() : null;
-        $name = fake()->unique()->words(fake()->numberBetween(1, 3), true);
+        $entity = Entity::inRandomOrder()->first();
+
+        // Se abbiamo un parent, usiamo il suo entity_id, altrimenti usiamo un entity casuale
+        $entity_id = $parent ? $parent->entity_id : ($entity ? $entity->id : null);
+
+        $name = fake()->unique()->words(fake()->numberBetween(1, 3), true) . fake()->numberBetween(1, 1000);
         return [
             'name' => $name,
             'slug' => Str::slug($name),
-            'entity_id' => $parent?->entity_id ?? Entity::inRandomOrder()->first()?->id,
+            'entity_id' => $entity_id,
             'parent_id' => $parent?->id ?? null,
             'description' => fake()->boolean() ? fake()->text() : null,
             'persistence' => fake()->boolean() ? fake()->numberBetween(1, 1000) : null,

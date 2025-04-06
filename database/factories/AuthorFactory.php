@@ -25,12 +25,14 @@ class AuthorFactory extends Factory
         } else {
             $name = $user->name;
         }
+        $name .= fake()->boolean() ? fake()->numberBetween(1, 1000) : '';
+        $public_email = fake()->boolean() ? fake()->unique()->email() : ($user ? $user->email : null);
 
         // Se abbiamo un utente, usiamo il suo nome
         if ($user) {
             return [
                 'name' => $name,
-                'public_email' => fake()->boolean() ? fake()->unique()->email() : null,
+                'public_email' => $public_email,
                 'user_id' => $user->id,
             ];
         }

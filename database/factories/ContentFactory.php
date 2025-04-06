@@ -36,6 +36,7 @@ class ContentFactory extends Factory
         $valid_to = $valid_from && fake()->boolean() ? $valid_from->addDays(fake()->numberBetween(-10, 10)) : null;
 
         return [
+            'title' => fake()->text(fake()->numberBetween(100, 255)),
             'entity_id' => $entity->id,
             'preset_id' => $preset->id,
             'valid_from' => $valid_from,

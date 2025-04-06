@@ -18,12 +18,11 @@ class TagFactory extends Factory
     #[\Override]
     public function definition(): array
     {
-        // $base_name = fake()->unique()->words(fake()->numberBetween(1, 3), true);
-        // $name = $base_name . ' ' . fake()->numberBetween(1, 9999);
-        // while (Tag::where('name', $name)->exists()) {
-        //     $name = $base_name . ' ' . fake()->numberBetween(1, 9999);
-        // }
-        $name = fake()->unique()->words(fake()->numberBetween(1, 3), true);
+        try {
+            $name = fake()->unique()->words(fake()->numberBetween(1, 3), true);
+        } catch (\Exception $e) {
+            $name = fake()->words(fake()->numberBetween(1, 3), true) . fake()->numberBetween(1, 1000);
+        }
 
         return [
             'name' => $name,

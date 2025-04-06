@@ -81,12 +81,14 @@ class Location extends Model
 
     protected function setLatitudeAttribute(float $value): void
     {
-        $this->geolocation = new Point($value, $this->geolocation?->getLongitude());
+        $longitude = $this->geolocation?->longitude ?? 0.0;
+        $this->geolocation = new Point($value, $longitude);
     }
 
     protected function setLongitudeAttribute(float $value): void
     {
-        $this->geolocation = new Point($this->geolocation?->getLatitude(), $value);
+        $latitude = $this->geolocation?->latitude ?? 0.0;
+        $this->geolocation = new Point($latitude, $value);
     }
 
     public function prepareElasticDocument(): array

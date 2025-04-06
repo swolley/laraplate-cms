@@ -24,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  */
 class Preset extends Model
 {
-    use HasFactory, SoftDeletes, /*HasApprovals,*/ HasVersions, HasValidations, Compoships, HasCache {
+    use HasFactory, SoftDeletes, HasApprovals, HasVersions, HasValidations, Compoships, HasCache {
         getRules as protected getRulesTrait;
     }
 

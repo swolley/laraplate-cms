@@ -59,7 +59,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		HasChildren::hasMany as protected hasChildrenHasMany;
 		HasChildren::belongsTo as protected hasChildrenBelongsTo;
 		HasChildren::belongsToMany as protected hasChildrenBelongsToMany;
-		HasApprovals::requiresApprovalWhen as protected requiresApprovalWhenTrait;
+		requiresApprovalWhen as protected requiresApprovalWhenTrait;
 	}
 
 	protected $fillable = [
@@ -504,6 +504,6 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 
 	protected function requiresApprovalWhen($modifications): bool
 	{
-		return $this->requiresApprovalWhenTrait($modifications);
+		return $this->requiresApprovalWhenTrait($modifications) && ($modifications['valid_from'] ?? $modifications['valid_to'] ?? false);
 	}
 }

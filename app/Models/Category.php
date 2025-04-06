@@ -40,6 +40,7 @@ class Category extends Model implements Sortable
         getRules as protected getRulesTrait;
         getFullPath as protected getFullPathTrait;
         HasRecursiveRelationships::newBaseQueryBuilder insteadof Compoships;
+        requiresApprovalWhen as protected requiresApprovalWhenTrait;
     }
 
     /**
@@ -156,5 +157,10 @@ class Category extends Model implements Sortable
     {
         $ancestors = $this->ancestors()->pluck('slug');
         return $ancestors->join('/');
+    }
+
+    protected function requiresApprovalWhen($modifications): bool
+    {
+        return $this->requiresApprovalWhenTrait($modifications) && ($modifications['valid_from'] ?? $modifications['valid_to'] ?? false);
     }
 }
