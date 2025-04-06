@@ -12,7 +12,7 @@ trait HasSlug
 	public static function bootHasSlug()
 	{
 		static::saving(function (Model $model) {
-			if (!$model->getAttribute('slug')) {
+			if (!$model->getRawOriginal('slug') && !$model->isDirty('slug')) {
 				$model->slug = $model->generateSlug();
 			}
 		});
