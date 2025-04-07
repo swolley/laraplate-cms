@@ -20,20 +20,28 @@ class CategoryFactory extends Factory
     #[\Override]
     public function definition(): array
     {
-        $parent = fake()->boolean() ? Category::inRandomOrder()->first() : null;
-        $entity = Entity::inRandomOrder()->first();
-
-        // Se abbiamo un parent, usiamo il suo entity_id, altrimenti usiamo un entity casuale
-        $entity_id = $parent ? $parent->entity_id : ($entity ? $entity->id : null);
-
         $name = fake()->unique()->words(fake()->numberBetween(1, 3), true) . fake()->numberBetween(1, 1000);
         return [
             'name' => $name,
             'slug' => Str::slug($name),
-            'entity_id' => $entity_id,
-            'parent_id' => $parent?->id ?? null,
             'description' => fake()->boolean() ? fake()->text() : null,
             'persistence' => fake()->boolean() ? fake()->numberBetween(1, 1000) : null,
         ];
+    }
+
+    #[\Override]
+    public function configure(): static
+    {
+        return $this->afterMaking(function (Category $category) {
+            $parent = fake()->boolean() ? Category::inRandomOrder()->first() : null;
+            if ($parent) {
+                $entity_id = $parent->entity_id;
+            } else {
+                $entity_id = fake()->boolean() ? Entity::inRandomOrder()->first()?->entity_id : null;
+            }
+            $category->entity_id = $entity_id;
+            $category->parent_id = $parent?->id;
+            $category->parent_entity_id = $parent?->entity_id;
+        });
     }
 }

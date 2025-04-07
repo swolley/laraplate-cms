@@ -90,12 +90,23 @@ class Category extends Model implements Sortable
     #[\Override]
     protected static function booted(): void
     {
-        static::saving(function (Category $category) {
+        static::creating(function (Category $category) {
             if ($category->isDirty('parent_id')) {
-                // if ($category->entity_id && $category->entity_id !== $category->parent->entity_id) {
-                //     throw new \UnexpectedValueException("Entity mismatch: {$category->entity->name} is not compatible with {$category->parent->name}");
-                // }
-                $category->entity_id = $category->parent->entity_id;
+                if ($category->entity_id !== $category->parent->entity_id) {
+                    throw new \UnexpectedValueException("Entity mismatch: {$category->entity->name} is not compatible with {$category->parent->name}");
+                } else {
+                    $category->parent_entity_id = $category->parent?->entity_id;
+                }
+            }
+        });
+        static::updating(function (Category $category) {
+            if ($category->isDirty('parent_id')) {
+                if (!$category->parent_id) {
+                    $category->parent_entity_id = null;
+                } else if ($category->entity_id !== $category->parent->entity_id) {
+                    throw new \UnexpectedValueException("Entity mismatch: {$category->entity->name} is not compatible with {$category->parent->name}");
+                }
+                $category->parent_entity_id = $category->parent->entity_id;
             }
         });
     }

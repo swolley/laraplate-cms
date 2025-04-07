@@ -15,7 +15,8 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('entity_id')->nullable(true)->constrained('entities', 'id', 'categories_entity_id_FK')->cascadeOnDelete();
-            $table->foreignId('parent_id')->nullable(true)->constrained('categories', 'id', 'categories_parent_id_FK')->cascadeOnDelete();
+            $table->unsignedBigInteger('parent_id')->nullable(true);
+            $table->unsignedBigInteger('parent_entity_id')->nullable(true);
             $table->string('name')->nullable(false);
             $table->string('slug')->nullable(false)->index('categories_slug_IDX');
             $table->text('description')->nullable(true);
@@ -36,6 +37,9 @@ return new class extends Migration
             $table->unique(['entity_id', 'parent_id', 'slug', 'deleted_at'], 'categories_slug_UN');
             $table->unique(['id', 'parent_id'], 'category_parent_UN');
             $table->unique(['id', 'entity_id'], 'category_entity_UN');
+            $table->foreign(['parent_entity_id', 'parent_id'], 'categories_parent_FK')->references(['entity_id', 'id'])->on('categories')->cascadeOnDelete();
+            DB::statement('ALTER TABLE categories ADD CONSTRAINT categories_parent_id_check CHECK (parent_id <> id)');
+            DB::statement('ALTER TABLE categories ADD CONSTRAINT categories_parent_entity_id_check CHECK (parent_entity_id is null OR parent_entity_id = entity_id)');
         });
     }
 
