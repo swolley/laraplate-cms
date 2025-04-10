@@ -6,19 +6,18 @@ use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Core\Cache\HasCache;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Database\Eloquent\Model;
 use Modules\Core\Helpers\HasValidations;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Core\Overrides\ComposhipsModel;
+use Modules\Core\Helpers\SoftDeletes;
 use Modules\Cms\Database\Factories\EntityFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 /**
  * @mixin IdeHelperEntity
  */
-class Entity extends Model
+class Entity extends ComposhipsModel
 {
     use HasFactory, SoftDeletes, HasCache, HasSlug, HasPath, HasValidations {
         getRules as protected getRulesTrait;
@@ -62,10 +61,13 @@ class Entity extends Model
     {
         parent::boot();
 
-        self::addGlobalScope('api', function (Builder $builder) {
-            if (request()?->is('api/*')) {
-                $builder->where('is_active', true);
-            }
+        // self::addGlobalScope('api', function (Builder $builder) {
+        //     if (request()?->is('api/*')) {
+        //         $builder->where('is_active', true);
+        //     }
+        // });
+        self::addGlobalScope('active', function (Builder $builder) {
+            $builder->where('is_active', true);
         });
     }
 
@@ -94,11 +96,11 @@ class Entity extends Model
 
     /**
      * The contents that belong to the entity.
-     * @return HasManyThrough<Content>
+     * @return HasMany<Content>
      */
-    public function contents(): HasManyThrough
+    public function contents(): HasMany
     {
-        return $this->hasManyThrough(Content::class, Preset::class);
+        return $this->hasMany(Content::class);
     }
 
     /**

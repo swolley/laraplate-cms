@@ -5,16 +5,16 @@ namespace Modules\Cms\Models;
 use Illuminate\Validation\Rule;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
-use Awobaz\Compoships\Compoships;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
+use Modules\Core\Helpers\SoftDeletes;
 use Spatie\EloquentSortable\Sortable;
 use Modules\Core\Helpers\HasApprovals;
-use Illuminate\Database\Eloquent\Model;
 use Modules\Core\Helpers\HasValidations;
 use Spatie\EloquentSortable\SortableTrait;
 use Modules\Cms\Models\Pivot\Categorizable;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Core\Overrides\ComposhipsModel;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Modules\Cms\Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,7 +24,7 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 /**
  * @mixin IdeHelperCategory
  */
-class Category extends Model implements Sortable
+class Category extends ComposhipsModel implements Sortable
 {
     use HasFactory,
         HasRecursiveRelationships,
@@ -35,11 +35,9 @@ class Category extends Model implements Sortable
         SortableTrait,
         HasSlug,
         HasPath,
-        HasValidations,
-        Compoships {
+        HasValidations {
         getRules as protected getRulesTrait;
         getFullPath as protected getFullPathTrait;
-        HasRecursiveRelationships::newBaseQueryBuilder insteadof Compoships;
         requiresApprovalWhen as protected requiresApprovalWhenTrait;
     }
 
@@ -114,6 +112,17 @@ class Category extends Model implements Sortable
     protected static function newFactory(): CategoryFactory
     {
         return CategoryFactory::new();
+    }
+
+    protected function scopeForEntity(Builder $query, null|int|Entity $entity): Builder
+    {
+        return $query->where(function ($query) use ($entity) {
+            if ($entity) {
+                $query->where('entity_id', is_int($entity) ? $entity : $entity->id)->orWhereNull('entity_id');
+            } else {
+                $query->whereNull('entity_id');
+            }
+        });
     }
 
     /**

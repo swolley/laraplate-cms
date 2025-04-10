@@ -24,7 +24,7 @@ use Modules\Core\Locking\Traits\HasLocks;
 use Spatie\EloquentSortable\SortableTrait;
 use Modules\Cms\Models\Pivot\Categorizable;
 use Modules\Core\Overrides\ComposhipsModel;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Locking\HasOptimisticLocking;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -374,7 +374,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 			['category_id', 'entity_id'],
 			['id', 'entity_id'],
 			['id', 'entity_id']
-		)->using(Categorizable::class)->withTimestamps();
+		)->using(Categorizable::class)->withTimestamps()->forEntity($this->entity_id);
 	}
 
 	/**

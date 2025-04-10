@@ -47,14 +47,16 @@ class ContentFactory extends Factory
     #[\Override]
     public function configure(): static
     {
-        return $this->afterMaking(function (Content $content) {
+        return $this->afterMaking(function (Content &$content) {
+            // convert content into the real class
+            $attributes = $content->getAttributes();
+            $attributes['components'] = json_decode($attributes['components'], true);
+            $content = $content->newInstance($attributes);
+
             $content->without(['authors']);
             $preset = Preset::where('entity_id', $content->entity_id)->inRandomOrder()->first();
 
-            if (!$content->preset) {
-                throw new \RuntimeException("No preset found for entity_id: {$content->entity_id}");
-            }
-
+            // set the components depending on the preset configured fields
             $content->components = $preset->fields->mapWithKeys(function (Field $field) {
                 $value = $field->default;
                 if ($field->required || fake()->boolean()) {
@@ -70,13 +72,13 @@ class ContentFactory extends Factory
             })->toArray();
         })->afterCreating(function (Content $content) {
             $authors = Author::inRandomOrder()->limit(fake()->numberBetween(1, 3))->get();
-            $content->authors()->attach($authors->isNotEmpty() ? $authors->pluck('id') : Author::factory()->count(random_int(1, 3))->create());
+            $content->authors()->attach($authors->map(fn(Author $author) => ['content_id' => $content->id, 'author_id' => $author->id])->toArray());
 
-            $categories = Category::inRandomOrder()->limit(fake()->numberBetween(1, 2))->get();
-            $content->categories()->attach($categories->isNotEmpty() ? $categories->pluck('id') : Category::factory()->count(random_int(1, 3))->create());
+            $categories = Category::inRandomOrder()->forEntity($content->entity_id)->limit(fake()->numberBetween(1, 2))->get();
+            $content->categories()->attach($categories->map(fn(Category $category) => ['content_id' => $content->id, 'category_id' => $category->id])->toArray());
 
             $tags = Tag::inRandomOrder()->limit(fake()->numberBetween(1, 5))->get();
-            $content->tags()->attach($tags->isNotEmpty() ? $tags->pluck('id') : Tag::factory()->count(random_int(1, 3))->create());
+            $content->tags()->attach($tags->map(fn(Tag $tag) => ['content_id' => $content->id, 'tag_id' => $tag->id])->toArray());
 
             $content->load('authors');
         });

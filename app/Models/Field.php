@@ -9,7 +9,7 @@ use Modules\Core\Helpers\HasVersions;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Cms\Models\Pivot\Fieldable;
 use Modules\Core\Helpers\HasValidations;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Core\Helpers\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 

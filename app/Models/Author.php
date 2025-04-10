@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Modules\Cms\Models\Pivot\Authorable;
 use Modules\Core\Helpers\HasValidations;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Core\Helpers\SoftDeletes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Modules\Cms\Database\Factories\AuthorFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
