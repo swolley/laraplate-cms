@@ -14,10 +14,10 @@ return new class extends Migration
     {
         Schema::create('presets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('entity_id')->nullable(false)->constrained('entities', 'id', 'presets_entity_id_FK')->cascadeOnDelete();
-            $table->string('name')->nullable(false);
-            $table->boolean('is_active')->default(true)->nullable(false)->index('presets_is_active_IDX');
-            $table->foreignId('template_id')->nullable(true)->constrained('templates', 'id', 'presets_template_id_FK')->cascadeOnDelete();
+            $table->foreignId('entity_id')->nullable(false)->constrained('entities', 'id', 'presets_entity_id_FK')->cascadeOnDelete()->comment('The entity that the preset belongs to');
+            $table->string('name')->nullable(false)->comment('The name of the preset');
+            $table->boolean('is_active')->default(true)->nullable(false)->index('presets_is_active_IDX')->comment('Whether the preset is active');
+            $table->foreignId('template_id')->nullable(true)->constrained('templates', 'id', 'presets_template_id_FK')->cascadeOnDelete()->comment('The template that the preset belongs to');
             CommonMigrationFunctions::timestamps(
                 $table,
                 hasCreateUpdate: true,

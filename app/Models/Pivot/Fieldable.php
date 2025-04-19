@@ -4,6 +4,7 @@ namespace Modules\Cms\Models\Pivot;
 
 use Modules\Core\Helpers\HasVersions;
 use Spatie\EloquentSortable\Sortable;
+use Illuminate\Database\Eloquent\Builder;
 use Spatie\EloquentSortable\SortableTrait;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
@@ -24,7 +25,7 @@ class Fieldable extends Pivot implements Sortable
 	];
 
 	#[\Override]
- protected function casts()
+	protected function casts()
 	{
 		return [
 			'is_required' => 'boolean',
@@ -39,4 +40,9 @@ class Fieldable extends Pivot implements Sortable
 		'order_column_name' => 'order_column',
 		'sort_when_creating' => true,
 	];
+
+	public function scopeOrdered(Builder $query): Builder
+	{
+		return $query->orderBy('order_column', 'asc');
+	}
 }

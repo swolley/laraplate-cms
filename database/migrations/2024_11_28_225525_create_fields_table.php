@@ -14,11 +14,11 @@ return new class extends Migration
     {
         Schema::create('fields', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable(false)->unique();
-            $table->string('type')->nullable(false);
-            $table->json('options')->nullable(false);
-            $table->boolean('is_slug')->default(false)->nullable(false);
-            $table->boolean('is_active')->default(true)->nullable(false)->index('fields_is_active_IDX');
+            $table->string('name')->nullable(false)->comment('The name of the field');
+            $table->string('type')->nullable(false)->comment('The type of the field');
+            $table->json('options')->nullable(false)->comment('The options of the field');
+            $table->boolean('is_slug')->default(false)->nullable(false)->comment('Whether the field takes part in the slug');
+            $table->boolean('is_active')->default(true)->nullable(false)->index('fields_is_active_IDX')->comment('Whether the field is active');
             CommonMigrationFunctions::timestamps(
                 $table,
                 hasCreateUpdate: true,
@@ -30,12 +30,16 @@ return new class extends Migration
 
         Schema::create('fieldables', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('preset_id')->nullable(false)->constrained('presets', 'id', 'fieldables_preset_id_FK')->cascadeOnDelete();
-            $table->foreignId('field_id')->nullable(false)->constrained('fields', 'id', 'fieldables_field_id_FK')->cascadeOnDelete();
-            $table->boolean('is_required')->default(false)->nullable(false);
-            $table->integer('order_column')->nullable(false)->default(0)->index('fieldables_order_column_IDX');
-            $table->json('default')->nullable(true);
-            CommonMigrationFunctions::timestamps($table);
+            $table->foreignId('preset_id')->nullable(false)->constrained('presets', 'id', 'fieldables_preset_id_FK')->cascadeOnDelete()->comment('The preset that the field belongs to');
+            $table->foreignId('field_id')->nullable(false)->constrained('fields', 'id', 'fieldables_field_id_FK')->cascadeOnDelete()->comment('The field that the preset belongs to');
+            $table->boolean('is_required')->default(false)->nullable(false)->comment('Whether the field is required');
+            $table->integer('order_column')->nullable(false)->default(0)->index('fieldables_order_column_IDX')->comment('The order of the field');
+            $table->json('default')->nullable(true)->comment('The default value of the field');
+            CommonMigrationFunctions::timestamps(
+                $table,
+                hasCreateUpdate: true,
+                hasSoftDelete: true,
+            );
 
             $table->unique(['preset_id', 'field_id'], 'fieldables_UN');
         });

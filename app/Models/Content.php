@@ -14,6 +14,7 @@ use Modules\Core\Cache\Searchable;
 use Illuminate\Support\Facades\Cache;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
+use Modules\Core\Helpers\SoftDeletes;
 use Spatie\EloquentSortable\Sortable;
 use Modules\Core\Helpers\HasApprovals;
 use Modules\Cms\Models\Pivot\Relatable;
@@ -22,9 +23,9 @@ use Modules\Core\Helpers\HasValidations;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\Core\Locking\Traits\HasLocks;
 use Spatie\EloquentSortable\SortableTrait;
+use Modules\Cms\Helpers\HasDynamicContents;
 use Modules\Cms\Models\Pivot\Categorizable;
 use Modules\Core\Overrides\ComposhipsModel;
-use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Locking\HasOptimisticLocking;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -53,30 +54,29 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		HasPath,
 		HasValidations,
 		Searchable,
-		HasApprovals {
+		HasApprovals,
+		HasDynamicContents {
 		prepareElasticDocument as protected prepareElasticDocumentTrait;
 		getRules as protected getRulesTrait;
 		HasChildren::hasMany as protected hasChildrenHasMany;
 		HasChildren::belongsTo as protected hasChildrenBelongsTo;
 		HasChildren::belongsToMany as protected hasChildrenBelongsToMany;
 		requiresApprovalWhen as protected requiresApprovalWhenTrait;
+		HasDynamicContents::toArray as protected dynamicContentsToArray;
+		HasApprovals::toArray as protected approvalsToArray;
 	}
 
 	protected $fillable = [
-		'valid_from',
-		'valid_to',
 		'preset_id',
 		'entity_id',
 		'title',
+		'slug',
 		'components',
 	];
 
 	protected $with = [
 		'entity',
-		// 'authors', 
-		// 'categories', 
-		// 'categories.ancestors', 
-		// 'media',
+		'preset',
 	];
 
 	protected $hidden = [
@@ -196,28 +196,10 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		return new static::$childTypes[$entity_id](['preset_id' => $preset_id, 'entity_id' => $entity_id]);
 	}
 
-
-	#[\Override]
-	public function toArray(): array
-	{
-		$content = parent::toArray();
-		if (isset($content['components'])) {
-			$components = $content['components'];
-			unset($content['components']);
-			return array_merge($content, $components);
-		}
-
-		return array_merge($content, $this->getComponentsAttribute());
-	}
-
 	#[\Override]
 	protected static function boot()
 	{
 		parent::boot();
-
-		static::addGlobalScope('multi_ordered', function (Builder $builder) {
-			$builder->ordered('asc')->orderBy('valid_from', 'desc')->orderBy('contents.created_at', 'desc');
-		});
 
 		static::saving(function ($content) {
 			if ($content->preset) {
@@ -227,6 +209,10 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 				}
 				$content->entity_id = $content->preset->entity_id;
 			}
+		});
+
+		static::addGlobalScope('global_filters', function (Builder $query) {
+			$query->valid()->ordered();
 		});
 	}
 
@@ -248,73 +234,30 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 
 	#region Scopes
 
-	protected function scopeForEntity(Builder $query, Entity $entity)
+	/**
+	 * Order contents by priority and validity
+	 * @param Builder $query
+	 * @return Builder
+	 */
+	public function scopeOrdered(Builder $query): Builder
 	{
-		$query->where('entity_id', $entity->id);
+		return $query->priorityOrdered()->validityOrdered()->orderBy($this->qualifyColumn(static::CREATED_AT), 'desc');
 	}
 
-	public function scopePublished(Builder $query)
+	/**
+	 * Filter contents by entity
+	 * @param Builder $query
+	 * @param Entity $entity
+	 * @return Builder
+	 */
+	protected function scopeForEntity(Builder $query, Entity $entity): Builder
 	{
-		$query->where('valid_from', '<=', now())->where(function ($query) {
-			$query->where('valid_to', '>=', now())->orWhereNull('valid_to');
-		});
-	}
-
-	public function scopeExpired(Builder $query)
-	{
-		$query->whereNotNull('valid_to')->where('valid_to', '<', now());
-	}
-
-	public function scopeDraft(Builder $query)
-	{
-		$query->whereNull('valid_from');
-	}
-
-	public function scopeScheduled(Builder $query)
-	{
-		$query->whereNotNull('valid_from')->where('valid_from', '>', now());
+		return $query->where('entity_id', $entity->id);
 	}
 
 	#endregion
 
 	#region Attributes
-
-	#[\Override]
-	public function __get($key)
-	{
-		if ($this->hasAttribute($key) || method_exists(self::class, $key)) {
-			return parent::__get($key);
-		}
-
-		return data_get($this->getComponentsAttribute(), $key);
-	}
-
-	#[\Override]
-	public function __set($key, $value)
-	{
-		$components = $this->getComponentsAttribute();
-		if (array_key_exists($key, $components)) {
-			$components[$key] = $value;
-			$this->setComponentsAttribute($components);
-			return;
-		}
-
-		parent::__set($key, $value);
-
-		if ($key === 'preset_id' && $value) {
-			$this->entity_id = $this->preset?->entity_id;
-		}
-	}
-
-	protected function slugFields(): array
-	{
-		$slug_field = $this->preset?->fields()
-			->select(['name', 'is_slug'])
-			->where('is_slug', true)
-			->first()?->name;
-
-		return $slug_field ? [$slug_field] : [];
-	}
 
 	protected function cover(): Attribute
 	{
@@ -322,21 +265,6 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 			get: fn() => $this->getFirstMedia('cover'),
 			set: fn($value) => $this->addMedia($value)->toMediaCollection('cover'),
 		);
-	}
-
-	protected function getComponentsAttribute(): array
-	{
-		return $this->mergeComponentsValues(json_decode((string) $this->attributes['components'], true));
-	}
-
-	protected function setComponentsAttribute(array $components): void
-	{
-		$this->attributes['components'] = json_encode($this->mergeComponentsValues($components));
-	}
-
-	private function mergeComponentsValues(array $components): array
-	{
-		return $this->fields()->mapWithKeys(fn(Field $field) => [$field->name => data_get($components, $field->name) ?? $field->default])->toArray();
 	}
 
 	#endregion
@@ -485,6 +413,8 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		$rules = $this->getRulesTrait();
 		$rules[static::DEFAULT_RULE] = array_merge($rules[static::DEFAULT_RULE], [
 			...$fields,
+			'title' => 'required|string|max:255',
+			'slug' => 'nullable|string|max:255',
 			'entity_id' => 'required|exists:entities,id',
 			'preset_id' => 'required|exists:presets,id',
 		]);
@@ -502,8 +432,19 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		return $this->categories->first()?->getPath();
 	}
 
+	protected function slugFields(): array
+	{
+		return [...$this->dynamicSlugFields(), 'title'];
+	}
+
 	protected function requiresApprovalWhen($modifications): bool
 	{
-		return $this->requiresApprovalWhenTrait($modifications) && ($modifications['valid_from'] ?? $modifications['valid_to'] ?? false);
+		return $this->requiresApprovalWhenTrait($modifications) && ($modifications[static::$valid_from_column] ?? $modifications[static::$valid_to_column] ?? false);
+	}
+
+	#[\Override]
+	public function toArray(): array
+	{
+		return array_merge($this->dynamicContentsToArray(), $this->approvalsToArray());
 	}
 }

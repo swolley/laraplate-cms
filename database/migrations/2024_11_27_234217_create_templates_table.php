@@ -14,8 +14,8 @@ return new class extends Migration
     {
         Schema::create('templates', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable(false);
-            $table->longText('content')->nullable(false);
+            $table->string('name')->nullable(false)->comment('The name of the template');
+            $table->longText('content')->nullable(false)->comment('The blade template content');
             CommonMigrationFunctions::timestamps(
                 $table,
                 hasCreateUpdate: true,

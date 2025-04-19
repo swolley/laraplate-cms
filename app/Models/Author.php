@@ -6,11 +6,12 @@ use Spatie\Image\Enums\Fit;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Auth;
 use Modules\Core\Helpers\HasVersions;
+use Modules\Core\Helpers\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Cms\Models\Pivot\Authorable;
 use Modules\Core\Helpers\HasValidations;
+use Modules\Cms\Helpers\HasDynamicContents;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Modules\Core\Helpers\SoftDeletes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Modules\Cms\Database\Factories\AuthorFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,8 +25,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  */
 class Author extends Model
 {
-    use HasFactory, SoftDeletes, HasVersions, HasValidations, InteractsWithMedia {
+    use HasFactory, SoftDeletes, HasVersions, HasValidations, InteractsWithMedia, HasDynamicContents {
         getRules as protected getRulesTrait;
+        HasDynamicContents::toArray as protected dynamicContentsToArray;
     }
 
     protected $fillable = [
@@ -138,7 +140,7 @@ class Author extends Model
     #[\Override]
     public function toArray(): array
     {
-        $author = parent::toArray();
+        $author = $this->dynamicContentsToArray();
         $user = $this->user ? $this->user->toArray() : null;
         return $user ? array_merge($author, $user) : $author;
     }

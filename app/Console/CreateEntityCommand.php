@@ -2,16 +2,19 @@
 
 namespace Modules\Cms\Console;
 
-use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Str;
 use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Preset;
-use Modules\Core\Overrides\Command;
 use Modules\Cms\Casts\FieldType;
+use Modules\Cms\Casts\EntityType;
 use function Laravel\Prompts\text;
+use Modules\Core\Overrides\Command;
 use function Laravel\Prompts\confirm;
+use Illuminate\Database\DatabaseManager;
 use function Laravel\Prompts\multiselect;
+use function Laravel\Prompts\select;
+
 use Modules\Core\Helpers\HasCommandUtils;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
@@ -52,6 +55,10 @@ class CreateEntityCommand extends Command
             }
             foreach ($fillables as $attribute) {
                 if ($attribute === 'name' && $entity->name) {
+                    continue;
+                }
+                if ($attribute === 'type') {
+                    $entity->type = select('Choose the type of the entity', EntityType::values(), required: true);
                     continue;
                 }
                 $entity->{$attribute} = text(ucfirst($attribute), '', $attribute === 'slug' ? Str::slug($entity->name) : '', true, fn(string $value) => $this->validationCallback($attribute, $value, $validations));

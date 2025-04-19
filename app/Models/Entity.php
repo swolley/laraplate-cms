@@ -5,11 +5,12 @@ namespace Modules\Cms\Models;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Core\Cache\HasCache;
+use Modules\Cms\Casts\EntityType;
 use Illuminate\Support\Facades\Cache;
 use Modules\Core\Helpers\HasValidations;
 use Illuminate\Database\Eloquent\Builder;
+use Modules\Core\Locking\Traits\HasLocks;
 use Modules\Core\Overrides\ComposhipsModel;
-use Modules\Core\Helpers\SoftDeletes;
 use Modules\Cms\Database\Factories\EntityFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,7 +20,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  */
 class Entity extends ComposhipsModel
 {
-    use HasFactory, SoftDeletes, HasCache, HasSlug, HasPath, HasValidations {
+    use HasFactory, HasCache, HasSlug, HasPath, HasValidations, HasLocks {
         getRules as protected getRulesTrait;
     }
 
@@ -29,12 +30,14 @@ class Entity extends ComposhipsModel
     protected $fillable = [
         'name',
         'slug',
+        'type',
     ];
 
     protected $hidden = [
         'created_at',
         'updated_at',
         'is_active',
+        'type',
     ];
 
     protected $attributes = [
@@ -48,6 +51,7 @@ class Entity extends ComposhipsModel
             'is_active' => 'boolean',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
+            'type' => EntityType::class,
         ];
     }
 
@@ -79,7 +83,7 @@ class Entity extends ComposhipsModel
             Content::resolveChildTypes();
         });
 
-        static::forceDeleted(function (Entity $entity) {
+        static::deleted(function (Entity $entity) {
             Cache::forget(new Preset()->getCacheKey());
             Content::resolveChildTypes();
         });
@@ -118,6 +122,7 @@ class Entity extends ComposhipsModel
         $rules[static::DEFAULT_RULE] = array_merge($rules[static::DEFAULT_RULE], [
             'is_active' => 'boolean',
             'slug' => 'nullable|string|max:255',
+            'type' => ['required', EntityType::validationRule()],
         ]);
         $rules['create'] = array_merge($rules['create'], [
             'name' => ['required', 'string', 'max:255', 'unique:entities,name'],

@@ -29,12 +29,12 @@ trait HasPath
 	/**
 	 * get path for full path
 	 */
-	abstract public function getPath(): ?string;
+	abstract protected function getPath(): ?string;
 
 	/**
 	 * get full path
 	 */
-	public function getFullPath(): string
+	protected function getFullPath(): string
 	{
 		$suffix = $this->getPathSuffix();
 		$prefix = $this->getPathPrefix();

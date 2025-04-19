@@ -89,6 +89,11 @@ class Tag extends Model implements Sortable
         return null;
     }
 
+    public function scopeOrdered(Builder $query): Builder
+    {
+        return $query->orderBy('order_column', 'asc');
+    }
+
     public function scopeWithType(Builder $query, ?string $type = null)
     {
         if (!is_null($type)) {

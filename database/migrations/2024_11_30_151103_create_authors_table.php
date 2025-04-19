@@ -14,9 +14,9 @@ return new class extends Migration
     {
         Schema::create('authors', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id')->nullable();
-            $table->string('name');
-            $table->string('public_email')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable()->comment('The user that the author belongs to');
+            $table->string('name')->comment('The name of the author');
+            $table->json('components')->nullable(false)->comment('The author contents');
             CommonMigrationFunctions::timestamps(
                 $table,
                 hasCreateUpdate: true,

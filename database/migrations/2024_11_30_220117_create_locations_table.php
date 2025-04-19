@@ -15,21 +15,21 @@ return new class extends Migration
     {
         Schema::create('locations', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable(false)->fulltext('locations_name_IDX');
-            $table->string('slug')->nullable(false);
-            $table->string('address')->nullable(true);
-            $table->string('city')->nullable(true);
-            $table->string('province')->nullable(true);
-            $table->string('country')->nullable(false)->index('locations_country_IDX');
-            $table->string('postcode')->nullable(true);
-            $table->string('zone')->nullable(true);
+            $table->string('name')->nullable(false)->fulltext('locations_name_IDX')->comment('The friendly name of the location');
+            $table->string('slug')->nullable(false)->fulltext('locations_slug_IDX')->comment('The slug of the location');
+            $table->string('address')->nullable(true)->comment('The address of the location');
+            $table->string('city')->nullable(true)->comment('The city of the location');
+            $table->string('province')->nullable(true)->comment('The province of the location');
+            $table->string('country')->nullable(false)->index('locations_country_IDX')->comment('The country of the location');
+            $table->string('postcode')->nullable(true)->comment('The postcode of the location');
+            $table->string('zone')->nullable(true)->comment('The zone of the location');
 
             if (DB::connection()->getDriverName() === 'pgsql') {
                 // Create PostGIS extension first
                 DB::unprepared('CREATE EXTENSION IF NOT EXISTS postgis;');
-                $table->geometry('geolocation', 'point', 4326)->nullable()->spatialIndex();
+                $table->geometry('geolocation', 'point', 4326)->nullable()->spatialIndex()->comment('The geolocation of the location');
             } else {
-                $table->geometry('geolocation')->nullable()->spatialIndex();
+                $table->geometry('geolocation')->nullable()->spatialIndex()->comment('The geolocation of the location');
             }
 
             CommonMigrationFunctions::timestamps(

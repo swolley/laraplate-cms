@@ -4,118 +4,71 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Analytics;
 
+use Elastic\Elasticsearch\Client;
+use Elastic\Elasticsearch\ClientBuilder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
+use Modules\Core\Cache\CacheManager;
+use Modules\Core\Search\Traits\Searchable;
 
 abstract class AbstractAnalytics
 {
     /**
-     * Get time-based aggregations from Elasticsearch
+     * Get Elasticsearch client
      */
-    protected function getTimeBasedMetrics(Model $model, array $filters = [], string $interval = '1M'): array
+    protected function getElasticsearchClient(): Client
     {
-        $client = $model->getElasticsearchClient();
+        $config = config('elastic.client.connections.default');
 
-        $query = [
-            'index' => $model->searchableAs(),
-            'body' => [
-                'size' => 0,
-                'query' => [
-                    'bool' => [
-                        'must' => [
-                            ['match' => ['entity' => $model->getTable()]]
-                        ]
-                    ]
-                ],
-                'aggs' => [
-                    'over_time' => [
-                        'date_histogram' => [
-                            'field' => 'valid_from',
-                            'calendar_interval' => $interval
-                        ]
-                    ]
-                ]
-            ]
-        ];
+        $builder = ClientBuilder::create();
+        $builder->setHosts($config['hosts']);
 
-        // Aggiungi filtri se presenti
-        if (!empty($filters['date_from'])) {
-            $query['body']['query']['bool']['must'][] = [
-                'range' => [
-                    'valid_from' => [
-                        'gte' => $filters['date_from']
-                    ]
-                ]
-            ];
+        // Imposta autenticazione se configurata
+        if (!empty($config['username']) && !empty($config['password'])) {
+            $builder->setBasicAuthentication($config['username'], $config['password']);
         }
 
-        if (!empty($filters['date_to'])) {
-            $query['body']['query']['bool']['must'][] = [
-                'range' => [
-                    'valid_from' => [
-                        'lte' => $filters['date_to']
-                    ]
-                ]
-            ];
+        // Imposta configurazioni di timeout
+        if (!empty($config['timeout'])) {
+            $builder->setRetries($config['retries'] ?? 3);
         }
 
-        $response = $client->search($query);
-        return $response['aggregations']['over_time']['buckets'];
+        // Configura timeout tramite options
+        $builder->setHttpClientOptions([
+            'timeout' => $config['timeout'] ?? 60,
+            'connect_timeout' => $config['connect_timeout'] ?? 10,
+        ]);
+
+        // Imposta cloud ID se disponibile
+        if (!empty($config['cloud_id'])) {
+            $builder->setElasticCloudId($config['cloud_id']);
+        }
+
+        // Imposta configurazioni SSL
+        if (isset($config['ssl_verification'])) {
+            $builder->setSSLVerification($config['ssl_verification']);
+        }
+
+        return $builder->build();
     }
 
     /**
-     * Get term-based aggregations from Elasticsearch
+     * Get cache key based on filters
      */
-    protected function getTermBasedMetrics(Model $model, string $field, array $filters = [], int $size = 10): array
+    protected function getCacheKey(string $metric, array $filters = []): string
     {
-        $client = $model->getElasticsearchClient();
-
-        $query = [
-            'index' => $model->searchableAs(),
-            'body' => [
-                'size' => 0,
-                'query' => [
-                    'bool' => [
-                        'must' => [
-                            ['match' => ['entity' => $model->getTable()]]
-                        ]
-                    ]
-                ],
-                'aggs' => [
-                    'by_term' => [
-                        'terms' => [
-                            'field' => $field,
-                            'size' => $size
-                        ]
-                    ]
-                ]
-            ]
-        ];
-
-        // Applica gli stessi filtri temporali se presenti
-        if (!empty($filters['date_from']) || !empty($filters['date_to'])) {
-            $range = ['range' => ['valid_from' => []]];
-
-            if (!empty($filters['date_from'])) {
-                $range['range']['valid_from']['gte'] = $filters['date_from'];
-            }
-
-            if (!empty($filters['date_to'])) {
-                $range['range']['valid_from']['lte'] = $filters['date_to'];
-            }
-
-            $query['body']['query']['bool']['must'][] = $range;
-        }
-
-        $response = $client->search($query);
-        return $response['aggregations']['by_term']['buckets'];
+        $filters_string = !empty($filters) ? '_' . md5(json_encode($filters)) : '';
+        return 'analytics_' . $metric . $filters_string;
     }
 
     /**
-     * Get geo-based aggregations from Elasticsearch
+     * Get geo-based metrics from Elasticsearch
      */
-    protected function getGeoBasedMetrics(Model $model, string $geo_field = 'geocode', array $filters = []): array
+    protected function getGeoBasedMetrics(Model $model, string $geo_field, array $filters = []): array
     {
-        $client = $model->getElasticsearchClient();
+        $client = $this->getElasticsearchClient();
 
         $query = [
             'index' => $model->searchableAs(),
@@ -139,7 +92,146 @@ abstract class AbstractAnalytics
             ]
         ];
 
-        $response = $client->search($query);
-        return $response['aggregations']['geo_clusters']['buckets'];
+        // Aggiungi filtri alla query se presenti
+        if (!empty($filters)) {
+            foreach ($filters as $field => $value) {
+                $query['body']['query']['bool']['must'][] = ['match' => [$field => $value]];
+            }
+        }
+
+        try {
+            $response = $client->search($query);
+            $results = $response->asArray();
+
+            return $results['aggregations']['geo_clusters']['buckets'] ?? [];
+        } catch (\Exception $e) {
+            // Log dell'errore
+            \Log::error('Elasticsearch geo-based metrics query failed', [
+                'error' => $e->getMessage(),
+                'index' => $model->searchableAs(),
+                'filters' => $filters
+            ]);
+
+            return [];
+        }
+    }
+
+    /**
+     * Get distribution metrics by field
+     */
+    protected function getDistributionByField(Model $model, string $field, array $filters = [], int $size = 10): array
+    {
+        $client = $this->getElasticsearchClient();
+
+        $query = [
+            'index' => $model->searchableAs(),
+            'body' => [
+                'size' => 0,
+                'query' => [
+                    'bool' => [
+                        'must' => [
+                            ['match' => ['entity' => $model->getTable()]]
+                        ]
+                    ]
+                ],
+                'aggs' => [
+                    'distribution' => [
+                        'terms' => [
+                            'field' => $field,
+                            'size' => $size
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        // Aggiungi filtri alla query se presenti
+        if (!empty($filters)) {
+            foreach ($filters as $filter_field => $value) {
+                $query['body']['query']['bool']['must'][] = ['match' => [$filter_field => $value]];
+            }
+        }
+
+        try {
+            $response = $client->search($query);
+            $results = $response->asArray();
+
+            return $results['aggregations']['distribution']['buckets'] ?? [];
+        } catch (\Exception $e) {
+            // Log dell'errore
+            \Log::error('Elasticsearch distribution metrics query failed', [
+                'error' => $e->getMessage(),
+                'field' => $field,
+                'index' => $model->searchableAs(),
+                'filters' => $filters
+            ]);
+
+            return [];
+        }
+    }
+
+    /**
+     * Get time-based metrics
+     */
+    protected function getTimeBasedMetrics(Model $model, string $date_field, string $interval = 'day', array $filters = [], ?Carbon $start_date = null, ?Carbon $end_date = null): array
+    {
+        $client = $this->getElasticsearchClient();
+
+        // Default all'ultimo mese se non specificato
+        $start_date = $start_date ?? Carbon::now()->subMonth();
+        $end_date = $end_date ?? Carbon::now();
+
+        $query = [
+            'index' => $model->searchableAs(),
+            'body' => [
+                'size' => 0,
+                'query' => [
+                    'bool' => [
+                        'must' => [
+                            ['match' => ['entity' => $model->getTable()]],
+                            ['range' => [
+                                $date_field => [
+                                    'gte' => $start_date->toIso8601String(),
+                                    'lte' => $end_date->toIso8601String()
+                                ]
+                            ]]
+                        ]
+                    ]
+                ],
+                'aggs' => [
+                    'time_series' => [
+                        'date_histogram' => [
+                            'field' => $date_field,
+                            'calendar_interval' => $interval
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        // Aggiungi filtri alla query se presenti
+        if (!empty($filters)) {
+            foreach ($filters as $filter_field => $value) {
+                $query['body']['query']['bool']['must'][] = ['match' => [$filter_field => $value]];
+            }
+        }
+
+        try {
+            $response = $client->search($query);
+            $results = $response->asArray();
+
+            return $results['aggregations']['time_series']['buckets'] ?? [];
+        } catch (\Exception $e) {
+            // Log dell'errore
+            \Log::error('Elasticsearch time-based metrics query failed', [
+                'error' => $e->getMessage(),
+                'date_field' => $date_field,
+                'interval' => $interval,
+                'index' => $model->searchableAs(),
+                'filters' => $filters
+            ]);
+
+            return [];
+        }
     }
 }

@@ -17,23 +17,10 @@ use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 
 class ContentsController extends CrudController
 {
-    /**
-     * Get contents by tag
-     *
-     * @param string $relation relation name
-     * @param string $value relation value
-     * @param string $entity entity name or slug
-     * @return Response
-     * @throws BadRequestException
-     * @throws InvalidArgumentException
-     * @throws BindingResolutionException
-     * @throws Throwable
-     * @throws UnexpectedValueException
-     * @route-comment
-     * Route: GET|HEAD api/v1/{relation}/{value}/{entity}
-     * Name: cms.api.relation.contents
-     * Middleware: api
-     */
+	/**
+	 * @route-comment
+	 * Route(path: 'api/v1/{relation}/{value}/{entity}', name: 'cms.api.relation.contents', methods: [GET, HEAD], middleware: [api])
+	 */
     public function getContentsByRelation(ListRequest $request, string $relation, string $value, string $entity)
     {
         $filters = $this->createCommonFilters($request, $relation, $value);

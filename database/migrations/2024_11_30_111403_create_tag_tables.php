@@ -12,10 +12,10 @@ return new class extends Migration
         Schema::create('tags', function (Blueprint $table) {
             $table->id();
 
-            $table->string('name')->unique('tags_name_UN');
-            $table->string('slug')->unique('tags_slug_UN');
-            $table->string('type')->nullable()->index('tags_type_IDX');
-            $table->integer('order_column')->nullable(false)->default(0)->index('tags_order_column_IDX');
+            $table->string('name')->unique('tags_name_UN')->comment('The name of the tag');
+            $table->string('slug')->unique('tags_slug_UN')->comment('The slug of the tag');
+            $table->string('type')->nullable()->index('tags_type_IDX')->comment('The type of the tag');
+            $table->integer('order_column')->nullable(false)->default(0)->index('tags_order_column_IDX')->comment('The order of the tag');
             CommonMigrationFunctions::timestamps(
                 $table,
                 hasSoftDelete: true
@@ -25,10 +25,10 @@ return new class extends Migration
         });
 
         Schema::create('taggables', function (Blueprint $table) {
-            $table->foreignId('tag_id')->constrained('tags', 'id', 'taggables_tag_id_FK')->cascadeOnDelete();
-            $table->morphs('taggable');
+            $table->foreignId('tag_id')->constrained('tags', 'id', 'taggables_tag_id_FK')->cascadeOnDelete()->comment('The tag that the taggable belongs to');
+            $table->morphs('taggable', 'taggables_morph_idx');
 
-            $table->primary(['tag_id', 'taggable_id', 'taggable_type']);
+            $table->primary(['tag_id', 'taggable_id', 'taggable_type'], 'taggables_primary_idx');
             $table->index(['taggable_type', 'taggable_id'], 'taggables_inverse_idx');
         });
     }
