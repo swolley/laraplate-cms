@@ -22,6 +22,7 @@ use Modules\Cms\Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Modules\Cms\Helpers\HasTags;
 use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 
 /**
@@ -40,6 +41,7 @@ class Category extends ComposhipsModel implements Sortable
         HasPath,
         HasLocks,
         HasValidations,
+        HasTags,
         HasDynamicContents {
         getRules as protected getRulesTrait;
         getFullPath as protected getFullPathTrait;
@@ -107,23 +109,9 @@ class Category extends ComposhipsModel implements Sortable
     #[\Override]
     protected static function booted(): void
     {
-        static::creating(function (Category $category) {
-            if ($category->isDirty('parent_id')) {
-                if ($category->entity_id !== $category->parent->entity_id) {
-                    throw new \UnexpectedValueException("Entity mismatch: {$category->entity->name} is not compatible with {$category->parent->name}");
-                } else {
-                    $category->parent_entity_id = $category->parent?->entity_id;
-                }
-            }
-        });
-        static::updating(function (Category $category) {
-            if ($category->isDirty('parent_id')) {
-                if (!$category->parent_id) {
-                    $category->parent_entity_id = null;
-                } else if ($category->entity_id !== $category->parent->entity_id) {
-                    throw new \UnexpectedValueException("Entity mismatch: {$category->entity->name} is not compatible with {$category->parent->name}");
-                }
-                $category->parent_entity_id = $category->parent->entity_id;
+        static::saving(function (Category $category) {
+            if (!$category->parent_id) {
+                $category->parent_entity_id = $category->parent?->entity_id;
             }
         });
 
@@ -149,15 +137,10 @@ class Category extends ComposhipsModel implements Sortable
         return CategoryFactory::new();
     }
 
-    protected function scopeForEntity(Builder $query, null|int|Entity $entity): Builder
+    protected function scopeForEntity(Builder $query, string|int|Entity|null $entity): Builder
     {
-        return $query->where(function ($query) use ($entity) {
-            if ($entity) {
-                $query->where('entity_id', is_int($entity) ? $entity : $entity->id)->orWhereNull('entity_id');
-            } else {
-                $query->whereNull('entity_id');
-            }
-        });
+        // null is a value for non completely filled models
+        return $query->whereHas('contents', fn($q) => is_string($entity) ? $q->where('name', $entity) : ($q->where('entity_id', is_int($entity) ? $entity : $entity->id)));
     }
 
     #endregion
@@ -197,14 +180,7 @@ class Category extends ComposhipsModel implements Sortable
      */
     public function contents(): BelongsToMany
     {
-        return $this->belongsToMany(
-            Content::class,
-            'categorizables',
-            ['category_id', 'entity_id'],
-            ['content_id', 'entity_id'],
-            ['id', 'entity_id'],
-            ['id', 'entity_id']
-        )->using(Categorizable::class)->withTimestamps();
+        return $this->belongsToMany(Content::class, 'categorizables')->using(Categorizable::class)->withTimestamps();
     }
 
     #endregion
@@ -233,7 +209,7 @@ class Category extends ComposhipsModel implements Sortable
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('categories')->where(fn($query) => $query->where(['parent_id' => request('parent_id'), 'entity_id' => request('entity_id'), 'deleted_at' => null]))
+                Rule::unique('categories')->where(fn($query) => $query->where(['parent_id' => request('parent_id'), 'deleted_at' => null]))
             ],
         ]);
         $rules['update'] = array_merge($rules['update'], [
@@ -241,7 +217,7 @@ class Category extends ComposhipsModel implements Sortable
                 'sometimes',
                 'string',
                 'max:255',
-                Rule::unique('categories')->where(fn($query) => $query->where(['parent_id' => request('parent_id'), 'entity_id' => request('entity_id'), 'deleted_at' => null]))->ignore($this->id, 'id')
+                Rule::unique('categories')->where(fn($query) => $query->where(['parent_id' => request('parent_id'), 'deleted_at' => null]))->ignore($this->id, 'id')
             ],
         ]);
         return $rules;

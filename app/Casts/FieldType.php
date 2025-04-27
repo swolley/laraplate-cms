@@ -15,6 +15,9 @@ enum FieldType: string
 	case DATETIME = 'datetime';
 	case NUMBER = 'number';
 	case JSON = 'json';
+	case EMAIL = 'email';
+	case PHONE = 'phone';
+	case URL = 'url';
 
 	public function getRule(): string
 	{
@@ -27,6 +30,9 @@ enum FieldType: string
 			self::DATETIME => 'datetime',
 			self::NUMBER => 'number',
 			self::JSON => 'json',
+			self::EMAIL => 'email',
+			self::PHONE => 'phone',
+			self::URL => 'url',
 			default => '',
 		};
 	}

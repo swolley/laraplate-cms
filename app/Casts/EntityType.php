@@ -2,11 +2,12 @@
 
 namespace Modules\Cms\Casts;
 
-use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
+use Illuminate\Support\Str;
 
 enum EntityType: string
 {
     case CONTENTS = 'contents';
+    case AUTHORS = 'authors';
     case CATEGORIES = 'categories';
 
     /**

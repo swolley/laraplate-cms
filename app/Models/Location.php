@@ -2,13 +2,15 @@
 
 namespace Modules\Cms\Models;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
-use Modules\Core\Cache\Searchable;
+use Modules\Cms\Helpers\HasTags;
 use Modules\Core\Helpers\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Core\Helpers\HasValidations;
+use Modules\Core\Search\Traits\Searchable;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
 use Modules\Cms\Database\Factories\LocationFactory;
@@ -29,8 +31,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  */
 class Location extends Model
 {
-    use HasFactory, HasSlug, HasPath, HasValidations, Searchable, HasSpatial, SoftDeletes {
-        prepareElasticDocument as prepareElasticDocumentTrait;
+    use HasFactory, HasSlug, HasPath, HasValidations, Searchable, HasSpatial, SoftDeletes, HasTags {
+        toSearchableArray as toSearchableArrayTrait;
         getRules as protected getRulesTrait;
     }
 
@@ -91,15 +93,13 @@ class Location extends Model
         $this->geolocation = new Point($latitude, $value);
     }
 
-    public function prepareElasticDocument(): array
+    public function toSearchableArray(): array
     {
-        $document = $this->prepareElasticDocumentTrait();
-        $document['id'] = $this->id;
+        $document = array_merge($this->toSearchableArrayTrait(), Arr::except($this->toArray(), ['id', 'latitude', 'longitude']));
         $document['geocode'] = [
             'lat' => (float)$this->latitude,
             'lon' => (float)$this->longitude
         ];
-        unset($document['latitude'], $document['longitude']);
 
         return $document;
     }

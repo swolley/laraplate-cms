@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Modules\Core\Helpers\CommonMigrationFunctions;
+use Modules\Core\Helpers\MigrateUtils;
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
@@ -32,7 +32,7 @@ return new class extends Migration
                 $table->geometry('geolocation')->nullable()->spatialIndex()->comment('The geolocation of the location');
             }
 
-            CommonMigrationFunctions::timestamps(
+            MigrateUtils::timestamps(
                 $table,
                 hasCreateUpdate: true,
                 hasSoftDelete: true,

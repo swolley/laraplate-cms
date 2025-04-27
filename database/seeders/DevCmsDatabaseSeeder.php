@@ -8,6 +8,8 @@ use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Location;
 use Modules\Core\Helpers\BatchSeeder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Artisan;
 
 class DevCmsDatabaseSeeder extends BatchSeeder
 {
@@ -19,11 +21,15 @@ class DevCmsDatabaseSeeder extends BatchSeeder
 
     protected function execute(): void
     {
-        $this->seedAuthors();
-        $this->seedCategories();
-        $this->seedLocations();
-        $this->seedTags();
-        $this->seedContents();
+        Artisan::call('module:seed', ['module' => 'Cms', '--force' => $this->command->option('force')], outputBuffer: $this->command->getOutput());
+
+        Model::unguarded(function (): void {
+            $this->seedAuthors();
+            $this->seedCategories();
+            $this->seedLocations();
+            $this->seedTags();
+            $this->seedContents();
+        });
     }
 
     private function seedAuthors(): void

@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Modules\Core\Helpers\CommonMigrationFunctions;
+use Modules\Core\Helpers\MigrateUtils;
 
 return new class extends Migration
 {
@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('logo_full')->nullable(true)->comment('The full logo of the category');
             $table->boolean('is_active')->default(true)->nullable(false)->index('categories_is_active_IDX')->comment('Whether the category is active');
             $table->integer('order_column')->nullable(false)->default(0)->index('categories_order_column_IDX')->comment('The order of the category');
-            CommonMigrationFunctions::timestamps(
+            MigrateUtils::timestamps(
                 $table,
                 hasCreateUpdate: true,
                 hasSoftDelete: true,

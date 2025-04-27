@@ -52,7 +52,7 @@ class CmsServiceProvider extends ServiceProvider
         $this->app->register(RouteServiceProvider::class);
         $this->app->register(GeocodingServiceProvider::class);
 
-        $this->initializeEntities();
+        // $this->initializeEntities();
     }
 
     /**
@@ -141,25 +141,25 @@ class CmsServiceProvider extends ServiceProvider
         return $paths;
     }
 
-    protected function initializeEntities(): void
-    {
+    // protected function initializeEntities(): void
+    // {
 
-        try {
-            if (!Schema::hasTable('entities')) {
-                return;
-            }
-            $cache = $this->app->make(CacheManager::class);
-            $entity_cache_key = 'cms.entities.cache';
+    //     try {
+    //         if (!Schema::hasTable('entities')) {
+    //             return;
+    //         }
+    //         $cache = $this->app->make(CacheManager::class);
+    //         $entity_cache_key = 'cms.entities.cache';
 
-            $entities = $cache->get($entity_cache_key, collect());
+    //         $entities = $cache->get($entity_cache_key, collect());
 
-            if ($entities->isEmpty()) {
-                $entities = Entity::query()->withoutGlobalScopes()->get();
-                $cache->forever($entity_cache_key, $entities);
-                Content::resolveChildTypes($entities);
-            }
-        } catch (\Exception $e) {
-            report($e);
-        }
-    }
+    //         if ($entities->isEmpty()) {
+    //             $entities = Entity::query()->withoutGlobalScopes()->get();
+    //             $cache->forever($entity_cache_key, $entities);
+    //             Content::resolveChildTypes($entities);
+    //         }
+    //     } catch (\Exception $e) {
+    //         report($e);
+    //     }
+    // }
 }

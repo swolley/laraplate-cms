@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Modules\Core\Helpers\CommonMigrationFunctions;
+use Modules\Core\Helpers\MigrateUtils;
 
 return new class extends Migration
 {
@@ -27,7 +27,7 @@ return new class extends Migration
             $table->json('responsive_images')->nullable(false)->comment('The responsive images of the media');
             $table->integer('order_column')->nullable(false)->default(0)->index('media_order_column_IDX')->comment('The order column of the media');
 
-            CommonMigrationFunctions::timestamps(
+            MigrateUtils::timestamps(
                 $table,
                 hasCreateUpdate: true,
                 hasSoftDelete: true

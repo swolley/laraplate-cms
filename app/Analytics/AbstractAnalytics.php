@@ -8,10 +8,6 @@ use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\ClientBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
-use Modules\Core\Cache\CacheManager;
-use Modules\Core\Search\Traits\Searchable;
 
 abstract class AbstractAnalytics
 {
@@ -61,6 +57,60 @@ abstract class AbstractAnalytics
     {
         $filters_string = !empty($filters) ? '_' . md5(json_encode($filters)) : '';
         return 'analytics_' . $metric . $filters_string;
+    }
+
+    /**
+     * Get term-based metrics from Elasticsearch
+     */
+    protected function getTermBasedMetrics(Model $model, string $field, array $filters = [], int $size = 10): array
+    {
+        $client = $this->getElasticsearchClient();
+
+        $query = [
+            'index' => $model->searchableAs(),
+            'body' => [
+                'size' => 0,
+                'query' => [
+                    'bool' => [
+                        'must' => [
+                            ['match' => ['entity' => $model->getTable()]]
+                        ]
+                    ]
+                ],
+                'aggs' => [
+                    'by_term' => [
+                        'terms' => [
+                            'field' => $field,
+                            'size' => $size
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        // Aggiungi filtri alla query se presenti
+        if (!empty($filters)) {
+            foreach ($filters as $filter_field => $value) {
+                $query['body']['query']['bool']['must'][] = ['match' => [$filter_field => $value]];
+            }
+        }
+
+        try {
+            $response = $client->search($query);
+            $results = $response->asArray();
+
+            return $results['aggregations']['by_term']['buckets'] ?? [];
+        } catch (\Exception $e) {
+            // Log dell'errore
+            \Log::error('Elasticsearch term-based metrics query failed', [
+                'error' => $e->getMessage(),
+                'field' => $field,
+                'index' => $model->searchableAs(),
+                'filters' => $filters
+            ]);
+
+            return [];
+        }
     }
 
     /**

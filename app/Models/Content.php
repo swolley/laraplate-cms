@@ -8,10 +8,9 @@ use Spatie\Image\Enums\Fit;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
+use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Helpers\HasMedia;
 use Illuminate\Support\Collection;
-use Modules\Core\Cache\Searchable;
-use Illuminate\Support\Facades\Cache;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
@@ -22,6 +21,7 @@ use Modules\Cms\Models\Pivot\Authorable;
 use Modules\Core\Helpers\HasValidations;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\Core\Locking\Traits\HasLocks;
+use Modules\Core\Search\Traits\Searchable;
 use Spatie\EloquentSortable\SortableTrait;
 use Modules\Cms\Helpers\HasDynamicContents;
 use Modules\Cms\Models\Pivot\Categorizable;
@@ -30,7 +30,6 @@ use Modules\Core\Locking\HasOptimisticLocking;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Modules\Cms\Database\Factories\ContentFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -56,7 +55,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		Searchable,
 		HasApprovals,
 		HasDynamicContents {
-		prepareElasticDocument as protected prepareElasticDocumentTrait;
+		toSearchableArray as protected toSearchableArrayTrait;
 		getRules as protected getRulesTrait;
 		HasChildren::hasMany as protected hasChildrenHasMany;
 		HasChildren::belongsTo as protected hasChildrenBelongsTo;
@@ -67,26 +66,12 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 	}
 
 	protected $fillable = [
-		'preset_id',
-		'entity_id',
 		'title',
-		'slug',
-		'components',
-	];
-
-	protected $with = [
-		'entity',
-		'preset',
 	];
 
 	protected $hidden = [
-		'preset_id',
-		'entity_id',
 		'created_at',
 		'updated_at',
-		'entity',
-		'components',
-		'preset',
 		'withCaching',
 		'withoutObjectCaching',
 	];
@@ -98,18 +83,12 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		'sort_when_creating' => true,
 	];
 
-	protected $attributes = [
-		'components' => '{}',
-	];
-
 	protected $appends = [
 		'cover',
 		'path',
 	];
 
 	public static array $childTypes = [];
-
-	public static ?Collection $all_presets = null;
 
 	// TODO: capire come estrarre i contenuti dinamici per l'embedding
 	// protected $embed = ['components'];
@@ -126,9 +105,9 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		];
 	}
 
-	protected function getChildTypes(): array
+	protected function getChildTypes(bool $forceRefresh = false): array
 	{
-		if (static::$childTypes === []) {
+		if (static::$childTypes === [] || $forceRefresh) {
 			static::resolveChildTypes();
 		}
 		return static::$childTypes;
@@ -138,17 +117,11 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 	 *
 	 * @param Collection<Entity> $entities
 	 */
-	protected static function resolveChildTypes(?Collection $entities = null): void
+	public static function resolveChildTypes(): void
 	{
 		static::$childTypes = [];
-		static::$all_presets = null;
 
-		if (!$entities instanceof \Illuminate\Support\Collection) {
-			$entities = Entity::query()->withoutGlobalScopes()->get();
-			Cache::forever(new Entity()->getCacheKey(), $entities);
-		}
-
-		foreach ($entities as $entity) {
+		foreach (static::fetchAvailableEntities(EntityType::CONTENTS) as $entity) {
 			$class_name = Str::studly($entity->name);
 			$full_class_name = 'Modules\\Cms\\Models\\Contents\\' . $class_name;
 
@@ -156,8 +129,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 				$class_definition = file_get_contents(module_path('Cms', 'stubs/content.stub'));
 				$class_definition = str_replace(['$CLASS$', '<?php'], [$class_name, ''], $class_definition);
 
-				// Genera la classe a runtime
-				$class_definition = "<?php\n\n" . $class_definition;
+				// generate the class at runtime
 				eval($class_definition);
 			}
 
@@ -167,28 +139,18 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 
 	public static function makeFromEntity(Entity|string|int $entity): static
 	{
-		if (!static::$all_presets instanceof \Illuminate\Support\Collection) {
-			static::resolveChildTypes();
-		}
-
 		if (is_int($entity)) {
-			$entity_id = array_key_exists($entity, static::$childTypes) ? $entity : null;
+			$entity_id = array_key_exists($entity, static::getChildTypes()) ? $entity : null;
 		} elseif (is_string($entity)) {
-			$entity_id = array_key_first(array_filter(static::$childTypes, fn($class) => Str::endsWith($class, '\\' . Str::studly($entity))));
-		} elseif (is_object($entity) && array_key_exists($entity->id, static::$childTypes)) {
+			$entity_id = array_key_first(array_filter(static::getChildTypes(), fn($class) => Str::endsWith($class, '\\' . Str::studly($entity))));
+		} elseif (is_object($entity) && array_key_exists($entity->id, static::getChildTypes())) {
 			$entity_id = $entity->id;
 		}
-		if (!$entity_id) {
+		if (!$entity_id || $entity->type !== EntityType::CONTENTS) {
 			throw new \InvalidArgumentException("Invalid entity: " . $entity);
 		}
 
-		if (!static::$all_presets instanceof \Illuminate\Support\Collection) {
-			static::$all_presets = Cache::rememberForever(
-				new Preset()->getCacheKey(),
-				fn() => Preset::withoutGlobalScopes()->get()
-			);
-		}
-		$preset_id = static::$all_presets->firstWhere('entity_id', $entity_id)?->id;
+		$preset_id = static::fetchAvailablePresets(EntityType::CONTENTS)->firstWhere('entity_id', $entity_id)?->id;
 		if (!$preset_id) {
 			throw new \InvalidArgumentException("No preset found for entity: " . $entity);
 		}
@@ -200,16 +162,6 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 	protected static function boot()
 	{
 		parent::boot();
-
-		static::saving(function ($content) {
-			if ($content->preset) {
-				$content->preset_id = $content->preset->id;
-				if ($content->entity_id && $content->entity_id !== $content->preset->entity_id) {
-					throw new \UnexpectedValueException("Entity mismatch: {$content->entity->name} is not compatible with {$content->preset->name}");
-				}
-				$content->entity_id = $content->preset->entity_id;
-			}
-		});
 
 		static::addGlobalScope('global_filters', function (Builder $query) {
 			$query->valid()->ordered();
@@ -224,6 +176,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 			$factory->state(fn(array $attributes) => [
 				'entity_id' => Entity::query()
 					->where('name', Str::lower(class_basename(static::class)))
+					->where('type', EntityType::CONTENTS)
 					->firstOrFail()
 					->id
 			]);
@@ -272,37 +225,12 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 	#region Relations
 
 	/**
-	 * The fields that belong to the content.
-	 * @return Collection<Field>
-	 */
-	private function fields(): Collection
-	{
-		return $this->preset?->fields ?? collect();
-	}
-
-	/**
-	 * The entity that belongs to the content.
-	 * @return BelongsTo<Entity>
-	 */
-	public function entity(): BelongsTo
-	{
-		return $this->belongsTo(Entity::class)->withTrashed();
-	}
-
-	/**
 	 * The folders that belong to the content.
 	 * @return BelongsToMany<Category>
 	 */
 	public function categories(): BelongsToMany
 	{
-		return parent::belongsToMany(
-			Category::class,
-			'categorizables',
-			['content_id', 'entity_id'],
-			['category_id', 'entity_id'],
-			['id', 'entity_id'],
-			['id', 'entity_id']
-		)->using(Categorizable::class)->withTimestamps()->forEntity($this->entity_id);
+		return $this->belongsToMany(Category::class, 'categorizables')->using(Categorizable::class)->withTimestamps()->forEntity($this->entity_id);
 	}
 
 	/**
@@ -326,15 +254,6 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 	}
 
 	/**
-	 * The preset that belongs to the content.
-	 * @return BelongsTo<Preset>
-	 */
-	public function preset(): BelongsTo
-	{
-		return $this->belongsTo(Preset::class, ['preset_id', 'entity_id'], ['id', 'entity_id'])->withTrashed();
-	}
-
-	/**
 	 * The related contents that belong to the content.
 	 * @return BelongsToMany<Content>
 	 */
@@ -349,13 +268,15 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 
 	#endregion
 
-	public function prepareElasticDocument(): array
+	public function toSearchableArray(): array
 	{
-		$document = $this->prepareElasticDocumentTrait();
+		$document = $this->toSearchableArrayTrait();
 		$document['authors'] = $this->authors->pluck('name')->toArray();
 		$document['authors_id'] = $this->authors->pluck('id')->toArray();
 		$document['preset'] = $this->preset->name;
+		$document['preset_id'] = $this->preset->id;
 		$document['entity'] = $this->entity->name;
+		$document['entity_id'] = $this->entity->id;
 		$document['categories'] = $this->categories->pluck('name')->toArray();
 		$document['categories_id'] = $this->categories->pluck('id')->toArray();
 		$document['tags'] = $this->tags->pluck('name')->toArray();
@@ -363,6 +284,8 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		$document['location'] = $this->location->name;
 		$document['location_id'] = $this->location->id;
 		$document['slug'] = $this->slug;
+		$document['type'] = $this->type;
+		$document['title'] = $this->title;
 
 		return $document;
 	}
@@ -377,7 +300,6 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		$this->addMediaCollection('files');
 	}
 
-
 	#[\Override]
 	public function registerMediaConversions(?Media $media = null): void
 	{
@@ -390,7 +312,24 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		$conversion->width(300)
 			->height(300)
 			->sharpen(10)
-			->fit(Fit::Fill, 300, 300);
+			->fit(Fit::Fill, 300, 300)
+			->optimize()
+			->quality(75)
+			->naming(fn(string $fileName, string $extension) => $fileName . '-high.' . $extension);
+		$conversion->width(300)
+			->height(300)
+			->sharpen(10)
+			->fit(Fit::Fill, 300, 300)
+			->optimize()
+			->quality(50)
+			->naming(fn(string $fileName, string $extension) => $fileName . '-mid.' . $extension);
+		$conversion->width(300)
+			->height(300)
+			->sharpen(10)
+			->fit(Fit::Fill, 300, 300)
+			->optimize()
+			->quality(25)
+			->naming(fn(string $fileName, string $extension) => $fileName . '-low.' . $extension);
 	}
 
 	public function getRules()

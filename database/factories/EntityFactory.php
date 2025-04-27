@@ -3,6 +3,7 @@
 namespace Modules\Cms\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Cms\Casts\EntityType;
 
 class EntityFactory extends Factory
 {
@@ -19,6 +20,7 @@ class EntityFactory extends Factory
     {
         return [
             'name' => fake()->unique()->word(),
+            'type' => fake()->randomElement(EntityType::cases()),
         ];
     }
 }

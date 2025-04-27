@@ -2,15 +2,17 @@
 
 namespace Modules\Cms\Models;
 
+use Illuminate\Support\Arr;
 use Spatie\Image\Enums\Fit;
+use Modules\Cms\Helpers\HasTags;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Auth;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
-use Illuminate\Database\Eloquent\Model;
 use Modules\Cms\Models\Pivot\Authorable;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Cms\Helpers\HasDynamicContents;
+use Modules\Core\Overrides\ComposhipsModel;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Modules\Cms\Database\Factories\AuthorFactory;
@@ -23,16 +25,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 /**
  * @mixin IdeHelperAuthor
  */
-class Author extends Model
+class Author extends ComposhipsModel
 {
-    use HasFactory, SoftDeletes, HasVersions, HasValidations, InteractsWithMedia, HasDynamicContents {
+    use HasFactory, SoftDeletes, HasVersions, HasValidations, InteractsWithMedia, HasDynamicContents, HasTags {
         getRules as protected getRulesTrait;
-        HasDynamicContents::toArray as protected dynamicContentsToArray;
+        // HasDynamicContents::toArray as protected dynamicContentsToArray;
+        HasDynamicContents::__get as protected dynamicContentsGet;
+        HasDynamicContents::__set as protected dynamicContentsSet;
     }
 
     protected $fillable = [
         'name',
-        'public_email',
+
     ];
 
     protected $hidden = [
@@ -90,11 +94,10 @@ class Author extends Model
     #[\Override]
     public function __get($key)
     {
-        $entity = new User();
-        if (in_array($key, $entity->getFillable())) {
-            return $this->user ? $this->user->{$key} : null;
+        if (in_array($key, new User()->getFillable())) {
+            return $this->user?->{$key} ?? null;
         }
-        return parent::__get($key);
+        return $this->dynamicContentsGet($key);
     }
 
     // Magic setter for user attributes
@@ -119,7 +122,8 @@ class Author extends Model
             }
             return;
         }
-        parent::__set($key, $value);
+
+        $this->dynamicContentsSet($key, $value);
     }
 
     // Save method to handle user creation/updating
@@ -137,13 +141,13 @@ class Author extends Model
         parent::save($options);
     }
 
-    #[\Override]
-    public function toArray(): array
-    {
-        $author = $this->dynamicContentsToArray();
-        $user = $this->user ? $this->user->toArray() : null;
-        return $user ? array_merge($author, $user) : $author;
-    }
+    // #[\Override]
+    // public function toArray(): array
+    // {
+    //     $author = $this->dynamicContentsToArray();
+    //     $user = $this->user ? Arr::except($this->user->toArray(), array_key_exists('name', $author) ? ['id', 'name'] : ['id']) : null;
+    //     return $user ? array_merge($author, $user) : $author;
+    // }
 
     public function registerMediaCollections(): void
     {
@@ -181,9 +185,6 @@ class Author extends Model
     public function getRules(): array
     {
         $rules = $this->getRulesTrait();
-        $rules[static::DEFAULT_RULE] = array_merge($rules[static::DEFAULT_RULE], [
-            'public_email' => ['nullable', 'email', 'max:255'],
-        ]);
         $rules['create'] = array_merge($rules['create'], [
             'name' => ['required', 'string', 'max:255', 'unique:authors,name'],
         ]);

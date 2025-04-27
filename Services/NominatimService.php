@@ -14,6 +14,31 @@ class NominatimService implements GeocodingServiceInterface
 {
     private const string BASE_URL = 'https://nominatim.openstreetmap.org';
 
+    /**
+     * Singleton instance of the service
+     */
+    protected static ?self $instance = null;
+
+    /**
+     * Get service instance (singleton pattern)
+     */
+    public static function getInstance(): self
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * Protected constructor to enforce singleton pattern
+     */
+    protected function __construct()
+    {
+        // Inizializzazione del servizio
+    }
+
     #[\Override]
     public function search(
         string $query,

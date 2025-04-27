@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Modules\Core\Helpers\CommonMigrationFunctions;
+use Modules\Core\Helpers\MigrateUtils;
 
 return new class extends Migration
 {
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->json('components')->nullable(false)->comment('The content contents');
             $table->string('slug')->nullable(false)->index('contents_slug_IDX')->comment('The slug of the content');
             $table->integer('order_column')->nullable(false)->default(0)->index('contents_order_column_IDX')->comment('The order of the content');
-            CommonMigrationFunctions::timestamps(
+            MigrateUtils::timestamps(
                 $table,
                 hasCreateUpdate: true,
                 hasSoftDelete: true,
@@ -39,17 +39,16 @@ return new class extends Migration
         Schema::create('categorizables', function (Blueprint $table) {
             // $table->id();
             $table->unsignedBigInteger('content_id')->nullable(false)->comment('The content that the categorizable belongs to');
-            $table->unsignedBigInteger('entity_id')->nullable(true)->comment('The entity that the categorizable belongs to');
             $table->unsignedBigInteger('category_id')->nullable(false)->comment('The category that the categorizable belongs to');
-            CommonMigrationFunctions::timestamps($table);
+            MigrateUtils::timestamps($table);
 
-            $table->primary(['content_id', 'category_id', 'entity_id']);
-            $table->foreign(['content_id', 'entity_id'], 'categorizables_content_FK')
-                ->references(['id', 'entity_id'])
+            $table->primary(['content_id', 'category_id']);
+            $table->foreign(['content_id'], 'categorizables_content_FK')
+                ->references(['id'])
                 ->on('contents')
                 ->cascadeOnDelete();
-            $table->foreign(['category_id', 'entity_id'], 'categorizables_category_FK')
-                ->references(['id', 'entity_id'])
+            $table->foreign(['category_id'], 'categorizables_category_FK')
+                ->references(['id'])
                 ->on('categories')
                 ->cascadeOnDelete();
         });
@@ -58,7 +57,7 @@ return new class extends Migration
             // $table->id();
             $table->foreignId('content_id')->nullable(false)->constrained('contents', 'id', 'authorables_content_id_FK')->cascadeOnDelete()->comment('The content that the authorable belongs to');
             $table->foreignId('author_id')->nullable(false)->constrained('authors', 'id', 'authorables_author_id_FK')->cascadeOnDelete()->comment('The author that the authorable belongs to');
-            CommonMigrationFunctions::timestamps($table);
+            MigrateUtils::timestamps($table);
 
             $table->primary(['content_id', 'author_id']);
         });
@@ -67,7 +66,7 @@ return new class extends Migration
             // $table->id();
             $table->foreignId('content_id')->nullable(false)->constrained('contents', 'id', 'relatables_content_id_FK')->cascadeOnDelete()->comment('The content that the relatable belongs to');
             $table->foreignId('related_content_id')->nullable(false)->constrained('contents', 'id', 'relatables_related_content_id_FK')->cascadeOnDelete()->comment('The related content that the relatable belongs to');
-            CommonMigrationFunctions::timestamps($table);
+            MigrateUtils::timestamps($table);
 
             $table->primary(['content_id', 'related_content_id']);
         });
@@ -76,7 +75,7 @@ return new class extends Migration
             // $table->id();
             $table->foreignId('content_id')->nullable(false)->constrained('contents', 'id', 'locatables_content_id_FK')->cascadeOnDelete()->comment('The content that the locatable belongs to');
             $table->foreignId('location_id')->nullable(false)->constrained('locations', 'id', 'locatables_location_id_FK')->cascadeOnDelete()->comment('The location that the locatable belongs to');
-            CommonMigrationFunctions::timestamps($table);
+            MigrateUtils::timestamps($table);
 
             $table->primary(['content_id', 'location_id']);
         });

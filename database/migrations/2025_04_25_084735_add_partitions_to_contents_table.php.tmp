@@ -1,0 +1,483 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        $table = 'contents';
+        $current_year = (int)date('Y');
+        $old_range = 5;
+
+        switch (DB::connection()->getDriverName()) {
+            case 'oracle':
+            case 'pgsql':
+                $years = DB::table($table)->whereNotNull('valid_from')->selectRaw('MIN(EXTRACT(YEAR FROM valid_from)) as min_year, MAX(EXTRACT(YEAR FROM valid_from)) as max_year')->first();
+                break;
+            default:
+                $years = DB::table($table)->whereNotNull('valid_from')->selectRaw('MIN(YEAR(valid_from)) as min_year, MAX(YEAR(valid_from)) as max_year')->first();
+        }
+
+        $mapped_years = [];
+        if (!$years->min_year || !$years->max_year) {
+            $years->min_year = $current_year - $old_range + 1;
+            $years->max_year = $current_year + 1;
+        } else {
+            $years->min_year = max($years->min_year, $current_year - $old_range + 1);
+            $years->max_year = min($years->max_year, $current_year + 1);
+        }
+
+
+        foreach (range((int)$years->min_year, (int)$years->max_year) as $year) {
+            // less than 0 year do a single partition because are very old values
+            $mapped_years[$year] = $year === $years->min_year ? 'old' : $year;
+        }
+
+        // always create a partition for the current year
+        if (!array_key_exists($current_year, $mapped_years)) {
+            $mapped_years[$current_year] = $current_year;
+        }
+
+        // always create a partition for the next year
+        if (!array_key_exists($current_year + 1, $mapped_years)) {
+            $mapped_years[$current_year + 1] = $current_year + 1;
+        }
+
+        $this->createPartitions($table, $mapped_years);
+        $this->reorganizePartitions($table, $mapped_years);
+    }
+
+    private function createPartitions(string $table, array $years): void
+    {
+        $current_year = (int)date('Y');
+
+        switch (DB::connection()->getDriverName()) {
+            case 'pgsql':
+                // PostgreSQL requires a more complex procedure for existing tables
+
+                // 1. Create a new unpartitioned table first, to customize its structure
+                if (!Schema::hasTable("{$table}_partitioned")) {
+                    // Create empty table with same structure but without constraints
+                    DB::statement("CREATE TABLE {$table}_partitioned (LIKE {$table} INCLUDING DEFAULTS INCLUDING STORAGE INCLUDING COMMENTS EXCLUDING CONSTRAINTS EXCLUDING INDEXES)");
+
+                    // Modify the id column to keep serial (autoincrement) behavior
+                    DB::statement("ALTER TABLE {$table}_partitioned ALTER COLUMN id SET DEFAULT nextval('{$table}_id_seq'::regclass)");
+
+                    // Add the composite primary key including valid_from
+                    DB::statement("ALTER TABLE {$table}_partitioned ADD PRIMARY KEY (id, valid_from)");
+
+                    // Copy all indices from the original table (except for primary key)
+                    $indices = $this->getTableIndices($table);
+                    foreach ($indices as $index) {
+                        // Skip primary key as we've already created it
+                        if ($index['is_primary']) {
+                            continue;
+                        }
+
+                        $indexName = $index['name'];
+                        $indexColumns = $index['columns'];
+
+                        // Extract index creation part from the definition if available
+                        if (
+                            isset($index['definition']) && !empty($index['definition']) &&
+                            preg_match('/CREATE(?: UNIQUE)? INDEX .* ON .*? USING (\w+) \((.*)\)/', $index['definition'], $matches)
+                        ) {
+                            $indexMethod = $matches[1]; // btree, hash, gist, etc.
+                            $indexColumnsDef = $matches[2]; // Columns with options
+
+                            $newIndexName = str_replace($table, "{$table}_partitioned", $indexName);
+                            DB::statement("CREATE INDEX {$newIndexName} ON {$table}_partitioned USING {$indexMethod} ({$indexColumnsDef})");
+                        }
+                        // Fallback for simple indexes
+                        else {
+                            $newIndexName = str_replace($table, "{$table}_partitioned", $indexName);
+                            DB::statement("CREATE INDEX {$newIndexName} ON {$table}_partitioned ({$indexColumns})");
+                        }
+                    }
+
+                    // Now convert to partitioned table
+                    DB::statement("ALTER TABLE {$table}_partitioned SET UNLOGGED");  // Temporarily set as unlogged for faster conversion
+                    DB::statement("ALTER TABLE {$table}_partitioned DROP CONSTRAINT {$table}_partitioned_pkey");
+
+                    // Create temporary table that will be partitioned
+                    DB::statement("CREATE TABLE {$table}_temp (LIKE {$table}_partitioned INCLUDING ALL) PARTITION BY RANGE (valid_from)");
+                    DB::statement("ALTER TABLE {$table}_temp ADD PRIMARY KEY (id, valid_from)");
+
+                    // Re-create all foreign keys from the original table
+                    $foreignKeys = $this->getTableForeignKeys($table);
+                    foreach ($foreignKeys as $fk) {
+                        $fkName = str_replace($table, "{$table}_temp", $fk['name']);
+                        $fkColumns = $fk['columns'];
+                        $fkRefTable = $fk['referenced_table'];
+                        $fkRefColumns = $fk['referenced_columns'];
+                        $fkOnDelete = $fk['on_delete'];
+
+                        $onDeleteClause = '';
+                        if (!empty($fkOnDelete)) {
+                            $onDeleteClause = " ON DELETE {$fkOnDelete}";
+                        }
+
+                        DB::statement("ALTER TABLE {$table}_temp ADD CONSTRAINT {$fkName} FOREIGN KEY ({$fkColumns}) REFERENCES {$fkRefTable}({$fkRefColumns}){$onDeleteClause}");
+                    }
+
+                    // Drop the intermediate table as we'll just use the temp table
+                    Schema::dropIfExists("{$table}_partitioned");
+                    DB::statement("ALTER TABLE {$table}_temp RENAME TO {$table}_partitioned");
+                }
+
+                // 3. Create the partitions
+                foreach ($years as $year => $partition_suffix) {
+                    if (!Schema::hasTable("{$table}_{$partition_suffix}")) {
+                        $next_year = $year + 1;
+                        DB::statement("CREATE TABLE {$table}_{$partition_suffix} PARTITION OF {$table}_partitioned FOR VALUES FROM ('{$year}-01-01') TO ('{$next_year}-01-01')");
+                    }
+                }
+
+                // Create a future partition for future values
+                if (!Schema::hasTable("{$table}_future")) {
+                    // Calculate maximum year
+                    $max_year = max(array_map(fn($key) => is_numeric($key) ? (int)$key : 0, array_keys($years)));
+                    $next_year = $max_year + 1;
+                    DB::statement("CREATE TABLE {$table}_future PARTITION OF {$table}_partitioned FOR VALUES FROM ('{$next_year}-01-01') TO (MAXVALUE)");
+                }
+
+                // Create a default partition for NULL values
+                if (!Schema::hasTable("{$table}_null")) {
+                    DB::statement("CREATE TABLE {$table}_null PARTITION OF {$table}_partitioned DEFAULT");
+                }
+
+                // 4. Copy data from the original table to the new partitioned table
+                DB::statement("INSERT INTO {$table}_partitioned SELECT * FROM {$table}");
+
+                // 5. Create a sequence to keep track of the highest ID (to maintain autoincrement)
+                DB::statement("SELECT setval('{$table}_id_seq', (SELECT GREATEST(1, COALESCE(MAX(id), 0)) FROM {$table}_partitioned), true)");
+
+                // 6. Rename tables to swap them
+                Schema::dropIfExists("{$table}_old");
+                DB::statement("ALTER TABLE {$table} RENAME TO {$table}_old");
+                DB::statement("ALTER TABLE {$table}_partitioned RENAME TO {$table}");
+
+                // Set back to logged for normal operations
+                DB::statement("ALTER TABLE {$table} SET LOGGED");
+
+                // 7. Update all tables that reference contents
+                $reference_tables = ['categorizables', 'authorables', 'relatables', 'locatables'];
+
+                // Create a primary key on id only (PostgreSQL 12+ supports this for partitioned tables)
+                DB::statement("ALTER TABLE {$table} ADD PRIMARY KEY (id)");
+
+                foreach ($reference_tables as $reference_table) {
+                    // First drop the existing constraint if it exists
+                    DB::statement("ALTER TABLE {$reference_table} DROP CONSTRAINT IF EXISTS {$reference_table}_content_id_fk");
+                    DB::statement("ALTER TABLE {$reference_table} DROP CONSTRAINT IF EXISTS {$reference_table}_content_FK");
+
+                    // Add the foreign key constraint referencing only the id column
+                    $constraintName = "{$reference_table}_content_id_fk";
+                    DB::statement("ALTER TABLE {$reference_table} ADD CONSTRAINT {$constraintName} FOREIGN KEY (content_id) REFERENCES {$table}(id) ON DELETE CASCADE");
+                }
+
+                // 8. Delete the old table
+                Schema::dropIfExists("{$table}_old");
+                break;
+            case 'mysql':
+                // For MySQL, use LIST COLUMNS partitioning with a function to handle NULL values
+                // This approach allows us to keep NULL values intact
+
+                // First, create a helper function to categorize dates by year
+                $min_year = head($years);
+                DB::unprepared("
+                    DROP FUNCTION IF EXISTS get_year_partition;
+                    CREATE FUNCTION get_year_partition(date_val DATETIME) 
+                    RETURNS VARCHAR(20)
+                    DETERMINISTIC
+                    BEGIN
+                        DECLARE year_val VARCHAR(20);
+                        IF date_val IS NULL THEN
+                            RETURN 'NULL';
+                        END IF;
+                        
+                        SET year_val = YEAR(date_val);
+                        
+                        IF year_val < " . ($min_year) . " THEN
+                            RETURN 'old';
+                        ELSE
+                            RETURN year_val;
+                        END IF;
+                    END
+                ");
+
+                // Now create a virtual column that will be used for partitioning
+                DB::statement("ALTER TABLE {$table} ADD COLUMN partition_key VARCHAR(20) AS (get_year_partition(valid_from)) STORED");
+
+                // Create the partitioning based on the virtual column
+                $query = "ALTER TABLE {$table} PARTITION BY LIST COLUMNS(partition_key) (";
+
+                // Add NULL partition first
+                $query .= "PARTITION {$table}_null VALUES IN ('NULL'),";
+
+                // Add partitions for each year
+                foreach ($years as $year => $partition_suffix) {
+                    if (is_numeric($partition_suffix)) {
+                        $query .= "PARTITION {$table}_{$partition_suffix} VALUES IN ('{$partition_suffix}'),";
+                    } else {
+                        $query .= "PARTITION {$table}_{$partition_suffix} VALUES IN ('{$partition_suffix}'),";
+                    }
+                }
+
+                // Add future partition (will catch any year not explicitly listed)
+                $query .= "PARTITION {$table}_future VALUES IN ('future'))";
+                DB::statement($query);
+
+                break;
+            case 'oracle':
+                // For Oracle, use specific syntax
+                $query = "ALTER TABLE {$table} MODIFY PARTITION BY RANGE (valid_from) (";
+                foreach ($years as $year => $partition_suffix) {
+                    $next_year = $year + 1;
+                    $query .= "PARTITION {$table}_{$partition_suffix} VALUES LESS THAN (TO_DATE('{$next_year}-01-01', 'YYYY-MM-DD')),";
+                }
+                // create a future partition for future values, until the correct partition will be created by scheduled job
+                $query .= "PARTITION {$table}_future VALUES LESS THAN (MAXVALUE))";
+                DB::statement($query);
+
+                // For Oracle, create a separate partition for NULL values using system partition
+                DB::statement("ALTER TABLE {$table} ADD PARTITION {$table}_null VALUES (NULL)");
+                break;
+        }
+    }
+
+    private function reorganizePartitions(string $table, array $years): void
+    {
+        switch (DB::connection()->getDriverName()) {
+            case 'pgsql':
+                DB::statement("VACUUM {$table}");
+                break;
+            case 'mysql':
+                foreach ($years as $year => $partition_suffix) {
+                    $next_year = $year + 1;
+                    DB::statement("ALTER TABLE {$table} REORGANIZE PARTITION {$table}_future INTO (PARTITION {$table}_{$partition_suffix} VALUES LESS THAN ('{$next_year}-01-01'), PARTITION {$table}_future VALUES LESS THAN MAXVALUE)");
+                }
+                break;
+            case 'oracle':
+                foreach ($years as $year => $partition_suffix) {
+                    $next_year = $year + 1;
+                    DB::statement("ALTER TABLE {$table} SPLIT PARTITION {$table}_future AT (TO_DATE('{$next_year}-01-01', 'YYYY-MM-DD')) INTO (PARTITION {$table}_{$partition_suffix}, PARTITION {$table}_future);");
+                }
+                break;
+        }
+    }
+
+    /**
+     * Get all indices from a table, including their structure
+     * 
+     * @param string $table Table name
+     * @return array Array of index information
+     */
+    private function getTableIndices(string $table): array
+    {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            $sql = "
+                SELECT
+                    i.relname as name,
+                    a.attname as column_name,
+                    idx.indisprimary as is_primary,
+                    idx.indisunique as is_unique,
+                    am.amname as type,
+                    pg_get_indexdef(idx.indexrelid) as definition
+                FROM
+                    pg_index idx
+                JOIN pg_class i ON i.oid = idx.indexrelid
+                JOIN pg_class t ON t.oid = idx.indrelid
+                JOIN pg_namespace n ON n.oid = t.relnamespace
+                JOIN pg_am am ON am.oid = i.relam
+                JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(idx.indkey)
+                WHERE
+                    t.relname = ? AND
+                    n.nspname = current_schema()
+                ORDER BY
+                    i.relname, a.attnum;
+            ";
+
+            $indices = [];
+            $indexData = DB::select($sql, [$table]);
+
+            // Group columns by index name
+            $indexGroups = [];
+            foreach ($indexData as $row) {
+                $indexName = $row->name;
+                if (!isset($indexGroups[$indexName])) {
+                    $indexGroups[$indexName] = [
+                        'name' => $indexName,
+                        'columns' => [],
+                        'is_primary' => $row->is_primary,
+                        'is_unique' => $row->is_unique,
+                        'type' => $row->type,
+                        'definition' => $row->definition
+                    ];
+                }
+                $indexGroups[$indexName]['columns'][] = $row->column_name;
+            }
+
+            foreach ($indexGroups as $index) {
+                $index['columns'] = implode(', ', $index['columns']);
+                $indices[] = $index;
+            }
+
+            return $indices;
+        }
+
+        // Fallback for other drivers
+        return [];
+    }
+
+    /**
+     * Get all foreign keys from a table
+     * 
+     * @param string $table Table name
+     * @return array Array of foreign key information
+     */
+    private function getTableForeignKeys(string $table): array
+    {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            $sql = "
+                SELECT
+                    c.conname as constraint_name,
+                    conrelid.relname as table_name,
+                    a.attname as column_name,
+                    confrelid.relname as referenced_table_name,
+                    af.attname as referenced_column_name,
+                    rc.delete_rule
+                FROM
+                    pg_constraint c
+                JOIN pg_namespace nsp ON nsp.oid = c.connamespace
+                JOIN pg_class conrelid ON conrelid.oid = c.conrelid
+                JOIN pg_class confrelid ON confrelid.oid = c.confrelid
+                JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = ANY(c.conkey)
+                JOIN pg_attribute af ON af.attrelid = c.confrelid AND af.attnum = ANY(c.confkey)
+                JOIN information_schema.referential_constraints rc ON rc.constraint_name = c.conname
+                WHERE
+                    c.contype = 'f' AND
+                    conrelid.relname = ?
+                ORDER BY
+                    c.conname, a.attnum;
+            ";
+
+            $fkData = DB::select($sql, [$table]);
+
+            // Process to ensure proper grouping without duplicates
+            $fkMap = [];
+            foreach ($fkData as $row) {
+                $constraint = $row->constraint_name;
+
+                if (!isset($fkMap[$constraint])) {
+                    $fkMap[$constraint] = [
+                        'name' => $constraint,
+                        'columns' => [],
+                        'referenced_table' => $row->referenced_table_name,
+                        'referenced_columns' => [],
+                        'on_delete' => $row->delete_rule === 'CASCADE' ? 'CASCADE' : ''
+                    ];
+                }
+
+                // Only add unique columns and referenced columns
+                if (!in_array($row->column_name, $fkMap[$constraint]['columns'])) {
+                    $fkMap[$constraint]['columns'][] = $row->column_name;
+                }
+
+                if (!in_array($row->referenced_column_name, $fkMap[$constraint]['referenced_columns'])) {
+                    $fkMap[$constraint]['referenced_columns'][] = $row->referenced_column_name;
+                }
+            }
+
+            // Convert to array for return
+            $results = [];
+            foreach ($fkMap as $fk) {
+                $fk['columns'] = implode(', ', $fk['columns']);
+                $fk['referenced_columns'] = implode(', ', $fk['referenced_columns']);
+                $results[] = $fk;
+            }
+
+            return $results;
+        }
+
+        // Fallback for other drivers
+        return [];
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        switch (DB::connection()->getDriverName()) {
+            case 'pgsql':
+                // PostgreSQL richiede una procedura più complessa
+                // 1. Crea una nuova tabella non partizionata
+                DB::statement('CREATE TABLE contents_nonpartitioned (
+                    id BIGINT NOT NULL PRIMARY KEY,
+                    entity_id BIGINT NOT NULL,
+                    preset_id BIGINT NOT NULL,
+                    title VARCHAR(255) NOT NULL,
+                    components JSONB NOT NULL,
+                    slug VARCHAR(255) NOT NULL,
+                    order_column INTEGER NOT NULL DEFAULT 0,
+                    created_at TIMESTAMP NULL DEFAULT NULL,
+                    updated_at TIMESTAMP NULL DEFAULT NULL,
+                    created_by BIGINT NULL DEFAULT NULL,
+                    updated_by BIGINT NULL DEFAULT NULL,
+                    deleted_at TIMESTAMP NULL DEFAULT NULL,
+                    locked_at TIMESTAMP NULL DEFAULT NULL,
+                    locked_by BIGINT NULL DEFAULT NULL,
+                    valid_from TIMESTAMP NULL DEFAULT NULL,
+                    valid_to TIMESTAMP NULL DEFAULT NULL
+                )');
+
+                // 2. Copia i dati dalla tabella partizionata alla nuova tabella
+                DB::statement('INSERT INTO contents_nonpartitioned SELECT * FROM contents');
+
+                // 3. Elimina le partizioni
+                DB::statement('DROP TABLE IF EXISTS contents_2024');
+                DB::statement('DROP TABLE IF EXISTS contents_2025');
+                DB::statement('DROP TABLE IF EXISTS contents_2026');
+                DB::statement('DROP TABLE IF EXISTS contents_future');
+
+                // 4. Rinomina le tabelle per scambiarle
+                DB::statement('ALTER TABLE contents RENAME TO contents_partitioned');
+                DB::statement('ALTER TABLE contents_nonpartitioned RENAME TO contents');
+
+                // 5. Ricrea gli indici, chiavi esterne e vincoli
+                DB::statement('CREATE INDEX contents_slug_IDX ON contents (slug)');
+                DB::statement('CREATE INDEX contents_order_column_IDX ON contents (order_column)');
+                DB::statement('CREATE INDEX contents_valid_from_IDX ON contents USING BRIN (valid_from)');
+                DB::statement('ALTER TABLE contents ADD CONSTRAINT contents_entity_id_FK FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE CASCADE');
+                DB::statement('ALTER TABLE contents ADD CONSTRAINT contents_preset_FK FOREIGN KEY (entity_id, preset_id) REFERENCES presets(entity_id, id) ON DELETE CASCADE');
+                DB::statement('CREATE UNIQUE INDEX content_entity_UN ON contents (id, entity_id)');
+
+                // 6. Aggiorna tutte le tabelle che fanno riferimento a contents
+                $reference_tables = ['categorizables', 'authorables', 'relatables', 'locatables'];
+                foreach ($reference_tables as $table) {
+                    DB::statement("ALTER TABLE {$table} DROP CONSTRAINT IF EXISTS {$table}_content_id_fk");
+                    DB::statement("ALTER TABLE {$table} ADD CONSTRAINT {$table}_content_id_fk FOREIGN KEY (content_id) REFERENCES contents(id) ON DELETE CASCADE");
+                }
+
+                // 7. Elimina la tabella partizionata
+                DB::statement('DROP TABLE contents_partitioned');
+                break;
+            case 'mysql':
+                // MySQL può rimuovere il partizionamento facilmente
+                DB::statement('ALTER TABLE contents REMOVE PARTITIONING');
+                break;
+            case 'oracle':
+                // Oracle può rimuovere il partizionamento, ma richiede di copiare i dati
+                DB::statement('ALTER TABLE contents MODIFY PARTITION p2024 MERGE PARTITIONS p2024, p2025, p2026, p_future INTO ONE PARTITION');
+                DB::statement('ALTER TABLE contents COALESCE PARTITION');
+                break;
+        }
+    }
+};

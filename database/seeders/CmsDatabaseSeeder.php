@@ -9,9 +9,10 @@ use Modules\Core\Models\Role;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Preset;
 use Modules\Cms\Casts\FieldType;
+use Modules\Cms\Casts\EntityType;
 use Modules\Core\Casts\ActionEnum;
-use Modules\Core\Models\Permission;
 use Modules\Core\Overrides\Seeder;
+use Modules\Core\Models\Permission;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -90,6 +91,31 @@ class CmsDatabaseSeeder extends Seeder
                     $this->command->line("    - $field already exists");
                 }
             }
+
+            $field = 'public_email';
+            if (!$this->fields->has($field)) {
+                $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::EMAIL, 'options' => (object) []]));
+                $this->command->line("    - $field <fg=green>created</>");
+            } else {
+                $this->command->line("    - $field already exists");
+            }
+
+            $field = 'phone';
+            if (!$this->fields->has($field)) {
+                $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::PHONE, 'options' => (object) []]));
+                $this->command->line("    - $field <fg=green>created</>");
+            } else {
+                $this->command->line("    - $field already exists");
+            }
+
+            foreach (['website', 'linkedin', 'twitter', 'facebook', 'instagram'] as $field) {
+                if (!$this->fields->has($field)) {
+                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::URL, 'options' => (object) []]));
+                    $this->command->line("    - $field <fg=green>created</>");
+                } else {
+                    $this->command->line("    - $field already exists");
+                }
+            }
         });
     }
 
@@ -97,79 +123,75 @@ class CmsDatabaseSeeder extends Seeder
     {
         $this->logOperation(Entity::class);
 
-
         $this->entities = Entity::query()->withoutGlobalScopes()->get()->keyBy('name');
 
         $this->db->transaction(function () {
             $standard = 'standard';
 
-            $entity_name = 'article';
-            if (!$this->entities->has($entity_name)) {
-                /** @var Entity $preset */
-                $entity = $this->create(Entity::class, ['name' => $entity_name]);
-                $this->entities->put($entity_name, $entity);
-                /** @var Preset $preset */
-                $preset = $this->create(Preset::class, ['name' => $standard, 'entity_id' => $entity->id]);
-                // required fields
-                $fields = $this->fields->filter(fn($field) => in_array($field->name, ['title', 'content']));
-                foreach ($fields as $field) {
-                    $this->assignFieldToPreset($preset, $field, true);
-                }
-                // optional fields
-                $fields = $this->fields->filter(fn($field) => in_array($field->name, ['kicker', 'subtitle', 'short_content']));
-                foreach ($fields as $field) {
-                    $this->assignFieldToPreset($preset, $field, false);
-                }
+            $entities = [
+                [
+                    'name' => 'article',
+                    'type' => EntityType::CONTENTS,
+                    'preset' => 'standard',
+                    'required_fields' => ['title', 'content'],
+                    'optional_fields' => ['kicker', 'subtitle', 'short_content'],
+                ],
+                [
+                    'name' => 'multimedia',
+                    'type' => EntityType::CONTENTS,
+                    'preset' => 'standard',
+                    'required_fields' => ['title', 'content'],
+                    'optional_fields' => ['subtitle', 'short_content'],
+                ],
+                [
+                    'name' => 'event',
+                    'type' => EntityType::CONTENTS,
+                    'preset' => 'standard',
+                    'required_fields' => ['title', 'content', 'period_from'],
+                    'optional_fields' => ['subtitle', 'short_content', 'period_to'],
+                ],
+                [
+                    'name' => 'survey',
+                    'type' => EntityType::CONTENTS,
+                    'preset' => 'standard',
+                    'required_fields' => ['title', 'content'],
+                    'optional_fields' => ['subtitle', 'short_content'],
+                ],
+                [
+                    'name' => 'author',
+                    'type' => EntityType::AUTHORS,
+                    'preset' => 'standard',
+                    'required_fields' => [],
+                    'optional_fields' => ['public_email', 'phone', 'website', 'content', 'linkedin', 'twitter', 'facebook', 'instagram'],
+                ],
+            ];
 
-                $this->command->line("    - $entity_name <fg=green>created</>");
-            } else {
-                $this->command->line("    - $entity_name already exists");
-            }
+            foreach ($entities as $entity) {
+                if (!$this->entities->has($entity['name'])) {
+                    /** @var Entity $entity */
+                    $new_entity = $this->create(Entity::class, ['name' => $entity['name'], 'type' => $entity['type']]);
+                    $this->entities->put($entity['name'], $new_entity);
+                    /** @var Preset $preset */
+                    $preset = $this->create(Preset::class, ['name' => $standard, 'entity_id' => $new_entity->id]);
+                    // required fields
+                    if (!empty($entity['required_fields'])) {
+                        $fields = $this->fields->filter(fn(Field $field) => in_array($field->name, $entity['required_fields']));
+                        foreach ($fields as $field) {
+                            $this->assignFieldToPreset($preset, $field, true);
+                        }
+                    }
+                    // optional fields
+                    if (!empty($entity['optional_fields'])) {
+                        $fields = $this->fields->filter(fn(Field $field) => in_array($field->name, $entity['optional_fields']));
+                        foreach ($fields as $field) {
+                            $this->assignFieldToPreset($preset, $field, false);
+                        }
+                    }
 
-            $entity_name = 'event';
-            if (!$this->entities->has($entity_name)) {
-                /** @var Entity $entity */
-                $entity = $this->create(Entity::class, ['name' => $entity_name]);
-                $this->entities->put($entity_name, $entity);
-                /** @var Preset $preset */
-                $preset = $this->create(Preset::class, ['name' => $standard, 'entity_id' => $entity->id]);
-                // required fields
-                $fields = $this->fields->filter(fn($field) => in_array($field->name, ['title', 'content', 'period_from']));
-                foreach ($fields as $field) {
-                    $this->assignFieldToPreset($preset, $field, true);
+                    $this->command->line("    - {$entity['name']} <fg=green>created</>");
+                } else {
+                    $this->command->line("    - {$entity['name']} already exists");
                 }
-                // optional fields
-                $fields = $this->fields->filter(fn($field) => in_array($field->name, ['subtitle', 'short_content', 'period_to']));
-                foreach ($fields as $field) {
-                    $this->assignFieldToPreset($preset, $field, false);
-                }
-
-                $this->command->line("    - $entity_name <fg=green>created</>");
-            } else {
-                $this->command->line("    - $entity_name already exists");
-            }
-
-            $entity_name = 'multimedia';
-            if (!$this->entities->has($entity_name)) {
-                /** @var Entity $entity */
-                $entity = $this->create(Entity::class, ['name' => $entity_name]);
-                $this->entities->put($entity_name, $entity);
-                /** @var Preset $preset */
-                $preset = $this->create(Preset::class, ['name' => $standard, 'entity_id' => $entity->id]);
-                // required fields
-                $fields = $this->fields->filter(fn($field) => in_array($field->name, ['title', 'content']));
-                foreach ($fields as $field) {
-                    $this->assignFieldToPreset($preset, $field, true);
-                }
-                // optional fields
-                $fields = $this->fields->filter(fn($field) => in_array($field->name, ['subtitle', 'short_content']));
-                foreach ($fields as $field) {
-                    $this->assignFieldToPreset($preset, $field, false);
-                }
-
-                $this->command->line("    - $entity_name <fg=green>created</>");
-            } else {
-                $this->command->line("    - $entity_name already exists");
             }
         });
     }

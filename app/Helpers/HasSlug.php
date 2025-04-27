@@ -18,6 +18,13 @@ trait HasSlug
 		});
 	}
 
+	public function initializeHasSlug()
+	{
+		if (!in_array('slug', $this->fillable)) {
+			$this->fillable[] = 'slug';
+		}
+	}
+
 	public static function slugFields(): array
 	{
 		return ['name'];

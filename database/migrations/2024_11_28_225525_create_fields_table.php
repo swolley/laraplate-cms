@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Modules\Core\Helpers\CommonMigrationFunctions;
+use Modules\Core\Helpers\MigrateUtils;
 
 return new class extends Migration
 {
@@ -19,7 +19,7 @@ return new class extends Migration
             $table->json('options')->nullable(false)->comment('The options of the field');
             $table->boolean('is_slug')->default(false)->nullable(false)->comment('Whether the field takes part in the slug');
             $table->boolean('is_active')->default(true)->nullable(false)->index('fields_is_active_IDX')->comment('Whether the field is active');
-            CommonMigrationFunctions::timestamps(
+            MigrateUtils::timestamps(
                 $table,
                 hasCreateUpdate: true,
                 hasSoftDelete: true,
@@ -35,7 +35,7 @@ return new class extends Migration
             $table->boolean('is_required')->default(false)->nullable(false)->comment('Whether the field is required');
             $table->integer('order_column')->nullable(false)->default(0)->index('fieldables_order_column_IDX')->comment('The order of the field');
             $table->json('default')->nullable(true)->comment('The default value of the field');
-            CommonMigrationFunctions::timestamps(
+            MigrateUtils::timestamps(
                 $table,
                 hasCreateUpdate: true,
                 hasSoftDelete: true,

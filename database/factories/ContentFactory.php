@@ -2,15 +2,16 @@
 
 namespace Modules\Cms\Database\Factories;
 
-use Modules\Cms\Models\Entity;
-use Modules\Cms\Models\Category;
-use Illuminate\Database\Eloquent\Factories\Factory;
-use Modules\Cms\Casts\FieldType;
-use Modules\Cms\Models\Author;
-use Modules\Cms\Models\Content;
-use Modules\Cms\Models\Field;
-use Modules\Cms\Models\Preset;
 use Modules\Cms\Models\Tag;
+use Modules\Cms\Models\Field;
+use Modules\Cms\Models\Author;
+use Modules\Cms\Models\Entity;
+use Modules\Cms\Models\Preset;
+use Modules\Cms\Models\Content;
+use Modules\Cms\Casts\FieldType;
+use Modules\Cms\Models\Category;
+use Modules\Cms\Casts\EntityType;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ContentFactory extends Factory
 {
@@ -25,7 +26,7 @@ class ContentFactory extends Factory
     #[\Override]
     public function definition(): array
     {
-        $entity = Entity::inRandomOrder()->first();
+        $entity = Entity::where('type', EntityType::CONTENTS)->inRandomOrder()->first();
         $preset = Preset::where('entity_id', $entity->id)->inRandomOrder()->first();
 
         if (!$preset) {
@@ -47,7 +48,7 @@ class ContentFactory extends Factory
     #[\Override]
     public function configure(): static
     {
-        return $this->afterMaking(function (Content &$content) {
+        return $this->afterMaking(function (Content $content) {
             // convert content into the real class
             $attributes = $content->getAttributes();
             $attributes['components'] = json_decode($attributes['components'], true);
@@ -64,6 +65,7 @@ class ContentFactory extends Factory
                         FieldType::TEXTAREA => fake()->paragraphs(fake()->numberBetween(1, 3), true),
                         FieldType::TEXT => fake()->text(fake()->numberBetween(100, 255)),
                         FieldType::NUMBER => fake()->randomNumber(),
+                        FieldType::URL => fake()->boolean() ? fake()->unique()->url() : null,
                         default => $field->default,
                     };
                 }

@@ -6,7 +6,7 @@ namespace Modules\Cms\Analytics;
 
 use Modules\Cms\Models\Content;
 use Modules\Core\Cache\CacheManager;
-use Illuminate\Support\Facades\Cache;
+
 
 class ContentAnalytics extends AbstractAnalytics
 {
@@ -21,7 +21,7 @@ class ContentAnalytics extends AbstractAnalytics
     {
         return CacheManager::remember(
             $this->getCacheKey('publication_trends', $filters),
-            fn() => $this->getTimeBasedMetrics($this->model, $filters),
+            fn() => $this->getTimeBasedMetrics($this->model, 'created_at', 'day', $filters),
             self::$cache_duration
         );
     }
@@ -97,7 +97,10 @@ class ContentAnalytics extends AbstractAnalytics
         );
     }
 
-    private function getCacheKey(string $metric, array $filters): string
+    /**
+     * {@inheritdoc}
+     */
+    protected function getCacheKey(string $metric, array $filters = []): string
     {
         return sprintf(
             'content_analytics:%s:%s',
