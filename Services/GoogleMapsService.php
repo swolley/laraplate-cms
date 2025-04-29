@@ -12,14 +12,33 @@ use Modules\Cms\Services\Contracts\GeocodingServiceInterface;
 
 class GoogleMapsService implements GeocodingServiceInterface
 {
+    /**
+     * Singleton instance of the service
+     */
+    protected static ?self $instance = null;
+
     private const string BASE_URL = 'https://maps.googleapis.com/maps/api/geocode';
 
-    public function __construct(
-        private readonly string $api_key = ''
-    ) {
-        if ($this->api_key === '' || $this->api_key === '0') {
-            $this->api_key = config('services.geocoding.api_key');
+    private readonly string $api_key;
+
+    /**
+     * Get service instance (singleton pattern)
+     */
+    public static function getInstance(): self
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
         }
+
+        return self::$instance;
+    }
+
+    /**
+     * Protected constructor to enforce singleton pattern
+     */
+    protected function __construct()
+    {
+        $this->api_key = (string) config('services.geocoding.api_key', '');
     }
 
     #[\Override]

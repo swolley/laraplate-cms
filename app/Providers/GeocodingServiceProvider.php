@@ -13,8 +13,8 @@ class GeocodingServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(GeocodingServiceInterface::class, fn($app) => match (config('services.geocoding.provider', 'nominatim')) {
-            'google' => new GoogleMapsService(),
-            default => new NominatimService(),
+            'google' => GoogleMapsService::getInstance(),
+            default => NominatimService::getInstance(),
         });
     }
 }
