@@ -1,17 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Models\Pivot;
 
+use Override;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
  * @mixin IdeHelperAuthorable
  */
-class Authorable extends Pivot
+final class Authorable extends Pivot
 {
     protected $table = 'authorables';
 
-    #[\Override]
+    #[Override]
     protected function casts()
     {
         return [

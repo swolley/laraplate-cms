@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Models;
 
+use Override;
 use ArrayAccess;
 use Illuminate\Validation\Rule;
 use Modules\Cms\Helpers\HasPath;
@@ -20,9 +23,9 @@ use Illuminate\Database\Eloquent\Collection as DbCollection;
 /**
  * @mixin IdeHelperTag
  */
-class Tag extends Model implements Sortable
+final class Tag extends Model implements Sortable
 {
-    use HasValidations, HasPath, SortableTrait, HasSlug, HasFactory, SoftDeletes {
+    use HasFactory, HasPath, HasSlug, HasValidations, SoftDeletes, SortableTrait {
         getRules as protected getRulesTrait;
     }
 
@@ -42,77 +45,10 @@ class Tag extends Model implements Sortable
         'updated_at',
     ];
 
-    #[\Override]
-    protected function casts(): array
-    {
-        return [
-            'order_column' => 'integer',
-            'created_at' => 'immutable_datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
-    protected static function newFactory(): TagFactory
-    {
-        return TagFactory::new();
-    }
-
-    public function getRules(): array
-    {
-        $rules = $this->getRulesTrait();
-        $rules['create'] = array_merge($rules['create'], [
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('tags')->where(function ($query) {
-                    $query->where('deleted_at', null);
-                })
-            ],
-        ]);
-        $rules['update'] = array_merge($rules['update'], [
-            'name' => [
-                'sometimes',
-                'string',
-                'max:255',
-                Rule::unique('tags')->where(function ($query) {
-                    $query->where('deleted_at', null);
-                })->ignore($this->id, 'id')
-            ],
-        ]);
-        return $rules;
-    }
-
-    #[\Override]
-    public function getPath(): ?string
-    {
-        return null;
-    }
-
-    public function scopeOrdered(Builder $query): Builder
-    {
-        return $query->orderBy('order_column', 'asc');
-    }
-
-    public function scopeWithType(Builder $query, ?string $type = null)
-    {
-        if (!is_null($type)) {
-            $query->where('type', $type)->ordered();
-        }
-    }
-
-    public function scopeContaining(Builder $query, string $name, $locale = null)
-    {
-        // if (is_null($locale)) {
-        //     $locale = static::getLocale();
-        // }
-        $query->whereRaw('lower(' . $this->getQuery()->getGrammar()->wrap('name') . ') like ?', ['%' . mb_strtolower($name) . '%']);
-    }
-
     public static function findOrCreate(
-        string | array | ArrayAccess $values,
-        string | null $type = null,
-    ): Collection | Tag | static {
+        string|array|ArrayAccess $values,
+        ?string $type = null,
+    ): Collection|self|static {
         $tags = collect($values)->map(function ($value) use ($type) {
             if ($value instanceof self) {
                 return $value;
@@ -133,9 +69,9 @@ class Tag extends Model implements Sortable
     {
         return static::query()
             ->where('type', $type)
-            ->where(function ($query) use ($name) {
-                $query->where("name", $name)
-                    ->orWhere("slug", $name);
+            ->where(function ($query) use ($name): void {
+                $query->where('name', $name)
+                    ->orWhere('slug', $name);
             })
             ->first();
     }
@@ -143,8 +79,8 @@ class Tag extends Model implements Sortable
     public static function findFromStringOfAnyType(string $name)
     {
         return static::query()
-            ->where("name", $name)
-            ->orWhere("slug", $name)
+            ->where('name', $name)
+            ->orWhere('slug', $name)
             ->get();
     }
 
@@ -167,9 +103,77 @@ class Tag extends Model implements Sortable
         return static::groupBy('type')->pluck('type');
     }
 
-    #[\Override]
+    public function getRules(): array
+    {
+        $rules = $this->getRulesTrait();
+        $rules['create'] = array_merge($rules['create'], [
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('tags')->where(function ($query): void {
+                    $query->where('deleted_at', null);
+                }),
+            ],
+        ]);
+        $rules['update'] = array_merge($rules['update'], [
+            'name' => [
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('tags')->where(function ($query): void {
+                    $query->where('deleted_at', null);
+                })->ignore($this->id, 'id'),
+            ],
+        ]);
+
+        return $rules;
+    }
+
+    #[Override]
+    public function getPath(): ?string
+    {
+        return null;
+    }
+
+    public function scopeOrdered(Builder $query): Builder
+    {
+        return $query->orderBy('order_column', 'asc');
+    }
+
+    public function scopeWithType(Builder $query, ?string $type = null): void
+    {
+        if (! is_null($type)) {
+            $query->where('type', $type)->ordered();
+        }
+    }
+
+    public function scopeContaining(Builder $query, string $name, $locale = null): void
+    {
+        // if (is_null($locale)) {
+        //     $locale = static::getLocale();
+        // }
+        $query->whereRaw('lower(' . $this->getQuery()->getGrammar()->wrap('name') . ') like ?', ['%' . mb_strtolower($name) . '%']);
+    }
+
+    #[Override]
     public function setAttribute($key, $value)
     {
         return parent::setAttribute($key, $value);
+    }
+
+    protected static function newFactory(): TagFactory
+    {
+        return TagFactory::new();
+    }
+
+    #[Override]
+    protected function casts(): array
+    {
+        return [
+            'order_column' => 'integer',
+            'created_at' => 'immutable_datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

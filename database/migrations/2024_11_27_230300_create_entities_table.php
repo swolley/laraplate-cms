@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Facades\Schema;
+use Modules\Core\Helpers\MigrateUtils;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Modules\Core\Helpers\MigrateUtils;
 
 return new class extends Migration
 {
@@ -12,7 +14,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('entities', function (Blueprint $table) {
+        Schema::create('entities', function (Blueprint $table): void {
             $table->id();
             $table->string('name')->nullable(false)->comment('The name of the entity')->unique('entities_name_UN');
             $table->string('slug')->nullable(false)->comment('The slug of the entity')->unique('entities_slug_UN');
@@ -21,7 +23,7 @@ return new class extends Migration
             MigrateUtils::timestamps(
                 $table,
                 hasCreateUpdate: true,
-                hasLocks: true
+                hasLocks: true,
             );
         });
     }

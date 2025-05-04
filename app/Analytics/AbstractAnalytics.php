@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Analytics;
 
+use Exception;
 use Illuminate\Support\Carbon;
 use Elastic\Elasticsearch\Client;
 use Illuminate\Support\Facades\Log;
@@ -13,7 +14,7 @@ use Elastic\Elasticsearch\ClientBuilder;
 abstract class AbstractAnalytics
 {
     /**
-     * Get Elasticsearch client
+     * Get Elasticsearch client.
      */
     protected function getElasticsearchClient(): Client
     {
@@ -23,12 +24,12 @@ abstract class AbstractAnalytics
         $builder->setHosts($config['hosts']);
 
         // Imposta autenticazione se configurata
-        if (!empty($config['username']) && !empty($config['password'])) {
+        if (! empty($config['username']) && ! empty($config['password'])) {
             $builder->setBasicAuthentication($config['username'], $config['password']);
         }
 
         // Imposta configurazioni di timeout
-        if (!empty($config['timeout'])) {
+        if (! empty($config['timeout'])) {
             $builder->setRetries($config['retries'] ?? 3);
         }
 
@@ -39,7 +40,7 @@ abstract class AbstractAnalytics
         ]);
 
         // Imposta cloud ID se disponibile
-        if (!empty($config['cloud_id'])) {
+        if (! empty($config['cloud_id'])) {
             $builder->setElasticCloudId($config['cloud_id']);
         }
 
@@ -52,16 +53,17 @@ abstract class AbstractAnalytics
     }
 
     /**
-     * Get cache key based on filters
+     * Get cache key based on filters.
      */
     protected function getCacheKey(string $metric, array $filters = []): string
     {
-        $filters_string = !empty($filters) ? '_' . md5(json_encode($filters)) : '';
+        $filters_string = ! empty($filters) ? '_' . md5(json_encode($filters)) : '';
+
         return 'analytics_' . $metric . $filters_string;
     }
 
     /**
-     * Get term-based metrics from Elasticsearch
+     * Get term-based metrics from Elasticsearch.
      */
     protected function getTermBasedMetrics(Model $model, string $field, array $filters = [], int $size = 10): array
     {
@@ -76,7 +78,7 @@ abstract class AbstractAnalytics
                         'must' => [
                             [
                                 'match' => [
-                                    'entity' => $model->getTable()
+                                    'entity' => $model->getTable(),
                                 ],
                             ],
                         ],
@@ -86,7 +88,7 @@ abstract class AbstractAnalytics
                     'by_term' => [
                         'terms' => [
                             'field' => $field,
-                            'size' => $size
+                            'size' => $size,
                         ],
                     ],
                 ],
@@ -94,7 +96,7 @@ abstract class AbstractAnalytics
         ];
 
         // Aggiungi filtri alla query se presenti
-        if (!empty($filters)) {
+        if (! empty($filters)) {
             foreach ($filters as $filter_field => $value) {
                 $query['body']['query']['bool']['must'][] = ['match' => [$filter_field => $value]];
             }
@@ -105,13 +107,13 @@ abstract class AbstractAnalytics
             $results = $response->asArray();
 
             return $results['aggregations']['by_term']['buckets'] ?? [];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Log dell'errore
             Log::error('Elasticsearch term-based metrics query failed', [
                 'error' => $e->getMessage(),
                 'field' => $field,
                 'index' => $model->searchableAs(),
-                'filters' => $filters
+                'filters' => $filters,
             ]);
 
             return [];
@@ -119,7 +121,7 @@ abstract class AbstractAnalytics
     }
 
     /**
-     * Get geo-based metrics from Elasticsearch
+     * Get geo-based metrics from Elasticsearch.
      */
     protected function getGeoBasedMetrics(Model $model, string $geo_field, array $filters = []): array
     {
@@ -134,7 +136,7 @@ abstract class AbstractAnalytics
                         'must' => [
                             [
                                 'match' => [
-                                    'entity' => $model->getTable()
+                                    'entity' => $model->getTable(),
                                 ],
                             ],
                         ],
@@ -144,7 +146,7 @@ abstract class AbstractAnalytics
                     'geo_clusters' => [
                         'geohash_grid' => [
                             'field' => $geo_field,
-                            'precision' => 5
+                            'precision' => 5,
                         ],
                     ],
                 ],
@@ -152,7 +154,7 @@ abstract class AbstractAnalytics
         ];
 
         // Aggiungi filtri alla query se presenti
-        if (!empty($filters)) {
+        if (! empty($filters)) {
             foreach ($filters as $field => $value) {
                 $query['body']['query']['bool']['must'][] = ['match' => [$field => $value]];
             }
@@ -163,12 +165,12 @@ abstract class AbstractAnalytics
             $results = $response->asArray();
 
             return $results['aggregations']['geo_clusters']['buckets'] ?? [];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Log dell'errore
             Log::error('Elasticsearch geo-based metrics query failed', [
                 'error' => $e->getMessage(),
                 'index' => $model->searchableAs(),
-                'filters' => $filters
+                'filters' => $filters,
             ]);
 
             return [];
@@ -176,7 +178,7 @@ abstract class AbstractAnalytics
     }
 
     /**
-     * Get distribution metrics by field
+     * Get distribution metrics by field.
      */
     protected function getDistributionByField(Model $model, string $field, array $filters = [], int $size = 10): array
     {
@@ -191,7 +193,7 @@ abstract class AbstractAnalytics
                         'must' => [
                             [
                                 'match' => [
-                                    'entity' => $model->getTable()
+                                    'entity' => $model->getTable(),
                                 ],
                             ],
                         ],
@@ -201,7 +203,7 @@ abstract class AbstractAnalytics
                     'distribution' => [
                         'terms' => [
                             'field' => $field,
-                            'size' => $size
+                            'size' => $size,
                         ],
                     ],
                 ],
@@ -209,7 +211,7 @@ abstract class AbstractAnalytics
         ];
 
         // Aggiungi filtri alla query se presenti
-        if (!empty($filters)) {
+        if (! empty($filters)) {
             foreach ($filters as $filter_field => $value) {
                 $query['body']['query']['bool']['must'][] = ['match' => [$filter_field => $value]];
             }
@@ -220,13 +222,13 @@ abstract class AbstractAnalytics
             $results = $response->asArray();
 
             return $results['aggregations']['distribution']['buckets'] ?? [];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Log dell'errore
             Log::error('Elasticsearch distribution metrics query failed', [
                 'error' => $e->getMessage(),
                 'field' => $field,
                 'index' => $model->searchableAs(),
-                'filters' => $filters
+                'filters' => $filters,
             ]);
 
             return [];
@@ -234,7 +236,7 @@ abstract class AbstractAnalytics
     }
 
     /**
-     * Get time-based metrics
+     * Get time-based metrics.
      */
     protected function getTimeBasedMetrics(Model $model, string $date_field, string $interval = 'day', array $filters = [], ?Carbon $start_date = null, ?Carbon $end_date = null): array
     {
@@ -256,7 +258,7 @@ abstract class AbstractAnalytics
                                 'range' => [
                                     $date_field => [
                                         'gte' => $start_date->toIso8601String(),
-                                        'lte' => $end_date->toIso8601String()
+                                        'lte' => $end_date->toIso8601String(),
                                     ],
                                 ],
                             ],
@@ -267,7 +269,7 @@ abstract class AbstractAnalytics
                     'time_series' => [
                         'date_histogram' => [
                             'field' => $date_field,
-                            'calendar_interval' => $interval
+                            'calendar_interval' => $interval,
                         ],
                     ],
                 ],
@@ -275,7 +277,7 @@ abstract class AbstractAnalytics
         ];
 
         // Aggiungi filtri alla query se presenti
-        if (!empty($filters)) {
+        if (! empty($filters)) {
             foreach ($filters as $filter_field => $value) {
                 $query['body']['query']['bool']['must'][] = ['match' => [$filter_field => $value]];
             }
@@ -286,14 +288,14 @@ abstract class AbstractAnalytics
             $results = $response->asArray();
 
             return $results['aggregations']['time_series']['buckets'] ?? [];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Log dell'errore
             Log::error('Elasticsearch time-based metrics query failed', [
                 'error' => $e->getMessage(),
                 'date_field' => $date_field,
                 'interval' => $interval,
                 'index' => $model->searchableAs(),
-                'filters' => $filters
+                'filters' => $filters,
             ]);
 
             return [];

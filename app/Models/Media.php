@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Models;
 
 use Illuminate\Support\Carbon;
@@ -9,7 +11,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media as BaseMedia;
 /**
  * @mixin IdeHelperMedia
  */
-class Media extends BaseMedia
+final class Media extends BaseMedia
 {
     use SoftDeletes;
 

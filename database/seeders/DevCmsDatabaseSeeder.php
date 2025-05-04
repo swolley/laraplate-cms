@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Database\Seeders;
 
 use Modules\Cms\Models\Tag;
@@ -11,12 +13,16 @@ use Modules\Core\Helpers\BatchSeeder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Artisan;
 
-class DevCmsDatabaseSeeder extends BatchSeeder
+final class DevCmsDatabaseSeeder extends BatchSeeder
 {
     private const TARGET_COUNT_AUTHORS = 2000;
+
     private const TARGET_COUNT_CATEGORIES = 500;
+
     private const TARGET_COUNT_LOCATIONS = 1000;
+
     private const TARGET_COUNT_TAGS = 10000;
+
     private const TARGET_COUNT_CONTENTS = 100000;
 
     protected function execute(): void

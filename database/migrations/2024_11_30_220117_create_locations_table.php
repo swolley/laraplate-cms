@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Core\Helpers\MigrateUtils;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Modules\Core\Helpers\MigrateUtils;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -13,7 +15,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('locations', function (Blueprint $table) {
+        Schema::create('locations', function (Blueprint $table): void {
             $table->id();
             $table->string('name')->nullable(false)->fulltext('locations_name_IDX')->comment('The friendly name of the location');
             $table->string('slug')->nullable(false)->fulltext('locations_slug_IDX')->comment('The slug of the location');
@@ -36,7 +38,7 @@ return new class extends Migration
                 $table,
                 hasCreateUpdate: true,
                 hasSoftDelete: true,
-                hasLocks: true
+                hasLocks: true,
             );
 
             $table->unique(['name', 'deleted_at'], 'locations_name_UN');

@@ -1,7 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Database\Factories;
 
+use Override;
+use RuntimeException;
 use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Author;
 use Modules\Cms\Models\Entity;
@@ -10,23 +14,22 @@ use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Casts\EntityType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class AuthorFactory extends Factory
+final class AuthorFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      */
-    protected $model = \Modules\Cms\Models\Author::class;
+    protected $model = Author::class;
 
     /**
      * Define the model's default state.
      */
-    #[\Override]
+    #[Override]
     public function definition(): array
     {
-
         $user = fake()->boolean() ? user_class()::inRandomOrder()->first() : null;
 
-        if (!$user || Author::where('name', $user->name)->exists()) {
+        if (! $user || Author::where('name', $user->name)->exists()) {
             $name = fake()->boolean() ? fake()->name() : fake()->userName();
         } else {
             $name = $user->name;
@@ -44,7 +47,8 @@ class AuthorFactory extends Factory
         // Se non abbiamo un utente, generiamo un nome unico
         $name = fake()->name();
         $counter = 1;
-        while (\Modules\Cms\Models\Author::where('name', $name)->exists()) {
+
+        while (Author::where('name', $name)->exists()) {
             $name = fake()->name() . ' ' . $counter;
             $counter++;
         }
@@ -55,20 +59,22 @@ class AuthorFactory extends Factory
         ];
     }
 
-    #[\Override]
+    #[Override]
     public function configure(): static
     {
-        return $this->afterMaking(function (Author $author) {
+        return $this->afterMaking(function (Author $author): void {
             $entity = Entity::where('type', EntityType::AUTHORS)->inRandomOrder()->first();
             $preset = Preset::where('entity_id', $entity->id)->inRandomOrder()->first();
             $author->public_email = fake()->boolean() ? fake()->unique()->email() : null;
-            if (!$preset) {
-                throw new \RuntimeException("No preset found for entity: {$author->entity->name}");
+
+            if (! $preset) {
+                throw new RuntimeException("No preset found for entity: {$author->entity->name}");
             }
 
             // set the components depending on the preset configured fields
             $author->components = $preset->fields->mapWithKeys(function (Field $field) use ($author) {
                 $value = $field->default;
+
                 if ($field->required || fake()->boolean()) {
                     $value = match ($field->type) {
                         FieldType::TEXTAREA => fake()->paragraphs(fake()->numberBetween(1, 3), true),

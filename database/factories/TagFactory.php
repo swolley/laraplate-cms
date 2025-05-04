@@ -1,11 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Database\Factories;
 
+use Override;
+use Exception;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class TagFactory extends Factory
+final class TagFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
@@ -15,12 +19,12 @@ class TagFactory extends Factory
     /**
      * Define the model's default state.
      */
-    #[\Override]
+    #[Override]
     public function definition(): array
     {
         try {
             $name = fake()->unique()->words(fake()->numberBetween(1, 3), true);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $name = fake()->words(fake()->numberBetween(1, 3), true) . fake()->numberBetween(1, 1000);
         }
 

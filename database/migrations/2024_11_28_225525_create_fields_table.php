@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Facades\Schema;
+use Modules\Core\Helpers\MigrateUtils;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Modules\Core\Helpers\MigrateUtils;
 
 return new class extends Migration
 {
@@ -12,7 +14,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('fields', function (Blueprint $table) {
+        Schema::create('fields', function (Blueprint $table): void {
             $table->id();
             $table->string('name')->nullable(false)->comment('The name of the field');
             $table->string('type')->nullable(false)->comment('The type of the field');
@@ -28,7 +30,7 @@ return new class extends Migration
             $table->unique(['name', 'deleted_at'], 'fields_name_UN');
         });
 
-        Schema::create('fieldables', function (Blueprint $table) {
+        Schema::create('fieldables', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('preset_id')->nullable(false)->constrained('presets', 'id', 'fieldables_preset_id_FK')->cascadeOnDelete()->comment('The preset that the field belongs to');
             $table->foreignId('field_id')->nullable(false)->constrained('fields', 'id', 'fieldables_field_id_FK')->cascadeOnDelete()->comment('The field that the preset belongs to');

@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Models;
 
+use Override;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Core\Cache\HasCache;
@@ -18,9 +21,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @mixin IdeHelperEntity
  */
-class Entity extends ComposhipsModel
+final class Entity extends ComposhipsModel
 {
-    use HasFactory, HasCache, HasSlug, HasPath, HasValidations, HasLocks {
+    use HasCache, HasFactory, HasLocks, HasPath, HasSlug, HasValidations {
         getRules as protected getRulesTrait;
     }
 
@@ -44,53 +47,9 @@ class Entity extends ComposhipsModel
         'is_active' => true,
     ];
 
-    #[\Override]
-    protected function casts(): array
-    {
-        return [
-            'is_active' => 'boolean',
-            'created_at' => 'immutable_datetime',
-            'updated_at' => 'datetime',
-            'type' => EntityType::class,
-        ];
-    }
-
-    protected static function newFactory(): EntityFactory
-    {
-        return EntityFactory::new();
-    }
-
-    #[\Override]
-    protected static function boot()
-    {
-        parent::boot();
-
-        // self::addGlobalScope('api', function (Builder $builder) {
-        //     if (request()?->is('api/*')) {
-        //         $builder->where('is_active', true);
-        //     }
-        // });
-        self::addGlobalScope('active', function (Builder $builder) {
-            $builder->where('is_active', true);
-        });
-    }
-
-    #[\Override]
-    protected static function booted(): void
-    {
-        static::saved(function (Entity $entity) {
-            Cache::forget(new Preset()->getCacheKey());
-            Content::resolveChildTypes();
-        });
-
-        static::deleted(function (Entity $entity) {
-            Cache::forget(new Preset()->getCacheKey());
-            Content::resolveChildTypes();
-        });
-    }
-
     /**
      * The presets that belong to the entity.
+     *
      * @return HasMany<Preset>
      */
     public function presets(): HasMany
@@ -100,6 +59,7 @@ class Entity extends ComposhipsModel
 
     /**
      * The contents that belong to the entity.
+     *
      * @return HasMany<Content>
      */
     public function contents(): HasMany
@@ -109,6 +69,7 @@ class Entity extends ComposhipsModel
 
     /**
      * The categories that belong to the entity.
+     *
      * @return HasMany<Category>
      */
     public function categories(): HasMany
@@ -130,12 +91,58 @@ class Entity extends ComposhipsModel
         $rules['update'] = array_merge($rules['update'], [
             'name' => ['sometimes', 'string', 'max:255', 'unique:entities,name,' . $this->id],
         ]);
+
         return $rules;
     }
 
-    #[\Override]
+    #[Override]
     public function getPath(): ?string
     {
         return null;
+    }
+
+    protected static function newFactory(): EntityFactory
+    {
+        return EntityFactory::new();
+    }
+
+    #[Override]
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        // self::addGlobalScope('api', function (Builder $builder) {
+        //     if (request()?->is('api/*')) {
+        //         $builder->where('is_active', true);
+        //     }
+        // });
+        self::addGlobalScope('active', function (Builder $builder): void {
+            $builder->where('is_active', true);
+        });
+    }
+
+    #[Override]
+    protected static function booted(): void
+    {
+        self::saved(function (Entity $entity): void {
+            Cache::forget(new Preset()->getCacheKey());
+            Content::resolveChildTypes();
+        });
+
+        self::deleted(function (Entity $entity): void {
+            Cache::forget(new Preset()->getCacheKey());
+            Content::resolveChildTypes();
+        });
+    }
+
+    #[Override]
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'created_at' => 'immutable_datetime',
+            'updated_at' => 'datetime',
+            'type' => EntityType::class,
+        ];
     }
 }

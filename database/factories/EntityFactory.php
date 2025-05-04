@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
+use Override;
 use Modules\Cms\Casts\EntityType;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
-class EntityFactory extends Factory
+final class EntityFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
@@ -15,7 +18,7 @@ class EntityFactory extends Factory
     /**
      * Define the model's default state.
      */
-    #[\Override]
+    #[Override]
     public function definition(): array
     {
         return [

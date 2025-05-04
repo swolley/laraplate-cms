@@ -8,44 +8,46 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 
 trait HasPath
 {
-	/** @class-property string|null $slug */
-	/**
-	 * get prefix for full path
-	 */
-	protected function getPathPrefix(): string
-	{
-		return $this->getTable();
-	}
+    /**
+     * get path for full path.
+     */
+    abstract protected function getPath(): ?string;
 
-	/**
-	 * get suffix for full path
-	 */
-	protected function getPathSuffix(): ?string
-	{
-		$key = $this->getKey();
-		return $key ? (string) $key : null;
-	}
+    /** @class-property string|null $slug */
+    /**
+     * get prefix for full path.
+     */
+    protected function getPathPrefix(): string
+    {
+        return $this->getTable();
+    }
 
-	/**
-	 * get path for full path
-	 */
-	abstract protected function getPath(): ?string;
+    /**
+     * get suffix for full path.
+     */
+    protected function getPathSuffix(): ?string
+    {
+        $key = $this->getKey();
 
-	/**
-	 * get full path
-	 */
-	protected function getFullPath(): string
-	{
-		$suffix = $this->getPathSuffix();
-		$prefix = $this->getPathPrefix();
-		$path = $this->getPath();
-		return str_replace('//', '/', $prefix . '/' . ($path ?: 'undefined') . '/' . ($this->slug ?? 'undefined') . ($suffix ? '/' . $suffix : ''));
-	}
+        return $key ? (string) $key : null;
+    }
 
-	protected function path(): Attribute
-	{
-		return Attribute::make(
-			get: fn() => $this->getFullPath(),
-		);
-	}
+    /**
+     * get full path.
+     */
+    protected function getFullPath(): string
+    {
+        $suffix = $this->getPathSuffix();
+        $prefix = $this->getPathPrefix();
+        $path = $this->getPath();
+
+        return str_replace('//', '/', $prefix . '/' . ($path ?: 'undefined') . '/' . ($this->slug ?? 'undefined') . ($suffix ? '/' . $suffix : ''));
+    }
+
+    protected function path(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->getFullPath(),
+        );
+    }
 }

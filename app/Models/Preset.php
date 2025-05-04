@@ -1,17 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Models;
 
+use Override;
 use Modules\Core\Cache\HasCache;
 use Awobaz\Compoships\Compoships;
-use Illuminate\Support\Facades\Cache;
 // use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 use Modules\Core\Helpers\HasVersions;
-use Modules\Core\Helpers\HasApprovals;
-use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\SoftDeletes;
+use Modules\Core\Helpers\HasApprovals;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Cms\Models\Pivot\Fieldable;
+use Modules\Core\Helpers\HasValidations;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,9 +25,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 /**
  * @mixin IdeHelperPreset
  */
-class Preset extends Model
+final class Preset extends Model
 {
-    use HasFactory, SoftDeletes, HasApprovals, HasVersions, HasValidations, Compoships, HasCache {
+    use Compoships, HasApprovals, HasCache, HasFactory, HasValidations, HasVersions, SoftDeletes {
         getRules as protected getRulesTrait;
     }
 
@@ -49,45 +52,6 @@ class Preset extends Model
     protected $attributes = [
         'is_active' => true,
     ];
-
-    #[\Override]
-    protected function casts(): array
-    {
-        return [
-            'template_id' => 'integer',
-            'is_active' => 'boolean',
-            'created_at' => 'immutable_datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
-    // protected static function newFactory(): ModelTypeFactory
-    // {
-    //     // return ModelTypeFactory::new();
-    // }
-
-    // protected static function boot()
-    // {
-    //     parent::boot();
-
-    //     self::addGlobalScope('api', function (Builder $builder) {
-    //         if (request()?->is('api/*')) {
-    //             $builder->where('is_active', true);
-    //         }
-    //     });
-    // }
-
-    #[\Override]
-    protected static function booted(): void
-    {
-        static::saved(function (Preset $preset) {
-            Cache::forget($preset->getCacheKey());
-        });
-
-        static::forceDeleted(function (Preset $preset) {
-            Cache::forget($preset->getCacheKey());
-        });
-    }
 
     /**
      * @return BelongsTo<Template>
@@ -135,6 +99,46 @@ class Preset extends Model
         $rules['update'] = array_merge($rules['update'], [
             'name' => ['sometimes', 'string', 'max:255'],
         ]);
+
         return $rules;
+    }
+
+    // protected static function newFactory(): ModelTypeFactory
+    // {
+    //     // return ModelTypeFactory::new();
+    // }
+
+    // protected static function boot()
+    // {
+    //     parent::boot();
+
+    //     self::addGlobalScope('api', function (Builder $builder) {
+    //         if (request()?->is('api/*')) {
+    //             $builder->where('is_active', true);
+    //         }
+    //     });
+    // }
+
+    #[Override]
+    protected static function booted(): void
+    {
+        self::saved(function (Preset $preset): void {
+            Cache::forget($preset->getCacheKey());
+        });
+
+        self::forceDeleted(function (Preset $preset): void {
+            Cache::forget($preset->getCacheKey());
+        });
+    }
+
+    #[Override]
+    protected function casts(): array
+    {
+        return [
+            'template_id' => 'integer',
+            'is_active' => 'boolean',
+            'created_at' => 'immutable_datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

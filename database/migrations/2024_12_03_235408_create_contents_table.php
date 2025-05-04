@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Facades\Schema;
+use Modules\Core\Helpers\MigrateUtils;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Modules\Core\Helpers\MigrateUtils;
 
 return new class extends Migration
 {
@@ -12,7 +14,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('contents', function (Blueprint $table) {
+        Schema::create('contents', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('entity_id')->nullable(false)->constrained('entities', 'id', 'contents_entity_id_FK')->cascadeOnDelete()->comment('The entity that the content belongs to');
             $table->unsignedBigInteger('preset_id')->nullable(false)->comment('The preset that the content belongs to');
@@ -26,7 +28,7 @@ return new class extends Migration
                 hasSoftDelete: true,
                 hasLocks: true,
                 hasValidity: true,
-                isValidityRequired: false
+                isValidityRequired: false,
             );
 
             $table->foreign(['entity_id', 'preset_id'], 'contents_preset_FK')
@@ -36,7 +38,7 @@ return new class extends Migration
             $table->unique(['id', 'entity_id'], 'content_entity_UN');
         });
 
-        Schema::create('categorizables', function (Blueprint $table) {
+        Schema::create('categorizables', function (Blueprint $table): void {
             // $table->id();
             $table->unsignedBigInteger('content_id')->nullable(false)->comment('The content that the categorizable belongs to');
             $table->unsignedBigInteger('category_id')->nullable(false)->comment('The category that the categorizable belongs to');
@@ -53,7 +55,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
         });
 
-        Schema::create('authorables', function (Blueprint $table) {
+        Schema::create('authorables', function (Blueprint $table): void {
             // $table->id();
             $table->foreignId('content_id')->nullable(false)->constrained('contents', 'id', 'authorables_content_id_FK')->cascadeOnDelete()->comment('The content that the authorable belongs to');
             $table->foreignId('author_id')->nullable(false)->constrained('authors', 'id', 'authorables_author_id_FK')->cascadeOnDelete()->comment('The author that the authorable belongs to');
@@ -62,7 +64,7 @@ return new class extends Migration
             $table->primary(['content_id', 'author_id']);
         });
 
-        Schema::create('relatables', function (Blueprint $table) {
+        Schema::create('relatables', function (Blueprint $table): void {
             // $table->id();
             $table->foreignId('content_id')->nullable(false)->constrained('contents', 'id', 'relatables_content_id_FK')->cascadeOnDelete()->comment('The content that the relatable belongs to');
             $table->foreignId('related_content_id')->nullable(false)->constrained('contents', 'id', 'relatables_related_content_id_FK')->cascadeOnDelete()->comment('The related content that the relatable belongs to');
@@ -71,7 +73,7 @@ return new class extends Migration
             $table->primary(['content_id', 'related_content_id']);
         });
 
-        Schema::create('locatables', function (Blueprint $table) {
+        Schema::create('locatables', function (Blueprint $table): void {
             // $table->id();
             $table->foreignId('content_id')->nullable(false)->constrained('contents', 'id', 'locatables_content_id_FK')->cascadeOnDelete()->comment('The content that the locatable belongs to');
             $table->foreignId('location_id')->nullable(false)->constrained('locations', 'id', 'locatables_location_id_FK')->cascadeOnDelete()->comment('The location that the locatable belongs to');

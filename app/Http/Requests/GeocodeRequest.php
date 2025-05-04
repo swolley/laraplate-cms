@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class GeocodeRequest extends FormRequest
+final class GeocodeRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.

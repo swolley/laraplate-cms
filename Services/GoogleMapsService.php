@@ -1,49 +1,53 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Services;
 
-use Illuminate\Database\Eloquent\MassAssignmentException;
+use Override;
+use Exception;
 use Modules\Cms\Models\Location;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Database\Eloquent\MassAssignmentException;
 use Modules\Cms\Services\Contracts\GeocodingServiceInterface;
 
-class GoogleMapsService implements GeocodingServiceInterface
+final class GoogleMapsService implements GeocodingServiceInterface
 {
-    /**
-     * Singleton instance of the service
-     */
-    protected static ?self $instance = null;
-
     private const string BASE_URL = 'https://maps.googleapis.com/maps/api/geocode';
+
+    /**
+     * Singleton instance of the service.
+     */
+    private static ?self $instance = null;
 
     private readonly string $api_key;
 
     /**
-     * Get service instance (singleton pattern)
+     * Protected constructor to enforce singleton pattern.
+     */
+    private function __construct()
+    {
+        $this->api_key = (string) config('services.geocoding.api_key', '');
+    }
+
+    /**
+     * Get service instance (singleton pattern).
      */
     public static function getInstance(): self
     {
         return self::$instance ??= new self();
     }
 
-    /**
-     * Protected constructor to enforce singleton pattern
-     */
-    protected function __construct()
-    {
-        $this->api_key = (string) config('services.geocoding.api_key', '');
-    }
-
-    #[\Override]
+    #[Override]
     public function search(
         string $query,
         ?string $city = null,
         ?string $province = null,
         ?string $country = null,
-        int $limit = 1
+        int $limit = 1,
     ): array|Location|null {
         return RateLimiter::attempt(
             'google_maps',
@@ -67,13 +71,14 @@ class GoogleMapsService implements GeocodingServiceInterface
                     }
 
                     return $result;
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Log::error('Google Maps geocoding cache error: ' . $e->getMessage());
+
                     // Se la cache fallisce, esegui comunque la ricerca
                     return $result ?? null;
                 }
             },
-            1
+            1,
         );
     }
 
@@ -82,9 +87,10 @@ class GoogleMapsService implements GeocodingServiceInterface
         ?string $city,
         ?string $province,
         ?string $country,
-        int $limit
+        int $limit,
     ): string {
         $params = ['query' => $query, 'city' => $city, 'province' => $province, 'country' => $country, 'limit' => $limit];
+
         return md5(serialize(array_filter($params)));
     }
 
@@ -93,7 +99,7 @@ class GoogleMapsService implements GeocodingServiceInterface
         ?string $city,
         ?string $province,
         ?string $country,
-        int $limit
+        int $limit,
     ): array|Location|null {
         // Costruiamo l'indirizzo completo
         $address_components = array_filter([$query, $city, $province, $country]);
@@ -102,17 +108,17 @@ class GoogleMapsService implements GeocodingServiceInterface
         $response = Http::get(self::BASE_URL . '/json', [
             'address' => $full_address,
             'key' => $this->api_key,
-            'limit' => $limit
+            'limit' => $limit,
         ]);
 
-        if (!$response->successful() || $response->json()['status'] !== 'OK') {
+        if (! $response->successful() || $response->json()['status'] !== 'OK') {
             return $limit > 1 ? [] : null;
         }
 
         $results = $response->json()['results'];
 
         if ($limit > 1) {
-            return array_map(fn(array $result) => $this->getAddressDetails($result), $results);
+            return array_map(fn (array $result) => $this->getAddressDetails($result), $results);
         }
 
         return $this->getAddressDetails($results[0]);
@@ -121,22 +127,23 @@ class GoogleMapsService implements GeocodingServiceInterface
     /**
      * Extracts address details from a Google Maps API result array and returns a Location model instance.
      *
-     * @param array $result The result array from Google Maps API. Expected structure:
-     *   [
-     *     'address_components' => array of arrays with keys 'types' (array) and 'long_name' (string),
-     *     'geometry' => [
-     *         'location' => [
-     *             'lat' => float,
-     *             'lng' => float
-     *         ]
-     *     ]
-     *   ]
-     * @return Location
+     * @param  array  $result  The result array from Google Maps API. Expected structure:
+     *                         [
+     *                         'address_components' => array of arrays with keys 'types' (array) and 'long_name' (string),
+     *                         'geometry' => [
+     *                         'location' => [
+     *                         'lat' => float,
+     *                         'lng' => float
+     *                         ]
+     *                         ]
+     *                         ]
+     *
      * @throws MassAssignmentException
      */
     private function getAddressDetails(array $result): Location
     {
         $components = [];
+
         foreach ($result['address_components'] as $component) {
             $type = $component['types'][0];
             $components[$type] = $component['long_name'];

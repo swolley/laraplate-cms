@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Facades\Schema;
+use Modules\Core\Helpers\MigrateUtils;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Modules\Core\Helpers\MigrateUtils;
 
 return new class extends Migration
 {
@@ -12,7 +14,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categories', function (Blueprint $table) {
+        Schema::create('categories', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('entity_id')->nullable(true)->constrained('entities', 'id', 'categories_entity_id_FK')->cascadeOnDelete()->comment('The entity that the category belongs to');
             $table->unsignedBigInteger('parent_id')->nullable(true)->comment('The parent category');
@@ -30,7 +32,7 @@ return new class extends Migration
                 hasCreateUpdate: true,
                 hasSoftDelete: true,
                 hasLocks: true,
-                hasValidity: true
+                hasValidity: true,
             );
 
             $table->unique(['entity_id', 'parent_id', 'name', 'deleted_at'], 'categories_name_UN');

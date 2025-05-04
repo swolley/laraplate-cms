@@ -1,26 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Http\Controllers;
 
-use Throwable;
 use Illuminate\Support\Str;
-use InvalidArgumentException;
-use UnexpectedValueException;
 use Modules\Cms\Models\Content;
 use Modules\Core\Casts\WhereClause;
 use Modules\Core\Casts\FilterOperator;
 use Modules\Core\Http\Requests\ListRequest;
-use Symfony\Component\HttpFoundation\Response;
 use Modules\Core\Http\Controllers\CrudController;
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 
-class ContentsController extends CrudController
+final class ContentsController extends CrudController
 {
-	/**
-	 * @route-comment
-	 * Route(path: 'api/v1/{relation}/{value}/{entity}', name: 'cms.api.relation.contents', methods: [GET, HEAD], middleware: [api])
-	 */
+    /**
+     * @route-comment
+     * Route(path: 'api/v1/{relation}/{value}/{entity}', name: 'cms.api.relation.contents', methods: [GET, HEAD], middleware: [api])
+     */
     public function getContentsByRelation(ListRequest $request, string $relation, string $value, string $entity)
     {
         $filters = $this->createCommonFilters($request, $relation, $value);
@@ -61,15 +58,15 @@ class ContentsController extends CrudController
             ],
         ];
 
-        if (!method_exists(Content::class, $relation)) {
+        if (! method_exists(Content::class, $relation)) {
             $relation = Str::endsWith($relation, 's') ? Str::singular($relation) : Str::plural($relation);
         }
-        if (!method_exists(Content::class, $relation)) {
+
+        if (! method_exists(Content::class, $relation)) {
             throw new BadRequestException('Invalid relation');
         }
 
         $filters[0]['filters'][] = [
-
             'operator' => WhereClause::OR->value,
             'filters' => [
                 [

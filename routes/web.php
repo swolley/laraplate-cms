@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Facades\Route;
 use Modules\Cms\Http\Controllers\LocationsController;
 
@@ -14,6 +16,6 @@ use Modules\Cms\Http\Controllers\LocationsController;
 |
 */
 
-Route::prefix('locations')->group(function () {
+Route::prefix('locations')->group(function (): void {
     Route::get('/geocode', [LocationsController::class, 'geocode'])->name('locations.geocode');
 });

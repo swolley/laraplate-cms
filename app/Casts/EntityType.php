@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\Cms\Casts;
+declare(strict_types=1);
 
-use Illuminate\Support\Str;
+namespace Modules\Cms\Casts;
 
 enum EntityType: string
 {
@@ -11,7 +11,7 @@ enum EntityType: string
     case CATEGORIES = 'categories';
 
     /**
-     * Get all values as array
+     * Get all values as array.
      *
      * @return array<string>
      */
@@ -21,7 +21,7 @@ enum EntityType: string
     }
 
     /**
-     * Check if value is valid
+     * Check if value is valid.
      */
     public static function isValid(string $value): bool
     {
@@ -29,9 +29,7 @@ enum EntityType: string
     }
 
     /**
-     * Get validation rules for Laravel
-     *
-     * @return string
+     * Get validation rules for Laravel.
      */
     public static function validationRule(): string
     {

@@ -1,7 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Database\Factories;
 
+use Override;
+use RuntimeException;
 use Modules\Cms\Models\Tag;
 use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Author;
@@ -13,24 +17,24 @@ use Modules\Cms\Models\Category;
 use Modules\Cms\Casts\EntityType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class ContentFactory extends Factory
+final class ContentFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      */
-    protected $model = \Modules\Cms\Models\Content::class;
+    protected $model = Content::class;
 
     /**
      * Define the model's default state.
      */
-    #[\Override]
+    #[Override]
     public function definition(): array
     {
         $entity = Entity::where('type', EntityType::CONTENTS)->inRandomOrder()->first();
         $preset = Preset::where('entity_id', $entity->id)->inRandomOrder()->first();
 
-        if (!$preset) {
-            throw new \RuntimeException("No preset found for entity: {$entity->name}");
+        if (! $preset) {
+            throw new RuntimeException("No preset found for entity: {$entity->name}");
         }
 
         $valid_from = fake()->boolean() ? now()->addDays(fake()->numberBetween(-10, 10)) : null;
@@ -45,10 +49,10 @@ class ContentFactory extends Factory
         ];
     }
 
-    #[\Override]
+    #[Override]
     public function configure(): static
     {
-        return $this->afterMaking(function (Content $content) {
+        return $this->afterMaking(function (Content $content): void {
             // convert content into the real class
             $attributes = $content->getAttributes();
             $attributes['components'] = json_decode($attributes['components'], true);
@@ -60,6 +64,7 @@ class ContentFactory extends Factory
             // set the components depending on the preset configured fields
             $content->components = $preset->fields->mapWithKeys(function (Field $field) {
                 $value = $field->default;
+
                 if ($field->required || fake()->boolean()) {
                     $value = match ($field->type) {
                         FieldType::TEXTAREA => fake()->paragraphs(fake()->numberBetween(1, 3), true),
@@ -72,15 +77,15 @@ class ContentFactory extends Factory
 
                 return [$field->name => $value];
             })->toArray();
-        })->afterCreating(function (Content $content) {
+        })->afterCreating(function (Content $content): void {
             $authors = Author::inRandomOrder()->limit(fake()->numberBetween(1, 3))->get();
-            $content->authors()->attach($authors->map(fn(Author $author) => ['content_id' => $content->id, 'author_id' => $author->id])->toArray());
+            $content->authors()->attach($authors->map(fn (Author $author) => ['content_id' => $content->id, 'author_id' => $author->id])->toArray());
 
             $categories = Category::inRandomOrder()->forEntity($content->entity_id)->limit(fake()->numberBetween(1, 2))->get();
-            $content->categories()->attach($categories->map(fn(Category $category) => ['content_id' => $content->id, 'category_id' => $category->id])->toArray());
+            $content->categories()->attach($categories->map(fn (Category $category) => ['content_id' => $content->id, 'category_id' => $category->id])->toArray());
 
             $tags = Tag::inRandomOrder()->limit(fake()->numberBetween(1, 5))->get();
-            $content->tags()->attach($tags->map(fn(Tag $tag) => ['content_id' => $content->id, 'tag_id' => $tag->id])->toArray());
+            $content->tags()->attach($tags->map(fn (Tag $tag) => ['content_id' => $content->id, 'tag_id' => $tag->id])->toArray());
 
             $content->load('authors');
         });

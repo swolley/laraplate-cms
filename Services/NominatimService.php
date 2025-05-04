@@ -1,7 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Services;
 
+use Override;
+use Exception;
 use Modules\Cms\Models\Location;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
@@ -9,38 +13,38 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Modules\Cms\Services\Contracts\GeocodingServiceInterface;
 
-class NominatimService implements GeocodingServiceInterface
+final class NominatimService implements GeocodingServiceInterface
 {
     private const string BASE_URL = 'https://nominatim.openstreetmap.org';
 
     /**
-     * Singleton instance of the service
+     * Singleton instance of the service.
      */
-    protected static ?self $instance = null;
+    private static ?self $instance = null;
 
     /**
-     * Get service instance (singleton pattern)
+     * Protected constructor to enforce singleton pattern.
+     */
+    private function __construct()
+    {
+        // Inizializzazione del servizio
+    }
+
+    /**
+     * Get service instance (singleton pattern).
      */
     public static function getInstance(): self
     {
         return self::$instance ??= new self();
     }
 
-    /**
-     * Protected constructor to enforce singleton pattern
-     */
-    protected function __construct()
-    {
-        // Inizializzazione del servizio
-    }
-
-    #[\Override]
+    #[Override]
     public function search(
         string $query,
         ?string $city = null,
         ?string $province = null,
         ?string $country = null,
-        int $limit = 1
+        int $limit = 1,
     ): array|Location|null {
         return RateLimiter::attempt(
             'nominatim',
@@ -64,13 +68,14 @@ class NominatimService implements GeocodingServiceInterface
                     }
 
                     return $result;
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Log::error('Nominatim geocoding cache error: ' . $e->getMessage());
+
                     // Se la cache fallisce, esegui comunque la ricerca
                     return $result ?? null;
                 }
             },
-            1
+            1,
         );
     }
 
@@ -79,9 +84,10 @@ class NominatimService implements GeocodingServiceInterface
         ?string $city,
         ?string $province,
         ?string $country,
-        int $limit
+        int $limit,
     ): string {
         $params = ['query' => $query, 'city' => $city, 'province' => $province, 'country' => $country, 'limit' => $limit];
+
         return md5(serialize(array_filter($params)));
     }
 
@@ -90,43 +96,45 @@ class NominatimService implements GeocodingServiceInterface
         ?string $city,
         ?string $province,
         ?string $country,
-        int $limit
+        int $limit,
     ): array|Location|null {
         $params = [
             'q' => $query,
             'format' => 'json',
             'addressdetails' => 1,
-            'limit' => $limit
+            'limit' => $limit,
         ];
 
         if ($city) {
             $params['city'] = $city;
         }
+
         if ($province) {
             $params['province'] = $province;
         }
+
         if ($country) {
             $params['country'] = $country;
         }
 
         $response = Http::withHeaders([
-            'User-Agent' => config('app.name') . ' Application'
+            'User-Agent' => config('app.name') . ' Application',
         ])->get(self::BASE_URL . '/search', $params);
 
-        if (!$response->successful() || empty($response->json())) {
+        if (! $response->successful() || empty($response->json())) {
             return $limit > 1 ? [] : null;
         }
 
         $result = $response->json();
+
         if ($limit > 1) {
-            return array_map(fn(array $result) => $this->getAddressDetails($result), $result);
+            return array_map(fn (array $result) => $this->getAddressDetails($result), $result);
         }
 
         return $this->getAddressDetails($result[0]);
     }
 
     /**
-     * 
      * @param array{
      *     address: array{
      *         road: string|null,
@@ -141,8 +149,7 @@ class NominatimService implements GeocodingServiceInterface
      *     },
      *     lat: float|null,
      *     lon: float|null,
-     * } $result 
-     * @return Location 
+     * } $result
      */
     private function getAddressDetails(array $result): Location
     {

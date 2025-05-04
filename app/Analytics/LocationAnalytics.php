@@ -7,26 +7,26 @@ namespace Modules\Cms\Analytics;
 use Modules\Cms\Models\Location;
 use Illuminate\Support\Facades\Cache;
 
-class LocationAnalytics extends AbstractAnalytics
+final class LocationAnalytics extends AbstractAnalytics
 {
-    public function __construct(private readonly Location $model) {}
-
     private static array $cache_duration = [3555, 3600];
 
+    public function __construct(private readonly Location $model) {}
+
     /**
-     * Get location clusters
+     * Get location clusters.
      */
     public function getLocationClusters(array $filters = []): array
     {
         return Cache::remember(
             $this->getCacheKey('location_clusters', $filters),
             self::$cache_duration,
-            fn() => $this->getGeoBasedMetrics($this->model, 'geocode', $filters),
+            fn () => $this->getGeoBasedMetrics($this->model, 'geocode', $filters),
         );
     }
 
     /**
-     * Get content distribution by location
+     * Get content distribution by location.
      */
     public function getContentDistribution(array $filters = []): array
     {
@@ -43,9 +43,9 @@ class LocationAnalytics extends AbstractAnalytics
                         'query' => [
                             'bool' => [
                                 'must' => [
-                                    ['match' => ['entity' => $this->model->getTable()]]
-                                ]
-                            ]
+                                    ['match' => ['entity' => $this->model->getTable()]],
+                                ],
+                            ],
                         ],
                         'aggs' => [
                             'locations' => [
@@ -56,51 +56,43 @@ class LocationAnalytics extends AbstractAnalytics
                                 'aggs' => [
                                     'content_count' => [
                                         'terms' => [
-                                            'field' => 'content_count'
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
+                                            'field' => 'content_count',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
                 ];
 
                 $response = $client->search($query);
+
                 return $response['aggregations']['locations']['buckets'];
             },
         );
     }
 
     /**
-     * Get zone-based metrics
+     * Get zone-based metrics.
      */
     public function getZoneMetrics(array $filters = []): array
     {
         return Cache::remember(
             $this->getCacheKey('zone_metrics', $filters),
             self::$cache_duration,
-            fn() => $this->getTermBasedMetrics($this->model, 'zone', $filters),
+            fn () => $this->getTermBasedMetrics($this->model, 'zone', $filters),
         );
     }
 
     /**
-     * Get city-based metrics
+     * Get city-based metrics.
      */
     public function getCityMetrics(array $filters = []): array
     {
         return Cache::remember(
             $this->getCacheKey('city_metrics', $filters),
             self::$cache_duration,
-            fn() => $this->getTermBasedMetrics($this->model, 'city', $filters),
-        );
-    }
-
-    protected function getCacheKey(string $metric, array $filters = []): string
-    {
-        return sprintf(
-            'location_analytics:%s:%s',
-            $metric,
-            md5(json_encode($filters))
+            fn () => $this->getTermBasedMetrics($this->model, 'city', $filters),
         );
     }
 
@@ -112,5 +104,14 @@ class LocationAnalytics extends AbstractAnalytics
     public function getTable(): string
     {
         return $this->model->getTable();
+    }
+
+    protected function getCacheKey(string $metric, array $filters = []): string
+    {
+        return sprintf(
+            'location_analytics:%s:%s',
+            $metric,
+            md5(json_encode($filters)),
+        );
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Helpers;
 
 use Illuminate\Support\Collection;
@@ -24,26 +26,11 @@ trait HasMedia
         return $this->media()->withoutGlobalScope(SoftDeletingScope::class);
     }
 
-    protected function removeMediaItemsNotPresentInArray(array $newMediaArray, string $collectionName = 'default'): void
-    {
-        $this
-            ->getMedia($collectionName)
-            ->reject(fn(Media $currentMediaItem) => in_array(
-                $currentMediaItem->getKey(),
-                array_column($newMediaArray, $currentMediaItem->getKeyName()),
-            ))
-            ->each(fn(Media $media) => $media->delete());
-
-        if ($this->mediaIsPreloaded()) {
-            unset($this->media);
-        }
-    }
-
     public function forceClearMediaCollection(string $collectionName = 'default'): static
     {
         $this
             ->getMedia($collectionName)
-            ->each(fn(Media $media) => $media->forceDelete());
+            ->each(fn (Media $media) => $media->forceDelete());
 
         event(new CollectionHasBeenClearedEvent($this, $collectionName));
 
@@ -56,7 +43,7 @@ trait HasMedia
 
     public function forceClearMediaCollectionExcept(
         string $collectionName = 'default',
-        array|Collection|Media $excludedMedia = []
+        array|Collection|Media $excludedMedia = [],
     ): static {
         if ($excludedMedia instanceof Media) {
             $excludedMedia = collect()->push($excludedMedia);
@@ -70,8 +57,8 @@ trait HasMedia
 
         $this
             ->getMedia($collectionName)
-            ->reject(fn(Media $media) => $excludedMedia->where($media->getKeyName(), $media->getKey())->count())
-            ->each(fn(Media $media) => $media->forceDelete());
+            ->reject(fn (Media $media) => $excludedMedia->where($media->getKeyName(), $media->getKey())->count())
+            ->each(fn (Media $media) => $media->forceDelete());
 
         if ($this->mediaIsPreloaded()) {
             unset($this->media);
@@ -88,7 +75,7 @@ trait HasMedia
      * Delete the associated media with the given id.
      * You may also pass a media object.
      *
-     * @throws \Spatie\MediaLibrary\MediaCollections\Exceptions\MediaCannotBeDeleted
+     * @throws MediaCannotBeDeleted
      */
     public function forceDeleteMedia(int|string|Media $mediaId): void
     {
@@ -129,5 +116,20 @@ trait HasMedia
         $this->allMedia()
             ->where('collection_name', $collectionName)
             ->forceDelete();
+    }
+
+    protected function removeMediaItemsNotPresentInArray(array $newMediaArray, string $collectionName = 'default'): void
+    {
+        $this
+            ->getMedia($collectionName)
+            ->reject(fn (Media $currentMediaItem) => in_array(
+                $currentMediaItem->getKey(),
+                array_column($newMediaArray, $currentMediaItem->getKeyName()), true,
+            ))
+            ->each(fn (Media $media) => $media->delete());
+
+        if ($this->mediaIsPreloaded()) {
+            unset($this->media);
+        }
     }
 }

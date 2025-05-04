@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Models;
 
+use Override;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Modules\Cms\Helpers\HasPath;
@@ -27,11 +30,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @method static whereContains(Polygon $polygon)
  * @method static whereNotContains(Polygon $polygon)
  * @method static whereEquals(Point $point)
+ *
  * @mixin IdeHelperLocation
  */
-class Location extends Model
+final class Location extends Model
 {
-    use HasFactory, HasSlug, HasPath, HasValidations, Searchable, HasSpatial, SoftDeletes, HasTags {
+    use HasFactory, HasPath, HasSlug, HasSpatial, HasTags, HasValidations, Searchable, SoftDeletes {
         toSearchableArray as toSearchableArrayTrait;
         getRules as protected getRulesTrait;
     }
@@ -58,17 +62,68 @@ class Location extends Model
         'updated_at',
     ];
 
-    #[\Override]
-    protected function casts()
+    public function toSearchableArray(): array
     {
-        return [
-            'geolocation' => Point::class,
+        $document = array_merge($this->toSearchableArrayTrait(), Arr::except($this->toArray(), ['id', 'latitude', 'longitude']));
+        $document['geocode'] = [
+            'lat' => (float) $this->latitude,
+            'lon' => (float) $this->longitude,
         ];
+
+        return $document;
+    }
+
+    public function getRules(): array
+    {
+        $rules = $this->getRulesTrait();
+        // $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], [
+        //     'latitude' => ['sometimes', 'numeric', 'min:-90', 'max:90'],
+        //     'longitude' => ['sometimes', 'numeric', 'min:-180', 'max:180'],
+        // ]);
+        $rules['create'] = array_merge($rules['create'], [
+            'name' => ['required', 'string', 'max:255', 'unique:locations,name'],
+            'country' => ['required', 'string', 'max:255'],
+        ]);
+        $rules['update'] = array_merge($rules['update'], [
+            'name' => ['sometimes', 'string', 'max:255', 'unique:locations,name,' . $this->id],
+            'country' => ['sometimes', 'string', 'max:255'],
+        ]);
+
+        return $rules;
+    }
+
+    // public function getPathPrefix(): string
+    // {
+    //     return '';
+    // }
+
+    #[Override]
+    public function getPath(): ?string
+    {
+        return Str::slug($this->country);
+    }
+
+    /**
+     * The contents that belong to the location.
+     *
+     * @return BelongsToMany<Content>
+     */
+    public function contents(): BelongsToMany
+    {
+        return $this->belongsToMany(Content::class);
     }
 
     protected static function newFactory(): LocationFactory
     {
         return LocationFactory::new();
+    }
+
+    #[Override]
+    protected function casts()
+    {
+        return [
+            'geolocation' => Point::class,
+        ];
     }
 
     protected function getLatitudeAttribute(): ?float
@@ -91,54 +146,5 @@ class Location extends Model
     {
         $latitude = $this->geolocation?->latitude ?? 0.0;
         $this->geolocation = new Point($latitude, $value);
-    }
-
-    public function toSearchableArray(): array
-    {
-        $document = array_merge($this->toSearchableArrayTrait(), Arr::except($this->toArray(), ['id', 'latitude', 'longitude']));
-        $document['geocode'] = [
-            'lat' => (float)$this->latitude,
-            'lon' => (float)$this->longitude
-        ];
-
-        return $document;
-    }
-
-    public function getRules(): array
-    {
-        $rules = $this->getRulesTrait();
-        // $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], [
-        //     'latitude' => ['sometimes', 'numeric', 'min:-90', 'max:90'],
-        //     'longitude' => ['sometimes', 'numeric', 'min:-180', 'max:180'],
-        // ]);
-        $rules['create'] = array_merge($rules['create'], [
-            'name' => ['required', 'string', 'max:255', 'unique:locations,name'],
-            'country' => ['required', 'string', 'max:255'],
-        ]);
-        $rules['update'] = array_merge($rules['update'], [
-            'name' => ['sometimes', 'string', 'max:255', 'unique:locations,name,' . $this->id],
-            'country' => ['sometimes', 'string', 'max:255'],
-        ]);
-        return $rules;
-    }
-
-    // public function getPathPrefix(): string
-    // {
-    //     return '';
-    // }
-
-    #[\Override]
-    public function getPath(): ?string
-    {
-        return Str::slug($this->country);
-    }
-
-    /**
-     * The contents that belong to the location.
-     * @return BelongsToMany<Content>
-     */
-    public function contents(): BelongsToMany
-    {
-        return $this->belongsToMany(Content::class);
     }
 }

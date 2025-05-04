@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Database\Factories;
 
+use Override;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class LocationFactory extends Factory
+final class LocationFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
@@ -15,10 +18,11 @@ class LocationFactory extends Factory
     /**
      * Define the model's default state.
      */
-    #[\Override]
+    #[Override]
     public function definition(): array
     {
         $name = fake()->unique()->text(fake()->numberBetween(50, 255));
+
         return [
             'name' => $name,
             'slug' => Str::slug($name),

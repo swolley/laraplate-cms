@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Models;
 
+use Override;
 use Illuminate\Support\Arr;
 use Spatie\Image\Enums\Fit;
 use Modules\Cms\Helpers\HasTags;
@@ -25,9 +28,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 /**
  * @mixin IdeHelperAuthor
  */
-class Author extends ComposhipsModel
+final class Author extends ComposhipsModel
 {
-    use HasFactory, SoftDeletes, HasVersions, HasValidations, InteractsWithMedia, HasDynamicContents, HasTags {
+    use HasDynamicContents, HasFactory, HasTags, HasValidations, HasVersions, InteractsWithMedia, SoftDeletes {
         getRules as protected getRulesTrait;
         // HasDynamicContents::toArray as protected dynamicContentsToArray;
         HasDynamicContents::__get as protected dynamicContentsGet;
@@ -36,7 +39,6 @@ class Author extends ComposhipsModel
 
     protected $fillable = [
         'name',
-
     ];
 
     protected $hidden = [
@@ -48,29 +50,43 @@ class Author extends ComposhipsModel
 
     protected $tempUser;
 
-    #[\Override]
-    protected function casts(): array
+    // Magic getter for user attributes
+    #[Override]
+    public function __get($key)
     {
-        return [
-            'user_id' => 'integer',
-            'created_at' => 'immutable_datetime',
-            'updated_at' => 'datetime',
-        ];
+        if (in_array($key, new User()->getFillable(), true)) {
+            return $this->user?->{$key} ?? null;
+        }
+
+        return $this->dynamicContentsGet($key);
     }
 
-    protected static function newFactory(): AuthorFactory
+    // Magic setter for user attributes
+    #[Override]
+    public function __set($key, $value): void
     {
-        return AuthorFactory::new();
-    }
+        $session_user = Auth::user();
+        $entity = new User();
+        $table = $entity->getTable();
+        $user_can_insert = $session_user && $session_user->can("{$table}.create");
+        $user_can_update = $session_user && $session_user->can("{$table}.update");
 
-    protected function getCanLoginAttribute(): bool
-    {
-        return $this->user !== null || $this->tempUser !== null;
-    }
+        if (in_array($key, $entity->getFillable(), true) && ($user_can_insert || $user_can_update)) {
+            if (! $this->user && ! $user_can_insert) {
+                throw new UnauthorizedException("User cannot insert {$entity}");
+            }
 
-    protected function getIsSignatureAttribute(): bool
-    {
-        return !$this->getCanLoginAttribute();
+            if (! $this->user && $this->tempUser === null && $user_can_insert) {
+                $this->tempUser = new User();
+                $this->tempUser->{$key} = $value;
+            } elseif ($user_can_update) {
+                $this->user->{$key} = $value;
+            }
+
+            return;
+        }
+
+        $this->dynamicContentsSet($key, $value);
     }
 
     /**
@@ -83,6 +99,7 @@ class Author extends ComposhipsModel
 
     /**
      * The contents that belong to the author.
+     *
      * @return BelongsToMany<Content>
      */
     public function contents(): BelongsToMany
@@ -90,44 +107,8 @@ class Author extends ComposhipsModel
         return $this->belongsToMany(Content::class, 'authorables')->using(Authorable::class)->withTimestamps();
     }
 
-    // Magic getter for user attributes
-    #[\Override]
-    public function __get($key)
-    {
-        if (in_array($key, new User()->getFillable())) {
-            return $this->user?->{$key} ?? null;
-        }
-        return $this->dynamicContentsGet($key);
-    }
-
-    // Magic setter for user attributes
-    #[\Override]
-    public function __set($key, $value)
-    {
-        $session_user = Auth::user();
-        $entity = new User();
-        $table = $entity->getTable();
-        $user_can_insert = $session_user && $session_user->can("$table.create");
-        $user_can_update = $session_user && $session_user->can("$table.update");
-        if (in_array($key, $entity->getFillable()) && ($user_can_insert || $user_can_update)) {
-            if (!$this->user && !$user_can_insert) {
-                throw new UnauthorizedException("User cannot insert $entity");
-            }
-
-            if (!$this->user && $this->tempUser === null && $user_can_insert) {
-                $this->tempUser = new User();
-                $this->tempUser->{$key} = $value;
-            } elseif ($user_can_update) {
-                $this->user->{$key} = $value;
-            }
-            return;
-        }
-
-        $this->dynamicContentsSet($key, $value);
-    }
-
     // Save method to handle user creation/updating
-    #[\Override]
+    #[Override]
     public function save(array $options = [])
     {
         if ($this->tempUser !== null && $this->tempUser->isDirty()) {
@@ -138,6 +119,7 @@ class Author extends ComposhipsModel
         } elseif ($this->user && $this->user->isDirty()) {
             $this->user->save();
         }
+
         return parent::save($options);
     }
 
@@ -158,23 +140,14 @@ class Author extends ComposhipsModel
         // $this->addMediaCollection('files');
     }
 
-
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumb')
-            ->performOnCollections('images'/*, 'videos'*/)
+            ->performOnCollections('images'/* , 'videos' */)
             ->width(300)
             ->height(300)
             ->sharpen(10)
             ->fit(Fit::Fill, 300, 300);
-    }
-
-    protected function picture(): Attribute
-    {
-        return Attribute::make(
-            get: fn() => $this->getFirstMediaUrl('images'),
-            set: fn($value) => $this->addMedia($value)->toMediaCollection('images'),
-        );
     }
 
     // public function getPictureAttribute(): string
@@ -191,6 +164,40 @@ class Author extends ComposhipsModel
         $rules['update'] = array_merge($rules['update'], [
             'name' => ['sometimes', 'string', 'max:255', 'unique:authors,name,' . $this->id],
         ]);
+
         return $rules;
+    }
+
+    protected static function newFactory(): AuthorFactory
+    {
+        return AuthorFactory::new();
+    }
+
+    #[Override]
+    protected function casts(): array
+    {
+        return [
+            'user_id' => 'integer',
+            'created_at' => 'immutable_datetime',
+            'updated_at' => 'datetime',
+        ];
+    }
+
+    protected function getCanLoginAttribute(): bool
+    {
+        return $this->user !== null || $this->tempUser !== null;
+    }
+
+    protected function getIsSignatureAttribute(): bool
+    {
+        return ! $this->getCanLoginAttribute();
+    }
+
+    protected function picture(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->getFirstMediaUrl('images'),
+            set: fn ($value) => $this->addMedia($value)->toMediaCollection('images'),
+        );
     }
 }

@@ -1,31 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
+use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Preset;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Category;
-use Modules\Cms\Models\Field;
 
-beforeEach(function () {
+beforeEach(function (): void {
     // Crea le dipendenze necessarie
     $this->entity = Entity::factory()->create([
         'name' => 'article',
-        'slug' => 'article'
+        'slug' => 'article',
     ]);
 
     $this->preset = Preset::factory()->create([
         'name' => 'Default Article',
-        'entity_id' => $this->entity->id
+        'entity_id' => $this->entity->id,
     ]);
 
     $this->content = Content::factory()->create([
         'preset_id' => $this->preset->id,
         'entity_id' => $this->entity->id,
-        'components' => ['title' => 'Test Article']
+        'components' => ['title' => 'Test Article'],
     ]);
 });
 
-test('can create content from entity', function () {
+test('can create content from entity', function (): void {
     $content = Content::makeFromEntity($this->entity);
 
     expect($content)
@@ -34,7 +36,7 @@ test('can create content from entity', function () {
         ->and($content->preset_id)->toBe($this->preset->id);
 });
 
-test('can create content from entity id', function () {
+test('can create content from entity id', function (): void {
     $content = Content::makeFromEntity($this->entity->id);
 
     expect($content)
@@ -42,7 +44,7 @@ test('can create content from entity id', function () {
         ->and($content->entity_id)->toBe($this->entity->id);
 });
 
-test('can create content from entity name', function () {
+test('can create content from entity name', function (): void {
     $content = Content::makeFromEntity('article');
 
     expect($content)
@@ -50,59 +52,59 @@ test('can create content from entity name', function () {
         ->and($content->entity_id)->toBe($this->entity->id);
 });
 
-test('throws exception for invalid entity', function () {
+test('throws exception for invalid entity', function (): void {
     Content::makeFromEntity('invalid-entity');
-})->throws(\InvalidArgumentException::class);
+})->throws(InvalidArgumentException::class);
 
-test('can associate categories with composite keys', function () {
+test('can associate categories with composite keys', function (): void {
     $category = Category::factory()->create([
-        'entity_id' => $this->entity->id
+        'entity_id' => $this->entity->id,
     ]);
 
     $this->content->categories()->attach($category);
 
     expect($this->content->categories)->toContain($category);
-    
+
     $this->assertDatabaseHas('categorizables', [
         'content_id' => $this->content->id,
         'entity_id' => $this->entity->id,
-        'category_id' => $category->id
+        'category_id' => $category->id,
     ]);
 });
 
-test('merges component values with defaults', function () {
+test('merges component values with defaults', function (): void {
     $field = Field::factory()->create([
         'name' => 'description',
         'default' => 'Default description',
-        'preset_id' => $this->preset->id
+        'preset_id' => $this->preset->id,
     ]);
 
     $content = Content::factory()->create([
         'preset_id' => $this->preset->id,
         'entity_id' => $this->entity->id,
-        'components' => ['title' => 'Test']
+        'components' => ['title' => 'Test'],
     ]);
 
     $components = $content->components;
-    
+
     expect($components)
         ->toHaveKey('title', 'Test')
         ->toHaveKey('description', 'Default description');
 });
 
-test('scopes published content correctly', function () {
+test('scopes published content correctly', function (): void {
     $publishedContent = Content::factory()->create([
         'preset_id' => $this->preset->id,
         'entity_id' => $this->entity->id,
         'valid_from' => now()->subDay(),
-        'valid_to' => now()->addDay()
+        'valid_to' => now()->addDay(),
     ]);
 
     $expiredContent = Content::factory()->create([
         'preset_id' => $this->preset->id,
         'entity_id' => $this->entity->id,
         'valid_from' => now()->subDays(2),
-        'valid_to' => now()->subDay()
+        'valid_to' => now()->subDay(),
     ]);
 
     $publishedContents = Content::published()->get();
@@ -112,15 +114,15 @@ test('scopes published content correctly', function () {
         ->not->toContain($expiredContent);
 });
 
-test('can create content with valid data', function (array $data) {
+test('can create content with valid data', function (array $data): void {
     $entity = createTestEntity();
     $preset = createTestPreset($entity);
-    
+
     $content = Content::factory()->create([
         'preset_id' => $preset->id,
         'entity_id' => $entity->id,
-        ...$data
+        ...$data,
     ]);
 
     expect($content)->toBeValidContent();
-})->with('valid_contents'); 
+})->with('valid_contents');

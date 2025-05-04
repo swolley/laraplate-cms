@@ -1,25 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Console;
 
+use function Laravel\Prompts\text;
+use function Laravel\Prompts\select;
+use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\multiselect;
+
+use Override;
 use Illuminate\Support\Str;
 use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Preset;
 use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Casts\EntityType;
-use function Laravel\Prompts\text;
 use Modules\Core\Overrides\Command;
-use function Laravel\Prompts\confirm;
 use Illuminate\Database\DatabaseManager;
-use function Laravel\Prompts\multiselect;
-use function Laravel\Prompts\select;
-
 use Modules\Core\Helpers\HasCommandUtils;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 
-class CreateEntityCommand extends Command
+final class CreateEntityCommand extends Command
 {
     use HasCommandUtils;
 
@@ -41,27 +44,31 @@ class CreateEntityCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): void
     {
-        $this->db->transaction(function () {
+        $this->db->transaction(function (): void {
             $entity = new Entity();
             $fillables = $entity->getFillable();
             $validations = $entity->getOperationRules('create');
+
             /** @var Collection<int, Field> $all_fields */
             $all_fields = Field::query()->get()->keyBy('id');
 
             if ($this->argument('entity')) {
                 $entity->name = $this->argument('entity');
             }
+
             foreach ($fillables as $attribute) {
                 if ($attribute === 'name' && $entity->name) {
                     continue;
                 }
+
                 if ($attribute === 'type') {
                     $entity->type = select('Choose the type of the entity', EntityType::values(), required: true);
+
                     continue;
                 }
-                $entity->{$attribute} = text(ucfirst($attribute), '', $attribute === 'slug' ? Str::slug($entity->name) : '', true, fn(string $value) => $this->validationCallback($attribute, $value, $validations));
+                $entity->{$attribute} = text(ucfirst($attribute), '', $attribute === 'slug' ? Str::slug($entity->name) : '', true, fn (string $value) => $this->validationCallback($attribute, $value, $validations));
             }
 
             $entity->save();
@@ -81,12 +88,34 @@ class CreateEntityCommand extends Command
                 $this->assignFieldToPreset($preset, $field, $is_required);
             }
 
-            if ($this->option('content-model') || confirm("Do you want to create a content model file for this entity?", false)) {
+            if ($this->option('content-model') || confirm('Do you want to create a content model file for this entity?', false)) {
                 $this->call(CreateContentModelCommand::class, ['entity' => $entity->name]);
             }
 
             $this->info("Entity '{$entity->name}' created");
         });
+    }
+
+    /**
+     * Get the console command arguments.
+     */
+    #[Override]
+    protected function getArguments(): array
+    {
+        return [
+            ['entity', InputArgument::OPTIONAL, 'The entity name.'],
+        ];
+    }
+
+    /**
+     * Get the console command options.
+     */
+    #[Override]
+    protected function getOptions(): array
+    {
+        return [
+            ['content-model', null, InputOption::VALUE_NONE, 'Create a content model file for this entity.', false],
+        ];
     }
 
     private function assignFieldToPreset(Preset $preset, Field $field, bool $is_required): void
@@ -108,40 +137,19 @@ class CreateEntityCommand extends Command
                 FieldType::CHECKBOX => '[]',
                 default => 'null',
             },
-            hint: "Type 'null' to set the default value to null"
+            hint: "Type 'null' to set the default value to null",
         );
+
         if ($default === 'null') {
             $default = null;
         } elseif (preg_match("/\d+/", $default)) {
             $default = Str::contains($default, '.') ? (float) $default : (int) $default;
-        } elseif (in_array($default, ['true', 'false'])) {
+        } elseif (in_array($default, ['true', 'false'], true)) {
             $default = $default === 'true';
         } elseif (preg_match('/^\[.*\]$/', $default)) {
             $default = json_decode($default);
         }
 
         return $default;
-    }
-
-    /**
-     * Get the console command arguments.
-     */
-    #[\Override]
-    protected function getArguments(): array
-    {
-        return [
-            ['entity', InputArgument::OPTIONAL, 'The entity name.'],
-        ];
-    }
-
-    /**
-     * Get the console command options.
-     */
-    #[\Override]
-    protected function getOptions(): array
-    {
-        return [
-            ['content-model', null, InputOption::VALUE_NONE, 'Create a content model file for this entity.', false],
-        ];
     }
 }

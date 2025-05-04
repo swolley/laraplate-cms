@@ -1,7 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Providers;
 
+use Override;
+use Exception;
 use Illuminate\Support\Str;
 use Nwidart\Modules\Facades\Module;
 use Illuminate\Support\Facades\Blade;
@@ -11,7 +15,7 @@ use Modules\Core\Overrides\ServiceProvider;
 /**
  * @property \Illuminate\Foundation\Application $app
  */
-class CmsServiceProvider extends ServiceProvider
+final class CmsServiceProvider extends ServiceProvider
 {
     use PathNamespace;
 
@@ -34,11 +38,11 @@ class CmsServiceProvider extends ServiceProvider
     /**
      * Register the service provider.
      */
-    #[\Override]
+    #[Override]
     public function register(): void
     {
-        if (!Module::find('Core')) {
-            throw new \Exception('Core is required and must be enabled');
+        if (! Module::find('Core')) {
+            throw new Exception('Core is required and must be enabled');
         }
 
         $this->registerConfig();
@@ -48,28 +52,6 @@ class CmsServiceProvider extends ServiceProvider
         $this->app->register(GeocodingServiceProvider::class);
 
         // $this->initializeEntities();
-    }
-
-    /**
-     * Register commands in the format of Command::class
-     */
-    protected function registerCommands(): void
-    {
-        $module_commands_subpath = config('modules.paths.generator.command.path');
-        $commands = $this->inspectFolderCommands($module_commands_subpath);
-
-        $this->commands($commands);
-    }
-
-    /**
-     * Register command Schedules.
-     */
-    protected function registerCommandSchedules(): void
-    {
-        // $this->app->booted(function () {
-        //     $schedule = $this->app->make(Schedule::class);
-        //     $schedule->command('inspire')->hourly();
-        // });
     }
 
     /**
@@ -104,29 +86,52 @@ class CmsServiceProvider extends ServiceProvider
         Blade::componentNamespace($componentNamespace, $this->nameLower);
     }
 
+    /**
+     * Get the services provided by the provider.
+     */
+    #[Override]
+    public function provides(): array
+    {
+        return [];
+    }
+
+    /**
+     * Register commands in the format of Command::class.
+     */
+    protected function registerCommands(): void
+    {
+        $module_commands_subpath = config('modules.paths.generator.command.path');
+        $commands = $this->inspectFolderCommands($module_commands_subpath);
+
+        $this->commands($commands);
+    }
+
+    /**
+     * Register command Schedules.
+     */
+    protected function registerCommandSchedules(): void
+    {
+        // $this->app->booted(function () {
+        //     $schedule = $this->app->make(Schedule::class);
+        //     $schedule->command('inspire')->hourly();
+        // });
+    }
+
     private function inspectFolderCommands(string $commandsSubpath)
     {
         $modules_namespace = config('modules.namespace');
         $files = glob(module_path($this->name, $commandsSubpath . DIRECTORY_SEPARATOR . '*.php'));
 
         return array_map(
-            fn($file) => sprintf('%s\\%s\\%s\\%s', $modules_namespace, $this->name, Str::replace(['app/', '/'], ['', '\\'], $commandsSubpath), basename($file, '.php')),
+            fn ($file) => sprintf('%s\\%s\\%s\\%s', $modules_namespace, $this->name, Str::replace(['app/', '/'], ['', '\\'], $commandsSubpath), basename($file, '.php')),
             $files,
         );
-    }
-
-    /**
-     * Get the services provided by the provider.
-     */
-    #[\Override]
-    public function provides(): array
-    {
-        return [];
     }
 
     private function getPublishableViewPaths(): array
     {
         $paths = [];
+
         foreach (config('view.paths') as $path) {
             if (is_dir($path . '/modules/' . $this->nameLower)) {
                 $paths[] = $path . '/modules/' . $this->nameLower;

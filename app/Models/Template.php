@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Models;
 
+use Override;
 use Illuminate\Validation\Rule;
 use Modules\Core\Helpers\HasVersions;
 use Illuminate\Database\Eloquent\Model;
@@ -11,9 +14,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 /**
  * @mixin IdeHelperTemplate
  */
-class Template extends Model
+final class Template extends Model
 {
-    use HasFactory, HasVersions, HasValidations {
+    use HasFactory, HasValidations, HasVersions {
         getRules as protected getRulesTrait;
     }
 
@@ -30,16 +33,6 @@ class Template extends Model
         'updated_at',
     ];
 
-    #[\Override]
-    protected function casts(): array
-    {
-        return [
-            /*'site_id' => 'integer',*/
-            'created_at' => 'immutable_datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
-
     public function getRules(): array
     {
         $rules = $this->getRulesTrait();
@@ -48,9 +41,9 @@ class Template extends Model
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('templates')->where(function ($query) {
+                Rule::unique('templates')->where(function ($query): void {
                     $query->where('deleted_at', null);
-                })
+                }),
             ],
         ]);
         $rules['update'] = array_merge($rules['update'], [
@@ -58,11 +51,22 @@ class Template extends Model
                 'sometimes',
                 'string',
                 'max:255',
-                Rule::unique('templates')->where(function ($query) {
+                Rule::unique('templates')->where(function ($query): void {
                     $query->where('deleted_at', null);
-                })->ignore($this->id, 'id')
+                })->ignore($this->id, 'id'),
             ],
         ]);
+
         return $rules;
+    }
+
+    #[Override]
+    protected function casts(): array
+    {
+        return [
+            // 'site_id' => 'integer',
+            'created_at' => 'immutable_datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

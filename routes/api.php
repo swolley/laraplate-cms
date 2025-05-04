@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
@@ -20,8 +22,8 @@ use Modules\Cms\Http\Controllers\ContentsController;
 //     Route::get('/{value}/contents', [ContentsController::class, 'getContentsByLocation'])->name('locations.contents');
 //     Route::get('/{value}/{entity}', [ContentsController::class, 'getEntityContentsByLocation'])->name('locations.entity');
 // });
-Route::group(['prefix' => '{relation}'], function () {
+Route::group(['prefix' => '{relation}'], function (): void {
     $entities = ['contents', ...Cache::get('entities', collect())->pluck('name')->toArray()];
-    $entities = array_map(fn($entity) => Str::plural($entity), $entities);
+    $entities = array_map(fn ($entity) => Str::plural($entity), $entities);
     Route::get('/{value}/{entity}', [ContentsController::class, 'getContentsByRelation'])->name('relation.contents')->whereIn('relation', ['tags', 'categories', 'locations', 'authors'])->whereIn('entity', $entities);
 });

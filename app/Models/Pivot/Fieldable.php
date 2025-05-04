@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Models\Pivot;
 
+use Override;
 use Modules\Core\Helpers\HasVersions;
 use Spatie\EloquentSortable\Sortable;
 use Illuminate\Database\Eloquent\Builder;
@@ -11,38 +14,38 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 /**
  * @mixin IdeHelperFieldable
  */
-class Fieldable extends Pivot implements Sortable
+final class Fieldable extends Pivot implements Sortable
 {
-	use HasVersions, SortableTrait;
+    use HasVersions, SortableTrait;
 
-	public $incrementing = true;
+    public $incrementing = true;
 
-	protected $table = 'fieldables';
+    protected $table = 'fieldables';
 
-	protected $attributes = [
-		'is_required' => false,
-		'order_column' => 0,
-	];
+    protected $attributes = [
+        'is_required' => false,
+        'order_column' => 0,
+    ];
 
-	#[\Override]
-	protected function casts()
-	{
-		return [
-			'is_required' => 'boolean',
-			'order_column' => 'integer',
-			'default' => 'json',
-			'created_at' => 'immutable_datetime',
-			'updated_at' => 'datetime',
-		];
-	}
+    protected $sortable = [
+        'order_column_name' => 'order_column',
+        'sort_when_creating' => true,
+    ];
 
-	protected $sortable = [
-		'order_column_name' => 'order_column',
-		'sort_when_creating' => true,
-	];
+    public function scopeOrdered(Builder $query): Builder
+    {
+        return $query->orderBy('order_column', 'asc');
+    }
 
-	public function scopeOrdered(Builder $query): Builder
-	{
-		return $query->orderBy('order_column', 'asc');
-	}
+    #[Override]
+    protected function casts()
+    {
+        return [
+            'is_required' => 'boolean',
+            'order_column' => 'integer',
+            'default' => 'json',
+            'created_at' => 'immutable_datetime',
+            'updated_at' => 'datetime',
+        ];
+    }
 }

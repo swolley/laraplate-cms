@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Models\Contents;
 
-use Modules\Cms\Models\Content;
 use Parental\HasParent;
+use Modules\Cms\Models\Content;
 
 /**
  * @mixin IdeHelperEvent
  */
-class Event extends Content
+final class Event extends Content
 {
     use HasParent;
 }

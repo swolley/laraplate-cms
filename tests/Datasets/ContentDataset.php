@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 dataset('valid_contents', [
     // 'basic' => [
     //     'components' => ['title' => 'Test Article'],
@@ -15,4 +17,4 @@ dataset('valid_contents', [
     //     'valid_to' => now()->addDay()
     // ]
     // fn() => Content::factory()->create()
-]); 
+]);
