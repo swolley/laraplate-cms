@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Cms\Http\Controllers\LocationsController;
-// use Modules\Cms\Http\Controllers\CmsController;
 
 /*
 |--------------------------------------------------------------------------

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Cms\Analytics;
 
 use Modules\Cms\Models\Location;
-use Modules\Core\Cache\CacheManager;
 use Illuminate\Support\Facades\Cache;
 
 class LocationAnalytics extends AbstractAnalytics
@@ -19,10 +18,10 @@ class LocationAnalytics extends AbstractAnalytics
      */
     public function getLocationClusters(array $filters = []): array
     {
-        return CacheManager::remember(
+        return Cache::remember(
             $this->getCacheKey('location_clusters', $filters),
+            self::$cache_duration,
             fn() => $this->getGeoBasedMetrics($this->model, 'geocode', $filters),
-            self::$cache_duration
         );
     }
 
@@ -31,9 +30,10 @@ class LocationAnalytics extends AbstractAnalytics
      */
     public function getContentDistribution(array $filters = []): array
     {
-        return CacheManager::remember(
+        return Cache::remember(
             $this->getCacheKey('content_distribution', $filters),
-            function () use ($filters) {
+            self::$cache_duration,
+            function () {
                 $client = $this->model->getElasticsearchClient();
 
                 $query = [
@@ -68,7 +68,6 @@ class LocationAnalytics extends AbstractAnalytics
                 $response = $client->search($query);
                 return $response['aggregations']['locations']['buckets'];
             },
-            self::$cache_duration
         );
     }
 
@@ -77,10 +76,10 @@ class LocationAnalytics extends AbstractAnalytics
      */
     public function getZoneMetrics(array $filters = []): array
     {
-        return CacheManager::remember(
+        return Cache::remember(
             $this->getCacheKey('zone_metrics', $filters),
+            self::$cache_duration,
             fn() => $this->getTermBasedMetrics($this->model, 'zone', $filters),
-            self::$cache_duration
         );
     }
 
@@ -89,14 +88,14 @@ class LocationAnalytics extends AbstractAnalytics
      */
     public function getCityMetrics(array $filters = []): array
     {
-        return CacheManager::remember(
+        return Cache::remember(
             $this->getCacheKey('city_metrics', $filters),
+            self::$cache_duration,
             fn() => $this->getTermBasedMetrics($this->model, 'city', $filters),
-            self::$cache_duration
         );
     }
 
-    private function getCacheKey(string $metric, array $filters): string
+    protected function getCacheKey(string $metric, array $filters = []): string
     {
         return sprintf(
             'location_analytics:%s:%s',

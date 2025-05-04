@@ -14,7 +14,7 @@ interface GeocodingServiceInterface
      * @param string|null $province Province/state name
      * @param string|null $country Country name
      * @param int $limit Maximum number of results
-     * @return Location[]|Location|null
+     * @return array<int,Location>|Location|null
      */
     public function search(
         string $query,

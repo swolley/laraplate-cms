@@ -82,12 +82,10 @@ class Preset extends Model
     {
         static::saved(function (Preset $preset) {
             Cache::forget($preset->getCacheKey());
-            Content::$all_presets = null;
         });
 
         static::forceDeleted(function (Preset $preset) {
             Cache::forget($preset->getCacheKey());
-            Content::$all_presets = null;
         });
     }
 
@@ -126,7 +124,7 @@ class Preset extends Model
     public function getRules(): array
     {
         $rules = $this->getRulesTrait();
-        $rules[static::DEFAULT_RULE] = array_merge($rules[static::DEFAULT_RULE], [
+        $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], [
             'is_active' => 'boolean',
             'template_id' => ['sometimes', 'exists:templates,id'],
             'entity_id' => ['required', 'exists:entities,id'],

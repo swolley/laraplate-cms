@@ -107,7 +107,7 @@ class Location extends Model
     public function getRules(): array
     {
         $rules = $this->getRulesTrait();
-        // $rules[static::DEFAULT_RULE] = array_merge($rules[static::DEFAULT_RULE], [
+        // $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], [
         //     'latitude' => ['sometimes', 'numeric', 'min:-90', 'max:90'],
         //     'longitude' => ['sometimes', 'numeric', 'min:-180', 'max:180'],
         // ]);

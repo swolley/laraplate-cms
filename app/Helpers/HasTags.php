@@ -56,7 +56,7 @@ trait HasTags
         $this->syncTags($tags);
     }
 
-    public function scopeWithAllTags(
+    public static function scopeWithAllTags(
         Builder $query,
         string | array | ArrayAccess | Tag $tags,
         ?string $type = null,
@@ -72,7 +72,7 @@ trait HasTags
         return $query;
     }
 
-    public function scopeWithAnyTags(
+    public static function scopeWithAnyTags(
         Builder $query,
         string | array | ArrayAccess | Tag $tags,
         ?string $type = null,
@@ -87,7 +87,7 @@ trait HasTags
             });
     }
 
-    public function scopeWithoutTags(
+    public static function scopeWithoutTags(
         Builder $query,
         string | array | ArrayAccess | Tag $tags,
         ?string $type = null
@@ -102,7 +102,7 @@ trait HasTags
             });
     }
 
-    public function scopeWithAllTagsOfAnyType(Builder $query, $tags): Builder
+    public static function scopeWithAllTagsOfAnyType(Builder $query, $tags): Builder
     {
         $tags = static::convertToTagsOfAnyType($tags);
 
@@ -110,14 +110,14 @@ trait HasTags
             ->each(function ($tag) use ($query) {
                 $query->whereHas(
                     'tags',
-                    fn (Builder $query) => $query->where('tags.id', $tag ? $tag->id : 0)
+                    fn(Builder $query) => $query->where('tags.id', $tag ? $tag->id : 0)
                 );
             });
 
         return $query;
     }
 
-    public function scopeWithAnyTagsOfAnyType(Builder $query, $tags): Builder
+    public static function scopeWithAnyTagsOfAnyType(Builder $query, $tags): Builder
     {
         $tags = static::convertToTagsOfAnyType($tags);
 
@@ -125,13 +125,13 @@ trait HasTags
 
         return $query->whereHas(
             'tags',
-            fn (Builder $query) => $query->whereIn('tags.id', $tagIds)
+            fn(Builder $query) => $query->whereIn('tags.id', $tagIds)
         );
     }
 
     public function tagsWithType(?string $type = null): Collection
     {
-        return $this->tags->filter(fn (Tag $tag) => $tag->type === $type);
+        return $this->tags->filter(fn(Tag $tag) => $tag->type === $type);
     }
 
     public function attachTags(array | ArrayAccess | Tag $tags, ?string $type = null): static
@@ -154,7 +154,7 @@ trait HasTags
 
         collect($tags)
             ->filter()
-            ->each(fn (Tag $tag) => $this->tags()->detach($tag));
+            ->each(fn(Tag $tag) => $this->tags()->detach($tag));
 
         return $this;
     }
@@ -211,7 +211,7 @@ trait HasTags
             if ($value instanceof Tag) {
                 return $value;
             }
-            
+
             return Tag::findFromStringOfAnyType($value);
         })->flatten();
     }
@@ -263,7 +263,7 @@ trait HasTags
     public function hasTag($tag, ?string $type = null): bool
     {
         return $this->tags
-            ->when($type !== null, fn ($query) => $query->where('type', $type))
+            ->when($type !== null, fn($query) => $query->where('type', $type))
             ->contains(fn($modelTag) => $modelTag->name === $tag || $modelTag->id === $tag);
     }
 }

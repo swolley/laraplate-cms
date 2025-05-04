@@ -119,7 +119,7 @@ class Entity extends ComposhipsModel
     public function getRules(): array
     {
         $rules = $this->getRulesTrait();
-        $rules[static::DEFAULT_RULE] = array_merge($rules[static::DEFAULT_RULE], [
+        $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], [
             'is_active' => 'boolean',
             'slug' => 'nullable|string|max:255',
             'type' => ['required', EntityType::validationRule()],

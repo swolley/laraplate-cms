@@ -15,6 +15,7 @@ use Modules\Core\Overrides\Seeder;
 use Modules\Core\Models\Permission;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
+use Modules\Core\Database\Seeders\CoreDatabaseSeeder;
 
 class CmsDatabaseSeeder extends Seeder
 {
@@ -39,13 +40,13 @@ class CmsDatabaseSeeder extends Seeder
     public function run(): void
     {
         Model::unguarded(function (): void {
-            $this->createDefaultFields();
-            $this->createDefaultEntities();
-            $this->createDefaultRoles();
+            $this->defaultFields();
+            $this->defaultEntities();
+            $this->defaultRoles();
         });
     }
 
-    private function createDefaultFields(): void
+    private function defaultFields(): void
     {
         $this->logOperation(Field::class);
 
@@ -119,7 +120,7 @@ class CmsDatabaseSeeder extends Seeder
         });
     }
 
-    private function createDefaultEntities(): void
+    private function defaultEntities(): void
     {
         $this->logOperation(Entity::class);
 
@@ -196,17 +197,38 @@ class CmsDatabaseSeeder extends Seeder
         });
     }
 
-    private function createDefaultRoles(): void
+    private function defaultRoles(): void
     {
         $this->logOperation(Role::class);
 
+        $role_class = config('permission.models.role');
+        $permission_class = config('permission.models.permission');
+
         $name = 'publisher';
         if (!Role::whereName($name)->exists()) {
-            $role = $this->create(Role::class, ['name' => $name]);
-            $role->givePermissionTo(Permission::where('name', 'like', '%.' . ActionEnum::APPROVE->value)->get());
+            $role = $this->create($role_class, ['name' => $name]);
+            $role->givePermissionTo(
+                $permission_class::whereIn('table_name', ['contents', 'categories', 'presets'])
+                    ->where(function ($query) {
+                        $query->where('name', 'like', '%.' . ActionEnum::APPROVE->value)
+                            ->orWhere('name', 'like', '%.' . ActionEnum::SELECT->value);
+                    })->get()
+            );
             $this->command->line("    - $name <fg=green>created</>");
         } else {
             $this->command->line("    - $name already exists");
+        }
+
+        foreach (CoreDatabaseSeeder::getDefaultUserRoles() as $key => $role) {
+            $role = $role_class::whereName($role['name'])->first(['id']);
+            if ($key === 'admin') {
+                $role->givePermissionTo(
+                    $permission_class::where(function ($query) {
+                        $query->whereIn('table_name', ['contents', 'categories', 'presets'])
+                            ->orWhere('name', 'like', '%.' . ActionEnum::SELECT->value);
+                    })->whereNot('name', 'like', '%.' . ActionEnum::LOCK->value)->get()
+                );
+            }
         }
     }
 

@@ -127,7 +127,7 @@ class Category extends ComposhipsModel implements Sortable
         return $query->priorityOrdered()->validityOrdered();
     }
 
-    protected function scopeActive(Builder $query): Builder
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
     }
@@ -137,11 +137,11 @@ class Category extends ComposhipsModel implements Sortable
         return CategoryFactory::new();
     }
 
-    protected function scopeForEntity(Builder $query, string|int|Entity|null $entity): Builder
-    {
-        // null is a value for non completely filled models
-        return $query->whereHas('contents', fn($q) => is_string($entity) ? $q->where('name', $entity) : ($q->where('entity_id', is_int($entity) ? $entity : $entity->id)));
-    }
+    // public function scopeForEntity(Builder $query, string|int|Entity|null $entity): Builder
+    // {
+    //     // null is a value for non completely filled models
+    //     return $query->whereHas('contents', fn($q) => is_string($entity) ? $q->where('name', $entity) : ($q->where('entity_id', is_int($entity) ? $entity : $entity->id)));
+    // }
 
     #endregion
 
@@ -203,7 +203,7 @@ class Category extends ComposhipsModel implements Sortable
         }
 
         $rules = $this->getRulesTrait();
-        $rules[static::DEFAULT_RULE] = array_merge($rules[static::DEFAULT_RULE], $fields);
+        $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], $fields);
         $rules['create'] = array_merge($rules['create'], [
             'name' => [
                 'required',

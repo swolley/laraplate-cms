@@ -2,9 +2,9 @@
 
 namespace Modules\Cms\Services;
 
+use Illuminate\Database\Eloquent\MassAssignmentException;
 use Modules\Cms\Models\Location;
 use Illuminate\Support\Facades\Log;
-use Modules\Core\Cache\CacheManager;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
@@ -26,11 +26,7 @@ class GoogleMapsService implements GeocodingServiceInterface
      */
     public static function getInstance(): self
     {
-        if (self::$instance === null) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
+        return self::$instance ??= new self();
     }
 
     /**
@@ -64,7 +60,7 @@ class GoogleMapsService implements GeocodingServiceInterface
                     $result = $this->performSearch($query, $city, $province, $country, $limit);
 
                     // Prova prima con i tag
-                    if (CacheManager::supportsTagging()) {
+                    if (Cache::supportsTags()) {
                         Cache::tags('geocoding')->put($cache_key, $result, config('cache.duration.long'));
                     } else {
                         Cache::put($cache_key, $result, config('cache.duration.long'));
@@ -122,6 +118,22 @@ class GoogleMapsService implements GeocodingServiceInterface
         return $this->getAddressDetails($results[0]);
     }
 
+    /**
+     * Extracts address details from a Google Maps API result array and returns a Location model instance.
+     *
+     * @param array $result The result array from Google Maps API. Expected structure:
+     *   [
+     *     'address_components' => array of arrays with keys 'types' (array) and 'long_name' (string),
+     *     'geometry' => [
+     *         'location' => [
+     *             'lat' => float,
+     *             'lng' => float
+     *         ]
+     *     ]
+     *   ]
+     * @return Location
+     * @throws MassAssignmentException
+     */
     private function getAddressDetails(array $result): Location
     {
         $components = [];
@@ -130,7 +142,7 @@ class GoogleMapsService implements GeocodingServiceInterface
             $components[$type] = $component['long_name'];
         }
 
-        return Location::make([
+        return (new Location)->fill([
             'address' => $components['route'] ? $components['route'] . ($components['street_number'] ? ' ' . $components['street_number'] : '') : null,
             'city' => $components['locality'] ?? $components['administrative_area_level_3'] ?? null,
             'province' => $components['administrative_area_level_1'] ?? null,

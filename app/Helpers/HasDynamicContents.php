@@ -14,6 +14,16 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Trait for models that have dynamic contents.
+ * 
+ * @property-read array<string, mixed> $components
+ * @property-read ?string $type
+ * @property-read ?Entity $entity
+ * @property-read ?Preset $preset
+ * @property ?int $entity_id
+ * @property ?int $preset_id
+ */
 trait HasDynamicContents
 {
     protected static function bootHasDynamicContents()
@@ -158,7 +168,10 @@ trait HasDynamicContents
      */
     public function preset(): BelongsTo
     {
-        return $this->belongsTo(Preset::class, ['preset_id', 'entity_id'], ['id', 'entity_id'])->withTrashed();
+        /** @var \Illuminate\Database\Eloquent\Relations\BelongsTo<Preset> $relation */
+        $relation = $this->belongsTo(Preset::class, ['preset_id', 'entity_id'], ['id', 'entity_id']);
+        $relation->withTrashed();
+        return $relation;
     }
 
     private function mergeComponentsValues(array $components): array

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Analytics;
 
-use Elastic\Elasticsearch\Client;
-use Elastic\Elasticsearch\ClientBuilder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Elastic\Elasticsearch\Client;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\Model;
+use Elastic\Elasticsearch\ClientBuilder;
 
 abstract class AbstractAnalytics
 {
@@ -73,19 +74,23 @@ abstract class AbstractAnalytics
                 'query' => [
                     'bool' => [
                         'must' => [
-                            ['match' => ['entity' => $model->getTable()]]
-                        ]
-                    ]
+                            [
+                                'match' => [
+                                    'entity' => $model->getTable()
+                                ],
+                            ],
+                        ],
+                    ],
                 ],
                 'aggs' => [
                     'by_term' => [
                         'terms' => [
                             'field' => $field,
                             'size' => $size
-                        ]
-                    ]
-                ]
-            ]
+                        ],
+                    ],
+                ],
+            ],
         ];
 
         // Aggiungi filtri alla query se presenti
@@ -102,7 +107,7 @@ abstract class AbstractAnalytics
             return $results['aggregations']['by_term']['buckets'] ?? [];
         } catch (\Exception $e) {
             // Log dell'errore
-            \Log::error('Elasticsearch term-based metrics query failed', [
+            Log::error('Elasticsearch term-based metrics query failed', [
                 'error' => $e->getMessage(),
                 'field' => $field,
                 'index' => $model->searchableAs(),
@@ -127,19 +132,23 @@ abstract class AbstractAnalytics
                 'query' => [
                     'bool' => [
                         'must' => [
-                            ['match' => ['entity' => $model->getTable()]]
-                        ]
-                    ]
+                            [
+                                'match' => [
+                                    'entity' => $model->getTable()
+                                ],
+                            ],
+                        ],
+                    ],
                 ],
                 'aggs' => [
                     'geo_clusters' => [
                         'geohash_grid' => [
                             'field' => $geo_field,
                             'precision' => 5
-                        ]
-                    ]
-                ]
-            ]
+                        ],
+                    ],
+                ],
+            ],
         ];
 
         // Aggiungi filtri alla query se presenti
@@ -156,7 +165,7 @@ abstract class AbstractAnalytics
             return $results['aggregations']['geo_clusters']['buckets'] ?? [];
         } catch (\Exception $e) {
             // Log dell'errore
-            \Log::error('Elasticsearch geo-based metrics query failed', [
+            Log::error('Elasticsearch geo-based metrics query failed', [
                 'error' => $e->getMessage(),
                 'index' => $model->searchableAs(),
                 'filters' => $filters
@@ -180,19 +189,23 @@ abstract class AbstractAnalytics
                 'query' => [
                     'bool' => [
                         'must' => [
-                            ['match' => ['entity' => $model->getTable()]]
-                        ]
-                    ]
+                            [
+                                'match' => [
+                                    'entity' => $model->getTable()
+                                ],
+                            ],
+                        ],
+                    ],
                 ],
                 'aggs' => [
                     'distribution' => [
                         'terms' => [
                             'field' => $field,
                             'size' => $size
-                        ]
-                    ]
-                ]
-            ]
+                        ],
+                    ],
+                ],
+            ],
         ];
 
         // Aggiungi filtri alla query se presenti
@@ -209,7 +222,7 @@ abstract class AbstractAnalytics
             return $results['aggregations']['distribution']['buckets'] ?? [];
         } catch (\Exception $e) {
             // Log dell'errore
-            \Log::error('Elasticsearch distribution metrics query failed', [
+            Log::error('Elasticsearch distribution metrics query failed', [
                 'error' => $e->getMessage(),
                 'field' => $field,
                 'index' => $model->searchableAs(),
@@ -239,24 +252,26 @@ abstract class AbstractAnalytics
                     'bool' => [
                         'must' => [
                             ['match' => ['entity' => $model->getTable()]],
-                            ['range' => [
-                                $date_field => [
-                                    'gte' => $start_date->toIso8601String(),
-                                    'lte' => $end_date->toIso8601String()
-                                ]
-                            ]]
-                        ]
-                    ]
+                            [
+                                'range' => [
+                                    $date_field => [
+                                        'gte' => $start_date->toIso8601String(),
+                                        'lte' => $end_date->toIso8601String()
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
                 ],
                 'aggs' => [
                     'time_series' => [
                         'date_histogram' => [
                             'field' => $date_field,
                             'calendar_interval' => $interval
-                        ]
-                    ]
-                ]
-            ]
+                        ],
+                    ],
+                ],
+            ],
         ];
 
         // Aggiungi filtri alla query se presenti
@@ -273,7 +288,7 @@ abstract class AbstractAnalytics
             return $results['aggregations']['time_series']['buckets'] ?? [];
         } catch (\Exception $e) {
             // Log dell'errore
-            \Log::error('Elasticsearch time-based metrics query failed', [
+            Log::error('Elasticsearch time-based metrics query failed', [
                 'error' => $e->getMessage(),
                 'date_field' => $date_field,
                 'interval' => $interval,

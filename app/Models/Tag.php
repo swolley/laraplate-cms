@@ -112,13 +112,8 @@ class Tag extends Model implements Sortable
     public static function findOrCreate(
         string | array | ArrayAccess $values,
         string | null $type = null,
-        string | null $locale = null,
     ): Collection | Tag | static {
-        $tags = collect($values)->map(function ($value) use ($type, $locale) {
-            // if (is_null($locale)) {
-            //     $locale = static::getLocale();
-            // }
-
+        $tags = collect($values)->map(function ($value) use ($type) {
             if ($value instanceof self) {
                 return $value;
             }
@@ -136,8 +131,6 @@ class Tag extends Model implements Sortable
 
     public static function findFromString(string $name, ?string $type = null)
     {
-        $locale ?? static::getLocale();
-
         return static::query()
             ->where('type', $type)
             ->where(function ($query) use ($name) {

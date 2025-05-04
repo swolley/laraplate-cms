@@ -55,16 +55,22 @@ class Field extends Model
         ];
     }
 
-    // protected static function boot()
-    // {
-    //     parent::boot();
+    protected static function boot()
+    {
+        parent::boot();
 
-    //     self::addGlobalScope('api', function (Builder $builder) {
-    //         if (request()?->is('api/*')) {
-    //             $builder->where('is_active', true);
-    //         }
-    //     });
-    // }
+        // self::addGlobalScope('api', function (Builder $builder) {
+        //     if (request()?->is('api/*')) {
+        //         $builder->where('is_active', true);
+        //     }
+        // });
+
+        static::updating(function (Field $model) {
+            if (property_exists($model, 'pivot') && $model->pivot && $model->pivot->isDirty()) {
+                $model->pivot->save();
+            }
+        });
+    }
 
     public function presets(): BelongsToMany
     {
@@ -89,6 +95,7 @@ class Field extends Model
         //     return;
         // }
         if (property_exists($this, 'pivot') && $this->pivot !== null && array_key_exists($key, $this->pivot->getAttributes())) {
+            // @phpstan-ignore assign.propertyReadOnly
             data_set($this->pivot, $key, $value);
             return;
         }
@@ -113,7 +120,7 @@ class Field extends Model
     public function getRules(): array
     {
         $rules = $this->getRulesTrait();
-        $rules[static::DEFAULT_RULE] = array_merge($rules[static::DEFAULT_RULE], [
+        $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], [
             'is_active' => 'boolean',
             'type' => ['required', 'string', Rule::enum(FieldType::class)],
         ]);

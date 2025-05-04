@@ -4,7 +4,6 @@ namespace Modules\Cms\Services;
 
 use Modules\Cms\Models\Location;
 use Illuminate\Support\Facades\Log;
-use Modules\Core\Cache\CacheManager;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
@@ -24,11 +23,7 @@ class NominatimService implements GeocodingServiceInterface
      */
     public static function getInstance(): self
     {
-        if (self::$instance === null) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
+        return self::$instance ??= new self();
     }
 
     /**
@@ -62,7 +57,7 @@ class NominatimService implements GeocodingServiceInterface
                     $result = $this->performSearch($query, $city, $province, $country, $limit);
 
                     // Prova prima con i tag
-                    if (CacheManager::supportsTagging()) {
+                    if (Cache::supportsTags()) {
                         Cache::tags('geocoding')->put($cache_key, $result, config('cache.duration.long'));
                     } else {
                         Cache::put($cache_key, $result, config('cache.duration.long'));
@@ -130,11 +125,30 @@ class NominatimService implements GeocodingServiceInterface
         return $this->getAddressDetails($result[0]);
     }
 
+    /**
+     * 
+     * @param array{
+     *     address: array{
+     *         road: string|null,
+     *         house_number: string|null,
+     *         city: string|null,
+     *         town: string|null,
+     *         village: string|null,
+     *         state: string|null,
+     *         country: string|null,
+     *         postcode: string|null,
+     *         suburb: string|null,
+     *     },
+     *     lat: float|null,
+     *     lon: float|null,
+     * } $result 
+     * @return Location 
+     */
     private function getAddressDetails(array $result): Location
     {
         $address = $result['address'];
 
-        return Location::make([
+        return (new Location)->fill([
             'address' => $address['road'] ? $address['road'] . ($address['house_number'] ? ' ' . $address['house_number'] : '') : null,
             'city' => $address['city'] ?? $address['town'] ?? $address['village'] ?? null,
             'province' => $address['state'] ?? null,

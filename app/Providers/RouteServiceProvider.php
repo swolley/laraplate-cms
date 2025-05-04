@@ -16,17 +16,6 @@ class RouteServiceProvider extends ServiceProvider
     }
 
     /**
-     * Called before routes are registered.
-     *
-     * Register any model bindings or pattern based filters.
-     */
-    #[\Override]
-    public function boot(): void
-    {
-        parent::boot();
-    }
-
-    /**
      * Define the routes for the application.
      */
     public function map(): void

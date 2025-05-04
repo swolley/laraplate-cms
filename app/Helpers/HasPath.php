@@ -39,7 +39,7 @@ trait HasPath
 		$suffix = $this->getPathSuffix();
 		$prefix = $this->getPathPrefix();
 		$path = $this->getPath();
-		return str_replace('//', '/', $prefix . '/' . ($path ?? 'undefined') . '/' . ($this->slug ?? 'undefined') . ($suffix ? '/' . $suffix : ''));
+		return str_replace('//', '/', $prefix . '/' . ($path ?: 'undefined') . '/' . ($this->slug ?? 'undefined') . ($suffix ? '/' . $suffix : ''));
 	}
 
 	protected function path(): Attribute

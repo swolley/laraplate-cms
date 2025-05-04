@@ -133,12 +133,12 @@ class Author extends ComposhipsModel
         if ($this->tempUser !== null && $this->tempUser->isDirty()) {
             $this->tempUser->save();
             $this->user_id = $this->tempUser->id;
-            unset($this->tempUser);
+            $this->tempUser = null;
             $this->load('user');
         } elseif ($this->user && $this->user->isDirty()) {
             $this->user->save();
         }
-        parent::save($options);
+        return parent::save($options);
     }
 
     // #[\Override]

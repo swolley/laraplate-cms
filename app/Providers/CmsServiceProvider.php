@@ -3,15 +3,10 @@
 namespace Modules\Cms\Providers;
 
 use Illuminate\Support\Str;
-use Modules\Cms\Models\Entity;
-use Modules\Cms\Models\Content;
-use Illuminate\Cache\CacheManager;
 use Nwidart\Modules\Facades\Module;
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Schema;
 use Nwidart\Modules\Traits\PathNamespace;
 use Modules\Core\Overrides\ServiceProvider;
-use Modules\Cms\Providers\GeocodingServiceProvider;
 
 /**
  * @property \Illuminate\Foundation\Application $app
@@ -148,14 +143,13 @@ class CmsServiceProvider extends ServiceProvider
     //         if (!Schema::hasTable('entities')) {
     //             return;
     //         }
-    //         $cache = $this->app->make(CacheManager::class);
     //         $entity_cache_key = 'cms.entities.cache';
 
-    //         $entities = $cache->get($entity_cache_key, collect());
+    //         $entities = Cache::get($entity_cache_key, collect());
 
     //         if ($entities->isEmpty()) {
     //             $entities = Entity::query()->withoutGlobalScopes()->get();
-    //             $cache->forever($entity_cache_key, $entities);
+    //             Cache::forever($entity_cache_key, $entities);
     //             Content::resolveChildTypes($entities);
     //         }
     //     } catch (\Exception $e) {

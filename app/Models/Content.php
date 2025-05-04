@@ -31,6 +31,7 @@ use Spatie\MediaLibrary\Conversions\Conversion;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Modules\Cms\Database\Factories\ContentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
@@ -105,7 +106,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		];
 	}
 
-	protected function getChildTypes(bool $forceRefresh = false): array
+	protected static function getChildTypes(bool $forceRefresh = false): array
 	{
 		if (static::$childTypes === [] || $forceRefresh) {
 			static::resolveChildTypes();
@@ -139,6 +140,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 
 	public static function makeFromEntity(Entity|string|int $entity): static
 	{
+		$entity_id = null;
 		if (is_int($entity)) {
 			$entity_id = array_key_exists($entity, static::getChildTypes()) ? $entity : null;
 		} elseif (is_string($entity)) {
@@ -194,7 +196,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 	 */
 	public function scopeOrdered(Builder $query): Builder
 	{
-		return $query->priorityOrdered()->validityOrdered()->orderBy($this->qualifyColumn(static::CREATED_AT), 'desc');
+		return $query->priorityOrdered()->validityOrdered()->orderBy($this->qualifyColumn(Model::CREATED_AT), 'desc');
 	}
 
 	/**
@@ -203,7 +205,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 	 * @param Entity $entity
 	 * @return Builder
 	 */
-	protected function scopeForEntity(Builder $query, Entity $entity): Builder
+	public function scopeForEntity(Builder $query, Entity $entity): Builder
 	{
 		return $query->where('entity_id', $entity->id);
 	}
@@ -230,7 +232,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 	 */
 	public function categories(): BelongsToMany
 	{
-		return $this->belongsToMany(Category::class, 'categorizables')->using(Categorizable::class)->withTimestamps()->forEntity($this->entity_id);
+		return $this->belongsToMany(Category::class, 'categorizables')->using(Categorizable::class)->withTimestamps();
 	}
 
 	/**
@@ -239,7 +241,9 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 	 */
 	public function locations(): BelongsToMany
 	{
-		return $this->belongsToMany(Location::class, 'content_id', 'location_id', 'id')->withTrashed();
+		$relation = $this->belongsToMany(Location::class, 'content_id', 'location_id', 'id');
+		$relation->withTrashed();
+		return $relation;
 	}
 
 	/**
@@ -281,8 +285,8 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		$document['categories_id'] = $this->categories->pluck('id')->toArray();
 		$document['tags'] = $this->tags->pluck('name')->toArray();
 		$document['tags_id'] = $this->tags->pluck('id')->toArray();
-		$document['location'] = $this->location->name;
-		$document['location_id'] = $this->location->id;
+		$document['location'] = $this->locations->pluck('name')->toArray();
+		$document['location_id'] = $this->locations->pluck('id')->toArray();
 		$document['slug'] = $this->slug;
 		$document['type'] = $this->type;
 		$document['title'] = $this->title;
@@ -350,7 +354,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 		}
 
 		$rules = $this->getRulesTrait();
-		$rules[static::DEFAULT_RULE] = array_merge($rules[static::DEFAULT_RULE], [
+		$rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], [
 			...$fields,
 			'title' => 'required|string|max:255',
 			'slug' => 'nullable|string|max:255',
