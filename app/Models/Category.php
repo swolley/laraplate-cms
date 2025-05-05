@@ -93,12 +93,14 @@ final class Category extends ComposhipsModel implements Sortable
 
     // region Scopes
 
-    public function scopeOrdered(Builder $query): Builder
+    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    public function ordered(Builder $query): Builder
     {
         return $query->priorityOrdered()->validityOrdered();
     }
 
-    public function scopeActive(Builder $query): Builder
+    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    public function active(Builder $query): Builder
     {
         return $query->where('is_active', true);
     }

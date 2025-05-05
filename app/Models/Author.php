@@ -76,7 +76,7 @@ final class Author extends ComposhipsModel
                 throw new UnauthorizedException("User cannot insert {$entity}");
             }
 
-            if (! $this->user && $this->tempUser === null && $user_can_insert) {
+            if (! $this->user && !$this->tempUser instanceof \Illuminate\Foundation\Auth\User && $user_can_insert) {
                 $this->tempUser = new User();
                 $this->tempUser->{$key} = $value;
             } elseif ($user_can_update) {
@@ -111,7 +111,7 @@ final class Author extends ComposhipsModel
     #[Override]
     public function save(array $options = [])
     {
-        if ($this->tempUser !== null && $this->tempUser->isDirty()) {
+        if ($this->tempUser instanceof \Illuminate\Foundation\Auth\User && $this->tempUser->isDirty()) {
             $this->tempUser->save();
             $this->user_id = $this->tempUser->id;
             $this->tempUser = null;
@@ -185,7 +185,7 @@ final class Author extends ComposhipsModel
 
     private function getCanLoginAttribute(): bool
     {
-        return $this->user !== null || $this->tempUser !== null;
+        return $this->user !== null || $this->tempUser instanceof \Illuminate\Foundation\Auth\User;
     }
 
     private function getIsSignatureAttribute(): bool

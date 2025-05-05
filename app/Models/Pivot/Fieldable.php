@@ -32,7 +32,8 @@ final class Fieldable extends Pivot implements Sortable
         'sort_when_creating' => true,
     ];
 
-    public function scopeOrdered(Builder $query): Builder
+    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    public function ordered(Builder $query): Builder
     {
         return $query->orderBy('order_column', 'asc');
     }

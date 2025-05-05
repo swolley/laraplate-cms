@@ -136,19 +136,22 @@ final class Tag extends Model implements Sortable
         return null;
     }
 
-    public function scopeOrdered(Builder $query): Builder
+    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    public function ordered(Builder $query): Builder
     {
         return $query->orderBy('order_column', 'asc');
     }
 
-    public function scopeWithType(Builder $query, ?string $type = null): void
+    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    public function withType(Builder $query, ?string $type = null): void
     {
         if (! is_null($type)) {
             $query->where('type', $type)->ordered();
         }
     }
 
-    public function scopeContaining(Builder $query, string $name, $locale = null): void
+    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    public function containing(Builder $query, string $name, $locale = null): void
     {
         // if (is_null($locale)) {
         //     $locale = static::getLocale();

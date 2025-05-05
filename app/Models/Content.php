@@ -144,7 +144,8 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
     /**
      * Order contents by priority and validity.
      */
-    public function scopeOrdered(Builder $query): Builder
+    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    public function ordered(Builder $query): Builder
     {
         return $query->priorityOrdered()->validityOrdered()->orderBy($this->qualifyColumn(Model::CREATED_AT), 'desc');
     }
@@ -152,7 +153,8 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
     /**
      * Filter contents by entity.
      */
-    public function scopeForEntity(Builder $query, Entity $entity): Builder
+    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    public function forEntity(Builder $query, Entity $entity): Builder
     {
         return $query->where('entity_id', $entity->id);
     }
