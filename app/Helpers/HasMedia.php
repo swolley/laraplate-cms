@@ -122,7 +122,7 @@ trait HasMedia
     {
         $this
             ->getMedia($collectionName)
-            ->reject(fn (Media $currentMediaItem) => in_array(
+            ->reject(fn (Media $currentMediaItem): bool => in_array(
                 $currentMediaItem->getKey(),
                 array_column($newMediaArray, $currentMediaItem->getKeyName()),
                 true,

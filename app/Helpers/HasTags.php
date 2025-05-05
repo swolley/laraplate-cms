@@ -131,7 +131,7 @@ trait HasTags
 
     public function tagsWithType(?string $type = null): Collection
     {
-        return $this->tags->filter(fn (Tag $tag) => $tag->type === $type);
+        return $this->tags->filter(fn (Tag $tag): bool => $tag->type === $type);
     }
 
     public function attachTags(array|ArrayAccess|Tag $tags, ?string $type = null): static
@@ -190,7 +190,7 @@ trait HasTags
     {
         return $this->tags
             ->when($type !== null, fn ($query) => $query->where('type', $type))
-            ->contains(fn ($modelTag) => $modelTag->name === $tag || $modelTag->id === $tag);
+            ->contains(fn ($modelTag): bool => $modelTag->name === $tag || $modelTag->id === $tag);
     }
 
     protected static function convertToTags($values, $type = null)

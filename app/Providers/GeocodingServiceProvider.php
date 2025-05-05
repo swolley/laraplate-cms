@@ -15,7 +15,7 @@ final class GeocodingServiceProvider extends ServiceProvider
     #[Override]
     public function register(): void
     {
-        $this->app->singleton(GeocodingServiceInterface::class, fn ($app) => match (config('services.geocoding.provider', 'nominatim')) {
+        $this->app->singleton(GeocodingServiceInterface::class, fn ($app): \Modules\Cms\Services\GoogleMapsService|\Modules\Cms\Services\NominatimService => match (config('services.geocoding.provider', 'nominatim')) {
             'google' => GoogleMapsService::getInstance(),
             default => NominatimService::getInstance(),
         });

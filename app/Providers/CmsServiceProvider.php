@@ -98,7 +98,7 @@ final class CmsServiceProvider extends ServiceProvider
     /**
      * Register commands in the format of Command::class.
      */
-    protected function registerCommands(): void
+    private function registerCommands(): void
     {
         $module_commands_subpath = config('modules.paths.generator.command.path');
         $commands = $this->inspectFolderCommands($module_commands_subpath);
@@ -109,7 +109,7 @@ final class CmsServiceProvider extends ServiceProvider
     /**
      * Register command Schedules.
      */
-    protected function registerCommandSchedules(): void
+    private function registerCommandSchedules(): void
     {
         // $this->app->booted(function () {
         //     $schedule = $this->app->make(Schedule::class);
@@ -117,13 +117,13 @@ final class CmsServiceProvider extends ServiceProvider
         // });
     }
 
-    private function inspectFolderCommands(string $commandsSubpath)
+    private function inspectFolderCommands(string $commandsSubpath): array
     {
         $modules_namespace = config('modules.namespace');
         $files = glob(module_path($this->name, $commandsSubpath . DIRECTORY_SEPARATOR . '*.php'));
 
         return array_map(
-            fn ($file) => sprintf('%s\\%s\\%s\\%s', $modules_namespace, $this->name, Str::replace(['app/', '/'], ['', '\\'], $commandsSubpath), basename($file, '.php')),
+            fn ($file): string => sprintf('%s\\%s\\%s\\%s', $modules_namespace, $this->name, Str::replace(['app/', '/'], ['', '\\'], $commandsSubpath), basename((string) $file, '.php')),
             $files,
         );
     }

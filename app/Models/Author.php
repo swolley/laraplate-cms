@@ -48,7 +48,7 @@ final class Author extends ComposhipsModel
         'updated_at',
     ];
 
-    protected $tempUser;
+    private ?\Illuminate\Foundation\Auth\User $tempUser = null;
 
     // Magic getter for user attributes
     #[Override]
@@ -183,21 +183,21 @@ final class Author extends ComposhipsModel
         ];
     }
 
-    protected function getCanLoginAttribute(): bool
+    private function getCanLoginAttribute(): bool
     {
         return $this->user !== null || $this->tempUser !== null;
     }
 
-    protected function getIsSignatureAttribute(): bool
+    private function getIsSignatureAttribute(): bool
     {
         return ! $this->getCanLoginAttribute();
     }
 
-    protected function picture(): Attribute
+    private function picture(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->getFirstMediaUrl('images'),
-            set: fn ($value) => $this->addMedia($value)->toMediaCollection('images'),
+            get: fn (): string => $this->getFirstMediaUrl('images'),
+            set: fn ($value): \Spatie\MediaLibrary\MediaCollections\Models\Media => $this->addMedia($value)->toMediaCollection('images'),
         );
     }
 }

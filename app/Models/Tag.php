@@ -54,7 +54,7 @@ final class Tag extends Model implements Sortable
                 return $value;
             }
 
-            return static::findOrCreateFromString($value, $type);
+            return self::findOrCreateFromString($value, $type);
         });
 
         return is_string($values) ? $tags->first() : $tags;
@@ -86,7 +86,7 @@ final class Tag extends Model implements Sortable
 
     public static function findOrCreateFromString(string $name, ?string $type = null)
     {
-        $tag = static::findFromString($name, $type);
+        $tag = self::findFromString($name, $type);
 
         if (! $tag) {
             return static::create([

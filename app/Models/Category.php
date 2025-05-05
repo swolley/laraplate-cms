@@ -238,14 +238,14 @@ final class Category extends ComposhipsModel implements Sortable
 
     // region Attributes
 
-    protected function ids(): Attribute
+    private function ids(): Attribute
     {
         return Attribute::make(
             get: fn () => $this->ancestors->pluck('id')->reverse()->merge([$this->id])->join('.'),
         );
     }
 
-    protected function fullName(): Attribute
+    private function fullName(): Attribute
     {
         return Attribute::make(
             get: fn () => $this->ancestors->pluck('name')->reverse()->merge([$this->name])->join(' > '),

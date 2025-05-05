@@ -10,7 +10,7 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 
 final class RouteServiceProvider extends ServiceProvider
 {
-    protected string $name = 'Cms';
+    private string $name = 'Cms';
 
     /**
      * Define the routes for the application.
@@ -21,7 +21,7 @@ final class RouteServiceProvider extends ServiceProvider
         $this->mapWebRoutes();
     }
 
-    protected function getPrefix(): string
+    private function getPrefix(): string
     {
         return Str::slug($this->name);
     }
@@ -31,7 +31,7 @@ final class RouteServiceProvider extends ServiceProvider
      *
      * These routes all receive session state, CSRF protection, etc.
      */
-    protected function mapWebRoutes(): void
+    private function mapWebRoutes(): void
     {
         Route::middleware('web')
             ->prefix('app')
@@ -46,7 +46,7 @@ final class RouteServiceProvider extends ServiceProvider
      *
      * These routes are typically stateless.
      */
-    protected function mapApiRoutes(): void
+    private function mapApiRoutes(): void
     {
         $name_prefix = $this->getPrefix();
         $route_prefix = 'api';

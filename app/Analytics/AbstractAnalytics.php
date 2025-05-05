@@ -96,10 +96,8 @@ abstract class AbstractAnalytics
         ];
 
         // Aggiungi filtri alla query se presenti
-        if ($filters !== []) {
-            foreach ($filters as $filter_field => $value) {
-                $query['body']['query']['bool']['must'][] = ['match' => [$filter_field => $value]];
-            }
+        foreach ($filters as $filter_field => $value) {
+            $query['body']['query']['bool']['must'][] = ['match' => [$filter_field => $value]];
         }
 
         try {
@@ -154,10 +152,8 @@ abstract class AbstractAnalytics
         ];
 
         // Aggiungi filtri alla query se presenti
-        if ($filters !== []) {
-            foreach ($filters as $field => $value) {
-                $query['body']['query']['bool']['must'][] = ['match' => [$field => $value]];
-            }
+        foreach ($filters as $field => $value) {
+            $query['body']['query']['bool']['must'][] = ['match' => [$field => $value]];
         }
 
         try {
@@ -211,10 +207,8 @@ abstract class AbstractAnalytics
         ];
 
         // Aggiungi filtri alla query se presenti
-        if ($filters !== []) {
-            foreach ($filters as $filter_field => $value) {
-                $query['body']['query']['bool']['must'][] = ['match' => [$filter_field => $value]];
-            }
+        foreach ($filters as $filter_field => $value) {
+            $query['body']['query']['bool']['must'][] = ['match' => [$filter_field => $value]];
         }
 
         try {
@@ -243,8 +237,8 @@ abstract class AbstractAnalytics
         $client = $this->getElasticsearchClient();
 
         // Default all'ultimo mese se non specificato
-        $start_date = $start_date ?? Carbon::now()->subMonth();
-        $end_date = $end_date ?? Carbon::now();
+        $start_date ??= Carbon::now()->subMonth();
+        $end_date ??= Carbon::now();
 
         $query = [
             'index' => $model->searchableAs(),
@@ -277,10 +271,8 @@ abstract class AbstractAnalytics
         ];
 
         // Aggiungi filtri alla query se presenti
-        if ($filters !== []) {
-            foreach ($filters as $filter_field => $value) {
-                $query['body']['query']['bool']['must'][] = ['match' => [$filter_field => $value]];
-            }
+        foreach ($filters as $filter_field => $value) {
+            $query['body']['query']['bool']['must'][] = ['match' => [$filter_field => $value]];
         }
 
         try {

@@ -21,7 +21,7 @@ final class ContentAnalytics extends AbstractAnalytics
         return Cache::remember(
             $this->getCacheKey('publication_trends', $filters),
             self::$cache_duration,
-            fn () => $this->getTimeBasedMetrics($this->model, 'created_at', 'day', $filters),
+            fn (): array => $this->getTimeBasedMetrics($this->model, 'created_at', 'day', $filters),
         );
     }
 
@@ -33,7 +33,7 @@ final class ContentAnalytics extends AbstractAnalytics
         return Cache::remember(
             $this->getCacheKey('author_metrics', $filters),
             self::$cache_duration,
-            fn () => $this->getTermBasedMetrics($this->model, 'authors_id', $filters),
+            fn (): array => $this->getTermBasedMetrics($this->model, 'authors_id', $filters),
         );
     }
 
@@ -45,7 +45,7 @@ final class ContentAnalytics extends AbstractAnalytics
         return Cache::remember(
             $this->getCacheKey('category_distribution', $filters),
             self::$cache_duration,
-            fn () => $this->getTermBasedMetrics($this->model, 'categories_id', $filters),
+            fn (): array => $this->getTermBasedMetrics($this->model, 'categories_id', $filters),
         );
     }
 
@@ -57,7 +57,7 @@ final class ContentAnalytics extends AbstractAnalytics
         return Cache::remember(
             $this->getCacheKey('tag_metrics', $filters),
             self::$cache_duration,
-            fn () => $this->getTermBasedMetrics($this->model, 'tags_id', $filters),
+            fn (): array => $this->getTermBasedMetrics($this->model, 'tags_id', $filters),
         );
     }
 
@@ -69,7 +69,7 @@ final class ContentAnalytics extends AbstractAnalytics
         return Cache::remember(
             $this->getCacheKey('geographic_distribution', $filters),
             self::$cache_duration,
-            fn () => $this->getGeoBasedMetrics($this->model, 'location.geocode', $filters),
+            fn (): array => $this->getGeoBasedMetrics($this->model, 'location.geocode', $filters),
         );
     }
 
@@ -81,18 +81,15 @@ final class ContentAnalytics extends AbstractAnalytics
         return Cache::remember(
             $this->getCacheKey('quality_metrics', $filters),
             self::$cache_duration,
-            function () {
+            fn(): array =>
                 // $client = $this->model->getElasticsearchClient();
-
                 // Qui possiamo implementare metriche di qualità più complesse
                 // Per esempio:
                 // - Lunghezza del contenuto
                 // - Presenza di media
                 // - Completezza dei metadati
                 // - Score basati su embedding
-
-                return [];
-            },
+                [],
         );
     }
 

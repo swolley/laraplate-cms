@@ -21,7 +21,7 @@ final class LocationAnalytics extends AbstractAnalytics
         return Cache::remember(
             $this->getCacheKey('location_clusters', $filters),
             self::$cache_duration,
-            fn () => $this->getGeoBasedMetrics($this->model, 'geocode', $filters),
+            fn (): array => $this->getGeoBasedMetrics($this->model, 'geocode', $filters),
         );
     }
 
@@ -80,7 +80,7 @@ final class LocationAnalytics extends AbstractAnalytics
         return Cache::remember(
             $this->getCacheKey('zone_metrics', $filters),
             self::$cache_duration,
-            fn () => $this->getTermBasedMetrics($this->model, 'zone', $filters),
+            fn (): array => $this->getTermBasedMetrics($this->model, 'zone', $filters),
         );
     }
 
@@ -92,7 +92,7 @@ final class LocationAnalytics extends AbstractAnalytics
         return Cache::remember(
             $this->getCacheKey('city_metrics', $filters),
             self::$cache_duration,
-            fn () => $this->getTermBasedMetrics($this->model, 'city', $filters),
+            fn (): array => $this->getTermBasedMetrics($this->model, 'city', $filters),
         );
     }
 

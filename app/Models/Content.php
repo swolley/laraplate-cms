@@ -126,7 +126,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
             $entity_id = $entity->id;
         }
 
-        if (! $entity_id || $entity->type !== EntityType::CONTENTS) {
+        if ($entity_id === '' || $entity_id === '0' || $entity_id === 0 || $entity_id === null || $entity->type !== EntityType::CONTENTS) {
             throw new InvalidArgumentException('Invalid entity: ' . $entity);
         }
 
@@ -205,7 +205,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
     {
         $relation = $this->belongsToMany(self::class, 'relatables')->using(Relatable::class)->withTimestamps();
 
-        if ($withInverse) {
+        if ($withInverse === true) {
             $relation->orWhere(fn ($query) => $query->where('related_content_id', $this->id));
         }
 
@@ -253,7 +253,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
         $this->commonThumbSizes($this->addMediaConversion('video_thumb')->performOnCollections('videos')->extractVideoFrameAtSecond(2));
     }
 
-    public function getRules()
+    public function getRules(): array
     {
         $fields = [];
 
@@ -328,7 +328,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
 
         // this if ensure that the factory is created for the correct derived entity
         if (static::class !== self::class) {
-            $factory->state(fn (array $attributes) => [
+            $factory->state(fn (array $attributes): array => [
                 'entity_id' => Entity::query()
                     ->where('name', Str::lower(class_basename(static::class)))
                     ->where('type', EntityType::CONTENTS)
@@ -362,8 +362,8 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
     protected function cover(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->getFirstMedia('cover'),
-            set: fn ($value) => $this->addMedia($value)->toMediaCollection('cover'),
+            get: fn (): ?\Spatie\MediaLibrary\MediaCollections\Models\Media => $this->getFirstMedia('cover'),
+            set: fn ($value): \Spatie\MediaLibrary\MediaCollections\Models\Media => $this->addMedia($value)->toMediaCollection('cover'),
         );
     }
 
@@ -385,20 +385,20 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
             ->fit(Fit::Fill, 300, 300)
             ->optimize()
             ->quality(75)
-            ->naming(fn (string $fileName, string $extension) => $fileName . '-high.' . $extension);
+            ->naming(fn (string $fileName, string $extension): string => $fileName . '-high.' . $extension);
         $conversion->width(300)
             ->height(300)
             ->sharpen(10)
             ->fit(Fit::Fill, 300, 300)
             ->optimize()
             ->quality(50)
-            ->naming(fn (string $fileName, string $extension) => $fileName . '-mid.' . $extension);
+            ->naming(fn (string $fileName, string $extension): string => $fileName . '-mid.' . $extension);
         $conversion->width(300)
             ->height(300)
             ->sharpen(10)
             ->fit(Fit::Fill, 300, 300)
             ->optimize()
             ->quality(25)
-            ->naming(fn (string $fileName, string $extension) => $fileName . '-low.' . $extension);
+            ->naming(fn (string $fileName, string $extension): string => $fileName . '-low.' . $extension);
     }
 }

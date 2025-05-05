@@ -39,7 +39,7 @@ final class Location extends Model
         getRules as protected getRulesTrait;
     }
 
-    protected array $textOnlyFields = ['name', 'address', 'city', 'province', 'country', 'postcode', 'zone'];
+    private array $textOnlyFields = ['name', 'address', 'city', 'province', 'country', 'postcode', 'zone'];
 
     /**
      * The attributes that are mass assignable.
@@ -125,23 +125,23 @@ final class Location extends Model
         ];
     }
 
-    protected function getLatitudeAttribute(): ?float
+    private function getLatitudeAttribute(): ?float
     {
         return $this->geolocation?->getLatitude();
     }
 
-    protected function getLongitudeAttribute(): ?float
+    private function getLongitudeAttribute(): ?float
     {
         return $this->geolocation?->getLongitude();
     }
 
-    protected function setLatitudeAttribute(float $value): void
+    private function setLatitudeAttribute(float $value): void
     {
         $longitude = $this->geolocation?->longitude ?? 0.0;
         $this->geolocation = new Point($value, $longitude);
     }
 
-    protected function setLongitudeAttribute(float $value): void
+    private function setLongitudeAttribute(float $value): void
     {
         $latitude = $this->geolocation?->latitude ?? 0.0;
         $this->geolocation = new Point($latitude, $value);
