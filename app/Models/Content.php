@@ -41,7 +41,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 /**
  * @mixin IdeHelperContent
  */
-final class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, Sortable
+class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, Sortable
 {
     use HasApprovals,
         HasChildren,

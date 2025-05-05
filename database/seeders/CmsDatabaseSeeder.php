@@ -179,7 +179,7 @@ final class CmsDatabaseSeeder extends Seeder
                     $preset = $this->create(Preset::class, ['name' => $standard, 'entity_id' => $new_entity->id]);
 
                     // required fields
-                    if (! empty($entity['required_fields'])) {
+                    if ($entity['required_fields'] !== []) {
                         $fields = $this->fields->filter(fn (Field $field) => in_array($field->name, $entity['required_fields'], true));
 
                         foreach ($fields as $field) {
@@ -188,7 +188,7 @@ final class CmsDatabaseSeeder extends Seeder
                     }
 
                     // optional fields
-                    if (! empty($entity['optional_fields'])) {
+                    if ($entity['optional_fields'] !== []) {
                         $fields = $this->fields->filter(fn (Field $field) => in_array($field->name, $entity['optional_fields'], true));
 
                         foreach ($fields as $field) {

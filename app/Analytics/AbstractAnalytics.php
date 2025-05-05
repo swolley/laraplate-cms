@@ -24,12 +24,12 @@ abstract class AbstractAnalytics
         $builder->setHosts($config['hosts']);
 
         // Imposta autenticazione se configurata
-        if (! empty($config['username']) && ! empty($config['password'])) {
+        if ($config['username'] !== '' && $config['password'] !== '') {
             $builder->setBasicAuthentication($config['username'], $config['password']);
         }
 
         // Imposta configurazioni di timeout
-        if (! empty($config['timeout'])) {
+        if ($config['timeout'] !== '') {
             $builder->setRetries($config['retries'] ?? 3);
         }
 
@@ -40,7 +40,7 @@ abstract class AbstractAnalytics
         ]);
 
         // Imposta cloud ID se disponibile
-        if (! empty($config['cloud_id'])) {
+        if ($config['cloud_id'] !== '') {
             $builder->setElasticCloudId($config['cloud_id']);
         }
 
@@ -57,7 +57,7 @@ abstract class AbstractAnalytics
      */
     protected function getCacheKey(string $metric, array $filters = []): string
     {
-        $filters_string = ! empty($filters) ? '_' . md5(json_encode($filters)) : '';
+        $filters_string = $filters !== [] ? '_' . md5(json_encode($filters)) : '';
 
         return 'analytics_' . $metric . $filters_string;
     }
@@ -96,7 +96,7 @@ abstract class AbstractAnalytics
         ];
 
         // Aggiungi filtri alla query se presenti
-        if (! empty($filters)) {
+        if ($filters !== []) {
             foreach ($filters as $filter_field => $value) {
                 $query['body']['query']['bool']['must'][] = ['match' => [$filter_field => $value]];
             }
@@ -154,7 +154,7 @@ abstract class AbstractAnalytics
         ];
 
         // Aggiungi filtri alla query se presenti
-        if (! empty($filters)) {
+        if ($filters !== []) {
             foreach ($filters as $field => $value) {
                 $query['body']['query']['bool']['must'][] = ['match' => [$field => $value]];
             }
@@ -211,7 +211,7 @@ abstract class AbstractAnalytics
         ];
 
         // Aggiungi filtri alla query se presenti
-        if (! empty($filters)) {
+        if ($filters !== []) {
             foreach ($filters as $filter_field => $value) {
                 $query['body']['query']['bool']['must'][] = ['match' => [$filter_field => $value]];
             }
@@ -277,7 +277,7 @@ abstract class AbstractAnalytics
         ];
 
         // Aggiungi filtri alla query se presenti
-        if (! empty($filters)) {
+        if ($filters !== []) {
             foreach ($filters as $filter_field => $value) {
                 $query['body']['query']['bool']['must'][] = ['match' => [$filter_field => $value]];
             }

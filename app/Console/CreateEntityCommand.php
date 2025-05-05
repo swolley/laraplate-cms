@@ -17,7 +17,6 @@ use Modules\Cms\Models\Preset;
 use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Casts\EntityType;
 use Modules\Core\Overrides\Command;
-use Illuminate\Database\DatabaseManager;
 use Modules\Core\Helpers\HasCommandUtils;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
@@ -35,11 +34,6 @@ final class CreateEntityCommand extends Command
      * The console command description.
      */
     protected $description = 'Create new cms entity <fg=blue>(✎ Modules\Cms)</fg=blue>';
-
-    public function __construct(DatabaseManager $db)
-    {
-        parent::__construct($db);
-    }
 
     /**
      * Execute the console command.
@@ -130,8 +124,8 @@ final class CreateEntityCommand extends Command
     {
         $default = text(
             "Specify a default value for '{$field->name}'",
-            $is_required,
-            match ($field->type) {
+            required: $is_required,
+            validate: match ($field->type) {
                 FieldType::SELECT && isset($field->options->multiple) && $field->options->multiple => '[]',
                 FieldType::SWITCH => $is_required ? 'true' : 'false',
                 FieldType::CHECKBOX => '[]',

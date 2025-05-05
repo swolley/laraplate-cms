@@ -124,7 +124,8 @@ trait HasMedia
             ->getMedia($collectionName)
             ->reject(fn (Media $currentMediaItem) => in_array(
                 $currentMediaItem->getKey(),
-                array_column($newMediaArray, $currentMediaItem->getKeyName()), true,
+                array_column($newMediaArray, $currentMediaItem->getKeyName()),
+                true,
             ))
             ->each(fn (Media $media) => $media->delete());
 

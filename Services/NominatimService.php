@@ -155,7 +155,7 @@ final class NominatimService implements GeocodingServiceInterface
     {
         $address = $result['address'];
 
-        return (new Location)->fill([
+        return (new Location())->fill([
             'address' => $address['road'] ? $address['road'] . ($address['house_number'] ? ' ' . $address['house_number'] : '') : null,
             'city' => $address['city'] ?? $address['town'] ?? $address['village'] ?? null,
             'province' => $address['state'] ?? null,

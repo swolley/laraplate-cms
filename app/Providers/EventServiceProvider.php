@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Providers;
 
-use Override;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 final class EventServiceProvider extends ServiceProvider
@@ -22,10 +21,4 @@ final class EventServiceProvider extends ServiceProvider
      * @var bool
      */
     protected static $shouldDiscoverEvents = true;
-
-    /**
-     * Configure the proper event listeners for email verification.
-     */
-    #[Override]
-    protected function configureEmailVerification(): void {}
 }

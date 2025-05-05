@@ -156,12 +156,6 @@ final class Tag extends Model implements Sortable
         $query->whereRaw('lower(' . $this->getQuery()->getGrammar()->wrap('name') . ') like ?', ['%' . mb_strtolower($name) . '%']);
     }
 
-    #[Override]
-    public function setAttribute($key, $value)
-    {
-        return parent::setAttribute($key, $value);
-    }
-
     protected static function newFactory(): TagFactory
     {
         return TagFactory::new();

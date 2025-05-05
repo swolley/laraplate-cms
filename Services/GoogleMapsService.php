@@ -149,7 +149,7 @@ final class GoogleMapsService implements GeocodingServiceInterface
             $components[$type] = $component['long_name'];
         }
 
-        return (new Location)->fill([
+        return (new Location())->fill([
             'address' => $components['route'] ? $components['route'] . ($components['street_number'] ? ' ' . $components['street_number'] : '') : null,
             'city' => $components['locality'] ?? $components['administrative_area_level_3'] ?? null,
             'province' => $components['administrative_area_level_1'] ?? null,
