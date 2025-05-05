@@ -18,7 +18,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property-read object $options
- *
  * @mixin IdeHelperField
  */
 final class Field extends Model
