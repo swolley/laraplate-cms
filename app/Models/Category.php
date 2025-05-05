@@ -46,12 +46,12 @@ final class Category extends ComposhipsModel implements Sortable
         HasVersions,
         SoftDeletes,
         SortableTrait {
-            getRules as protected getRulesTrait;
-            getFullPath as protected getFullPathTrait;
-            requiresApprovalWhen as protected requiresApprovalWhenTrait;
-            HasDynamicContents::toArray as protected dynamicContentsToArray;
-            HasApprovals::toArray as protected approvalsToArray;
-        }
+        getRules as protected getRulesTrait;
+        getFullPath as protected getFullPathTrait;
+        requiresApprovalWhen as protected requiresApprovalWhenTrait;
+        HasDynamicContents::toArray as protected dynamicContentsToArray;
+        HasApprovals::toArray as protected approvalsToArray;
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -159,7 +159,7 @@ final class Category extends ComposhipsModel implements Sortable
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('categories')->where(fn ($query) => $query->where(['parent_id' => request('parent_id'), 'deleted_at' => null])),
+                Rule::unique('categories')->where(fn($query) => $query->where(['parent_id' => request('parent_id'), 'deleted_at' => null])),
             ],
         ]);
         $rules['update'] = array_merge($rules['update'], [
@@ -167,7 +167,7 @@ final class Category extends ComposhipsModel implements Sortable
                 'sometimes',
                 'string',
                 'max:255',
-                Rule::unique('categories')->where(fn ($query) => $query->where(['parent_id' => request('parent_id'), 'deleted_at' => null]))->ignore($this->id, 'id'),
+                Rule::unique('categories')->where(fn($query) => $query->where(['parent_id' => request('parent_id'), 'deleted_at' => null]))->ignore($this->id, 'id'),
             ],
         ]);
 
@@ -196,13 +196,13 @@ final class Category extends ComposhipsModel implements Sortable
     #[Override]
     protected static function booted(): void
     {
-        static::saving(function (Category $category): void {
+        self::saving(function (Category $category): void {
             if (! $category->parent_id) {
                 $category->parent_entity_id = $category->parent?->entity_id;
             }
         });
 
-        static::addGlobalScope('global_filters', function (Builder $query): void {
+        self::addGlobalScope('global_filters', function (Builder $query): void {
             $query->active()->valid()->ordered();
         });
     }
@@ -243,14 +243,14 @@ final class Category extends ComposhipsModel implements Sortable
     private function ids(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->ancestors->pluck('id')->reverse()->merge([$this->id])->join('.'),
+            get: fn() => $this->ancestors->pluck('id')->reverse()->merge([$this->id])->join('.'),
         );
     }
 
     private function fullName(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->ancestors->pluck('name')->reverse()->merge([$this->name])->join(' > '),
+            get: fn() => $this->ancestors->pluck('name')->reverse()->merge([$this->name])->join(' > '),
         );
     }
 
@@ -261,6 +261,6 @@ final class Category extends ComposhipsModel implements Sortable
 
     protected function requiresApprovalWhen($modifications): bool
     {
-        return $this->requiresApprovalWhenTrait($modifications) && ($modifications[static::$valid_from_column] ?? $modifications[static::$valid_to_column] ?? false);
+        return $this->requiresApprovalWhenTrait($modifications) && ($modifications[self::$valid_from_column] ?? $modifications[self::$valid_to_column] ?? false);
     }
 }

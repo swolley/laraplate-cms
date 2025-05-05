@@ -121,14 +121,14 @@ final class NominatimService implements GeocodingServiceInterface
             'User-Agent' => config('app.name') . ' Application',
         ])->get(self::BASE_URL . '/search', $params);
 
-        if (! $response->successful() || empty($response->json())) {
+        if (! $response->successful() || $response->json() === []) {
             return $limit > 1 ? [] : null;
         }
 
         $result = $response->json();
 
         if ($limit > 1) {
-            return array_map(fn (array $result) => $this->getAddressDetails($result), $result);
+            return array_map(fn(array $result) => $this->getAddressDetails($result), $result);
         }
 
         return $this->getAddressDetails($result[0]);

@@ -62,12 +62,12 @@ final class Tag extends Model implements Sortable
 
     public static function getWithType(string $type): DbCollection
     {
-        return static::withType($type)->get();
+        return self::query()->withType($type)->get();
     }
 
     public static function findFromString(string $name, ?string $type = null)
     {
-        return static::query()
+        return self::query()
             ->where('type', $type)
             ->where(function ($query) use ($name): void {
                 $query->where('name', $name)
@@ -78,7 +78,7 @@ final class Tag extends Model implements Sortable
 
     public static function findFromStringOfAnyType(string $name)
     {
-        return static::query()
+        return self::query()
             ->where('name', $name)
             ->orWhere('slug', $name)
             ->get();
@@ -89,7 +89,7 @@ final class Tag extends Model implements Sortable
         $tag = self::findFromString($name, $type);
 
         if (! $tag) {
-            return static::create([
+            return self::create([
                 'name' => $name,
                 'type' => $type,
             ]);
@@ -100,7 +100,7 @@ final class Tag extends Model implements Sortable
 
     public static function getTypes(): Collection
     {
-        return static::groupBy('type')->pluck('type');
+        return self::groupBy('type')->pluck('type');
     }
 
     public function getRules(): array
