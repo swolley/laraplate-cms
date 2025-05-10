@@ -4,19 +4,17 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Console;
 
-use function Laravel\Prompts\text;
-use function Laravel\Prompts\select;
-use function Laravel\Prompts\confirm;
-use function Laravel\Prompts\multiselect;
-
-use Override;
 use Illuminate\Support\Str;
 use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Preset;
 use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Casts\EntityType;
+use function Laravel\Prompts\text;
 use Modules\Core\Overrides\Command;
+use function Laravel\Prompts\select;
+use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\multiselect;
 use Modules\Core\Helpers\HasCommandUtils;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
@@ -62,7 +60,7 @@ final class CreateEntityCommand extends Command
 
                     continue;
                 }
-                $entity->{$attribute} = text(ucfirst($attribute), '', $attribute === 'slug' ? Str::slug($entity->name) : '', true, fn (string $value) => $this->validationCallback($attribute, $value, $validations));
+                $entity->{$attribute} = text(ucfirst($attribute), '', $attribute === 'slug' ? Str::slug($entity->name) : '', true, fn(string $value) => $this->validationCallback($attribute, $value, $validations));
             }
 
             $entity->save();
@@ -93,7 +91,7 @@ final class CreateEntityCommand extends Command
     /**
      * Get the console command arguments.
      */
-    #[Override]
+    #[\Override]
     protected function getArguments(): array
     {
         return [
@@ -104,7 +102,7 @@ final class CreateEntityCommand extends Command
     /**
      * Get the console command options.
      */
-    #[Override]
+    #[\Override]
     protected function getOptions(): array
     {
         return [

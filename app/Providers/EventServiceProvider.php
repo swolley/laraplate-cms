@@ -10,14 +10,12 @@ final class EventServiceProvider extends ServiceProvider
 {
     /**
      * The event handler mappings for the application.
-     *
      * @var array<string, array<int, string>>
      */
     protected $listen = [];
 
     /**
      * Indicates if events should be discovered.
-     *
      * @var bool
      */
     protected static $shouldDiscoverEvents = true;

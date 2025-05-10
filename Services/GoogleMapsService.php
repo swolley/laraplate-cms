@@ -118,7 +118,7 @@ final class GoogleMapsService implements GeocodingServiceInterface
         $results = $response->json()['results'];
 
         if ($limit > 1) {
-            return array_map(fn (array $result) => $this->getAddressDetails($result), $results);
+            return array_map(fn(array $result) => $this->getAddressDetails($result), $results);
         }
 
         return $this->getAddressDetails($results[0]);
@@ -128,15 +128,15 @@ final class GoogleMapsService implements GeocodingServiceInterface
      * Extracts address details from a Google Maps API result array and returns a Location model instance.
      *
      * @param  array  $result  The result array from Google Maps API. Expected structure:
-     *                         [
-     *                         'address_components' => array of arrays with keys 'types' (array) and 'long_name' (string),
-     *                         'geometry' => [
-     *                         'location' => [
-     *                         'lat' => float,
-     *                         'lng' => float
-     *                         ]
-     *                         ]
-     *                         ]
+     * [
+     *      'address_components' => array of arrays with keys 'types' (array) and 'long_name' (string),
+     *      'geometry' => [
+     *          'location' => [
+     *              'lat' => float,
+     *              'lng' => float
+     *          ]
+     *      ]
+     * ]
      *
      * @throws MassAssignmentException
      */
