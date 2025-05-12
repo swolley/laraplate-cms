@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Console;
 
-use Override;
+use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Illuminate\Support\Str;
 use Modules\Cms\Models\Entity;
 use Modules\Core\Overrides\Command;
+use Override;
 use Symfony\Component\Console\Input\InputArgument;
-use Illuminate\Contracts\Console\PromptsForMissingInput;
 
 final class CreateContentModelCommand extends Command implements PromptsForMissingInput
 {

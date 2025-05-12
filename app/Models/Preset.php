@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
-use Override;
-use Modules\Core\Cache\HasCache;
 use Awobaz\Compoships\Compoships;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 // use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
+use Modules\Cms\Models\Pivot\Fieldable;
+use Modules\Core\Cache\HasCache;
+use Modules\Core\Helpers\HasApprovals;
+use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
-use Modules\Core\Helpers\HasApprovals;
-use Illuminate\Database\Eloquent\Model;
-use Modules\Cms\Models\Pivot\Fieldable;
-use Modules\Core\Helpers\HasValidations;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Override;
 
 // use Modules\Cms\Database\Factories\ModelTypeFactory;
 

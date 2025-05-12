@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Database\Factories;
 
-use Override;
-use RuntimeException;
-use Modules\Cms\Models\Field;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Models\Author;
 use Modules\Cms\Models\Entity;
+use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Preset;
-use Modules\Cms\Casts\FieldType;
-use Modules\Cms\Casts\EntityType;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use Override;
+use RuntimeException;
 
 final class AuthorFactory extends Factory
 {

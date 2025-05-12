@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Providers;
 
-use Override;
 use Exception;
-use Illuminate\Support\Str;
-use Nwidart\Modules\Facades\Module;
 use Illuminate\Support\Facades\Blade;
-use Nwidart\Modules\Traits\PathNamespace;
+use Illuminate\Support\Str;
 use Modules\Core\Overrides\ServiceProvider;
+use Nwidart\Modules\Facades\Module;
+use Nwidart\Modules\Traits\PathNamespace;
+use Override;
 
 /**
  * @property \Illuminate\Foundation\Application $app
@@ -145,7 +145,7 @@ final class CmsServiceProvider extends ServiceProvider
     // {
 
     //     try {
-    //         if (!Schema::hasTable('entities')) {
+    //         if (! Schema::hasTable('entities')) {
     //             return;
     //         }
     //         $entity_cache_key = 'cms.entities.cache';

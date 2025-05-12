@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Services;
 
-use Override;
 use Exception;
-use Modules\Cms\Models\Location;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Database\Eloquent\MassAssignmentException;
-use Modules\Cms\Services\Contracts\GeocodingServiceInterface;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
+use Modules\Cms\Models\Location;
+use Modules\Cms\Services\Contracts\IGeocodingService;
+use Override;
 
-final class GoogleMapsService implements GeocodingServiceInterface
+final class GoogleMapsService implements IGeocodingService
 {
     private const string BASE_URL = 'https://maps.googleapis.com/maps/api/geocode';
 
@@ -118,7 +118,7 @@ final class GoogleMapsService implements GeocodingServiceInterface
         $results = $response->json()['results'];
 
         if ($limit > 1) {
-            return array_map(fn(array $result) => $this->getAddressDetails($result), $results);
+            return array_map(fn (array $result) => $this->getAddressDetails($result), $results);
         }
 
         return $this->getAddressDetails($results[0]);
@@ -128,15 +128,15 @@ final class GoogleMapsService implements GeocodingServiceInterface
      * Extracts address details from a Google Maps API result array and returns a Location model instance.
      *
      * @param  array  $result  The result array from Google Maps API. Expected structure:
-     * [
-     *      'address_components' => array of arrays with keys 'types' (array) and 'long_name' (string),
-     *      'geometry' => [
-     *          'location' => [
-     *              'lat' => float,
-     *              'lng' => float
-     *          ]
-     *      ]
-     * ]
+     *                         [
+     *                         'address_components' => array of arrays with keys 'types' (array) and 'long_name' (string),
+     *                         'geometry' => [
+     *                         'location' => [
+     *                         'lat' => float,
+     *                         'lng' => float
+     *                         ]
+     *                         ]
+     *                         ]
      *
      * @throws MassAssignmentException
      */

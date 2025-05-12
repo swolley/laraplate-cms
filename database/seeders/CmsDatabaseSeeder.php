@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Database\Seeders;
 
-use stdClass;
-use Modules\Cms\Models\Field;
-use Modules\Core\Models\Role;
-use Modules\Cms\Models\Entity;
-use Modules\Cms\Models\Preset;
-use Modules\Cms\Casts\FieldType;
-use Modules\Cms\Casts\EntityType;
-use Modules\Core\Casts\ActionEnum;
-use Modules\Core\Overrides\Seeder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Casts\FieldType;
+use Modules\Cms\Models\Entity;
+use Modules\Cms\Models\Field;
+use Modules\Cms\Models\Preset;
+use Modules\Core\Casts\ActionEnum;
 use Modules\Core\Database\Seeders\CoreDatabaseSeeder;
+use Modules\Core\Models\Role;
+use Modules\Core\Overrides\Seeder;
+use stdClass;
 
 final class CmsDatabaseSeeder extends Seeder
 {

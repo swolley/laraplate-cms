@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Analytics;
 
-use Modules\Cms\Models\Location;
 use Illuminate\Support\Facades\Cache;
+use Modules\Cms\Models\Location;
 
 final class LocationAnalytics extends AbstractAnalytics
 {

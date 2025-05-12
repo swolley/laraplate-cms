@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Providers;
 
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 final class RouteServiceProvider extends ServiceProvider
 {

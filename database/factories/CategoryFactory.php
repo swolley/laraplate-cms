@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Database\Factories;
 
-use Override;
-use Illuminate\Support\Str;
-use Modules\Cms\Models\Entity;
-use Modules\Cms\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
+use Modules\Cms\Models\Category;
+use Modules\Cms\Models\Entity;
+use Override;
 
 final class CategoryFactory extends Factory
 {

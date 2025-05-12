@@ -7,13 +7,13 @@ namespace Modules\Cms\Http\Controllers;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
-use Modules\Core\Helpers\ResponseBuilder;
 use Modules\Cms\Http\Requests\GeocodeRequest;
-use Modules\Cms\Services\Contracts\GeocodingServiceInterface;
+use Modules\Cms\Services\Contracts\IGeocodingService;
+use Modules\Core\Helpers\ResponseBuilder;
 
 final class LocationsController extends Controller
 {
-    public function __construct(private readonly GeocodingServiceInterface $geocoding_service) {}
+    public function __construct(private readonly IGeocodingService $geocoding_service) {}
 
     /**
      * @route-comment

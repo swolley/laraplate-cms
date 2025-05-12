@@ -4,26 +4,26 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
-use Override;
-use Illuminate\Support\Arr;
-use Spatie\Image\Enums\Fit;
-use Modules\Cms\Helpers\HasTags;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
-use Modules\Core\Helpers\HasVersions;
-use Modules\Core\Helpers\SoftDeletes;
+use Modules\Cms\Database\Factories\AuthorFactory;
+use Modules\Cms\Helpers\HasDynamicContents;
+use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Models\Pivot\Authorable;
 use Modules\Core\Helpers\HasValidations;
-use Modules\Cms\Helpers\HasDynamicContents;
+use Modules\Core\Helpers\HasVersions;
+use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Overrides\ComposhipsModel;
+use Override;
+use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Modules\Cms\Database\Factories\AuthorFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Exceptions\UnauthorizedException;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @mixin IdeHelperAuthor
@@ -48,7 +48,7 @@ final class Author extends ComposhipsModel
         'updated_at',
     ];
 
-    private ?\Illuminate\Foundation\Auth\User $tempUser = null;
+    private ?User $tempUser = null;
 
     // Magic getter for user attributes
     #[Override]
@@ -76,7 +76,7 @@ final class Author extends ComposhipsModel
                 throw new UnauthorizedException("User cannot insert {$entity}");
             }
 
-            if (! $this->user && !$this->tempUser instanceof \Illuminate\Foundation\Auth\User && $user_can_insert) {
+            if (! $this->user && ! $this->tempUser instanceof User && $user_can_insert) {
                 $this->tempUser = new User();
                 $this->tempUser->{$key} = $value;
             } elseif ($user_can_update) {
@@ -111,7 +111,7 @@ final class Author extends ComposhipsModel
     #[Override]
     public function save(array $options = [])
     {
-        if ($this->tempUser instanceof \Illuminate\Foundation\Auth\User && $this->tempUser->isDirty()) {
+        if ($this->tempUser instanceof User && $this->tempUser->isDirty()) {
             $this->tempUser->save();
             $this->user_id = $this->tempUser->id;
             $this->tempUser = null;
@@ -185,7 +185,7 @@ final class Author extends ComposhipsModel
 
     private function getCanLoginAttribute(): bool
     {
-        return $this->user !== null || $this->tempUser instanceof \Illuminate\Foundation\Auth\User;
+        return $this->user !== null || $this->tempUser instanceof User;
     }
 
     private function getIsSignatureAttribute(): bool
@@ -197,7 +197,7 @@ final class Author extends ComposhipsModel
     {
         return Attribute::make(
             get: fn (): string => $this->getFirstMediaUrl('images'),
-            set: fn ($value): \Spatie\MediaLibrary\MediaCollections\Models\Media => $this->addMedia($value)->toMediaCollection('images'),
+            set: fn ($value): Media => $this->addMedia($value)->toMediaCollection('images'),
         );
     }
 }

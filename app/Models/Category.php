@@ -4,28 +4,28 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
-use Override;
+use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Validation\Rule;
+use Modules\Cms\Database\Factories\CategoryFactory;
+use Modules\Cms\Helpers\HasDynamicContents;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
+use Modules\Cms\Models\Pivot\Categorizable;
+use Modules\Core\Helpers\HasApprovals;
+use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
-use Spatie\EloquentSortable\Sortable;
-use Modules\Core\Helpers\HasApprovals;
-use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Locking\Traits\HasLocks;
-use Spatie\EloquentSortable\SortableTrait;
-use Modules\Cms\Helpers\HasDynamicContents;
-use Modules\Cms\Models\Pivot\Categorizable;
 use Modules\Core\Overrides\ComposhipsModel;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Contracts\Database\Eloquent\Builder;
-use Modules\Cms\Database\Factories\CategoryFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Override;
+use Spatie\EloquentSortable\Sortable;
+use Spatie\EloquentSortable\SortableTrait;
 use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 
 /**
@@ -46,12 +46,12 @@ final class Category extends ComposhipsModel implements Sortable
         HasVersions,
         SoftDeletes,
         SortableTrait {
-        getRules as protected getRulesTrait;
-        getFullPath as protected getFullPathTrait;
-        requiresApprovalWhen as protected requiresApprovalWhenTrait;
-        HasDynamicContents::toArray as protected dynamicContentsToArray;
-        HasApprovals::toArray as protected approvalsToArray;
-    }
+            getRules as protected getRulesTrait;
+            getFullPath as protected getFullPathTrait;
+            requiresApprovalWhen as protected requiresApprovalWhenTrait;
+            HasDynamicContents::toArray as protected dynamicContentsToArray;
+            HasApprovals::toArray as protected approvalsToArray;
+        }
 
     /**
      * The attributes that are mass assignable.
@@ -159,7 +159,7 @@ final class Category extends ComposhipsModel implements Sortable
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('categories')->where(fn($query) => $query->where(['parent_id' => request('parent_id'), 'deleted_at' => null])),
+                Rule::unique('categories')->where(fn ($query) => $query->where(['parent_id' => request('parent_id'), 'deleted_at' => null])),
             ],
         ]);
         $rules['update'] = array_merge($rules['update'], [
@@ -167,7 +167,7 @@ final class Category extends ComposhipsModel implements Sortable
                 'sometimes',
                 'string',
                 'max:255',
-                Rule::unique('categories')->where(fn($query) => $query->where(['parent_id' => request('parent_id'), 'deleted_at' => null]))->ignore($this->id, 'id'),
+                Rule::unique('categories')->where(fn ($query) => $query->where(['parent_id' => request('parent_id'), 'deleted_at' => null]))->ignore($this->id, 'id'),
             ],
         ]);
 
@@ -230,6 +230,16 @@ final class Category extends ComposhipsModel implements Sortable
         ];
     }
 
+    protected function slugFields(): array
+    {
+        return [...$this->dynamicSlugFields(), 'name'];
+    }
+
+    protected function requiresApprovalWhen($modifications): bool
+    {
+        return $this->requiresApprovalWhenTrait($modifications) && ($modifications[self::$valid_from_column] ?? $modifications[self::$valid_to_column] ?? false);
+    }
+
     // public function scopeForEntity(Builder $query, string|int|Entity|null $entity): Builder
     // {
     //     // null is a value for non completely filled models
@@ -243,24 +253,14 @@ final class Category extends ComposhipsModel implements Sortable
     private function ids(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->ancestors->pluck('id')->reverse()->merge([$this->id])->join('.'),
+            get: fn () => $this->ancestors->pluck('id')->reverse()->merge([$this->id])->join('.'),
         );
     }
 
     private function fullName(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->ancestors->pluck('name')->reverse()->merge([$this->name])->join(' > '),
+            get: fn () => $this->ancestors->pluck('name')->reverse()->merge([$this->name])->join(' > '),
         );
-    }
-
-    protected function slugFields(): array
-    {
-        return [...$this->dynamicSlugFields(), 'name'];
-    }
-
-    protected function requiresApprovalWhen($modifications): bool
-    {
-        return $this->requiresApprovalWhenTrait($modifications) && ($modifications[self::$valid_from_column] ?? $modifications[self::$valid_to_column] ?? false);
     }
 }

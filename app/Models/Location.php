@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
-use Override;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Modules\Cms\Helpers\HasPath;
-use Modules\Cms\Helpers\HasSlug;
-use Modules\Cms\Helpers\HasTags;
-use Modules\Core\Helpers\SoftDeletes;
-use Illuminate\Database\Eloquent\Model;
-use Modules\Core\Helpers\HasValidations;
-use Modules\Core\Search\Traits\Searchable;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
 use Modules\Cms\Database\Factories\LocationFactory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Modules\Cms\Helpers\HasPath;
+use Modules\Cms\Helpers\HasSlug;
+use Modules\Cms\Helpers\HasTags;
+use Modules\Core\Helpers\HasValidations;
+use Modules\Core\Helpers\SoftDeletes;
+use Modules\Core\Search\Traits\Searchable;
+use Override;
 
 /**
  * @method static whereDistance(Point $point, float $distance)
@@ -30,6 +30,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @method static whereContains(Polygon $polygon)
  * @method static whereNotContains(Polygon $polygon)
  * @method static whereEquals(Point $point)
+ *
  * @mixin IdeHelperLocation
  */
 final class Location extends Model
@@ -38,8 +39,6 @@ final class Location extends Model
         toSearchableArray as toSearchableArrayTrait;
         getRules as protected getRulesTrait;
     }
-
-    private array $textOnlyFields = ['name', 'address', 'city', 'province', 'country', 'postcode', 'zone'];
 
     /**
      * The attributes that are mass assignable.
@@ -60,6 +59,8 @@ final class Location extends Model
         'created_at',
         'updated_at',
     ];
+
+    private array $textOnlyFields = ['name', 'address', 'city', 'province', 'country', 'postcode', 'zone'];
 
     public function toSearchableArray(): array
     {

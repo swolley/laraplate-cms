@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use Modules\Cms\Http\Controllers\ContentsController;
 
 /*

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Analytics;
 
-use Exception;
-use Illuminate\Support\Carbon;
 use Elastic\Elasticsearch\Client;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Database\Eloquent\Model;
 use Elastic\Elasticsearch\ClientBuilder;
+use Exception;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 abstract class AbstractAnalytics
 {

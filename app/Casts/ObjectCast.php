@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Casts;
 
+use Illuminate\Contracts\Database\Eloquent\CastsInboundAttributes;
 use Override;
 use stdClass;
-use Illuminate\Contracts\Database\Eloquent\CastsInboundAttributes;
 
 final class ObjectCast implements CastsInboundAttributes
 {

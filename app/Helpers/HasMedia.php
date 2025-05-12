@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Helpers;
 
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Spatie\MediaLibrary\MediaCollections\Exceptions\MediaCannotBeDeleted;
 use Spatie\MediaLibrary\MediaCollections\Events\CollectionHasBeenClearedEvent;
+use Spatie\MediaLibrary\MediaCollections\Exceptions\MediaCannotBeDeleted;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 trait HasMedia
 {

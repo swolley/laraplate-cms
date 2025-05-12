@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
-use Override;
-use Illuminate\Validation\Rule;
-use Modules\Core\Helpers\HasVersions;
-use Illuminate\Database\Eloquent\Model;
-use Modules\Core\Helpers\HasValidations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\Rule;
+use Modules\Core\Helpers\HasValidations;
+use Modules\Core\Helpers\HasVersions;
+use Override;
 
 /**
  * @mixin IdeHelperTemplate

@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Helpers;
 
-use Modules\Cms\Models\Field;
-use UnexpectedValueException;
-use Modules\Cms\Models\Entity;
-use Modules\Cms\Models\Preset;
-use Modules\Cms\Casts\EntityType;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
+use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Models\Entity;
+use Modules\Cms\Models\Field;
+use Modules\Cms\Models\Preset;
+use UnexpectedValueException;
 
 /**
  * Trait for models that have dynamic contents.

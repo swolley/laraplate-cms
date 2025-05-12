@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Database\Factories;
 
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Casts\FieldType;
+use Modules\Cms\Models\Author;
+use Modules\Cms\Models\Category;
+use Modules\Cms\Models\Content;
+use Modules\Cms\Models\Entity;
+use Modules\Cms\Models\Field;
+use Modules\Cms\Models\Preset;
+use Modules\Cms\Models\Tag;
 use Override;
 use RuntimeException;
-use Modules\Cms\Models\Tag;
-use Modules\Cms\Models\Field;
-use Modules\Cms\Models\Author;
-use Modules\Cms\Models\Entity;
-use Modules\Cms\Models\Preset;
-use Modules\Cms\Models\Content;
-use Modules\Cms\Casts\FieldType;
-use Modules\Cms\Models\Category;
-use Modules\Cms\Casts\EntityType;
-use Illuminate\Database\Eloquent\Factories\Factory;
 
 final class ContentFactory extends Factory
 {

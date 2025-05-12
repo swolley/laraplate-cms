@@ -4,39 +4,39 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
-use Override;
-use Parental\HasChildren;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
-use Spatie\Image\Enums\Fit;
 use InvalidArgumentException;
+use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Database\Factories\ContentFactory;
+use Modules\Cms\Helpers\HasDynamicContents;
+use Modules\Cms\Helpers\HasMedia;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Helpers\HasMedia;
+use Modules\Cms\Models\Pivot\Authorable;
+use Modules\Cms\Models\Pivot\Categorizable;
+use Modules\Cms\Models\Pivot\Relatable;
+use Modules\Core\Helpers\HasApprovals;
+use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
-use Spatie\EloquentSortable\Sortable;
-use Modules\Core\Helpers\HasApprovals;
-use Illuminate\Database\Eloquent\Model;
-use Modules\Cms\Models\Pivot\Relatable;
-use Modules\Cms\Models\Pivot\Authorable;
-use Modules\Core\Helpers\HasValidations;
-use Illuminate\Database\Eloquent\Builder;
-use Modules\Core\Locking\Traits\HasLocks;
-use Modules\Core\Search\Traits\Searchable;
-use Spatie\EloquentSortable\SortableTrait;
-use Modules\Cms\Helpers\HasDynamicContents;
-use Modules\Cms\Models\Pivot\Categorizable;
-use Modules\Core\Overrides\ComposhipsModel;
 use Modules\Core\Locking\HasOptimisticLocking;
+use Modules\Core\Locking\Traits\HasLocks;
+use Modules\Core\Overrides\ComposhipsModel;
+use Modules\Core\Search\Traits\Searchable;
+use Override;
+use Parental\HasChildren;
+use Spatie\EloquentSortable\Sortable;
+use Spatie\EloquentSortable\SortableTrait;
+use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\Conversions\Conversion;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Modules\Cms\Database\Factories\ContentFactory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @mixin IdeHelperContent
@@ -365,7 +365,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
     {
         return Attribute::make(
             get: fn (): ?\Spatie\MediaLibrary\MediaCollections\Models\Media => $this->getFirstMedia('cover'),
-            set: fn ($value): \Spatie\MediaLibrary\MediaCollections\Models\Media => $this->addMedia($value)->toMediaCollection('cover'),
+            set: fn ($value): Media => $this->addMedia($value)->toMediaCollection('cover'),
         );
     }
 

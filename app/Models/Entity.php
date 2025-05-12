@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
-use Override;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
+use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Database\Factories\EntityFactory;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Core\Cache\HasCache;
-use Modules\Cms\Casts\EntityType;
-use Illuminate\Support\Facades\Cache;
 use Modules\Core\Helpers\HasValidations;
-use Illuminate\Database\Eloquent\Builder;
 use Modules\Core\Locking\Traits\HasLocks;
 use Modules\Core\Overrides\ComposhipsModel;
-use Modules\Cms\Database\Factories\EntityFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Override;
 
 /**
  * @mixin IdeHelperEntity

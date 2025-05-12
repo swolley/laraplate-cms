@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models\Pivot;
 
-use Override;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Override;
 
 /**
  * @mixin IdeHelperRelatable

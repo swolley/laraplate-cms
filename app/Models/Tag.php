@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
-use Override;
 use ArrayAccess;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as DbCollection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
+use Modules\Cms\Database\Factories\TagFactory;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
-use Illuminate\Support\Collection;
-use Modules\Core\Helpers\SoftDeletes;
-use Spatie\EloquentSortable\Sortable;
-use Illuminate\Database\Eloquent\Model;
 use Modules\Core\Helpers\HasValidations;
-use Illuminate\Database\Eloquent\Builder;
+use Modules\Core\Helpers\SoftDeletes;
+use Override;
+use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
-use Modules\Cms\Database\Factories\TagFactory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Collection as DbCollection;
 
 /**
  * @mixin IdeHelperTag

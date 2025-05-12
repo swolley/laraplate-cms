@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Analytics;
 
-use Modules\Cms\Models\Content;
 use Illuminate\Support\Facades\Cache;
+use Modules\Cms\Models\Content;
 
 final class ContentAnalytics extends AbstractAnalytics
 {
@@ -81,7 +81,7 @@ final class ContentAnalytics extends AbstractAnalytics
         return Cache::remember(
             $this->getCacheKey('quality_metrics', $filters),
             self::$cache_duration,
-            fn(): array =>
+            fn (): array
                 // $client = $this->model->getElasticsearchClient();
                 // Qui possiamo implementare metriche di qualità più complesse
                 // Per esempio:
@@ -89,7 +89,7 @@ final class ContentAnalytics extends AbstractAnalytics
                 // - Presenza di media
                 // - Completezza dei metadati
                 // - Score basati su embedding
-                [],
+                => [],
         );
     }
 

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Database\Seeders;
 
-use Modules\Cms\Models\Tag;
-use Modules\Cms\Models\Author;
-use Modules\Cms\Models\Content;
-use Modules\Cms\Models\Category;
-use Modules\Cms\Models\Location;
-use Modules\Core\Helpers\BatchSeeder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Artisan;
+use Modules\Cms\Models\Author;
+use Modules\Cms\Models\Category;
+use Modules\Cms\Models\Content;
+use Modules\Cms\Models\Location;
+use Modules\Cms\Models\Tag;
+use Modules\Core\Helpers\BatchSeeder;
 
 final class DevCmsDatabaseSeeder extends BatchSeeder
 {

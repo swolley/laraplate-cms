@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Services;
 
-use Override;
 use Exception;
-use Modules\Cms\Models\Location;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
-use Modules\Cms\Services\Contracts\GeocodingServiceInterface;
+use Modules\Cms\Models\Location;
+use Modules\Cms\Services\Contracts\IGeocodingService;
+use Override;
 
-final class NominatimService implements GeocodingServiceInterface
+final class NominatimService implements IGeocodingService
 {
     private const string BASE_URL = 'https://nominatim.openstreetmap.org';
 
@@ -128,7 +128,7 @@ final class NominatimService implements GeocodingServiceInterface
         $result = $response->json();
 
         if ($limit > 1) {
-            return array_map(fn(array $result) => $this->getAddressDetails($result), $result);
+            return array_map(fn (array $result) => $this->getAddressDetails($result), $result);
         }
 
         return $this->getAddressDetails($result[0]);

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models\Pivot;
 
-use Override;
-use Modules\Core\Helpers\HasVersions;
-use Spatie\EloquentSortable\Sortable;
 use Illuminate\Database\Eloquent\Builder;
-use Spatie\EloquentSortable\SortableTrait;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Modules\Core\Helpers\HasVersions;
+use Override;
+use Spatie\EloquentSortable\Sortable;
+use Spatie\EloquentSortable\SortableTrait;
 
 /**
  * @mixin IdeHelperFieldable

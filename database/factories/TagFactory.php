@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Database\Factories;
 
-use Override;
 use Exception;
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
+use Override;
 
 final class TagFactory extends Factory
 {

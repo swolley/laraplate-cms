@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
-use Override;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Validation\Rule;
 use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Casts\ObjectCast;
-use Modules\Core\Helpers\HasVersions;
-use Modules\Core\Helpers\SoftDeletes;
-use Illuminate\Database\Eloquent\Model;
 use Modules\Cms\Models\Pivot\Fieldable;
 use Modules\Core\Helpers\HasValidations;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Modules\Core\Helpers\HasVersions;
+use Modules\Core\Helpers\SoftDeletes;
+use Override;
 
 /**
  * @property-read object $options
+ *
  * @mixin IdeHelperField
  */
 final class Field extends Model

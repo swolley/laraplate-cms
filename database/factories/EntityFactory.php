@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Database\Factories;
 
-use Override;
-use Modules\Cms\Casts\EntityType;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Cms\Casts\EntityType;
+use Override;
 
 final class EntityFactory extends Factory
 {
