@@ -20,6 +20,8 @@ return RectorConfig::configure()
         __DIR__ . '/vendor',
         __DIR__ . '/node_modules',
         __DIR__ . '/storage',
+        // Pattern per qualsiasi file che potrebbe avere conflitti di namespace con Model
+        '**/Model.php',
         // Ignora file con troppe righe che potrebbero causare problemi di analisi
         '**/vendor/**',
     ])
