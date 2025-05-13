@@ -36,6 +36,7 @@ final class GoogleMapsService implements IGeocodingService
     /**
      * Get service instance (singleton pattern).
      */
+    #[Override]
     public static function getInstance(): self
     {
         return self::$instance ??= new self();

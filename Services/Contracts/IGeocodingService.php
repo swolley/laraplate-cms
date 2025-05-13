@@ -8,6 +8,8 @@ use Modules\Cms\Models\Location;
 
 interface IGeocodingService
 {
+    public static function getInstance(): self;
+
     /**
      * Search for locations using address components.
      *

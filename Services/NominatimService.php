@@ -25,14 +25,12 @@ final class NominatimService implements IGeocodingService
     /**
      * Protected constructor to enforce singleton pattern.
      */
-    private function __construct()
-    {
-        // Inizializzazione del servizio
-    }
+    private function __construct() {}
 
     /**
      * Get service instance (singleton pattern).
      */
+    #[Override]
     public static function getInstance(): self
     {
         return self::$instance ??= new self();
