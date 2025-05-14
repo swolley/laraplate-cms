@@ -14,11 +14,11 @@ interface IGeocodingService
      * Search for locations using address components.
      *
      * @param  string  $query  Main search query (address/place)
-     * @param  null|string  $city  City name
-     * @param  null|string  $province  Province/state name
-     * @param  null|string  $country  Country name
+     * @param  string|null  $city  City name
+     * @param  string|null  $province  Province/state name
+     * @param  string|null  $country  Country name
      * @param  int  $limit  Maximum number of results
-     * @return null|array<int,Location>|Location
+     * @return array<int,Location>|Location|null
      */
     public function search(
         string $query,
