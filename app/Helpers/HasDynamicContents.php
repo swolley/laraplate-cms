@@ -18,7 +18,7 @@ use UnexpectedValueException;
 /**
  * Trait for models that have dynamic contents.
  *
- * @property-read array<string, mixed> $components
+ * @property array<string, mixed> $components
  * @property-read ?string $type
  * @property-read ?Entity $entity
  * @property-read ?Preset $preset
@@ -219,6 +219,6 @@ trait HasDynamicContents
 
     private function mergeComponentsValues(array $components): array
     {
-        return $this->fields()->mapWithKeys(fn (Field $field) => [$field->name => data_get($components, $field->name) ?? $field->default])->toArray();
+        return $this->fields()->mapWithKeys(fn (Field $field) => [$field->name => data_get($components, $field->name) ?? $field->pivot->default])->toArray();
     }
 }

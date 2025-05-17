@@ -82,7 +82,7 @@ final class Preset extends Model
      */
     public function fields(): BelongsToMany
     {
-        return $this->belongsToMany(Field::class, 'fieldables')->using(Fieldable::class)->withTimestamps()->withPivot(['order_column', 'is_required', 'default']);
+        return $this->belongsToMany(Field::class, 'fieldables')->using(Fieldable::class)->withTimestamps()->withPivot(['id', 'order_column', 'is_required', 'default']);
     }
 
     public function getRules(): array

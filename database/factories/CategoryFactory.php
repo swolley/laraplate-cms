@@ -6,6 +6,7 @@ namespace Modules\Cms\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
+use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Entity;
 use Override;
@@ -37,6 +38,7 @@ final class CategoryFactory extends Factory
     public function configure(): static
     {
         return $this->afterMaking(function (Category $category): void {
+            $category->setForcedApprovalUpdate(fake()->boolean(90));
             $parent = fake()->boolean() ? Category::inRandomOrder()->first() : null;
 
             if ($parent) {
@@ -44,7 +46,11 @@ final class CategoryFactory extends Factory
             } else {
                 $entity_id = fake()->boolean() ? Entity::inRandomOrder()->first()?->entity_id : null;
             }
+
+            $preset_id = $entity_id ? self::fetchAvailablePresets(EntityType::CATEGORIES)->firstWhere('entity_id', $entity_id)?->id : null;
+
             $category->entity_id = $entity_id;
+            $category->preset_id = $preset_id;
             $category->parent_id = $parent?->id;
             $category->parent_entity_id = $parent?->entity_id;
         });

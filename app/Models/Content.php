@@ -36,12 +36,13 @@ use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\Conversions\Conversion;
+use Spatie\MediaLibrary\HasMedia as IMediable;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * @mixin IdeHelperContent
  */
-class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, Sortable
+class Content extends ComposhipsModel implements IMediable, Sortable
 {
     use HasApprovals,
         HasChildren,
@@ -67,6 +68,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
             requiresApprovalWhen as protected requiresApprovalWhenTrait;
             HasDynamicContents::toArray as protected dynamicContentsToArray;
             HasApprovals::toArray as protected approvalsToArray;
+            SortableTrait::scopeOrdered as protected scopePriorityOrdered;
         }
 
     public static array $childTypes = [];
@@ -262,7 +264,7 @@ class Content extends ComposhipsModel implements \Spatie\MediaLibrary\HasMedia, 
         foreach ($this->fields() as $field) {
             $rule = $field->type->getRule();
 
-            if ($field->required) {
+            if ($field->pivot->is_required) {
                 $rule .= '|required';
             }
 

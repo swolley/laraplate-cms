@@ -53,6 +53,8 @@ final class ContentFactory extends Factory
     public function configure(): static
     {
         return $this->afterMaking(function (Content $content): void {
+            $content->setForcedApprovalUpdate(fake()->boolean(70));
+
             // convert content into the real class
             $attributes = $content->getAttributes();
             $attributes['components'] = json_decode($attributes['components'], true);
@@ -65,7 +67,7 @@ final class ContentFactory extends Factory
             $content->components = $preset->fields->mapWithKeys(function (Field $field) {
                 $value = $field->default;
 
-                if ($field->required || fake()->boolean()) {
+                if ($field->pivot->is_required || fake()->boolean()) {
                     $value = match ($field->type) {
                         FieldType::TEXTAREA => fake()->paragraphs(fake()->numberBetween(1, 3), true),
                         FieldType::TEXT => fake()->text(fake()->numberBetween(100, 255)),

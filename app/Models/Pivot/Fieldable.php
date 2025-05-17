@@ -27,6 +27,14 @@ final class Fieldable extends Pivot implements Sortable
         'order_column' => 0,
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+        'field_id',
+        'preset_id',
+        'order_column',
+    ];
+
     protected $sortable = [
         'order_column_name' => 'order_column',
         'sort_when_creating' => true,

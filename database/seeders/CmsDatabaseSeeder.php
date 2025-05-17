@@ -55,8 +55,7 @@ final class CmsDatabaseSeeder extends Seeder
         $this->db->transaction(function (): void {
             foreach (['kicker', 'title', 'subtitle'] as $field) {
                 if (! $this->fields->has($field)) {
-                    $options = (object) ['max_length' => 255];
-                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::TEXT, 'options' => $options]));
+                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::TEXT, 'options' => (object) ['max_length' => 255]]));
                     $this->command->line("    - {$field} <fg=green>created</>");
                 } else {
                     $this->command->line("    - {$field} already exists");
@@ -65,8 +64,7 @@ final class CmsDatabaseSeeder extends Seeder
 
             foreach (['short_content'] as $field) {
                 if (! $this->fields->has($field)) {
-                    $options = (object) ['max_length' => 65535];
-                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::TEXTAREA, 'options' => $options]));
+                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::TEXTAREA, 'options' => (object) ['max_length' => 65535]]));
                     $this->command->line("    - {$field} <fg=green>created</>");
                 } else {
                     $this->command->line("    - {$field} already exists");
@@ -75,8 +73,7 @@ final class CmsDatabaseSeeder extends Seeder
 
             foreach (['content'] as $field) {
                 if (! $this->fields->has($field)) {
-                    $options = new stdClass();
-                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::JSON, 'options' => $options]));
+                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::JSON, 'options' => new stdClass()]));
                     $this->command->line("    - {$field} <fg=green>created</>");
                 } else {
                     $this->command->line("    - {$field} already exists");
@@ -85,8 +82,7 @@ final class CmsDatabaseSeeder extends Seeder
 
             foreach (['period_from', 'period_to'] as $field) {
                 if (! $this->fields->has($field)) {
-                    $options = (object) ['format' => 'Y-m-d H:i:s'];
-                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::DATETIME, 'options' => $options]));
+                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::DATETIME, 'options' => (object) ['format' => 'Y-m-d H:i:s']]));
                     $this->command->line("    - {$field} <fg=green>created</>");
                 } else {
                     $this->command->line("    - {$field} already exists");
@@ -167,6 +163,13 @@ final class CmsDatabaseSeeder extends Seeder
                     'required_fields' => [],
                     'optional_fields' => ['public_email', 'phone', 'website', 'content', 'linkedin', 'twitter', 'facebook', 'instagram'],
                 ],
+                [
+                    'name' => 'category',
+                    'type' => EntityType::CATEGORIES,
+                    'preset' => 'standard',
+                    'required_fields' => ['title'],
+                    'optional_fields' => ['content', 'short_content'],
+                ],
             ];
 
             foreach ($entities as $entity) {
@@ -214,28 +217,26 @@ final class CmsDatabaseSeeder extends Seeder
         $name = 'publisher';
 
         if (! Role::whereName($name)->exists()) {
-            $role = $this->create($role_class, ['name' => $name]);
-            $role->givePermissionTo(
-                $permission_class::whereIn('table_name', ['contents', 'categories', 'presets'])
-                    ->where(function ($query): void {
-                        $query->where('name', 'like', '%.' . ActionEnum::APPROVE->value)
-                            ->orWhere('name', 'like', '%.' . ActionEnum::SELECT->value);
-                    })->get(),
-            );
+            $this->create($role_class, [
+                'name' => $name,
+                'permissions' => fn () => $permission_class::whereIn('table_name', ['contents', 'categories', 'presets'])
+                    ->where(fn ($query) => $query->where('name', 'like', '%.' . ActionEnum::APPROVE->value)
+                        ->orWhere('name', 'like', '%.' . ActionEnum::SELECT->value))
+                    ->get(),
+            ]);
             $this->command->line("    - {$name} <fg=green>created</>");
         } else {
             $this->command->line("    - {$name} already exists");
         }
 
         foreach (CoreDatabaseSeeder::getDefaultUserRoles() as $key => $role) {
-            $role = $role_class::whereName($role['name'])->first(['id']);
+            $role = $role_class::whereName($role)->first(['id']);
 
             if ($key === 'admin') {
-                $role->givePermissionTo(
-                    $permission_class::where(function ($query): void {
-                        $query->whereIn('table_name', ['contents', 'categories', 'presets'])
-                            ->orWhere('name', 'like', '%.' . ActionEnum::SELECT->value);
-                    })->whereNot('name', 'like', '%.' . ActionEnum::LOCK->value)->get(),
+                $role->permissions()->syncWithoutDetaching(
+                    $permission_class::where(fn ($query) => $query->whereIn('table_name', ['contents', 'categories', 'presets'])
+                        ->orWhere('name', 'like', '%.' . ActionEnum::SELECT->value))
+                        ->whereNot('name', 'like', '%.' . ActionEnum::LOCK->value)->pluck('id'),
                 );
             }
         }

@@ -65,17 +65,19 @@ final class AuthorFactory extends Factory
         return $this->afterMaking(function (Author $author): void {
             $entity = Entity::where('type', EntityType::AUTHORS)->inRandomOrder()->first();
             $preset = Preset::where('entity_id', $entity->id)->inRandomOrder()->first();
-            $author->public_email = fake()->boolean() ? fake()->unique()->email() : null;
 
             if (! $preset) {
                 throw new RuntimeException("No preset found for entity: {$author->entity->name}");
             }
 
+            $author->entity_id = $entity->id;
+            $author->preset_id = $preset->id;
+
             // set the components depending on the preset configured fields
             $author->components = $preset->fields->mapWithKeys(function (Field $field) use ($author) {
-                $value = $field->default;
+                $value = $field->pivot->default;
 
-                if ($field->required || fake()->boolean()) {
+                if ($field->pivot->is_required || fake()->boolean()) {
                     $value = match ($field->type) {
                         FieldType::TEXTAREA => fake()->paragraphs(fake()->numberBetween(1, 3), true),
                         FieldType::TEXT => fake()->text(fake()->numberBetween(100, 255)),
@@ -83,7 +85,8 @@ final class AuthorFactory extends Factory
                         FieldType::EMAIL => fake()->boolean() ? fake()->unique()->email() : ($author->user ? $author->user->email : null),
                         FieldType::PHONE => fake()->boolean() ? fake()->unique()->phoneNumber() : null,
                         FieldType::URL => fake()->boolean() ? fake()->unique()->url() : null,
-                        default => $field->default,
+                        FieldType::JSON => [],
+                        default => $value,
                     };
                 }
 

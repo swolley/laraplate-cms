@@ -16,7 +16,8 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('entity_id')->nullable(true)->constrained('entities', 'id', 'categories_entity_id_FK')->cascadeOnDelete()->comment('The entity that the category belongs to');
+            $table->foreignId('entity_id')->nullable(false)->constrained('entities', 'id', 'categories_entity_id_FK')->cascadeOnDelete()->comment('The entity that the category belongs to');
+            $table->unsignedBigInteger('preset_id')->nullable(false)->comment('The preset that the category belongs to');
             $table->unsignedBigInteger('parent_id')->nullable(true)->comment('The parent category');
             $table->unsignedBigInteger('parent_entity_id')->nullable(true)->comment('The entity that the parent category belongs to');
             $table->string('name')->nullable(false)->comment('The name of the category');
@@ -40,6 +41,10 @@ return new class extends Migration
             $table->unique(['id', 'parent_id'], 'category_parent_UN');
             $table->unique(['id', 'entity_id'], 'category_entity_UN');
             $table->foreign(['parent_entity_id', 'parent_id'], 'categories_parent_FK')->references(['entity_id', 'id'])->on('categories')->cascadeOnDelete();
+            $table->foreign(['entity_id', 'preset_id'], 'categories_preset_FK')
+                ->references(['entity_id', 'id'])
+                ->on('presets')
+                ->cascadeOnDelete();
         });
 
         DB::statement('ALTER TABLE categories ADD CONSTRAINT categories_parent_id_check CHECK (parent_id <> id)');

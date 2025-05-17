@@ -51,12 +51,14 @@ final class Category extends ComposhipsModel implements Sortable
             requiresApprovalWhen as protected requiresApprovalWhenTrait;
             HasDynamicContents::toArray as protected dynamicContentsToArray;
             HasApprovals::toArray as protected approvalsToArray;
+            SortableTrait::scopeOrdered as protected scopePriorityOrdered;
         }
 
     /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [
+        'title',
         'preset_id',
         'entity_id',
         'parent_id',
@@ -138,7 +140,7 @@ final class Category extends ComposhipsModel implements Sortable
         foreach ($this->fields() as $field) {
             $rule = $field->type->getRule();
 
-            if ($field->required) {
+            if ($field->pivot->is_required) {
                 $rule .= '|required';
             }
 
