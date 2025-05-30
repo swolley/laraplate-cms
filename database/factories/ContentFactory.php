@@ -15,7 +15,6 @@ use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Preset;
 use Modules\Cms\Models\Tag;
 use Override;
-use RuntimeException;
 
 final class ContentFactory extends Factory
 {
@@ -31,11 +30,6 @@ final class ContentFactory extends Factory
     public function definition(): array
     {
         $entity = Entity::where('type', EntityType::CONTENTS)->inRandomOrder()->first();
-        $preset = Preset::where('entity_id', $entity->id)->inRandomOrder()->first();
-
-        if (! $preset) {
-            throw new RuntimeException("No preset found for entity: {$entity->name}");
-        }
 
         $valid_from = fake()->boolean() ? now()->addDays(fake()->numberBetween(-10, 10)) : null;
         $valid_to = $valid_from && fake()->boolean() ? $valid_from->addDays(fake()->numberBetween(-10, 10)) : null;
@@ -43,7 +37,6 @@ final class ContentFactory extends Factory
         return [
             'title' => fake()->text(fake()->numberBetween(100, 255)),
             'entity_id' => $entity->id,
-            'preset_id' => $preset->id,
             'valid_from' => $valid_from,
             'valid_to' => $valid_to,
         ];
@@ -65,7 +58,7 @@ final class ContentFactory extends Factory
 
             // set the components depending on the preset configured fields
             $content->components = $preset->fields->mapWithKeys(function (Field $field) {
-                $value = $field->default;
+                $value = $field->pivot->default;
 
                 if ($field->pivot->is_required || fake()->boolean()) {
                     $value = match ($field->type) {
@@ -73,7 +66,7 @@ final class ContentFactory extends Factory
                         FieldType::TEXT => fake()->text(fake()->numberBetween(100, 255)),
                         FieldType::NUMBER => fake()->randomNumber(),
                         FieldType::URL => fake()->boolean() ? fake()->unique()->url() : null,
-                        default => $field->default,
+                        default => $field->pivot->default,
                     };
                 }
 

@@ -15,7 +15,7 @@ final class Categorizable extends Pivot
     protected $table = 'categorizables';
 
     #[Override]
-    protected function casts()
+    protected function casts(): array
     {
         return [
             'created_at' => 'immutable_datetime',

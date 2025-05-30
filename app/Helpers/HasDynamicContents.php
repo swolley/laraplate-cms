@@ -174,7 +174,9 @@ trait HasDynamicContents
 
     protected function getComponentsAttribute(): array
     {
-        return $this->mergeComponentsValues(json_decode((string) $this->attributes['components'], true));
+        return isset($this->attributes['components'])
+            ? $this->mergeComponentsValues(json_decode((string) $this->attributes['components'], true))
+            : [];
     }
 
     protected function setComponentsAttribute(array $components): void

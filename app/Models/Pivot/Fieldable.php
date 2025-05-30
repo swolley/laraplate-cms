@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models\Pivot;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Modules\Core\Helpers\HasVersions;
@@ -35,19 +36,19 @@ final class Fieldable extends Pivot implements Sortable
         'order_column',
     ];
 
-    protected $sortable = [
+    protected array $sortable = [
         'order_column_name' => 'order_column',
         'sort_when_creating' => true,
     ];
 
-    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    #[Scope]
     public function ordered(Builder $query): Builder
     {
         return $query->orderBy('order_column', 'asc');
     }
 
     #[Override]
-    protected function casts()
+    protected function casts(): array
     {
         return [
             'is_required' => 'boolean',

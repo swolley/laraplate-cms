@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Helpers;
 
-use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -16,14 +16,14 @@ trait HasMedia
 {
     use InteractsWithMedia;
 
-    public function trashedMedia(): MorphMany
+    public function trashedMedia(): Builder
     {
         return $this->media()->onlyTrashed();
     }
 
-    public function allMedia(): MorphMany
+    public function allMedia(): Builder
     {
-        return $this->media()->withoutGlobalScope(SoftDeletingScope::class);
+        return $this->media()->withoutGlobalScope(SoftDeletingScope::class)->getQuery();
     }
 
     public function forceClearMediaCollection(string $collectionName = 'default'): static

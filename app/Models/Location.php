@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use MatanYadaev\EloquentSpatial\Objects\Point;
+use MatanYadaev\EloquentSpatial\Objects\Polygon;
 use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
 use Modules\Cms\Database\Factories\LocationFactory;
 use Modules\Cms\Helpers\HasPath;
@@ -17,6 +18,7 @@ use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\SoftDeletes;
+use Modules\Core\Search\Contracts\ISearchable;
 use Modules\Core\Search\Traits\Searchable;
 use Override;
 
@@ -33,7 +35,7 @@ use Override;
  *
  * @mixin IdeHelperLocation
  */
-final class Location extends Model
+final class Location extends Model implements ISearchable
 {
     use HasFactory, HasPath, HasSlug, HasSpatial, HasTags, HasValidations, Searchable, SoftDeletes {
         toSearchableArray as toSearchableArrayTrait;
@@ -119,30 +121,32 @@ final class Location extends Model
     }
 
     #[Override]
-    protected function casts()
+    protected function casts(): array
     {
         return [
             'geolocation' => Point::class,
         ];
     }
 
-    private function getLatitudeAttribute(): ?float
+    // region Attributes
+
+    protected function getLatitudeAttribute(): ?float
     {
         return $this->geolocation?->getLatitude();
     }
 
-    private function getLongitudeAttribute(): ?float
+    protected function getLongitudeAttribute(): ?float
     {
         return $this->geolocation?->getLongitude();
     }
 
-    private function setLatitudeAttribute(float $value): void
+    protected function setLatitudeAttribute(float $value): void
     {
         $longitude = $this->geolocation?->longitude ?? 0.0;
         $this->geolocation = new Point($value, $longitude);
     }
 
-    private function setLongitudeAttribute(float $value): void
+    protected function setLongitudeAttribute(float $value): void
     {
         $latitude = $this->geolocation?->latitude ?? 0.0;
         $this->geolocation = new Point($latitude, $value);

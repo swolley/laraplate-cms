@@ -16,10 +16,9 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('entity_id')->nullable(false)->constrained('entities', 'id', 'categories_entity_id_FK')->cascadeOnDelete()->comment('The entity that the category belongs to');
+            $table->foreignId('entity_id')->nullable(false)->constrained('entities', 'id', 'categories_entity_id_FK')->nullOnDelete()->comment('The entity that the category belongs to');
             $table->unsignedBigInteger('preset_id')->nullable(false)->comment('The preset that the category belongs to');
-            $table->unsignedBigInteger('parent_id')->nullable(true)->comment('The parent category');
-            $table->unsignedBigInteger('parent_entity_id')->nullable(true)->comment('The entity that the parent category belongs to');
+            $table->foreignId('parent_id')->nullable(true)->constrained('categories', 'id', 'categories_parent_id_FK')->nullOnDelete()->comment('The parent category');
             $table->string('name')->nullable(false)->comment('The name of the category');
             $table->string('slug')->nullable(false)->index('categories_slug_IDX')->comment('The slug of the category');
             $table->json('components')->nullable(false)->comment('The category contents');
@@ -40,15 +39,13 @@ return new class extends Migration
             $table->unique(['entity_id', 'parent_id', 'slug', 'deleted_at'], 'categories_slug_UN');
             $table->unique(['id', 'parent_id'], 'category_parent_UN');
             $table->unique(['id', 'entity_id'], 'category_entity_UN');
-            $table->foreign(['parent_entity_id', 'parent_id'], 'categories_parent_FK')->references(['entity_id', 'id'])->on('categories')->cascadeOnDelete();
             $table->foreign(['entity_id', 'preset_id'], 'categories_preset_FK')
                 ->references(['entity_id', 'id'])
                 ->on('presets')
-                ->cascadeOnDelete();
+                ->nullOnDelete();
         });
 
         DB::statement('ALTER TABLE categories ADD CONSTRAINT categories_parent_id_check CHECK (parent_id <> id)');
-        DB::statement('ALTER TABLE categories ADD CONSTRAINT categories_parent_entity_id_check CHECK (parent_entity_id is null OR parent_entity_id = entity_id)');
     }
 
     /**

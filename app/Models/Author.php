@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User;
-use Illuminate\Support\Arr;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Modules\Cms\Database\Factories\AuthorFactory;
 use Modules\Cms\Helpers\HasDynamicContents;
+use Modules\Cms\Helpers\HasMultiMedia;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Models\Pivot\Authorable;
 use Modules\Core\Helpers\HasValidations;
@@ -20,19 +20,16 @@ use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Overrides\ComposhipsModel;
 use Override;
-use Spatie\Image\Enums\Fit;
-use Spatie\MediaLibrary\InteractsWithMedia;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\MediaLibrary\HasMedia as IMediable;
 use Spatie\Permission\Exceptions\UnauthorizedException;
 
 /**
  * @mixin IdeHelperAuthor
  */
-final class Author extends ComposhipsModel
+final class Author extends ComposhipsModel implements IMediable
 {
-    use HasDynamicContents, HasFactory, HasTags, HasValidations, HasVersions, InteractsWithMedia, SoftDeletes {
+    use HasDynamicContents, HasFactory, HasMultiMedia, HasTags, HasValidations, HasVersions, SoftDeletes {
         getRules as protected getRulesTrait;
-        // HasDynamicContents::toArray as protected dynamicContentsToArray;
         HasDynamicContents::__get as protected dynamicContentsGet;
         HasDynamicContents::__set as protected dynamicContentsSet;
     }
@@ -46,6 +43,10 @@ final class Author extends ComposhipsModel
         'user',
         'created_at',
         'updated_at',
+    ];
+
+    protected $with = [
+        'entity',
     ];
 
     private ?User $tempUser = null;
@@ -73,7 +74,7 @@ final class Author extends ComposhipsModel
 
         if (in_array($key, $entity->getFillable(), true) && ($user_can_insert || $user_can_update)) {
             if (! $this->user && ! $user_can_insert) {
-                throw new UnauthorizedException("User cannot insert {$entity}");
+                throw new UnauthorizedException(Response::HTTP_FORBIDDEN, "User cannot insert {$entity}");
             }
 
             if (! $this->user && ! $this->tempUser instanceof User && $user_can_insert) {
@@ -123,38 +124,6 @@ final class Author extends ComposhipsModel
         return parent::save($options);
     }
 
-    // #[\Override]
-    // public function toArray(): array
-    // {
-    //     $author = $this->dynamicContentsToArray();
-    //     $user = $this->user ? Arr::except($this->user->toArray(), array_key_exists('name', $author) ? ['id', 'name'] : ['id']) : null;
-    //     return $user ? array_merge($author, $user) : $author;
-    // }
-
-    public function registerMediaCollections(): void
-    {
-        $this->addMediaCollection('images')->singleFile();
-        // $this->addMediaCollection('videos')
-        // 	->extractVideoFrameAtSecond(2);
-        // $this->addMediaCollection('audios');
-        // $this->addMediaCollection('files');
-    }
-
-    public function registerMediaConversions(?Media $media = null): void
-    {
-        $this->addMediaConversion('thumb')
-            ->performOnCollections('images'/* , 'videos' */)
-            ->width(300)
-            ->height(300)
-            ->sharpen(10)
-            ->fit(Fit::Fill, 300, 300);
-    }
-
-    // public function getPictureAttribute(): string
-    // {
-    //     return $this->getFirstMediaUrl('images', 'thumb');
-    // }
-
     public function getRules(): array
     {
         $rules = $this->getRulesTrait();
@@ -183,21 +152,13 @@ final class Author extends ComposhipsModel
         ];
     }
 
-    private function getCanLoginAttribute(): bool
+    protected function getCanLoginAttribute(): bool
     {
         return $this->user !== null || $this->tempUser instanceof User;
     }
 
-    private function getIsSignatureAttribute(): bool
+    protected function getIsSignatureAttribute(): bool
     {
         return ! $this->getCanLoginAttribute();
-    }
-
-    private function picture(): Attribute
-    {
-        return Attribute::make(
-            get: fn (): string => $this->getFirstMediaUrl('images'),
-            set: fn ($value): Media => $this->addMedia($value)->toMediaCollection('images'),
-        );
     }
 }

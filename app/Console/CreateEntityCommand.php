@@ -114,9 +114,11 @@ final class CreateEntityCommand extends Command
 
     private function assignFieldToPreset(Preset $preset, Field $field, bool $is_required): void
     {
-        $pivotAttributes = ['is_required' => false, 'default' => null, 'preset_id' => $preset->id];
-        $pivotAttributes['is_required'] = $is_required;
-        $pivotAttributes['default'] = $this->getDefaultFieldValue($field, $is_required);
+        $pivotAttributes = [
+            'preset_id' => $preset->id,
+            'is_required' => $is_required,
+            'default' => $this->getDefaultFieldValue($field, $is_required),
+        ];
         $preset->fields()->attach($field['id'], $pivotAttributes);
     }
 
@@ -136,11 +138,11 @@ final class CreateEntityCommand extends Command
 
         if ($default === 'null') {
             $default = null;
-        } elseif (preg_match("/\d+/", $default)) {
+        } elseif (preg_match('/\d+/', $default)) {
             $default = Str::contains($default, '.') ? (float) $default : (int) $default;
         } elseif (in_array($default, ['true', 'false'], true)) {
             $default = $default === 'true';
-        } elseif (preg_match('/^\[.*\]$/', $default)) {
+        } elseif (preg_match('/^\[.*]$/', $default)) {
             $default = json_decode($default);
         }
 

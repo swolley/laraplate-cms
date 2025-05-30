@@ -15,7 +15,7 @@ final class Authorable extends Pivot
     protected $table = 'authorables';
 
     #[Override]
-    protected function casts()
+    protected function casts(): array
     {
         return [
             'created_at' => 'immutable_datetime',

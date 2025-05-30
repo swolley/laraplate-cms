@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Cms\Models;
 
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,11 +13,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Validation\Rule;
 use Modules\Cms\Database\Factories\CategoryFactory;
 use Modules\Cms\Helpers\HasDynamicContents;
+use Modules\Cms\Helpers\HasMultiMedia;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Models\Pivot\Categorizable;
 use Modules\Core\Helpers\HasApprovals;
+// use Modules\Core\Helpers\HasClosureTable;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
@@ -26,17 +29,20 @@ use Modules\Core\Overrides\ComposhipsModel;
 use Override;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
+use Spatie\MediaLibrary\HasMedia as IMediable;
 use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 
 /**
  * @mixin IdeHelperCategory
  */
-final class Category extends ComposhipsModel implements Sortable
+final class Category extends ComposhipsModel implements IMediable, Sortable
 {
     use HasApprovals,
+        // HasClosureTable,
         HasDynamicContents,
         HasFactory,
         HasLocks,
+        HasMultiMedia,
         HasPath,
         HasRecursiveRelationships,
         HasSlug,
@@ -79,7 +85,6 @@ final class Category extends ComposhipsModel implements Sortable
         'entity_id',
         'entity',
         'parent_id',
-        'parent_entity_id',
         'model_type_id',
         'persistence',
         'is_active',
@@ -95,16 +100,16 @@ final class Category extends ComposhipsModel implements Sortable
 
     // region Scopes
 
-    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    #[Scope]
     public function ordered(Builder $query): Builder
     {
         return $query->priorityOrdered()->validityOrdered();
     }
 
-    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    #[Scope]
     public function active(Builder $query): Builder
     {
-        return $query->where('is_active', true);
+        return $query->where($this->qualifyColumn('is_active'), true);
     }
 
     // endregion
@@ -132,6 +137,8 @@ final class Category extends ComposhipsModel implements Sortable
     }
 
     // endregion
+
+
 
     public function getRules(): array
     {
@@ -161,7 +168,7 @@ final class Category extends ComposhipsModel implements Sortable
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('categories')->where(fn ($query) => $query->where(['parent_id' => request('parent_id'), 'deleted_at' => null])),
+                Rule::unique('categories')->where(fn ($query) => $query->where('parent_id', request('parent_id'))->whereNull('deleted_at')),
             ],
         ]);
         $rules['update'] = array_merge($rules['update'], [
@@ -169,7 +176,7 @@ final class Category extends ComposhipsModel implements Sortable
                 'sometimes',
                 'string',
                 'max:255',
-                Rule::unique('categories')->where(fn ($query) => $query->where(['parent_id' => request('parent_id'), 'deleted_at' => null]))->ignore($this->id, 'id'),
+                Rule::unique('categories')->where(fn ($query) => $query->where('parent_id', request('parent_id'))->whereNull('deleted_at'))->ignore($this->id, 'id'),
             ],
         ]);
 
@@ -182,7 +189,7 @@ final class Category extends ComposhipsModel implements Sortable
         return $this->ancestors->pluck('slug')->reverse()->merge([$this->slug])->join('/');
     }
 
-    public function appendPaths(): static
+    public function appendPaths(): self
     {
         $this->appends = array_merge($this->appends, ['ids', 'path', 'full_name']);
 
@@ -198,12 +205,6 @@ final class Category extends ComposhipsModel implements Sortable
     #[Override]
     protected static function booted(): void
     {
-        self::saving(function (Category $category): void {
-            if (! $category->parent_id) {
-                $category->parent_entity_id = $category->parent?->entity_id;
-            }
-        });
-
         self::addGlobalScope('global_filters', function (Builder $query): void {
             $query->active()->valid()->ordered();
         });
@@ -263,6 +264,13 @@ final class Category extends ComposhipsModel implements Sortable
     {
         return Attribute::make(
             get: fn () => $this->ancestors->pluck('name')->reverse()->merge([$this->name])->join(' > '),
+        );
+    }
+
+    private function title(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->name,
         );
     }
 }

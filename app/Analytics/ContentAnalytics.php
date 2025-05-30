@@ -9,6 +9,9 @@ use Modules\Cms\Models\Content;
 
 final class ContentAnalytics extends AbstractAnalytics
 {
+    /**
+     * @var int[]
+     */
     private static array $cache_duration = [555, 600];
 
     public function __construct(private readonly Content $model) {}

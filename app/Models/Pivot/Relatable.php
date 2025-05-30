@@ -15,7 +15,7 @@ final class Relatable extends Pivot
     protected $table = 'relatables';
 
     #[Override]
-    protected function casts()
+    protected function casts(): array
     {
         return [
             'created_at' => 'immutable_datetime',

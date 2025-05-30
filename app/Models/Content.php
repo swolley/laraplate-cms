@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -14,7 +14,7 @@ use InvalidArgumentException;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Database\Factories\ContentFactory;
 use Modules\Cms\Helpers\HasDynamicContents;
-use Modules\Cms\Helpers\HasMedia;
+use Modules\Cms\Helpers\HasMultimedia;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
@@ -29,27 +29,25 @@ use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Locking\HasOptimisticLocking;
 use Modules\Core\Locking\Traits\HasLocks;
 use Modules\Core\Overrides\ComposhipsModel;
+use Modules\Core\Search\Contracts\ISearchable;
 use Modules\Core\Search\Traits\Searchable;
 use Override;
 use Parental\HasChildren;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
-use Spatie\Image\Enums\Fit;
-use Spatie\MediaLibrary\Conversions\Conversion;
 use Spatie\MediaLibrary\HasMedia as IMediable;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * @mixin IdeHelperContent
  */
-class Content extends ComposhipsModel implements IMediable, Sortable
+class Content extends ComposhipsModel implements IMediable, Sortable // , ISearchable
 {
     use HasApprovals,
         HasChildren,
         HasDynamicContents,
         HasFactory,
         HasLocks,
-        HasMedia,
+        HasMultimedia,
         HasOptimisticLocking,
         HasPath,
         HasSlug,
@@ -57,10 +55,10 @@ class Content extends ComposhipsModel implements IMediable, Sortable
         HasValidations,
         HasValidity,
         HasVersions,
-        Searchable,
+        // Searchable,
         SoftDeletes,
         SortableTrait {
-            toSearchableArray as protected toSearchableArrayTrait;
+            // toSearchableArray as protected toSearchableArrayTrait;
             getRules as protected getRulesTrait;
             HasChildren::hasMany as protected hasChildrenHasMany;
             HasChildren::belongsTo as protected hasChildrenBelongsTo;
@@ -84,16 +82,19 @@ class Content extends ComposhipsModel implements IMediable, Sortable
         'withoutObjectCaching',
     ];
 
-    protected $childColumn = 'entity_id';
+    protected string $childColumn = 'entity_id';
 
-    protected $sortable = [
+    protected array $sortable = [
         'order_column_name' => 'order_column',
         'sort_when_creating' => true,
     ];
 
     protected $appends = [
-        'cover',
         'path',
+    ];
+
+    protected $with = [
+        'entity',
     ];
 
     public static function resolveChildTypes(): void
@@ -146,7 +147,7 @@ class Content extends ComposhipsModel implements IMediable, Sortable
     /**
      * Order contents by priority and validity.
      */
-    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    #[Scope]
     public function ordered(Builder $query): Builder
     {
         return $query->priorityOrdered()->validityOrdered()->orderBy($this->qualifyColumn(Model::CREATED_AT), 'desc');
@@ -155,7 +156,7 @@ class Content extends ComposhipsModel implements IMediable, Sortable
     /**
      * Filter contents by entity.
      */
-    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    #[Scope]
     public function forEntity(Builder $query, Entity $entity): Builder
     {
         return $query->where('entity_id', $entity->id);
@@ -240,23 +241,6 @@ class Content extends ComposhipsModel implements IMediable, Sortable
         return $document;
     }
 
-    #[Override]
-    public function registerMediaCollections(): void
-    {
-        $this->addMediaCollection('cover')->singleFile();
-        $this->addMediaCollection('images');
-        $this->addMediaCollection('videos');
-        $this->addMediaCollection('audios');
-        $this->addMediaCollection('files');
-    }
-
-    #[Override]
-    public function registerMediaConversions(?Media $media = null): void
-    {
-        $this->commonThumbSizes($this->addMediaConversion('thumb')->performOnCollections('images', 'cover'));
-        $this->commonThumbSizes($this->addMediaConversion('video_thumb')->performOnCollections('videos')->extractVideoFrameAtSecond(2));
-    }
-
     public function getRules(): array
     {
         $fields = [];
@@ -332,7 +316,7 @@ class Content extends ComposhipsModel implements IMediable, Sortable
 
         // this if ensure that the factory is created for the correct derived entity
         if (static::class !== self::class) {
-            $factory->state(fn (array $attributes): array => [
+            $factory->state(fn (): array => [
                 'entity_id' => Entity::query()
                     ->where('name', Str::lower(class_basename(static::class)))
                     ->where('type', EntityType::CONTENTS)
@@ -344,7 +328,7 @@ class Content extends ComposhipsModel implements IMediable, Sortable
         return $factory;
     }
 
-    // TODO: capire come estrarre i contenuti dinamici per l'embedding
+    // TODO: how to extract embedding dynamic contents?
     // protected $embed = ['components'];
 
     #[Override]
@@ -363,14 +347,6 @@ class Content extends ComposhipsModel implements IMediable, Sortable
 
     // region Attributes
 
-    protected function cover(): Attribute
-    {
-        return Attribute::make(
-            get: fn (): ?\Spatie\MediaLibrary\MediaCollections\Models\Media => $this->getFirstMedia('cover'),
-            set: fn ($value): Media => $this->addMedia($value)->toMediaCollection('cover'),
-        );
-    }
-
     protected function slugFields(): array
     {
         return [...$this->dynamicSlugFields(), 'title'];
@@ -379,30 +355,5 @@ class Content extends ComposhipsModel implements IMediable, Sortable
     protected function requiresApprovalWhen($modifications): bool
     {
         return $this->requiresApprovalWhenTrait($modifications) && ($modifications[static::$valid_from_column] ?? $modifications[static::$valid_to_column] ?? false);
-    }
-
-    private function commonThumbSizes(Conversion $conversion): void
-    {
-        $conversion->width(300)
-            ->height(300)
-            ->sharpen(10)
-            ->fit(Fit::Fill, 300, 300)
-            ->optimize()
-            ->quality(75)
-            ->naming(fn (string $fileName, string $extension): string => $fileName . '-high.' . $extension);
-        $conversion->width(300)
-            ->height(300)
-            ->sharpen(10)
-            ->fit(Fit::Fill, 300, 300)
-            ->optimize()
-            ->quality(50)
-            ->naming(fn (string $fileName, string $extension): string => $fileName . '-mid.' . $extension);
-        $conversion->width(300)
-            ->height(300)
-            ->sharpen(10)
-            ->fit(Fit::Fill, 300, 300)
-            ->optimize()
-            ->quality(25)
-            ->naming(fn (string $fileName, string $extension): string => $fileName . '-low.' . $extension);
     }
 }

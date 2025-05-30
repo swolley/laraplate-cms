@@ -27,7 +27,7 @@ use Override;
  */
 final class Preset extends Model
 {
-    use Compoships, HasApprovals, HasCache, HasFactory, HasValidations, HasVersions, SoftDeletes {
+    use Compoships, HasApprovals, HasCache, HasValidations, HasVersions, SoftDeletes {
         getRules as protected getRulesTrait;
     }
 

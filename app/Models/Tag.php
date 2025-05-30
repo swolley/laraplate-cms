@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Cms\Models;
 
 use ArrayAccess;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as DbCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -48,7 +49,7 @@ final class Tag extends Model implements Sortable
     public static function findOrCreate(
         string|array|ArrayAccess $values,
         ?string $type = null,
-    ): Collection|self|static {
+    ): Collection|self {
         $tags = collect($values)->map(function ($value) use ($type) {
             if ($value instanceof self) {
                 return $value;
@@ -76,7 +77,11 @@ final class Tag extends Model implements Sortable
             ->first();
     }
 
-    public static function findFromStringOfAnyType(string $name)
+    /**
+     * @param string $name
+     * @return Collection<self>
+     */
+    public static function findFromStringOfAnyType(string $name): Collection
     {
         return self::query()
             ->where('name', $name)
@@ -136,13 +141,13 @@ final class Tag extends Model implements Sortable
         return null;
     }
 
-    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    #[Scope]
     public function ordered(Builder $query): Builder
     {
         return $query->orderBy('order_column', 'asc');
     }
 
-    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    #[Scope]
     public function withType(Builder $query, ?string $type = null): void
     {
         if (! is_null($type)) {
@@ -150,7 +155,7 @@ final class Tag extends Model implements Sortable
         }
     }
 
-    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    #[Scope]
     public function containing(Builder $query, string $name, $locale = null): void
     {
         // if (is_null($locale)) {

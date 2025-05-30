@@ -15,11 +15,11 @@ use Modules\Core\Helpers\BatchSeeder;
 
 final class DevCmsDatabaseSeeder extends BatchSeeder
 {
-    private const TARGET_COUNT_AUTHORS = 5000;
+    private const TARGET_COUNT_AUTHORS = 15000;
 
     private const TARGET_COUNT_CATEGORIES = 500;
 
-    private const TARGET_COUNT_LOCATIONS = 1000;
+    private const TARGET_COUNT_LOCATIONS = 10000;
 
     private const TARGET_COUNT_TAGS = 10000;
 

@@ -23,7 +23,7 @@ use Override;
  */
 final class Field extends Model
 {
-    use HasFactory, HasValidations, HasVersions, SoftDeletes {
+    use HasValidations, HasVersions, SoftDeletes {
         getRules as protected getRulesTrait;
     }
 
