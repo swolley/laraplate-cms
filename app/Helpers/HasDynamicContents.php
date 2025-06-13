@@ -96,9 +96,9 @@ trait HasDynamicContents
             $this->hidden[] = 'entity';
         }
 
-        if (! in_array('preset', $this->with, true)) {
-            $this->with[] = 'preset';
-        }
+//        if (! in_array('preset', $this->with, true)) {
+//            $this->with[] = 'preset';
+//        }
     }
 
     /**
@@ -142,6 +142,7 @@ trait HasDynamicContents
     protected static function bootHasDynamicContents(): void
     {
         static::saving(function (Model $model): void {
+            /** @var Model&HasDynamicContents $model */
             if ($model->preset) {
                 $model->preset_id = $model->preset->id;
 
@@ -193,19 +194,19 @@ trait HasDynamicContents
             ->toArray();
     }
 
-    private static function fetchAvailableEntities(EntityType $type): Collection
+    public static function fetchAvailableEntities(EntityType $type): Collection
     {
         return Cache::memo()->rememberForever(
             new Entity()->getCacheKey(),
-            fn () => Entity::query()->withoutGlobalScopes()->get(),
+            fn (): Collection => Entity::query()->withoutGlobalScopes()->get(),
         )->where('type', $type);
     }
 
-    private static function fetchAvailablePresets(EntityType $type): Collection
+    public static function fetchAvailablePresets(EntityType $type): Collection
     {
         return Cache::memo()->rememberForever(
             new Preset()->getCacheKey(),
-            fn () => Preset::withoutGlobalScopes()->with(['fields', 'entity'])->get(),
+            fn (): Collection => Preset::withoutGlobalScopes()->with(['fields', 'entity'])->get(),
         )->where('entity.type', $type);
     }
 
@@ -216,7 +217,7 @@ trait HasDynamicContents
      */
     private function fields(): Collection
     {
-        return $this->preset?->fields ?? collect();
+        return $this->preset?->fields ?? new Collection();
     }
 
     private function mergeComponentsValues(array $components): array

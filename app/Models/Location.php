@@ -18,7 +18,6 @@ use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\SoftDeletes;
-use Modules\Core\Search\Contracts\ISearchable;
 use Modules\Core\Search\Traits\Searchable;
 use Override;
 
@@ -32,10 +31,9 @@ use Override;
  * @method static whereContains(Polygon $polygon)
  * @method static whereNotContains(Polygon $polygon)
  * @method static whereEquals(Point $point)
- *
  * @mixin IdeHelperLocation
  */
-final class Location extends Model implements ISearchable
+final class Location extends Model
 {
     use HasFactory, HasPath, HasSlug, HasSpatial, HasTags, HasValidations, Searchable, SoftDeletes {
         toSearchableArray as toSearchableArrayTrait;

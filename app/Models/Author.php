@@ -8,11 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Modules\Cms\Database\Factories\AuthorFactory;
 use Modules\Cms\Helpers\HasDynamicContents;
-use Modules\Cms\Helpers\HasMultiMedia;
+use Modules\Cms\Helpers\HasMultimedia;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Models\Pivot\Authorable;
 use Modules\Core\Helpers\HasValidations;
@@ -22,13 +21,14 @@ use Modules\Core\Overrides\ComposhipsModel;
 use Override;
 use Spatie\MediaLibrary\HasMedia as IMediable;
 use Spatie\Permission\Exceptions\UnauthorizedException;
+use Symfony\Component\HttpFoundation\Response as ResponseAlias;
 
 /**
  * @mixin IdeHelperAuthor
  */
 final class Author extends ComposhipsModel implements IMediable
 {
-    use HasDynamicContents, HasFactory, HasMultiMedia, HasTags, HasValidations, HasVersions, SoftDeletes {
+    use HasDynamicContents, HasFactory, HasMultimedia, HasTags, HasValidations, HasVersions, SoftDeletes {
         getRules as protected getRulesTrait;
         HasDynamicContents::__get as protected dynamicContentsGet;
         HasDynamicContents::__set as protected dynamicContentsSet;
@@ -45,9 +45,9 @@ final class Author extends ComposhipsModel implements IMediable
         'updated_at',
     ];
 
-    protected $with = [
-        'entity',
-    ];
+//    protected $with = [
+//        'entity',
+//    ];
 
     private ?User $tempUser = null;
 
@@ -74,7 +74,7 @@ final class Author extends ComposhipsModel implements IMediable
 
         if (in_array($key, $entity->getFillable(), true) && ($user_can_insert || $user_can_update)) {
             if (! $this->user && ! $user_can_insert) {
-                throw new UnauthorizedException(Response::HTTP_FORBIDDEN, "User cannot insert {$entity}");
+                throw new UnauthorizedException(ResponseAlias::HTTP_FORBIDDEN, "User cannot insert {$entity}");
             }
 
             if (! $this->user && ! $this->tempUser instanceof User && $user_can_insert) {
@@ -110,7 +110,7 @@ final class Author extends ComposhipsModel implements IMediable
 
     // Save method to handle user creation/updating
     #[Override]
-    public function save(array $options = [])
+    public function save(array $options = []): bool
     {
         if ($this->tempUser instanceof User && $this->tempUser->isDirty()) {
             $this->tempUser->save();

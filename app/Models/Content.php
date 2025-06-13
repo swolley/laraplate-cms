@@ -29,18 +29,16 @@ use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Locking\HasOptimisticLocking;
 use Modules\Core\Locking\Traits\HasLocks;
 use Modules\Core\Overrides\ComposhipsModel;
-use Modules\Core\Search\Contracts\ISearchable;
-use Modules\Core\Search\Traits\Searchable;
 use Override;
 use Parental\HasChildren;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
-use Spatie\MediaLibrary\HasMedia as IMediable;
+use Spatie\MediaLibrary\HasMedia;
 
 /**
  * @mixin IdeHelperContent
  */
-class Content extends ComposhipsModel implements IMediable, Sortable // , ISearchable
+class Content extends ComposhipsModel implements HasMedia, Sortable
 {
     use HasApprovals,
         HasChildren,
@@ -93,9 +91,9 @@ class Content extends ComposhipsModel implements IMediable, Sortable // , ISearc
         'path',
     ];
 
-    protected $with = [
-        'entity',
-    ];
+    //    protected $with = [
+    //        'entity',
+    //    ];
 
     public static function resolveChildTypes(): void
     {
@@ -314,7 +312,7 @@ class Content extends ComposhipsModel implements IMediable, Sortable // , ISearc
     {
         $factory = ContentFactory::new();
 
-        // this if ensure that the factory is created for the correct derived entity
+        // if ensure that the factory is created for the correct derived entity
         if (static::class !== self::class) {
             $factory->state(fn (): array => [
                 'entity_id' => Entity::query()

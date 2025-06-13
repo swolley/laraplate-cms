@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Validation\Rule;
 use Modules\Cms\Database\Factories\CategoryFactory;
 use Modules\Cms\Helpers\HasDynamicContents;
-use Modules\Cms\Helpers\HasMultiMedia;
+use Modules\Cms\Helpers\HasMultimedia;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
@@ -42,7 +42,7 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
         HasDynamicContents,
         HasFactory,
         HasLocks,
-        HasMultiMedia,
+        HasMultimedia,
         HasPath,
         HasRecursiveRelationships,
         HasSlug,
@@ -77,9 +77,9 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
         'is_active',
     ];
 
-    protected $with = [
-        'entity',
-    ];
+//    protected $with = [
+//        'entity',
+//    ];
 
     protected $hidden = [
         'entity_id',
@@ -242,12 +242,6 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
     {
         return $this->requiresApprovalWhenTrait($modifications) && ($modifications[self::$valid_from_column] ?? $modifications[self::$valid_to_column] ?? false);
     }
-
-    // public function scopeForEntity(Builder $query, string|int|Entity|null $entity): Builder
-    // {
-    //     // null is a value for non completely filled models
-    //     return $query->whereHas('contents', fn($q) => is_string($entity) ? $q->where('name', $entity) : ($q->where('entity_id', is_int($entity) ? $entity : $entity->id)));
-    // }
 
     // endregion
 

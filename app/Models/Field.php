@@ -18,7 +18,6 @@ use Override;
 
 /**
  * @property-read object $options
- *
  * @mixin IdeHelperField
  */
 final class Field extends Model

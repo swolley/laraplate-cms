@@ -37,6 +37,7 @@ final class CmsServiceProvider extends ServiceProvider
 
     /**
      * Register the service provider.
+     * @throws Exception
      */
     #[Override]
     public function register(): void
