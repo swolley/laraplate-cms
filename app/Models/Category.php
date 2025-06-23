@@ -19,7 +19,6 @@ use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Models\Pivot\Categorizable;
 use Modules\Core\Helpers\HasApprovals;
-// use Modules\Core\Helpers\HasClosureTable;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
@@ -38,7 +37,6 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 final class Category extends ComposhipsModel implements IMediable, Sortable
 {
     use HasApprovals,
-        // HasClosureTable,
         HasDynamicContents,
         HasFactory,
         HasLocks,
@@ -52,34 +50,33 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
         HasVersions,
         SoftDeletes,
         SortableTrait {
-            getRules as protected getRulesTrait;
-            getFullPath as protected getFullPathTrait;
-            requiresApprovalWhen as protected requiresApprovalWhenTrait;
-            HasDynamicContents::toArray as protected dynamicContentsToArray;
-            HasApprovals::toArray as protected approvalsToArray;
-            SortableTrait::scopeOrdered as protected scopePriorityOrdered;
-        }
+        HasValidations::getRules as protected getRulesTrait;
+        HasDynamicContents::getRules as protected getRulesDynamicContents;
+        getFullPath as protected getFullPathTrait;
+        requiresApprovalWhen as protected requiresApprovalWhenTrait;
+        HasDynamicContents::toArray as protected dynamicContentsToArray;
+        HasApprovals::toArray as protected approvalsToArray;
+        SortableTrait::scopeOrdered as protected scopePriorityOrdered;
+    }
 
     /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'title',
         'preset_id',
         'entity_id',
         'parent_id',
         'name',
         'slug',
-        'description',
         'persistence',
         'logo',
         'logo_full',
         'is_active',
     ];
 
-//    protected $with = [
-//        'entity',
-//    ];
+    //    protected $with = [
+    //        'entity',
+    //    ];
 
     protected $hidden = [
         'entity_id',
@@ -142,33 +139,15 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
 
     public function getRules(): array
     {
-        $fields = [];
-
-        foreach ($this->fields() as $field) {
-            $rule = $field->type->getRule();
-
-            if ($field->pivot->is_required) {
-                $rule .= '|required';
-            }
-
-            if (isset($field->options->min)) {
-                $rule .= '|min:' . $field->options->min;
-            }
-
-            if (isset($field->options->max)) {
-                $rule .= '|max:' . $field->options->max;
-            }
-            $fields[$field->name] = mb_trim((string) $rule, '|');
-        }
-
         $rules = $this->getRulesTrait();
+        $fields = $this->getRulesDynamicContents();
         $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], $fields);
         $rules['create'] = array_merge($rules['create'], [
             'name' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('categories')->where(fn ($query) => $query->where('parent_id', request('parent_id'))->whereNull('deleted_at')),
+                Rule::unique('categories')->where(fn($query) => $query->where('parent_id', request('parent_id'))->whereNull('deleted_at')),
             ],
         ]);
         $rules['update'] = array_merge($rules['update'], [
@@ -176,7 +155,7 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
                 'sometimes',
                 'string',
                 'max:255',
-                Rule::unique('categories')->where(fn ($query) => $query->where('parent_id', request('parent_id'))->whereNull('deleted_at'))->ignore($this->id, 'id'),
+                Rule::unique('categories')->where(fn($query) => $query->where('parent_id', request('parent_id'))->whereNull('deleted_at'))->ignore($this->id, 'id'),
             ],
         ]);
 
@@ -250,21 +229,21 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
     private function ids(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->ancestors->pluck('id')->reverse()->merge([$this->id])->join('.'),
+            get: fn() => $this->ancestors->pluck('id')->reverse()->merge([$this->id])->join('.'),
         );
     }
 
     private function fullName(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->ancestors->pluck('name')->reverse()->merge([$this->name])->join(' > '),
+            get: fn() => $this->ancestors->pluck('name')->reverse()->merge([$this->name])->join(' > '),
         );
     }
 
     private function title(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->name,
+            get: fn() => $this->name,
         );
     }
 }

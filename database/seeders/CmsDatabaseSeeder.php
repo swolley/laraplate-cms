@@ -73,7 +73,7 @@ final class CmsDatabaseSeeder extends Seeder
 
             foreach (['content'] as $field) {
                 if (! $this->fields->has($field)) {
-                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::JSON, 'options' => new stdClass()]));
+                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::EDITOR, 'options' => (object) []]));
                     $this->command->line("    - {$field} <fg=green>created</>");
                 } else {
                     $this->command->line("    - {$field} already exists");
@@ -183,7 +183,7 @@ final class CmsDatabaseSeeder extends Seeder
 
                     // required fields
                     if ($entity['required_fields'] !== []) {
-                        $fields = $this->fields->filter(fn (Field $field) => in_array($field->name, $entity['required_fields'], true));
+                        $fields = $this->fields->filter(fn(Field $field) => in_array($field->name, $entity['required_fields'], true));
 
                         foreach ($fields as $field) {
                             $this->assignFieldToPreset($preset, $field, true);
@@ -192,7 +192,7 @@ final class CmsDatabaseSeeder extends Seeder
 
                     // optional fields
                     if ($entity['optional_fields'] !== []) {
-                        $fields = $this->fields->filter(fn (Field $field) => in_array($field->name, $entity['optional_fields'], true));
+                        $fields = $this->fields->filter(fn(Field $field) => in_array($field->name, $entity['optional_fields'], true));
 
                         foreach ($fields as $field) {
                             $this->assignFieldToPreset($preset, $field, false);
@@ -219,8 +219,8 @@ final class CmsDatabaseSeeder extends Seeder
         if (! Role::whereName($name)->exists()) {
             $this->create($role_class, [
                 'name' => $name,
-                'permissions' => fn () => $permission_class::whereIn('table_name', ['contents', 'categories', 'presets'])
-                    ->where(fn ($query) => $query->where('name', 'like', '%.' . ActionEnum::APPROVE->value)
+                'permissions' => fn() => $permission_class::whereIn('table_name', ['contents', 'categories', 'presets'])
+                    ->where(fn($query) => $query->where('name', 'like', '%.' . ActionEnum::APPROVE->value)
                         ->orWhere('name', 'like', '%.' . ActionEnum::SELECT->value))
                     ->get(),
             ]);
@@ -234,7 +234,7 @@ final class CmsDatabaseSeeder extends Seeder
 
             if ($key === 'admin') {
                 $role->permissions()->syncWithoutDetaching(
-                    $permission_class::where(fn ($query) => $query->whereIn('table_name', ['contents', 'categories', 'presets'])
+                    $permission_class::where(fn($query) => $query->whereIn('table_name', ['contents', 'categories', 'presets'])
                         ->orWhere('name', 'like', '%.' . ActionEnum::SELECT->value))
                         ->whereNot('name', 'like', '%.' . ActionEnum::LOCK->value)->pluck('id'),
                 );

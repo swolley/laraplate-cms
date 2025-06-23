@@ -14,6 +14,7 @@ use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Preset;
 use Override;
 use RuntimeException;
+use stdClass;
 
 abstract class DynamicContentFactory extends Factory
 {
@@ -28,8 +29,12 @@ abstract class DynamicContentFactory extends Factory
         /** @var class-string<Model&HasDynamicContents> $model_name */
         $model_name = $this->modelName();
 
+        if (!isset($this->entityType)) {
+            throw new RuntimeException('Entity type not set for model: ' . $model_name);
+        }
+
         /** @var Entity|null $entity */
-        $entity = $model_name::fetchAvailableEntities($this->entityType)->random()->first();
+        $entity = $model_name::fetchAvailableEntities($this->entityType)->random();
 
         return [
             'entity_id' => $entity?->id,
@@ -49,12 +54,16 @@ abstract class DynamicContentFactory extends Factory
         /** @var class-string<Model&HasDynamicContents> $model_name */
         $model_name = $this->modelName();
 
+        if (!isset($this->entityType)) {
+            throw new RuntimeException('Entity type not set for model: ' . $model_name);
+        }
+
         $all_presets = $model_name::fetchAvailablePresets($this->entityType);
 
         /** @var Preset|null $preset */
         $preset = $model->preset_id
-            ? $all_presets->find($model->preset_id)
-            : $all_presets->random()->first();
+            ? $all_presets->firstWhere('id', $model->preset_id)
+            : $all_presets->random();
 
         if (! $preset) {
             /** @var HasDynamicContents $model */
@@ -65,7 +74,7 @@ abstract class DynamicContentFactory extends Factory
         $model->preset_id = $preset->id;
 
         // set the components depending on the preset configured fields
-        $model->components = $preset->fields->mapWithKeys(function (Field $field) {
+        $model->components = $preset->fields->mapWithKeys(function (Field $field) use ($forcedValues) {
             $value = $field->pivot->default;
 
             if ($field->pivot->is_required || fake()->boolean()) {
@@ -79,7 +88,15 @@ abstract class DynamicContentFactory extends Factory
                         FieldType::EMAIL => fake()->unique()->email(),
                         FieldType::PHONE => fake()->boolean() ? fake()->unique()->phoneNumber() : null,
                         FieldType::URL => fake()->boolean() ? fake()->unique()->url() : null,
-                        FieldType::JSON => [],
+                        FieldType::EDITOR => (object) [
+                            'blocks' => array_map(fn($paragraph) => (object) [
+                                'type' => 'paragraph',
+                                'data' => [
+                                    'text' => $paragraph,
+                                ],
+                            ], fake()->paragraphs(fake()->numberBetween(1, 10))),
+                        ],
+                        FieldType::OBJECT => new stdClass(),
                         default => $value,
                     };
                 }

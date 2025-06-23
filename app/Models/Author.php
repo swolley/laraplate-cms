@@ -29,7 +29,8 @@ use Symfony\Component\HttpFoundation\Response as ResponseAlias;
 final class Author extends ComposhipsModel implements IMediable
 {
     use HasDynamicContents, HasFactory, HasMultimedia, HasTags, HasValidations, HasVersions, SoftDeletes {
-        getRules as protected getRulesTrait;
+        HasValidations::getRules as protected getRulesTrait;
+        HasDynamicContents::getRules as protected getRulesDynamicContents;
         HasDynamicContents::__get as protected dynamicContentsGet;
         HasDynamicContents::__set as protected dynamicContentsSet;
     }
@@ -44,10 +45,6 @@ final class Author extends ComposhipsModel implements IMediable
         'created_at',
         'updated_at',
     ];
-
-//    protected $with = [
-//        'entity',
-//    ];
 
     private ?User $tempUser = null;
 
@@ -66,6 +63,7 @@ final class Author extends ComposhipsModel implements IMediable
     #[Override]
     public function __set($key, $value): void
     {
+        /** @var User|null $session_user */
         $session_user = Auth::user();
         $entity = new User();
         $table = $entity->getTable();
@@ -127,6 +125,8 @@ final class Author extends ComposhipsModel implements IMediable
     public function getRules(): array
     {
         $rules = $this->getRulesTrait();
+        $fields = $this->getRulesDynamicContents();
+        $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], $fields);
         $rules['create'] = array_merge($rules['create'], [
             'name' => ['required', 'string', 'max:255', 'unique:authors,name'],
         ]);

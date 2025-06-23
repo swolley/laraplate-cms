@@ -14,10 +14,12 @@ enum FieldType: string
     case CHECKBOX = 'checkbox';
     case DATETIME = 'datetime';
     case NUMBER = 'number';
-    case JSON = 'json';
+    case OBJECT = 'json';
+    case ARRAY = 'array';
     case EMAIL = 'email';
     case PHONE = 'phone';
     case URL = 'url';
+    case EDITOR = 'editor';
 
     public function getRule(): string
     {
@@ -27,12 +29,14 @@ enum FieldType: string
             self::CHECKBOX => 'array',
             // self::RADIO => 'string',
             // self::SELECT => 'string',
-            self::DATETIME => 'datetime',
+            self::DATETIME => 'date',
             self::NUMBER => 'number',
-            self::JSON => 'json',
+            self::OBJECT => 'json',
+            self::ARRAY => 'array',
             self::EMAIL => 'email',
             self::PHONE => 'phone',
             self::URL => 'url',
+            self::EDITOR => 'json',
             default => '',
         };
     }

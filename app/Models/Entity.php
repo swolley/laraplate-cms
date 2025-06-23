@@ -82,7 +82,7 @@ final class Entity extends ComposhipsModel
         $rules = $this->getRulesTrait();
         $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], [
             'is_active' => 'boolean',
-            'slug' => 'nullable|string|max:255',
+            'slug' => 'sometimes|nullable|string|max:255',
             'type' => ['required', EntityType::validationRule()],
         ]);
         $rules['create'] = array_merge($rules['create'], [

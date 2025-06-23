@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Cache;
 use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Preset;
@@ -96,9 +97,13 @@ trait HasDynamicContents
             $this->hidden[] = 'entity';
         }
 
-//        if (! in_array('preset', $this->with, true)) {
-//            $this->with[] = 'preset';
-//        }
+        if (! in_array('entity', $this->with, true)) {
+            $this->with[] = 'entity';
+        }
+
+        if (! in_array('preset', $this->with, true)) {
+            $this->with[] = 'preset';
+        }
     }
 
     /**
@@ -198,7 +203,7 @@ trait HasDynamicContents
     {
         return Cache::memo()->rememberForever(
             new Entity()->getCacheKey(),
-            fn (): Collection => Entity::query()->withoutGlobalScopes()->get(),
+            fn(): Collection => Entity::query()->withoutGlobalScopes()->get(),
         )->where('type', $type);
     }
 
@@ -206,7 +211,7 @@ trait HasDynamicContents
     {
         return Cache::memo()->rememberForever(
             new Preset()->getCacheKey(),
-            fn (): Collection => Preset::withoutGlobalScopes()->with(['fields', 'entity'])->get(),
+            fn(): Collection => Preset::withoutGlobalScopes()->with(['fields', 'entity'])->get(),
         )->where('entity.type', $type);
     }
 
@@ -222,6 +227,40 @@ trait HasDynamicContents
 
     private function mergeComponentsValues(array $components): array
     {
-        return $this->fields()->mapWithKeys(fn (Field $field) => [$field->name => data_get($components, $field->name) ?? $field->pivot->default])->toArray();
+        return $this->fields()->mapWithKeys(fn(Field $field) => [$field->name => data_get($components, $field->name) ?? $field->pivot->default])->toArray();
+    }
+
+    public function getRules(): array
+    {
+        $fields = [];
+
+        foreach ($this->fields() as $field) {
+            $rule = $field->type->getRule();
+
+            if ($field->pivot->is_required) {
+                $rule .= '|required';
+                if ($field->type === FieldType::ARRAY) {
+                    $rule .= '|filled';
+                }
+            } else {
+                $rule .= '|nullable';
+            }
+
+            if (isset($field->options->min)) {
+                $rule .= '|min:' . $field->options->min;
+            }
+
+            if (isset($field->options->max)) {
+                $rule .= '|max:' . $field->options->max;
+            }
+            $fields[$field->name] = mb_trim((string) $rule, '|');
+            if ($field->type === FieldType::EDITOR) {
+                $fields[$field->name . '.blocks'] = 'array';
+                $fields[$field->name . '.blocks.*.type'] = 'string';
+                $fields[$field->name . '.blocks.*.data'] = 'array';
+            }
+        }
+
+        return $fields;
     }
 }
