@@ -1,7 +1,7 @@
 <p>&nbsp;</p>
 <p align="center">
 	<a href="https://github.com/swolley" target="_blank">
-		<img src="https://raw.githubusercontent.com/swolley/images/refs/heads/master/swolley-1.jpg" />
+		<img src="https://raw.githubusercontent.com/swolley/images/refs/heads/master/logo_laraplate.png" width="400" alt="Laravel Logo" />
     </a>
 </p>
 <p>&nbsp;</p>
@@ -12,6 +12,7 @@
 -   [Installation](#installation)
 -   [Configuration](#configuration)
 -   [Features](#features)
+-   [Scripts](#scripts)
 -   [Contributing](#contributing)
 -   [License](#license)
 
@@ -30,7 +31,7 @@ Laraplate-cms is dependent on laraplate-core. Add both the repositories to your 
     {
         "type": "composer",
         "url": "https://github.com/swolley/laraplate-core.git"
-    }
+    },
     {
         "type": "composer",
         "url": "https://github.com/swolley/laraplate-cms.git"
@@ -52,31 +53,40 @@ php artisan module:install Cms
 ## Configuration
 
 ```env
+#cms
 CMS_SLUGGER='\Illuminate\Support\Str::slug'	#common slugger function for entities and content types
 
-MEDIA_DISK='public'							#disk name for media files
-MEDIA_QUEUE='sync'							#queue name for media files
-QUEUE_CONVERSIONS_BY_DEFAULT=true			#queue conversions by default
-QUEUE_CONVERSIONS_AFTER_DB_COMMIT=true		#queue conversions after database commit
-MAX_FILE_SIZE=1024*1024*10					#max file size for media files
-IMAGE_DRIVER=gd								#image driver for media files
-FFMPEG_PATH='/usr/bin/ffmpeg'				#ffmpeg path for media files
-FFPROBE_PATH='/usr/bin/ffprobe'				#ffprobe path for media files
-MEDIA_DOWNLOADER_SSL=true					#enable SSL for media downloads
-ENABLE_MEDIA_LIBRARY_VAPOR_UPLOADS=false	#enable vapor uploads for media files
-FORCE_MEDIA_LIBRARY_LAZY_LOADING=true		#force lazy loading for media files
+#geocoding
+GEOCODING_PROVIDER=nominatim					#geocoding provider (nominatim, google)
+GEOCODING_API_KEY=								#geocoding api key
+
+#media library
+MEDIA_DISK=public								#disk name for media files
+MEDIA_QUEUE=media-library						#queue name for media files
+QUEUE_CONNECTION=redis							#queue connection for media files
+QUEUE_CONVERSIONS_BY_DEFAULT=true				#queue conversions by default
+QUEUE_CONVERSIONS_AFTER_DB_COMMIT=true			#queue conversions after database commit
+MAX_FILE_SIZE=10485760							#max file size for media files (10MB)
+IMAGE_DRIVER=gd									#image driver for media files (gd, imagick)
+FFMPEG_PATH=/usr/bin/ffmpeg						#ffmpeg path for media files
+FFPROBE_PATH=/usr/bin/ffprobe					#ffprobe path for media files
+MEDIA_DOWNLOADER_SSL=true						#enable SSL for media downloads
+ENABLE_MEDIA_LIBRARY_VAPOR_UPLOADS=false		#enable vapor uploads for media files
+FORCE_MEDIA_LIBRARY_LAZY_LOADING=true			#force lazy loading for media files
+MEDIA_PREFIX=									#media prefix for storage
 ```
 
 ## Features
 
 ### Requirements
 
--   PHP >= 8.3
--   Laravel 11
+-   PHP >= 8.4
+-   Laravel 12.0+
 -   **PHP Extensions:**
 
     -   `ext-gd`: Provides support for image processing.
-    -   `ext-imagick` or `ext-gmagick`: Provides support for additional image processing.
+    -   `ext-exif`: Provides support for EXIF data extraction from images.
+    -   `ext-imagick` (optional): Provides support for additional image processing.
 
 ### Installed Packages
 
@@ -90,17 +100,96 @@ The Cms Module utilizes several packages to enhance its functionality. Below is 
 
     -   [spatie/laravel-medialibrary](https://github.com/spatie/laravel-medialibrary): Provides a way to manage media files in models.
 
+-   **Sorting and Ordering:**
+
+    -   [spatie/eloquent-sortable](https://github.com/spatie/eloquent-sortable): Provides a way to make Eloquent models sortable.
+
+-   **Video Processing:**
+
+    -   [php-ffmpeg/php-ffmpeg](https://github.com/PHP-FFMpeg/PHP-FFMpeg): Provides a way to process video files using FFmpeg.
+
+-   **Development and Testing:**
+
+    -   [pestphp/pest](https://github.com/pestphp/pest): A testing framework for PHP.
+    -   [pestphp/pest-plugin-laravel](https://github.com/pestphp/pest-plugin-laravel): Adds Laravel-specific testing features to Pest.
+    -   [pestphp/pest-plugin-stressless](https://github.com/pestphp/pest-plugin-stressless): Stress testing plugin for Pest.
+    -   [pestphp/pest-plugin-type-coverage](https://github.com/pestphp/pest-plugin-type-coverage): Type coverage plugin for Pest.
+    -   [laravel/pint](https://github.com/laravel/pint): Laravel's code style fixer.
+    -   [nunomaduro/phpinsights](https://github.com/nunomaduro/phpinsights): PHP quality checker.
+    -   [peckphp/peck](https://github.com/peckphp/peck): PHP typo checker.
+    -   [rector/rector](https://github.com/rectorphp/rector): Automated PHP code refactoring tool.
+
 ### Additional Functionalities
 
 The Cms Module includes built-in features such as:
 
 -   Dynamic Content types management
--   Media library management
--   Models tagging
--   Content versioning
+-   Media library management with advanced image processing
+-   Models tagging and categorization
+-   Content versioning and history
 -   Authors and signatures management
 -   Export Templates management in blade format
--   AI integration
+-   AI integration for content generation
+-   Geocoding services integration
+-   Video processing and thumbnail generation
+-   Responsive image generation
+-   Image optimization and compression
+-   Media file organization and sorting
+-   Parent-child content relationships
+-   Content approval workflows
+-   Multi-language content support
+-   SEO-friendly URL generation
+-   Content scheduling and publishing
+-   Media file conversions and transformations
+-   Lazy loading for improved performance
+-   Vapor uploads support for cloud deployments
+
+## Scripts
+
+The Cms Module provides several useful scripts for development and maintenance:
+
+### Code Quality and Testing
+
+```bash
+# Run all tests and quality checks
+composer test
+
+# Run specific test suites
+composer test:unit          # Run unit tests with coverage
+composer test:type-coverage # Check type coverage (target: 100%)
+composer test:typos         # Check for typos in code
+composer test:lint          # Check code style
+composer test:types         # Run PHPStan analysis
+composer test:refactor      # Run Rector refactoring
+```
+
+### Code Quality Tools
+
+```bash
+# Code style and IDE helpers
+composer lint               # Fix code style and generate IDE helpers
+
+# Static analysis
+composer check              # Run PHPStan analysis
+composer fix                # Run PHPStan analysis with auto-fix
+composer refactor           # Run Rector refactoring
+```
+
+### Version Management
+
+```bash
+# Version bumping
+composer version:major      # Bump major version
+composer version:minor      # Bump minor version
+composer version:patch      # Bump patch version
+```
+
+### Development Setup
+
+```bash
+# Setup Git hooks
+composer setup:hooks
+```
 
 ### Other References
 
@@ -118,4 +207,4 @@ If you want to contribute to this project, follow these steps:
 
 ## License
 
-Core Module is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Cms Module is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
