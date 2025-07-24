@@ -40,28 +40,41 @@ final class ContentFactory extends DynamicContentFactory
     #[Override]
     public function configure(): self
     {
-        return $this->afterMaking(function (Content $content): void {
+        return $this->afterMaking(function (Content &$content): void {
             $this->fillContents($content);
 
+            if (array_key_exists('period_to', $content->components) && fake()->boolean()) {
+                $content->period_to = max(fake()->dateTime($content->valid_to ?? 'now'), $content->valid_from)->format('Y-m-d H:i:s');
+            }
+
+            if (array_key_exists('period_from', $content->components)) {
+                $content->period_from = max(fake()->dateTime($content->components['period_to'] ?? $content->valid_to ?? 'now'), $content->valid_from)->format('Y-m-d H:i:s');
+            }
+
             $content->setForcedApprovalUpdate(fake()->boolean(85));
-
-            // convert content into the real class
-            $attributes = $content->getAttributes();
-            $attributes['components'] = json_decode($attributes['components'], true);
-            $content = $content->newInstance($attributes);
-
-            $content->without(['authors']);
         })->afterCreating(function (Content $content): void {
             $authors = Author::inRandomOrder()->limit(fake()->numberBetween(1, 3))->get();
-            $content->authors()->attach($authors->map(fn (Author $author) => ['content_id' => $content->id, 'author_id' => $author->id])->toArray());
+            if ($authors->isNotEmpty()) {
+                $content->authors()->attach($authors);
+            }
 
             $categories = Category::inRandomOrder()->limit(fake()->numberBetween(1, 2))->get();
-            $content->categories()->attach($categories->map(fn (Category $category) => ['content_id' => $content->id, 'category_id' => $category->id])->toArray());
+            if ($categories->isNotEmpty()) {
+                $content->categories()->attach($categories);
+            }
 
-            $tags = Tag::inRandomOrder()->limit(fake()->numberBetween(1, 5))->get();
-            $content->tags()->attach($tags->map(fn (Tag $tag) => ['content_id' => $content->id, 'tag_id' => $tag->id])->toArray());
-
-            $content->load('authors');
+            if (fake()->boolean(70)) {
+                $tags = Tag::inRandomOrder()->limit(fake()->numberBetween(1, 5))->get();
+                if ($tags->isNotEmpty()) {
+                    $content->tags()->attach($tags);
+                }
+            }
         });
+    }
+
+    #[Override]
+    public function newModel(array $attributes = []): Content
+    {
+        return (new Content())->newInstance($attributes);
     }
 }

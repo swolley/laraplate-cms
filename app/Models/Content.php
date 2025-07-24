@@ -191,9 +191,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
      */
     public function authors(): BelongsToMany
     {
-        return $this->belongsToMany(Author::class, 'authorables')
-            ->using(Authorable::class)
-            ->withTimestamps();
+        return $this->belongsToMany(Author::class, 'authorables')->using(Authorable::class)->withTimestamps();
     }
 
     /**

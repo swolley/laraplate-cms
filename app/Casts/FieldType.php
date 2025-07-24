@@ -36,7 +36,7 @@ enum FieldType: string
             self::EMAIL => 'email',
             self::PHONE => 'phone',
             self::URL => 'url',
-            self::EDITOR => 'json',
+            self::EDITOR => 'array',
             default => '',
         };
     }

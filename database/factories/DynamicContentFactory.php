@@ -74,7 +74,7 @@ abstract class DynamicContentFactory extends Factory
         $model->preset_id = $preset->id;
 
         // set the components depending on the preset configured fields
-        $model->components = $preset->fields->mapWithKeys(function (Field $field) use ($forcedValues) {
+        $model->components = $preset->fields->mapWithKeys(function (Field $field) use ($forcedValues, $model) {
             $value = $field->pivot->default;
 
             if ($field->pivot->is_required || fake()->boolean()) {
@@ -89,7 +89,7 @@ abstract class DynamicContentFactory extends Factory
                         FieldType::PHONE => fake()->boolean() ? fake()->unique()->phoneNumber() : null,
                         FieldType::URL => fake()->boolean() ? fake()->unique()->url() : null,
                         FieldType::EDITOR => (object) [
-                            'blocks' => array_map(fn($paragraph) => (object) [
+                            'blocks' => array_map(fn(string $paragraph) => (object) [
                                 'type' => 'paragraph',
                                 'data' => [
                                     'text' => $paragraph,
