@@ -34,7 +34,7 @@ enum FieldType: string
             self::OBJECT => 'json',
             self::ARRAY => 'array',
             self::EMAIL => 'email',
-            self::PHONE => 'phone',
+            self::PHONE => 'string|regex:/^[\+]?[1-9][\d]{0,15}$/',
             self::URL => 'url',
             self::EDITOR => 'array',
             default => '',

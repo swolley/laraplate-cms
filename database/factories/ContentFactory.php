@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Database\Factories;
 
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Models\Author;
 use Modules\Cms\Models\Category;
@@ -53,21 +57,13 @@ final class ContentFactory extends DynamicContentFactory
 
             $content->setForcedApprovalUpdate(fake()->boolean(85));
         })->afterCreating(function (Content $content): void {
-            $authors = Author::inRandomOrder()->limit(fake()->numberBetween(1, 3))->get();
-            if ($authors->isNotEmpty()) {
-                $content->authors()->attach($authors);
-            }
-
-            $categories = Category::inRandomOrder()->limit(fake()->numberBetween(1, 2))->get();
-            if ($categories->isNotEmpty()) {
-                $content->categories()->attach($categories);
-            }
-
-            if (fake()->boolean(70)) {
-                $tags = Tag::inRandomOrder()->limit(fake()->numberBetween(1, 5))->get();
-                if ($tags->isNotEmpty()) {
-                    $content->tags()->attach($tags);
-                }
+            if ($content->exists && $content->getKey()) {
+                $this->createRelations($content);
+            } else {
+                Log::warning('Content model not ready for relations', [
+                    'content_id' => $content->getKey(),
+                    'exists' => $content->exists
+                ]);
             }
         });
     }
@@ -76,5 +72,41 @@ final class ContentFactory extends DynamicContentFactory
     public function newModel(array $attributes = []): Content
     {
         return (new Content())->newInstance($attributes);
+    }
+
+    /**
+     * Create pivot relations for a content model
+     *
+     * @param  Content|Collection<Content>  $content
+     */
+    #[Override]
+    public function createRelations(Model|Collection $content, ?callable $callback = null): void
+    {
+        parent::createRelations($content, function (Content $content) use ($callback) {
+            if (!$content->getKey() || !$content->exists) {
+                return;
+            }
+
+            $authors = Author::inRandomOrder()->limit(fake()->numberBetween(1, 3))->get();
+            if ($authors->isNotEmpty() && $content->doesntHave('authors')) {
+                $content->authors()->syncWithoutDetaching($authors->pluck('id')->toArray());
+            }
+
+            $categories = Category::inRandomOrder()->limit(fake()->numberBetween(1, 2))->get();
+            if ($categories->isNotEmpty() && $content->doesntHave('categories')) {
+                $content->categories()->syncWithoutDetaching($categories->pluck('id')->toArray());
+            }
+
+            if (fake()->boolean(70)) {
+                $tags = Tag::inRandomOrder()->limit(fake()->numberBetween(1, 5))->get();
+                if ($tags->isNotEmpty() && $content->doesntHave('tags')) {
+                    $content->tags()->syncWithoutDetaching($tags->pluck('id')->toArray());
+                }
+            }
+
+            if ($callback) {
+                $callback($content);
+            }
+        });
     }
 }

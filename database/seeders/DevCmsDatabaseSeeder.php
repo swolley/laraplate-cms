@@ -12,6 +12,7 @@ use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Location;
 use Modules\Cms\Models\Tag;
 use Modules\Core\Helpers\BatchSeeder;
+use Illuminate\Support\Facades\Log;
 
 final class DevCmsDatabaseSeeder extends BatchSeeder
 {
@@ -61,5 +62,22 @@ final class DevCmsDatabaseSeeder extends BatchSeeder
     private function seedContents(): void
     {
         $this->createInBatches(Content::class, self::TARGET_COUNT_CONTENTS);
+
+        // Create pivot relations after contents are created
+        $this->createPivotRelations();
+    }
+
+    private function createPivotRelations(): void
+    {
+        $this->command->info('Creating pivot relations...');
+
+        // Get all contents and create relations in batches
+        Content::chunk(1000, function ($contents) {
+            foreach ($contents as $content) {
+                Content::factory()->createRelations($content);
+            }
+        });
+
+        $this->command->info('Pivot relations created successfully!');
     }
 }

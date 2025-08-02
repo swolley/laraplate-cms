@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Database\Factories;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Helpers\HasDynamicContents;
@@ -104,5 +106,34 @@ abstract class DynamicContentFactory extends Factory
 
             return [$field->name => $value];
         })->toArray();
+    }
+
+    /**
+     * Create pivot relations for a content model
+     *
+     * @param  Model&HasDynamicContents|Collection<Model&HasDynamicContents>  $content
+     */
+    public function createRelations(Model|Collection $content, ?callable $callback = null): void
+    {
+        try {
+            if (!$callback) {
+                return;
+            }
+
+            if (!$content instanceof Collection) {
+                $content = collect([$content]);
+            }
+
+            $i = 0;
+            for ($i; $i < $content->count(); $i++) {
+                $callback($content[$i]);
+            }
+        } catch (\Exception $e) {
+            Log::warning('Failed to attach relations to content: ' . $e->getMessage(), [
+                'model_id' => $content instanceof Model ? $content->getKey() : $content->get($i)->getKey(),
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
     }
 }
