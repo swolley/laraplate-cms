@@ -23,11 +23,11 @@ use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
+use Modules\Core\Helpers\SortableTrait;
 use Modules\Core\Locking\Traits\HasLocks;
 use Modules\Core\Overrides\ComposhipsModel;
 use Override;
 use Spatie\EloquentSortable\Sortable;
-use Spatie\EloquentSortable\SortableTrait;
 use Spatie\MediaLibrary\HasMedia as IMediable;
 use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 
@@ -97,8 +97,7 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
 
     // region Scopes
 
-    #[Scope]
-    public function ordered(Builder $query): Builder
+    public function scopeOrdered(Builder $query): Builder
     {
         return $query->priorityOrdered()->validityOrdered();
     }
@@ -185,7 +184,10 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
     protected static function booted(): void
     {
         self::addGlobalScope('global_filters', function (Builder $query): void {
-            $query->active()->valid()->ordered();
+            $query->active()->valid();
+        });
+        self::addGlobalScope('global_ordered', function (Builder $query): void {
+            $query->ordered();
         });
     }
 

@@ -30,7 +30,7 @@ trait HasDynamicContents
 {
     public function __get($key)
     {
-        if ($this->hasAttribute($key) || method_exists(self::class, $key) || in_array($key, $this->fillable, true)) {
+        if ($this->hasAttribute($key) || method_exists(self::class, $key) || in_array($key, $this->fillable, true) || $key === 'pivot') {
             return parent::__get($key);
         }
 

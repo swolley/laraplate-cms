@@ -53,7 +53,7 @@ final class CmsDatabaseSeeder extends Seeder
         $this->fields = Field::query()->withoutGlobalScopes()->get()->keyBy('name');
 
         $this->db->transaction(function (): void {
-            foreach (['kicker', 'title', 'subtitle'] as $field) {
+            foreach (['kicker', 'subtitle'] as $field) {
                 if (! $this->fields->has($field)) {
                     $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::TEXT, 'options' => (object) ['max_length' => 255]]));
                     $this->command->line("    - {$field} <fg=green>created</>");

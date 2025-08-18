@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Helpers\HasDynamicContents;
+use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Preset;
@@ -64,8 +65,8 @@ abstract class DynamicContentFactory extends Factory
 
         /** @var Preset|null $preset */
         $preset = $model->preset_id
-            ? $all_presets->firstWhere('id', $model->preset_id)
-            : $all_presets->random();
+            ? $all_presets->where('entity_id', $model->entity_id)->where('id', $model->preset_id)->first()
+            : $all_presets->where('entity_id', $model->entity_id)->random();
 
         if (! $preset) {
             /** @var HasDynamicContents $model */
@@ -106,6 +107,10 @@ abstract class DynamicContentFactory extends Factory
 
             return [$field->name => $value];
         })->toArray();
+
+        if (class_uses_trait($model, HasSlug::class) && $model->getRawOriginal('slug') === null) {
+            $model->slug = $model->generateSlug();
+        }
     }
 
     /**

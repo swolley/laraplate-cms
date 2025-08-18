@@ -17,9 +17,9 @@ use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\SoftDeletes;
+use Modules\Core\Helpers\SortableTrait;
 use Override;
 use Spatie\EloquentSortable\Sortable;
-use Spatie\EloquentSortable\SortableTrait;
 
 /**
  * @mixin IdeHelperTag

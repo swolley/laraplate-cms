@@ -6,7 +6,6 @@ namespace Modules\Cms\Database\Factories;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Models\Author;
@@ -87,20 +86,37 @@ final class ContentFactory extends DynamicContentFactory
                 return;
             }
 
-            $authors = Author::inRandomOrder()->limit(fake()->numberBetween(1, 3))->get();
-            if ($authors->isNotEmpty() && $content->doesntHave('authors')) {
-                $content->authors()->syncWithoutDetaching($authors->pluck('id')->toArray());
+            if ($content->doesntHave('authors')) {
+                $authors = Author::inRandomOrder()->limit(fake()->numberBetween(1, 3))->get();
+                if ($authors->isNotEmpty()) {
+                    $content->authors()->syncWithoutDetaching($authors->pluck('id')->toArray());
+                } else {
+                    $content->authors()->sync($authors->pluck('id')->toArray());
+                }
             }
 
-            $categories = Category::inRandomOrder()->limit(fake()->numberBetween(1, 2))->get();
-            if ($categories->isNotEmpty() && $content->doesntHave('categories')) {
-                $content->categories()->syncWithoutDetaching($categories->pluck('id')->toArray());
+            if ($content->doesntHave('categories')) {
+                $categories = Category::inRandomOrder()->limit(fake()->numberBetween(1, 2))->get();
+                if ($categories->isNotEmpty()) {
+                    $content->categories()->syncWithoutDetaching($categories->pluck('id')->toArray());
+                }
             }
 
-            if (fake()->boolean(70)) {
+            if (fake()->boolean(70) && $content->doesntHave('tags')) {
                 $tags = Tag::inRandomOrder()->limit(fake()->numberBetween(1, 5))->get();
-                if ($tags->isNotEmpty() && $content->doesntHave('tags')) {
+                if ($tags->isNotEmpty()) {
                     $content->tags()->syncWithoutDetaching($tags->pluck('id')->toArray());
+                }
+            }
+
+            if (fake()->boolean(35) && $content->doesntHave('related')) {
+                $relateds = Content::inRandomOrder()->where('id', '!=', $content->id)->limit(fake()->numberBetween(1, 3))->get();
+                if ($relateds->isNotEmpty()) {
+                    $remapped = $relateds->map(fn(Content $related) => [
+                        'related_content_id' => $related->id,
+                        'content_id' => $content->id,
+                    ])->toArray();
+                    $content->related()->syncWithoutDetaching($remapped);
                 }
             }
 

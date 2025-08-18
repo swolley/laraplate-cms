@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Modules\Core\Helpers\HasVersions;
+use Modules\Core\Helpers\SortableTrait;
 use Override;
 use Spatie\EloquentSortable\Sortable;
-use Spatie\EloquentSortable\SortableTrait;
 
 /**
  * @mixin IdeHelperFieldable

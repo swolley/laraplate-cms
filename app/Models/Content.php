@@ -26,13 +26,13 @@ use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
+use Modules\Core\Helpers\SortableTrait;
 use Modules\Core\Locking\HasOptimisticLocking;
 use Modules\Core\Locking\Traits\HasLocks;
 use Modules\Core\Overrides\ComposhipsModel;
 use Override;
 use Parental\HasChildren;
 use Spatie\EloquentSortable\Sortable;
-use Spatie\EloquentSortable\SortableTrait;
 use Spatie\MediaLibrary\HasMedia;
 
 /**
@@ -178,7 +178,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
      */
     public function locations(): BelongsToMany
     {
-        $relation = $this->belongsToMany(Location::class, 'content_id', 'location_id', 'id');
+        $relation = $this->belongsToMany(Location::class);
         $relation->withTrashed();
 
         return $relation;
@@ -287,7 +287,10 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         parent::boot();
 
         static::addGlobalScope('global_filters', function (Builder $query): void {
-            $query->valid()->ordered();
+            $query->valid();
+        });
+        static::addGlobalScope('global_ordered', function (Builder $query): void {
+            $query->ordered();
         });
     }
 
