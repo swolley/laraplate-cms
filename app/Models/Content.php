@@ -30,6 +30,7 @@ use Modules\Core\Helpers\SortableTrait;
 use Modules\Core\Locking\HasOptimisticLocking;
 use Modules\Core\Locking\Traits\HasLocks;
 use Modules\Core\Overrides\ComposhipsModel;
+use Modules\Core\Search\Traits\Searchable;
 use Override;
 use Parental\HasChildren;
 use Spatie\EloquentSortable\Sortable;
@@ -53,10 +54,10 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         HasValidations,
         HasValidity,
         HasVersions,
-        // Searchable,
+        Searchable,
         SoftDeletes,
         SortableTrait {
-        // toSearchableArray as protected toSearchableArrayTrait;
+        toSearchableArray as protected toSearchableArrayTrait;
         HasValidations::getRules as protected getRulesTrait;
         HasDynamicContents::getRules as protected getRulesDynamicContents;
         HasChildren::hasMany as protected hasChildrenHasMany;

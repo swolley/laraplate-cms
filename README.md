@@ -210,3 +210,35 @@ If you want to contribute to this project, follow these steps:
 ## License
 
 Cms Module is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## TODO and FIXME
+
+This section tracks all pending tasks and issues that need to be addressed in the Cms Module.
+
+### High Priority
+
+- [ ] **Dynamic Content Embedding** - `Modules/Cms/app/Models/Content.php:314`
+  - TODO: How to extract embedding for dynamic contents?
+  - Need to implement proper embedding extraction for AI-powered content analysis
+  - Related to vector search and content indexing functionality
+
+### Medium Priority
+
+- [ ] **Content Embedding Implementation**
+  - Need to implement embedding generation for dynamic content components
+  - Should integrate with Core Module's vector search capabilities
+  - Consider implementing automatic embedding updates when content changes
+
+### Low Priority
+
+- [ ] **Content Type Optimization**
+  - Review and optimize content type handling
+  - Consider implementing caching for frequently accessed content types
+  - Evaluate performance improvements for large content collections
+
+### Notes
+
+- Most TODO items are related to AI integration and content optimization
+- The main focus is on implementing proper embedding extraction for dynamic contents
+- Should coordinate with Core Module's vector search implementation
+- Consider implementing automated content analysis and tagging features

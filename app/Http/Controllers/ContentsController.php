@@ -14,10 +14,10 @@ use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 
 final class ContentsController extends CrudController
 {
-	/**
-	 * @route-comment
-	 * Route(path: 'api/v1/{relation}/{value}/{entity}', name: 'cms.api.relation.contents', methods: [GET, HEAD], middleware: [api])
-	 */
+    /**
+     * @route-comment
+     * Route(path: 'api/v1/{relation}/{value}/{entity}', name: 'cms.api.relation.contents', methods: [GET, HEAD], middleware: [api])
+     */
     public function getContentsByRelation(ListRequest $request, string $relation, string $value, string $entity): \Symfony\Component\HttpFoundation\Response
     {
         $filters = $this->createCommonFilters($request, $relation, $value);

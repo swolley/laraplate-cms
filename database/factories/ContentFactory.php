@@ -61,7 +61,7 @@ final class ContentFactory extends DynamicContentFactory
             } else {
                 Log::warning('Content model not ready for relations', [
                     'content_id' => $content->getKey(),
-                    'exists' => $content->exists
+                    'exists' => $content->exists,
                 ]);
             }
         });
@@ -74,20 +74,21 @@ final class ContentFactory extends DynamicContentFactory
     }
 
     /**
-     * Create pivot relations for a content model
+     * Create pivot relations for a content model.
      *
      * @param  Content|Collection<Content>  $content
      */
     #[Override]
     public function createRelations(Model|Collection $content, ?callable $callback = null): void
     {
-        parent::createRelations($content, function (Content $content) use ($callback) {
-            if (!$content->getKey() || !$content->exists) {
+        parent::createRelations($content, function (Content $content) use ($callback): void {
+            if (! $content->getKey() || ! $content->exists) {
                 return;
             }
 
             if ($content->doesntHave('authors')) {
                 $authors = Author::inRandomOrder()->limit(fake()->numberBetween(1, 3))->get();
+
                 if ($authors->isNotEmpty()) {
                     $content->authors()->syncWithoutDetaching($authors->pluck('id')->toArray());
                 } else {
@@ -97,6 +98,7 @@ final class ContentFactory extends DynamicContentFactory
 
             if ($content->doesntHave('categories')) {
                 $categories = Category::inRandomOrder()->limit(fake()->numberBetween(1, 2))->get();
+
                 if ($categories->isNotEmpty()) {
                     $content->categories()->syncWithoutDetaching($categories->pluck('id')->toArray());
                 }
@@ -104,6 +106,7 @@ final class ContentFactory extends DynamicContentFactory
 
             if (fake()->boolean(70) && $content->doesntHave('tags')) {
                 $tags = Tag::inRandomOrder()->limit(fake()->numberBetween(1, 5))->get();
+
                 if ($tags->isNotEmpty()) {
                     $content->tags()->syncWithoutDetaching($tags->pluck('id')->toArray());
                 }
@@ -111,8 +114,9 @@ final class ContentFactory extends DynamicContentFactory
 
             if (fake()->boolean(35) && $content->doesntHave('related')) {
                 $relateds = Content::inRandomOrder()->where('id', '!=', $content->id)->limit(fake()->numberBetween(1, 3))->get();
+
                 if ($relateds->isNotEmpty()) {
-                    $remapped = $relateds->map(fn(Content $related) => [
+                    $remapped = $relateds->map(fn (Content $related) => [
                         'related_content_id' => $related->id,
                         'content_id' => $content->id,
                     ])->toArray();

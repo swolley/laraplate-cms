@@ -12,11 +12,11 @@ use Override;
  */
 final class Categorizable extends Pivot
 {
+    public $incrementing = false;
+
     protected $table = 'categorizables';
 
     protected $primaryKey = ['content_id', 'category_id'];
-
-    public $incrementing = false;
 
     protected $keyType = 'array';
 

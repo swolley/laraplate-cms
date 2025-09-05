@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -47,6 +48,13 @@ final class Author extends ComposhipsModel implements IMediable
     ];
 
     private ?User $tempUser = null;
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::addGlobalScope(fn(Builder $query) => $query->with('user'));
+    }
 
     // Magic getter for user attributes
     #[Override]
@@ -155,6 +163,11 @@ final class Author extends ComposhipsModel implements IMediable
     protected function getCanLoginAttribute(): bool
     {
         return $this->user !== null || $this->tempUser instanceof User;
+    }
+
+    protected function isUserAttribute(): bool
+    {
+        return $this->getCanLoginAttribute();
     }
 
     protected function getIsSignatureAttribute(): bool

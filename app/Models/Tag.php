@@ -78,7 +78,6 @@ final class Tag extends Model implements Sortable
     }
 
     /**
-     * @param string $name
      * @return Collection<self>
      */
     public static function findFromStringOfAnyType(string $name): Collection

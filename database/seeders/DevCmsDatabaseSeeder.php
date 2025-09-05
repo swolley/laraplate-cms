@@ -6,7 +6,6 @@ namespace Modules\Cms\Database\Seeders;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Log;
 use Modules\Cms\Models\Author;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
@@ -72,7 +71,7 @@ final class DevCmsDatabaseSeeder extends BatchSeeder
         $this->command->info('Creating pivot relations...');
 
         // Get all contents and create relations in batches
-        Content::chunk(1000, function ($contents) {
+        Content::chunk(1000, function ($contents): void {
             foreach ($contents as $content) {
                 Content::factory()->createRelations($content);
             }

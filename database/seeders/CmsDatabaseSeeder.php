@@ -15,7 +15,6 @@ use Modules\Core\Casts\ActionEnum;
 use Modules\Core\Database\Seeders\CoreDatabaseSeeder;
 use Modules\Core\Models\Role;
 use Modules\Core\Overrides\Seeder;
-use stdClass;
 
 final class CmsDatabaseSeeder extends Seeder
 {

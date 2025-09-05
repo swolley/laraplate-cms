@@ -7,10 +7,7 @@ namespace Modules\Cms\Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Models\Category;
-use Modules\Cms\Models\Entity;
-use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Preset;
 use Override;
 

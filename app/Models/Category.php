@@ -50,14 +50,14 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
         HasVersions,
         SoftDeletes,
         SortableTrait {
-        HasValidations::getRules as protected getRulesTrait;
-        HasDynamicContents::getRules as protected getRulesDynamicContents;
-        getFullPath as protected getFullPathTrait;
-        requiresApprovalWhen as protected requiresApprovalWhenTrait;
-        HasDynamicContents::toArray as protected dynamicContentsToArray;
-        HasApprovals::toArray as protected approvalsToArray;
-        SortableTrait::scopeOrdered as protected scopePriorityOrdered;
-    }
+            HasValidations::getRules as protected getRulesTrait;
+            HasDynamicContents::getRules as protected getRulesDynamicContents;
+            getFullPath as protected getFullPathTrait;
+            requiresApprovalWhen as protected requiresApprovalWhenTrait;
+            HasDynamicContents::toArray as protected dynamicContentsToArray;
+            HasApprovals::toArray as protected approvalsToArray;
+            SortableTrait::scopeOrdered as protected scopePriorityOrdered;
+        }
 
     /**
      * The attributes that are mass assignable.
@@ -134,8 +134,6 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
 
     // endregion
 
-
-
     public function getRules(): array
     {
         $rules = $this->getRulesTrait();
@@ -146,7 +144,7 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('categories')->where(fn($query) => $query->where('parent_id', request('parent_id'))->whereNull('deleted_at')),
+                Rule::unique('categories')->where(fn ($query) => $query->where('parent_id', request('parent_id'))->whereNull('deleted_at')),
             ],
         ]);
         $rules['update'] = array_merge($rules['update'], [
@@ -154,7 +152,7 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
                 'sometimes',
                 'string',
                 'max:255',
-                Rule::unique('categories')->where(fn($query) => $query->where('parent_id', request('parent_id'))->whereNull('deleted_at'))->ignore($this->id, 'id'),
+                Rule::unique('categories')->where(fn ($query) => $query->where('parent_id', request('parent_id'))->whereNull('deleted_at'))->ignore($this->id, 'id'),
             ],
         ]);
 
@@ -231,21 +229,21 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
     private function ids(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->ancestors->pluck('id')->reverse()->merge([$this->id])->join('.'),
+            get: fn () => $this->ancestors->pluck('id')->reverse()->merge([$this->id])->join('.'),
         );
     }
 
     private function fullName(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->ancestors->pluck('name')->reverse()->merge([$this->name])->join(' > '),
+            get: fn () => $this->ancestors->pluck('name')->reverse()->merge([$this->name])->join(' > '),
         );
     }
 
     private function title(): Attribute
     {
         return Attribute::make(
-            get: fn() => $this->name,
+            get: fn () => $this->name,
         );
     }
 }

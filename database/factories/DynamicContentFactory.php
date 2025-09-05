@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Database\Factories;
 
+use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
@@ -32,7 +33,7 @@ abstract class DynamicContentFactory extends Factory
         /** @var class-string<Model&HasDynamicContents> $model_name */
         $model_name = $this->modelName();
 
-        if (!isset($this->entityType)) {
+        if (! isset($this->entityType)) {
             throw new RuntimeException('Entity type not set for model: ' . $model_name);
         }
 
@@ -42,6 +43,37 @@ abstract class DynamicContentFactory extends Factory
         return [
             'entity_id' => $entity?->id,
         ];
+    }
+
+    /**
+     * Create pivot relations for a content model.
+     *
+     * @param  Model&HasDynamicContents|Collection<Model&HasDynamicContents>  $content
+     */
+    public function createRelations(Model|Collection $content, ?callable $callback = null): void
+    {
+        try {
+            if (! $callback) {
+                return;
+            }
+
+            if (! $content instanceof Collection) {
+                $content = collect([$content]);
+            }
+
+            $i = 0;
+
+            for ($i; $i < $content->count(); $i++) {
+                $callback($content[$i]);
+            }
+        } catch (Exception $e) {
+            Log::warning('Failed to attach relations to content: ' . $e->getMessage(), [
+                'model_id' => $content instanceof Model ? $content->getKey() : $content->get($i)->getKey(),
+                'error' => $e->getMessage(),
+            ]);
+
+            throw $e;
+        }
     }
 
     /**
@@ -57,7 +89,7 @@ abstract class DynamicContentFactory extends Factory
         /** @var class-string<Model&HasDynamicContents> $model_name */
         $model_name = $this->modelName();
 
-        if (!isset($this->entityType)) {
+        if (! isset($this->entityType)) {
             throw new RuntimeException('Entity type not set for model: ' . $model_name);
         }
 
@@ -77,7 +109,7 @@ abstract class DynamicContentFactory extends Factory
         $model->preset_id = $preset->id;
 
         // set the components depending on the preset configured fields
-        $model->components = $preset->fields->mapWithKeys(function (Field $field) use ($forcedValues, $model) {
+        $model->components = $preset->fields->mapWithKeys(function (Field $field) use ($forcedValues) {
             $value = $field->pivot->default;
 
             if ($field->pivot->is_required || fake()->boolean()) {
@@ -92,7 +124,7 @@ abstract class DynamicContentFactory extends Factory
                         FieldType::PHONE => fake()->boolean() ? fake()->unique()->phoneNumber() : null,
                         FieldType::URL => fake()->boolean() ? fake()->unique()->url() : null,
                         FieldType::EDITOR => (object) [
-                            'blocks' => array_map(fn(string $paragraph) => (object) [
+                            'blocks' => array_map(fn (string $paragraph) => (object) [
                                 'type' => 'paragraph',
                                 'data' => [
                                     'text' => $paragraph,
@@ -110,35 +142,6 @@ abstract class DynamicContentFactory extends Factory
 
         if (class_uses_trait($model, HasSlug::class) && $model->getRawOriginal('slug') === null) {
             $model->slug = $model->generateSlug();
-        }
-    }
-
-    /**
-     * Create pivot relations for a content model
-     *
-     * @param  Model&HasDynamicContents|Collection<Model&HasDynamicContents>  $content
-     */
-    public function createRelations(Model|Collection $content, ?callable $callback = null): void
-    {
-        try {
-            if (!$callback) {
-                return;
-            }
-
-            if (!$content instanceof Collection) {
-                $content = collect([$content]);
-            }
-
-            $i = 0;
-            for ($i; $i < $content->count(); $i++) {
-                $callback($content[$i]);
-            }
-        } catch (\Exception $e) {
-            Log::warning('Failed to attach relations to content: ' . $e->getMessage(), [
-                'model_id' => $content instanceof Model ? $content->getKey() : $content->get($i)->getKey(),
-                'error' => $e->getMessage()
-            ]);
-            throw $e;
         }
     }
 }

@@ -1,0 +1,11 @@
+<?php
+
+namespace Modules\Cms\Filament\Resources\Presets\Pages;
+
+use Filament\Resources\Pages\CreateRecord;
+use Modules\Cms\Filament\Resources\Presets\PresetResource;
+
+class CreatePreset extends CreateRecord
+{
+    protected static string $resource = PresetResource::class;
+}
