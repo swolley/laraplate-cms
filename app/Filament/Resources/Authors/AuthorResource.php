@@ -23,7 +23,7 @@ class AuthorResource extends Resource
 {
     protected static ?string $model = Author::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBriefcase;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
     protected static string|UnitEnum|null $navigationGroup = 'Cms';
 

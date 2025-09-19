@@ -2,58 +2,35 @@
 
 namespace Modules\Cms\Filament\Resources\Tags\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteBulkAction;
-use Filament\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\IconColumn;
+use \Override;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Collection;
+use Modules\Cms\Models\Tag;
+use Modules\Core\Filament\Utils\BaseTable;
 
-class TagsTable
+final class TagsTable extends BaseTable
 {
+    #[Override]
+    protected function getModel(): string
+    {
+        return Tag::class;
+    }
+
     public static function configure(Table $table): Table
     {
-        return $table
-            ->columns([
-                TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('slug')
-                    ->searchable(),
-                TextColumn::make('type')
-                    ->searchable(),
-                TextColumn::make('order_column')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                IconColumn::make('is_deleted')
-                    ->boolean(),
-            ])
-            ->filters([
-                TrashedFilter::make(),
-            ])
-            ->recordActions([
-                EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
-                ]),
-            ]);
+        return self::configureTable(
+            table: $table,
+            columns: function (Collection $columns) {
+                $columns->unshift(...[
+                    TextColumn::make('name')
+                        ->searchable(),
+                    TextColumn::make('slug')
+                        ->searchable(),
+                    TextColumn::make('type')
+                        ->searchable(),
+                ]);
+            },
+        );
     }
 }

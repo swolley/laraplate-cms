@@ -2,46 +2,31 @@
 
 namespace Modules\Cms\Filament\Resources\Templates\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Tables\Columns\IconColumn;
+use \Override;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Collection;
+use Modules\Cms\Models\Template;
+use Modules\Core\Filament\Utils\BaseTable;
 
-class TemplatesTable
+final class TemplatesTable extends BaseTable
 {
+    #[Override]
+    protected function getModel(): string
+    {
+        return Template::class;
+    }
+
     public static function configure(Table $table): Table
     {
-        return $table
-            ->columns([
-                TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                IconColumn::make('is_deleted')
-                    ->boolean(),
-            ])
-            ->filters([
-                //
-            ])
-            ->recordActions([
-                EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ]);
+        return self::configureTable(
+            table: $table,
+            columns: function (Collection $columns) {
+                $columns->unshift(...[
+                    TextColumn::make('name')
+                        ->searchable(),
+                ]);
+            },
+        );
     }
 }

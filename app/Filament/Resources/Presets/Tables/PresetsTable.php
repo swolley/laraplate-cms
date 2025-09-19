@@ -2,57 +2,47 @@
 
 namespace Modules\Cms\Filament\Resources\Presets\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteBulkAction;
-use Filament\Actions\RestoreBulkAction;
+use \Override;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Collection;
+use Modules\Cms\Models\Preset;
+use Modules\Core\Filament\Utils\BaseTable;
 
-class PresetsTable
+final class PresetsTable extends BaseTable
 {
+    #[Override]
+    protected function getModel(): string
+    {
+        return Preset::class;
+    }
+
     public static function configure(Table $table): Table
     {
-        return $table
-            ->columns([
-                TextColumn::make('entity.name')
-                    ->searchable(),
-                TextColumn::make('name')
-                    ->searchable(),
-                IconColumn::make('is_active')
-                    ->boolean(),
-                TextColumn::make('template.name')
-                    ->searchable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                IconColumn::make('is_deleted')
-                    ->boolean(),
-            ])
-            ->filters([
-                TrashedFilter::make(),
-            ])
-            ->recordActions([
-                EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
-                ]),
-            ]);
+        return self::configureTable(
+            table: $table,
+            columns: function (Collection $columns) {
+                $columns->unshift(...[
+                    IconColumn::make('is_active')
+                        ->boolean(),
+                    TextColumn::make('entity.name')
+                        ->searchable(),
+                    TextColumn::make('name')
+                        ->searchable(),
+                    TextColumn::make('template.name')
+                        ->searchable(),
+                ]);
+            },
+            filters: function (Collection $default_filters) {
+                $default_filters->unshift(
+                    TernaryFilter::make('is_active')
+                        ->label('Active')
+                        ->attribute('is_active')
+                        ->nullable(),
+                );
+            },
+        );
     }
 }

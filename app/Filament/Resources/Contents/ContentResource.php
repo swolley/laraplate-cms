@@ -23,7 +23,7 @@ class ContentResource extends Resource
 {
     protected static ?string $model = Content::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPencil;
 
     protected static string|UnitEnum|null $navigationGroup = 'Cms';
 
