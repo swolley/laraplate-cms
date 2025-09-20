@@ -2,20 +2,13 @@
 
 namespace Modules\Cms\Filament\Resources\Categories\Pages;
 
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
-use Illuminate\Database\Eloquent\Builder;
 use Modules\Cms\Filament\Resources\Categories\CategoryResource;
-use Override;
+use Modules\Cms\Filament\Utils\HasRecords;
 
 class ListCategories extends ListRecords
 {
-    protected static string $resource = CategoryResource::class;
+    use HasRecords;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            CreateAction::make(),
-        ];
-    }
+    protected static string $resource = CategoryResource::class;
 }

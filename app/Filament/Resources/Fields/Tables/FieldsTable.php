@@ -2,21 +2,16 @@
 
 namespace Modules\Cms\Filament\Resources\Fields\Tables;
 
-use \Override;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
-use Modules\Cms\Models\Field;
-use Modules\Core\Filament\Utils\BaseTable;
+use Modules\Core\Filament\Utils\HasTable;
 
-final class FieldsTable extends BaseTable
+final class FieldsTable
 {
-    #[Override]
-    protected function getModel(): string
-    {
-        return Field::class;
-    }
+    use HasTable;
 
     public static function configure(Table $table): Table
     {
@@ -24,12 +19,23 @@ final class FieldsTable extends BaseTable
             table: $table,
             columns: function (Collection $columns) {
                 $columns->unshift(...[
+                    ToggleColumn::make('is_active')
+                        ->searchable()
+                        ->alignCenter()
+                        ->grow(false)
+                        ->toggleable(isToggledHiddenByDefault: false)
+                        ->boolean(),
                     TextColumn::make('name')
                         ->searchable(),
                     TextColumn::make('type')
                         ->searchable(),
+                    TextColumn::make('options')
+                        ->toggleable(isToggledHiddenByDefault: false),
                     IconColumn::make('is_slug')
-                        ->boolean(),
+                        ->boolean()
+                        ->alignCenter()
+                        ->grow(false)
+                        ->toggleable(isToggledHiddenByDefault: true),
                 ]);
             },
         );

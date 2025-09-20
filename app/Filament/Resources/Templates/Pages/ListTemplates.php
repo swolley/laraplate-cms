@@ -2,18 +2,13 @@
 
 namespace Modules\Cms\Filament\Resources\Templates\Pages;
 
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Modules\Cms\Filament\Resources\Templates\TemplateResource;
+use Modules\Cms\Filament\Utils\HasRecords;
 
 class ListTemplates extends ListRecords
 {
-    protected static string $resource = TemplateResource::class;
+    use HasRecords;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            CreateAction::make(),
-        ];
-    }
+    protected static string $resource = TemplateResource::class;
 }

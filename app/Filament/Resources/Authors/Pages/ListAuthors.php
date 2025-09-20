@@ -2,18 +2,13 @@
 
 namespace Modules\Cms\Filament\Resources\Authors\Pages;
 
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Modules\Cms\Filament\Resources\Authors\AuthorResource;
+use Modules\Cms\Filament\Utils\HasRecords;
 
 class ListAuthors extends ListRecords
 {
-    protected static string $resource = AuthorResource::class;
+    use HasRecords;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            CreateAction::make(),
-        ];
-    }
+    protected static string $resource = AuthorResource::class;
 }

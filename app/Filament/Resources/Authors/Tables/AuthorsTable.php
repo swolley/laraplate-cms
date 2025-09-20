@@ -2,22 +2,17 @@
 
 namespace Modules\Cms\Filament\Resources\Authors\Tables;
 
-use \Override;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
 use Modules\Cms\Models\Author;
-use Modules\Core\Filament\Utils\BaseTable;
+use Modules\Core\Filament\Utils\HasTable;
 
-final class AuthorsTable extends BaseTable
+final class AuthorsTable
 {
-    #[Override]
-    protected function getModel(): string
-    {
-        return Author::class;
-    }
+    use HasTable;
 
     public static function configure(Table $table): Table
     {

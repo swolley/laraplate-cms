@@ -2,22 +2,16 @@
 
 namespace Modules\Cms\Filament\Resources\Presets\Tables;
 
-use \Override;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
-use Modules\Cms\Models\Preset;
-use Modules\Core\Filament\Utils\BaseTable;
+use Modules\Core\Filament\Utils\HasTable;
 
-final class PresetsTable extends BaseTable
+final class PresetsTable
 {
-    #[Override]
-    protected function getModel(): string
-    {
-        return Preset::class;
-    }
+    use HasTable;
 
     public static function configure(Table $table): Table
     {
@@ -25,7 +19,7 @@ final class PresetsTable extends BaseTable
             table: $table,
             columns: function (Collection $columns) {
                 $columns->unshift(...[
-                    IconColumn::make('is_active')
+                    ToggleColumn::make('is_active')
                         ->boolean(),
                     TextColumn::make('entity.name')
                         ->searchable(),

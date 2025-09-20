@@ -2,20 +2,14 @@
 
 namespace Modules\Cms\Filament\Resources\Locations\Tables;
 
-use \Override;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
-use Modules\Cms\Models\Location;
-use Modules\Core\Filament\Utils\BaseTable;
+use Modules\Core\Filament\Utils\HasTable;
 
-final class LocationsTable extends BaseTable
+final class LocationsTable
 {
-    #[Override]
-    protected function getModel(): string
-    {
-        return Location::class;
-    }
+    use HasTable;
 
     public static function configure(Table $table): Table
     {
@@ -26,20 +20,28 @@ final class LocationsTable extends BaseTable
                     TextColumn::make('name')
                         ->searchable(),
                     TextColumn::make('slug')
-                        ->searchable(),
+                        ->searchable()
+                        ->toggleable(isToggledHiddenByDefault: true),
                     TextColumn::make('address')
-                        ->searchable(),
+                        ->searchable()
+                        ->toggleable(isToggledHiddenByDefault: false),
                     TextColumn::make('city')
-                        ->searchable(),
+                        ->searchable()
+                        ->toggleable(isToggledHiddenByDefault: false),
                     TextColumn::make('province')
-                        ->searchable(),
+                        ->searchable()
+                        ->toggleable(isToggledHiddenByDefault: false),
                     TextColumn::make('country')
-                        ->searchable(),
+                        ->searchable()
+                        ->toggleable(isToggledHiddenByDefault: false),
                     TextColumn::make('postcode')
-                        ->searchable(),
+                        ->searchable()
+                        ->toggleable(isToggledHiddenByDefault: false),
                     TextColumn::make('zone')
-                        ->searchable(),
-                    TextColumn::make('geolocation'),
+                        ->searchable()
+                        ->toggleable(isToggledHiddenByDefault: false),
+                    TextColumn::make('geolocation')
+                        ->toggleable(isToggledHiddenByDefault: true),
 
                 ]);
             },

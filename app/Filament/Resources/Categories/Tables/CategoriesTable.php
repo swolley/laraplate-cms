@@ -2,21 +2,17 @@
 
 namespace Modules\Cms\Filament\Resources\Categories\Tables;
 
-use \Override;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Modules\Cms\Models\Category;
-use Modules\Core\Filament\Utils\BaseTable;
+use Modules\Core\Filament\Utils\HasTable;
 
-final class CategoriesTable extends BaseTable
+final class CategoriesTable
 {
-    #[\Override]
-    protected function getModel(): string
-    {
-        return Category::class;
-    }
+    use HasTable;
 
     public static function configure(Table $table): Table
     {
@@ -24,7 +20,7 @@ final class CategoriesTable extends BaseTable
             table: $table,
             columns: function (Collection $default_columns) {
                 $default_columns->unshift(...[
-                    IconColumn::make('is_active')
+                    ToggleColumn::make('is_active')
                         ->alignCenter()
                         ->boolean(),
                     TextColumn::make('entity.name')
@@ -35,17 +31,22 @@ final class CategoriesTable extends BaseTable
                         ->searchable()
                         ->sortable()
                         ->toggleable(isToggledHiddenByDefault: true),
+                    TextColumn::make('name')
+                        ->searchable()
+                        ->sortable()
+                        ->state(function (Category $record) {
+                            $ancestors = $record->ancestors->count();
+                            return Str::repeat('&nbsp;', $ancestors * 4) . $record->name;
+                        })
+                        ->html(),
                     TextColumn::make('path')
                         ->searchable()
                         ->sortable()
-                        ->toggleable(isToggledHiddenByDefault: false),
+                        ->toggleable(isToggledHiddenByDefault: true),
                     TextColumn::make('parent_id')
                         ->numeric()
                         ->sortable()
                         ->toggleable(isToggledHiddenByDefault: true),
-                    TextColumn::make('name')
-                        ->searchable()
-                        ->sortable(),
                     TextColumn::make('slug')
                         ->searchable()
                         ->sortable()

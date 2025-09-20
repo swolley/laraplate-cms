@@ -2,20 +2,14 @@
 
 namespace Modules\Cms\Filament\Resources\Templates\Tables;
 
-use \Override;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
-use Modules\Cms\Models\Template;
-use Modules\Core\Filament\Utils\BaseTable;
+use Modules\Core\Filament\Utils\HasTable;
 
-final class TemplatesTable extends BaseTable
+final class TemplatesTable
 {
-    #[Override]
-    protected function getModel(): string
-    {
-        return Template::class;
-    }
+    use HasTable;
 
     public static function configure(Table $table): Table
     {

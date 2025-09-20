@@ -2,18 +2,13 @@
 
 namespace Modules\Cms\Filament\Resources\Contents\Pages;
 
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Modules\Cms\Filament\Resources\Contents\ContentResource;
+use Modules\Cms\Filament\Utils\HasRecords;
 
 class ListContents extends ListRecords
 {
-    protected static string $resource = ContentResource::class;
+    use HasRecords;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            CreateAction::make(),
-        ];
-    }
+    protected static string $resource = ContentResource::class;
 }

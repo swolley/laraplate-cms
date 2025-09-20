@@ -2,20 +2,14 @@
 
 namespace Modules\Cms\Filament\Resources\Tags\Tables;
 
-use \Override;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
-use Modules\Cms\Models\Tag;
-use Modules\Core\Filament\Utils\BaseTable;
+use Modules\Core\Filament\Utils\HasTable;
 
-final class TagsTable extends BaseTable
+final class TagsTable
 {
-    #[Override]
-    protected function getModel(): string
-    {
-        return Tag::class;
-    }
+    use HasTable;
 
     public static function configure(Table $table): Table
     {
@@ -26,9 +20,11 @@ final class TagsTable extends BaseTable
                     TextColumn::make('name')
                         ->searchable(),
                     TextColumn::make('slug')
-                        ->searchable(),
+                        ->searchable()
+                        ->toggleable(isToggledHiddenByDefault: true),
                     TextColumn::make('type')
-                        ->searchable(),
+                        ->searchable()
+                        ->toggleable(isToggledHiddenByDefault: false),
                 ]);
             },
         );

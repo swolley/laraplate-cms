@@ -2,18 +2,13 @@
 
 namespace Modules\Cms\Filament\Resources\Tags\Pages;
 
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Modules\Cms\Filament\Resources\Tags\TagResource;
+use Modules\Cms\Filament\Utils\HasRecords;
 
 class ListTags extends ListRecords
 {
-    protected static string $resource = TagResource::class;
+    use HasRecords;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            CreateAction::make(),
-        ];
-    }
+    protected static string $resource = TagResource::class;
 }

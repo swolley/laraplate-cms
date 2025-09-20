@@ -2,22 +2,16 @@
 
 namespace Modules\Cms\Filament\Resources\Entities\Tables;
 
-use \Override;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
-use Modules\Cms\Models\Entity;
-use Modules\Core\Filament\Utils\BaseTable;
+use Modules\Core\Filament\Utils\HasTable;
 
-final class EntitiesTable extends BaseTable
+final class EntitiesTable
 {
-    #[Override]
-    protected function getModel(): string
-    {
-        return Entity::class;
-    }
+    use HasTable;
 
     public static function configure(Table $table): Table
     {
@@ -25,14 +19,21 @@ final class EntitiesTable extends BaseTable
             table: $table,
             columns: function (Collection $columns) {
                 $columns->unshift(...[
-                    IconColumn::make('is_active')
-                        ->boolean(),
-                    TextColumn::make('name')
-                        ->searchable(),
-                    TextColumn::make('slug')
-                        ->searchable(),
+                    ToggleColumn::make('is_active')
+                        ->boolean()
+                        ->alignCenter()
+                        ->grow(false),
                     TextColumn::make('type')
-                        ->searchable(),
+                        ->searchable()
+                        ->grow(false)
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    TextColumn::make('name')
+                        ->searchable()
+                        ->sortable(),
+                    TextColumn::make('slug')
+                        ->searchable()
+                        ->sortable()
+                        ->toggleable(isToggledHiddenByDefault: true),
                 ]);
             },
             filters: function (Collection $default_filters) {

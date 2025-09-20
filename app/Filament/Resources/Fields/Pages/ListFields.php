@@ -2,18 +2,13 @@
 
 namespace Modules\Cms\Filament\Resources\Fields\Pages;
 
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Modules\Cms\Filament\Resources\Fields\FieldResource;
+use Modules\Cms\Filament\Utils\HasRecords;
 
 class ListFields extends ListRecords
 {
-    protected static string $resource = FieldResource::class;
+    use HasRecords;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            CreateAction::make(),
-        ];
-    }
+    protected static string $resource = FieldResource::class;
 }

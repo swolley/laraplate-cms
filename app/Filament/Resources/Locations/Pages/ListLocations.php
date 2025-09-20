@@ -2,18 +2,13 @@
 
 namespace Modules\Cms\Filament\Resources\Locations\Pages;
 
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Modules\Cms\Filament\Resources\Locations\LocationResource;
+use Modules\Cms\Filament\Utils\HasRecords;
 
 class ListLocations extends ListRecords
 {
-    protected static string $resource = LocationResource::class;
+    use HasRecords;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            CreateAction::make(),
-        ];
-    }
+    protected static string $resource = LocationResource::class;
 }
