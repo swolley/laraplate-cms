@@ -43,7 +43,7 @@ return [
      *
      * Keep this option disabled if using Media Library Pro components (https://medialibrary.pro)
      */
-    'use_default_collection_serialization' => false,
+    'use_default_collection_serialization' => true,
 
     /*
      * The fully qualified class name of the model used for temporary uploads.
@@ -58,13 +58,14 @@ return [
      * in the same session. You can opt to disable this for stateless usage of
      * the pro components.
      */
-    'enable_temporary_uploads_session_affinity' => true,
+    'enable_temporary_uploads_session_affinity' => false,
 
     // When enabled, Media Library pro will generate thumbnails for uploaded file.
-    'generate_thumbnails_for_temporary_uploads' => true,
+    'generate_thumbnails_for_temporary_uploads' => false,
 
     // This is the class that is responsible for naming generated files.
-    'file_namer' => Spatie\MediaLibrary\Support\FileNamer\DefaultFileNamer::class,
+    // 'file_namer' => Spatie\MediaLibrary\Support\FileNamer\DefaultFileNamer::class,
+    'file_namer' => Modules\Cms\Helpers\MediaFileNamer::class,
 
     // The class that contains the strategy for determining a media file's path.
     'path_generator' => Spatie\MediaLibrary\Support\PathGenerator\DefaultPathGenerator::class,
