@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Casts\FieldType;
@@ -264,5 +265,23 @@ trait HasDynamicContents
     private function mergeComponentsValues(array $components): array
     {
         return $this->fields()->mapWithKeys(fn(Field $field) => [$field->name => data_get($components, $field->name) ?? $field->pivot->default])->toArray();
+    }
+
+    public function getTextualOnlyAttribute(): string
+    {
+        $accumulator = '';
+        foreach ($this->fields() as $field) {
+            if (!$field->type->isTextual()) {
+                continue;
+            }
+
+            if ($field->type === FieldType::EDITOR) {
+                $accumulator .= ' ' . implode(' ', Arr::pluck(((object) $this->{$field->name})->blocks, 'data.text'));
+            } else {
+                $accumulator .= ' ' . $this->{$field->name};
+            }
+        }
+
+        return strip_tags($accumulator);
     }
 }

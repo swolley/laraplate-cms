@@ -40,4 +40,9 @@ enum FieldType: string
             default => '',
         };
     }
+
+    public function isTextual(): bool
+    {
+        return in_array($this, [self::TEXT, self::TEXTAREA, self::EDITOR], true);
+    }
 }

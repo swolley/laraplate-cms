@@ -93,6 +93,8 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         'path',
     ];
 
+    protected $embed = ['title', 'textual_only'];
+
     public static function resolveChildTypes(): void
     {
         self::$childTypes = [];
