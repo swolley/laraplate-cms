@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Filament;
 
 use Coolsam\Modules\Concerns\ModuleFilamentPlugin;

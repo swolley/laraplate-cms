@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Filament\Resources\Tags\Tables;
 
 use Filament\Tables\Columns\TextColumn;
@@ -15,7 +17,7 @@ final class TagsTable
     {
         return self::configureTable(
             table: $table,
-            columns: function (Collection $columns) {
+            columns: function (Collection $columns): void {
                 $columns->unshift(...[
                     TextColumn::make('name')
                         ->searchable(),

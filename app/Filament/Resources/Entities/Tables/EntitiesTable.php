@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Filament\Resources\Entities\Tables;
 
 use Filament\Tables\Columns\TextColumn;
@@ -17,10 +19,9 @@ final class EntitiesTable
     {
         return self::configureTable(
             table: $table,
-            columns: function (Collection $columns) {
+            columns: function (Collection $columns): void {
                 $columns->unshift(...[
                     ToggleColumn::make('is_active')
-                        ->boolean()
                         ->alignCenter()
                         ->grow(false),
                     TextColumn::make('type')
@@ -36,7 +37,7 @@ final class EntitiesTable
                         ->toggleable(isToggledHiddenByDefault: true),
                 ]);
             },
-            filters: function (Collection $default_filters) {
+            filters: function (Collection $default_filters): void {
                 $default_filters->unshift(
                     TernaryFilter::make('is_active')
                         ->label('Active')

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Filament\Resources\Categories\Tables;
 
 use Filament\Tables\Columns\TextColumn;
@@ -18,11 +20,11 @@ final class CategoriesTable
     {
         return self::configureTable(
             table: $table,
-            columns: function (Collection $default_columns) {
+            columns: function (Collection $default_columns): void {
                 $default_columns->unshift(...[
                     ToggleColumn::make('is_active')
                         ->alignCenter()
-                        ->boolean(),
+                        ->grow(false),
                     TextColumn::make('entity.name')
                         ->searchable()
                         ->sortable()
@@ -34,10 +36,7 @@ final class CategoriesTable
                     TextColumn::make('name')
                         ->searchable()
                         ->sortable()
-                        ->state(function (Category $record) {
-                            $ancestors = $record->ancestors->count();
-                            return Str::repeat('&nbsp;', $ancestors * 4) . $record->name;
-                        })
+                        ->state(fn (Category $record) => Str::repeat('&nbsp;', $record->ancestors->count() * 4) . $record->name)
                         ->html(),
                     TextColumn::make('path')
                         ->searchable()

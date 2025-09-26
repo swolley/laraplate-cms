@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Filament\Resources\Presets\Tables;
 
 use Filament\Tables\Columns\TextColumn;
@@ -17,10 +19,11 @@ final class PresetsTable
     {
         return self::configureTable(
             table: $table,
-            columns: function (Collection $columns) {
+            columns: function (Collection $columns): void {
                 $columns->unshift(...[
                     ToggleColumn::make('is_active')
-                        ->boolean(),
+                        ->grow(false)
+                        ->alignCenter(),
                     TextColumn::make('entity.name')
                         ->searchable(),
                     TextColumn::make('name')
@@ -29,7 +32,7 @@ final class PresetsTable
                         ->searchable(),
                 ]);
             },
-            filters: function (Collection $default_filters) {
+            filters: function (Collection $default_filters): void {
                 $default_filters->unshift(
                     TernaryFilter::make('is_active')
                         ->label('Active')

@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Filament\Resources\Locations\Tables;
 
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
+use Modules\Cms\Models\Location;
 use Modules\Core\Filament\Utils\HasTable;
 
 final class LocationsTable
@@ -15,10 +18,11 @@ final class LocationsTable
     {
         return self::configureTable(
             table: $table,
-            columns: function (Collection $columns) {
+            columns: function (Collection $columns): void {
                 $columns->unshift(...[
                     TextColumn::make('name')
-                        ->searchable(),
+                        ->searchable()
+                        ->limit(),
                     TextColumn::make('slug')
                         ->searchable()
                         ->toggleable(isToggledHiddenByDefault: true),
@@ -42,7 +46,12 @@ final class LocationsTable
                         ->toggleable(isToggledHiddenByDefault: false),
                     TextColumn::make('geolocation')
                         ->toggleable(isToggledHiddenByDefault: true),
-
+                    TextColumn::make('map')
+                        ->formatStateUsing(function (Location $record) {
+                            return "<div class=\"space-y-1\">{$record->geolocation}->getLatitude() {$record->geolocation}->getLongitude()</div>";
+                        })
+                        ->html()
+                        ->toggleable(isToggledHiddenByDefault: true),
                 ]);
             },
         );

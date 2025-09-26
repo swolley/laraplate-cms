@@ -77,6 +77,39 @@ final class NominatimService implements IGeocodingService
         );
     }
 
+    #[Override]
+    public function url(Location $location): string
+    {
+        if ($location->latitude && $location->longitude) {
+            $search_string = $location->latitude . ',' . $location->longitude;
+        } else {
+            $search_string = '';
+
+            if ($location->address) {
+                $search_string .= $location->address;
+            }
+
+            if ($location->postcode) {
+                $search_string .= ' ' . $location->postcode;
+            }
+
+            if ($location->city) {
+                $search_string .= $location->city;
+            }
+
+            if ($location->province) {
+                $search_string .= ', ' . $location->province;
+            }
+
+            if ($location->country) {
+                $search_string .= ', ' . $location->country;
+            }
+        }
+
+        // TODO: search for the right url to be composed
+        return self::BASE_URL . '/search?q=' . $search_string;
+    }
+
     private function generateCacheKey(
         string $query,
         ?string $city,
