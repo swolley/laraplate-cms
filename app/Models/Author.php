@@ -49,13 +49,6 @@ final class Author extends ComposhipsModel implements IMediable
 
     private ?User $tempUser = null;
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::addGlobalScope(fn(Builder $query) => $query->with('user'));
-    }
-
     // Magic getter for user attributes
     #[Override]
     public function __get($key)
@@ -143,6 +136,13 @@ final class Author extends ComposhipsModel implements IMediable
         ]);
 
         return $rules;
+    }
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        self::addGlobalScope(fn (Builder $query) => $query->with('user'));
     }
 
     protected static function newFactory(): AuthorFactory

@@ -61,7 +61,7 @@ trait HasMultimedia
     {
         return Attribute::make(
             get: fn(): ?Media => $this->getFirstMedia('cover'),
-            set: fn($value): Media => $this->addMedia($value)->toMediaCollection('cover'),
+            // set: fn (Media $value) => $this->addMedia($value->getPath())->toMediaCollection('cover'),
         );
     }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Filament\Resources\Authors\Schemas;
 
 use Filament\Forms\Components\Select;

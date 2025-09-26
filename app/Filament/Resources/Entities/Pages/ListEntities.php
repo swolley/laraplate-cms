@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Filament\Resources\Entities\Pages;
 
 use Filament\Resources\Pages\ListRecords;
@@ -21,11 +23,13 @@ class ListEntities extends ListRecords
         $tabls = [
             'all' => Tab::make('All')->badge(Entity::query()->count()),
         ];
+
         foreach (EntityType::cases() as $type) {
             $tabls[$type->value] = Tab::make($type->value)
                 ->badge(Entity::query()->where('type', $type)->count())
-                ->modifyQueryUsing(fn(Builder $query) => $query->where('type', $type));
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('type', $type));
         }
+
         return $tabls;
     }
 }

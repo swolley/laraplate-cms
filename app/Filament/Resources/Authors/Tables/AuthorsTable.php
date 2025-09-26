@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Filament\Resources\Authors\Tables;
 
 use Filament\Tables\Columns\IconColumn;
@@ -18,19 +20,19 @@ final class AuthorsTable
     {
         return self::configureTable(
             table: $table,
-            columns: function (Collection $columns) {
+            columns: function (Collection $columns): void {
                 $columns->unshift(...[
                     IconColumn::make('user.id')
                         ->label('Type')
                         ->trueIcon('heroicon-o-user')
                         ->falseIcon('heroicon-o-pencil')
                         ->falseColor('gray')
-                        ->state(fn(Author $record) => $record->user?->id !== null)
+                        ->state(fn (Author $record) => $record->user?->id !== null)
                         ->alignCenter()
                         ->tooltip(
-                            fn(Author $record) => $record->user !== null
-                                ? sprintf("User (#%d: %s)", $record->user->id, $record->user->name) :
-                                'Author'
+                            fn (Author $record) => $record->user !== null
+                                ? sprintf('User (#%d: %s)', $record->user->id, $record->user->name)
+                                : 'Author',
                         )
                         ->toggleable(isToggledHiddenByDefault: true)
                         ->grow(false)
@@ -85,10 +87,11 @@ final class AuthorsTable
                             $g = round(($g + $m) * 255);
                             $b = round(($b + $m) * 255);
 
-                            $hex = sprintf("%02x%02x%02x", $r, $g, $b);
+                            $hex = sprintf('%02x%02x%02x', $r, $g, $b);
 
                             return url("https://ui-avatars.com/api/?name={$record->name[0]}&color=FFFFFF&background={$hex}");
-                        }),
+                        })
+                        ->extraImgAttributes(['loading' => 'lazy']),
                     TextColumn::make('name')
                         ->searchable()
                         ->sortable()

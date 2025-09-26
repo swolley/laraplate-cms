@@ -83,6 +83,38 @@ final class GoogleMapsService implements IGeocodingService
         );
     }
 
+    #[Override]
+    public function url(Location $location): string
+    {
+        if ($location->latitude && $location->longitude) {
+            $search_string = $location->latitude . ',' . $location->longitude;
+        } else {
+            $search_string = '';
+
+            if ($location->address) {
+                $search_string .= $location->address;
+            }
+
+            if ($location->postcode) {
+                $search_string .= ' ' . $location->postcode;
+            }
+
+            if ($location->city) {
+                $search_string .= $location->city;
+            }
+
+            if ($location->province) {
+                $search_string .= ', ' . $location->province;
+            }
+
+            if ($location->country) {
+                $search_string .= ', ' . $location->country;
+            }
+        }
+
+        return self::BASE_URL . '/maps?q=' . $search_string . '&key=' . $this->api_key;
+    }
+
     private function generateCacheKey(
         string $query,
         ?string $city,

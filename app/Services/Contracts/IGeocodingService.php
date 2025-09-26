@@ -27,4 +27,6 @@ interface IGeocodingService
         ?string $country = null,
         int $limit = 1,
     ): array|Location|null;
+
+    public function url(Location $location): string;
 }

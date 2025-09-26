@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Cms\Filament\Resources\Contents\Tables;
 
 use Filament\Tables\Columns\ImageColumn;
@@ -18,7 +20,7 @@ final class ContentsTable
     {
         return self::configureTable(
             table: $table,
-            columns: function (Collection $default_columns) {
+            columns: function (Collection $default_columns): void {
                 $default_columns->unshift(...[
                     TextColumn::make('entity.name')
                         ->searchable()
@@ -37,14 +39,16 @@ final class ContentsTable
                     ImageColumn::make('media.images')
                         ->label('Images')
                         ->state(function (Content $record) {
-                            $images = collect($record->cover ? [$record->cover?->getUrl('thumb')] : []);
-                            return $images->merge($record->getMedia('images')->map(fn(Media $media) => $media->getUrl('thumb')))->unique();
+                            $images = collect($record->cover ? [$record->cover?->getUrl('thumb-low')] : []);
+
+                            return $images->merge($record->getMedia('images')->map(fn(Media $media) => $media->getUrl('thumb-low')))->unique();
                         })
                         ->stacked()
                         ->limit(3)
                         ->limitedRemainingText()
                         ->extraImgAttributes(['loading' => 'lazy'])
-                        ->toggleable(isToggledHiddenByDefault: false),
+                        ->toggleable(isToggledHiddenByDefault: false)
+                        ->extraImgAttributes(['loading' => 'lazy']),
                 ]);
             },
         );

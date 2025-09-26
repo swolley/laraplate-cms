@@ -57,17 +57,17 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         Searchable,
         SoftDeletes,
         SortableTrait {
-        toSearchableArray as protected toSearchableArrayTrait;
-        HasValidations::getRules as protected getRulesTrait;
-        HasDynamicContents::getRules as protected getRulesDynamicContents;
-        HasChildren::hasMany as protected hasChildrenHasMany;
-        HasChildren::belongsTo as protected hasChildrenBelongsTo;
-        HasChildren::belongsToMany as protected hasChildrenBelongsToMany;
-        requiresApprovalWhen as protected requiresApprovalWhenTrait;
-        HasDynamicContents::toArray as protected dynamicContentsToArray;
-        HasApprovals::toArray as protected approvalsToArray;
-        SortableTrait::scopeOrdered as protected scopePriorityOrdered;
-    }
+            toSearchableArray as protected toSearchableArrayTrait;
+            HasValidations::getRules as protected getRulesTrait;
+            HasDynamicContents::getRules as protected getRulesDynamicContents;
+            HasChildren::hasMany as protected hasChildrenHasMany;
+            HasChildren::belongsTo as protected hasChildrenBelongsTo;
+            HasChildren::belongsToMany as protected hasChildrenBelongsToMany;
+            requiresApprovalWhen as protected requiresApprovalWhenTrait;
+            HasDynamicContents::toArray as protected dynamicContentsToArray;
+            HasApprovals::toArray as protected approvalsToArray;
+            SortableTrait::scopeOrdered as protected scopePriorityOrdered;
+        }
 
     public static array $childTypes = [];
 
@@ -122,7 +122,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         if (is_int($entity)) {
             $entity_id = array_key_exists($entity, self::getChildTypes()) ? $entity : null;
         } elseif (is_string($entity)) {
-            $entity_id = array_key_first(array_filter(self::getChildTypes(), fn($class) => Str::endsWith($class, '\\' . Str::studly($entity))));
+            $entity_id = array_key_first(array_filter(self::getChildTypes(), fn ($class) => Str::endsWith($class, '\\' . Str::studly($entity))));
         } elseif (is_object($entity) && array_key_exists($entity->id, self::getChildTypes())) {
             $entity_id = $entity->id;
         }
@@ -207,7 +207,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         $relation = $this->belongsToMany(self::class, 'relatables')->using(Relatable::class)->withTimestamps();
 
         if ($withInverse === true) {
-            $relation->orWhere(fn($query) => $query->where('related_content_id', $this->id));
+            $relation->orWhere(fn ($query) => $query->where('related_content_id', $this->id));
         }
 
         return $relation;
@@ -303,7 +303,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 
         // if ensure that the factory is created for the correct derived entity
         if (static::class !== self::class) {
-            $factory->state(fn(): array => [
+            $factory->state(fn (): array => [
                 'entity_id' => Entity::query()
                     ->where('name', Str::lower(class_basename(static::class)))
                     ->where('type', EntityType::CONTENTS)

@@ -60,7 +60,7 @@ trait HasDynamicContents
     {
         return Cache::memo()->rememberForever(
             new Entity()->getCacheKey(),
-            fn(): Collection => Entity::query()->withoutGlobalScopes()->get(),
+            fn (): Collection => Entity::query()->withoutGlobalScopes()->get(),
         )->where('type', $type);
     }
 
@@ -68,7 +68,7 @@ trait HasDynamicContents
     {
         return Cache::memo()->rememberForever(
             new Preset()->getCacheKey(),
-            fn(): Collection => Preset::withoutGlobalScopes()->with(['fields', 'entity'])->get(),
+            fn (): Collection => Preset::withoutGlobalScopes()->with(['fields', 'entity'])->get(),
         )->where('entity.type', $type);
     }
 
@@ -197,6 +197,25 @@ trait HasDynamicContents
         return $fields;
     }
 
+    public function getTextualOnlyAttribute(): string
+    {
+        $accumulator = '';
+
+        foreach ($this->fields() as $field) {
+            if (! $field->type->isTextual()) {
+                continue;
+            }
+
+            if ($field->type === FieldType::EDITOR) {
+                $accumulator .= ' ' . implode(' ', Arr::pluck(((object) $this->{$field->name})->blocks, 'data.text'));
+            } else {
+                $accumulator .= ' ' . $this->{$field->name};
+            }
+        }
+
+        return strip_tags($accumulator);
+    }
+
     protected static function bootHasDynamicContents(): void
     {
         static::saving(function (Model $model): void {
@@ -264,24 +283,6 @@ trait HasDynamicContents
 
     private function mergeComponentsValues(array $components): array
     {
-        return $this->fields()->mapWithKeys(fn(Field $field) => [$field->name => data_get($components, $field->name) ?? $field->pivot->default])->toArray();
-    }
-
-    public function getTextualOnlyAttribute(): string
-    {
-        $accumulator = '';
-        foreach ($this->fields() as $field) {
-            if (!$field->type->isTextual()) {
-                continue;
-            }
-
-            if ($field->type === FieldType::EDITOR) {
-                $accumulator .= ' ' . implode(' ', Arr::pluck(((object) $this->{$field->name})->blocks, 'data.text'));
-            } else {
-                $accumulator .= ' ' . $this->{$field->name};
-            }
-        }
-
-        return strip_tags($accumulator);
+        return $this->fields()->mapWithKeys(fn (Field $field) => [$field->name => data_get($components, $field->name) ?? $field->pivot->default])->toArray();
     }
 }
