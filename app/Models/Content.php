@@ -20,6 +20,7 @@ use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Models\Pivot\Authorable;
 use Modules\Cms\Models\Pivot\Categorizable;
+use Modules\Cms\Models\Pivot\Locatable;
 use Modules\Cms\Models\Pivot\Relatable;
 use Modules\Core\Helpers\HasApprovals;
 use Modules\Core\Helpers\HasValidations;
@@ -57,17 +58,17 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         Searchable,
         SoftDeletes,
         SortableTrait {
-            toSearchableArray as protected toSearchableArrayTrait;
-            HasValidations::getRules as protected getRulesTrait;
-            HasDynamicContents::getRules as protected getRulesDynamicContents;
-            HasChildren::hasMany as protected hasChildrenHasMany;
-            HasChildren::belongsTo as protected hasChildrenBelongsTo;
-            HasChildren::belongsToMany as protected hasChildrenBelongsToMany;
-            requiresApprovalWhen as protected requiresApprovalWhenTrait;
-            HasDynamicContents::toArray as protected dynamicContentsToArray;
-            HasApprovals::toArray as protected approvalsToArray;
-            SortableTrait::scopeOrdered as protected scopePriorityOrdered;
-        }
+        toSearchableArray as protected toSearchableArrayTrait;
+        HasValidations::getRules as protected getRulesTrait;
+        HasDynamicContents::getRules as protected getRulesDynamicContents;
+        HasChildren::hasMany as protected hasChildrenHasMany;
+        HasChildren::belongsTo as protected hasChildrenBelongsTo;
+        HasChildren::belongsToMany as protected hasChildrenBelongsToMany;
+        requiresApprovalWhen as protected requiresApprovalWhenTrait;
+        HasDynamicContents::toArray as protected dynamicContentsToArray;
+        HasApprovals::toArray as protected approvalsToArray;
+        SortableTrait::scopeOrdered as protected scopePriorityOrdered;
+    }
 
     public static array $childTypes = [];
 
@@ -122,7 +123,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         if (is_int($entity)) {
             $entity_id = array_key_exists($entity, self::getChildTypes()) ? $entity : null;
         } elseif (is_string($entity)) {
-            $entity_id = array_key_first(array_filter(self::getChildTypes(), fn ($class) => Str::endsWith($class, '\\' . Str::studly($entity))));
+            $entity_id = array_key_first(array_filter(self::getChildTypes(), fn($class) => Str::endsWith($class, '\\' . Str::studly($entity))));
         } elseif (is_object($entity) && array_key_exists($entity->id, self::getChildTypes())) {
             $entity_id = $entity->id;
         }
@@ -181,7 +182,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
      */
     public function locations(): BelongsToMany
     {
-        $relation = $this->belongsToMany(Location::class);
+        $relation = $this->belongsToMany(Location::class, 'locatables')->using(Locatable::class)->withTimestamps();
         $relation->withTrashed();
 
         return $relation;
@@ -207,7 +208,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         $relation = $this->belongsToMany(self::class, 'relatables')->using(Relatable::class)->withTimestamps();
 
         if ($withInverse === true) {
-            $relation->orWhere(fn ($query) => $query->where('related_content_id', $this->id));
+            $relation->orWhere(fn($query) => $query->where('related_content_id', $this->id));
         }
 
         return $relation;
@@ -217,6 +218,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 
     public function toSearchableArray(): array
     {
+        // TODO: transform splitted values into objects? (authors, categories, tags, locations)
         $document = $this->toSearchableArrayTrait();
         $document['authors'] = $this->authors->pluck('name')->toArray();
         $document['authors_id'] = $this->authors->pluck('id')->toArray();
@@ -233,6 +235,9 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         $document['slug'] = $this->slug;
         $document['type'] = $this->type;
         $document['title'] = $this->title;
+        foreach ($this->components as $field => $value) {
+            $document[$field] = $value;
+        }
 
         return $document;
     }
@@ -303,7 +308,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 
         // if ensure that the factory is created for the correct derived entity
         if (static::class !== self::class) {
-            $factory->state(fn (): array => [
+            $factory->state(fn(): array => [
                 'entity_id' => Entity::query()
                     ->where('name', Str::lower(class_basename(static::class)))
                     ->where('type', EntityType::CONTENTS)
