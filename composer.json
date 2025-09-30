@@ -62,7 +62,6 @@
             "@test:types",
             "@test:refactor"
         ],
-        "version": "v1.15.0",
         "version:silent": "./scripts/version.sh --silent --nointeractive",
         "version:major": "./scripts/version.sh major",
         "version:minor": "./scripts/version.sh minor",
