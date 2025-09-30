@@ -84,11 +84,7 @@ determine_max_importance() {
 # Determine the release type from the commit messages
 determine_release_type() {
     local commit_messages=$(get_last_commit_message)
-    
-    echo "Analyzing commits since last tag:"
-    echo "$commit_messages"
-    echo "---"
-    
+
     if is_already_tagged; then
         echo "Commit is already tagged, skipping version bump"
         echo "null"
