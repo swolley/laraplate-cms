@@ -40,7 +40,6 @@ determine_release_type() {
     fi
 }
 
-
 # Function to increment the version
 # Arguments:
 #   $1: Version string
@@ -164,12 +163,6 @@ update_version() {
 
     local current_version=$(get_latest_version)
     local new_version=$(increment_version "$current_version" "$position")
-
-    if [ "$silent" = true ]; then
-        echo "Current version: $current_version"
-        echo "Position: $position"
-        echo "New version: $new_version"
-    fi
     
     if [ $current_version == $new_version ]; then
         echo "Version is already up to date"
