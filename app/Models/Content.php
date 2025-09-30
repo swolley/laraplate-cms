@@ -31,6 +31,9 @@ use Modules\Core\Helpers\SortableTrait;
 use Modules\Core\Locking\HasOptimisticLocking;
 use Modules\Core\Locking\Traits\HasLocks;
 use Modules\Core\Overrides\ComposhipsModel;
+use Modules\Core\Search\Schema\FieldDefinition;
+use Modules\Core\Search\Schema\FieldType;
+use Modules\Core\Search\Schema\IndexType;
 use Modules\Core\Search\Traits\Searchable;
 use Override;
 use Parental\HasChildren;
@@ -59,6 +62,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         SoftDeletes,
         SortableTrait {
         toSearchableArray as protected toSearchableArrayTrait;
+        getSearchMapping as protected getSearchMappingTrait;
         HasValidations::getRules as protected getRulesTrait;
         HasDynamicContents::getRules as protected getRulesDynamicContents;
         HasChildren::hasMany as protected hasChildrenHasMany;
@@ -220,26 +224,84 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
     {
         // TODO: transform splitted values into objects? (authors, categories, tags, locations)
         $document = $this->toSearchableArrayTrait();
-        $document['authors'] = $this->authors->pluck('name')->toArray();
-        $document['authors_id'] = $this->authors->pluck('id')->toArray();
+        // $document['entity'] = $this->entity->name;
+        // $document['entity_id'] = $this->entity->id;
         $document['preset'] = $this->preset->name;
-        $document['preset_id'] = $this->preset->id;
-        $document['entity'] = $this->entity->name;
-        $document['entity_id'] = $this->entity->id;
-        $document['categories'] = $this->categories->pluck('name')->toArray();
-        $document['categories_id'] = $this->categories->pluck('id')->toArray();
-        $document['tags'] = $this->tags->pluck('name')->toArray();
-        $document['tags_id'] = $this->tags->pluck('id')->toArray();
-        $document['location'] = $this->locations->pluck('name')->toArray();
-        $document['location_id'] = $this->locations->pluck('id')->toArray();
+        // $document['preset_id'] = $this->preset->id;
+        $document['authors'] = $this->authors->only(['id', 'name', 'slug', 'path'])->toArray();
+        // $document['authors_id'] = $this->authors->pluck('id')->toArray();
+        $document['categories'] = $this->categories->only(['name', 'id', 'slug', 'path'])->toArray();
+        // $document['categories_id'] = $this->categories->pluck('id')->toArray();
+        $document['tags'] = $this->tags->only(['name', 'id', 'slug', 'path'])->toArray();
+        // $document['tags_id'] = $this->tags->pluck('id')->toArray();
+        $document['locations'] = (object) $this->locations->only(['id', 'name', 'slug', 'path', 'address', 'city', 'province', 'country', 'postcode', 'zone', 'geolocation'])->toArray();
+        // $document['location_id'] = $this->locations->pluck('id')->toArray();
         $document['slug'] = $this->slug;
         $document['type'] = $this->type;
         $document['title'] = $this->title;
         foreach ($this->components as $field => $value) {
-            $document[$field] = $value;
+            $document[$field] = gettype($value) === 'string' ? Str::replaceMatches('/\\n|\\r|\\t/', '', $value) : $value;
         }
 
         return $document;
+    }
+
+    public function getSearchMapping(): array
+    {
+        $schema = $this->getSchemaDefinition();
+        $schema->addField(new FieldDefinition('entity', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
+        $schema->addField(new FieldDefinition('preset', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
+        $schema->addField(new FieldDefinition('authors', FieldType::ARRAY, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE], [
+            'properties' => [
+                'name' => FieldType::TEXT,
+                'id' => FieldType::INTEGER,
+                'slug' => FieldType::KEYWORD,
+                'path' => FieldType::KEYWORD,
+            ]
+        ]));
+        $schema->addField(new FieldDefinition('categories', FieldType::ARRAY, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE], [
+            'properties' => [
+                'name' => FieldType::TEXT,
+                'id' => FieldType::INTEGER,
+                'slug' => FieldType::KEYWORD,
+                'path' => FieldType::KEYWORD,
+            ]
+        ]));
+        $schema->addField(new FieldDefinition('tags', FieldType::ARRAY, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE], [
+            'properties' => [
+                'name' => FieldType::KEYWORD,
+                'id' => FieldType::INTEGER,
+                'slug' => FieldType::KEYWORD,
+                'path' => FieldType::KEYWORD,
+            ]
+        ]));
+        $schema->addField(new FieldDefinition('locations', FieldType::ARRAY, [IndexType::SEARCHABLE, IndexType::FILTERABLE], [
+            'properties' => [
+                'name' => FieldType::TEXT,
+                'id' => FieldType::INTEGER,
+                'slug' => FieldType::KEYWORD,
+                'path' => FieldType::KEYWORD,
+                'address' => FieldType::TEXT,
+                'city' => FieldType::KEYWORD,
+                'province' => FieldType::KEYWORD,
+                'country' => FieldType::KEYWORD,
+                'postcode' => FieldType::KEYWORD,
+                'zone' => FieldType::KEYWORD,
+                'geolocation' => FieldType::GEOCODE,
+            ]
+        ]));
+        $schema->addField(new FieldDefinition('slug', FieldType::KEYWORD, [IndexType::SEARCHABLE]));
+        $schema->addField(new FieldDefinition('type', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE]));
+        $schema->addField(new FieldDefinition('valid_from', FieldType::DATE, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::SORTABLE]));
+        $schema->addField(new FieldDefinition('valid_to', FieldType::DATE, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::SORTABLE]));
+        $schema->addField(new FieldDefinition('is_deleted', FieldType::BOOLEAN, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
+        $schema->addField(new FieldDefinition('title', FieldType::TEXT, [IndexType::SEARCHABLE, IndexType::FILTERABLE]));
+        $schema->addField(new FieldDefinition('embedding', FieldType::VECTOR, [IndexType::SEARCHABLE, IndexType::VECTOR]));
+        foreach ($this->components as $field => $value) {
+            $schema->addField(new FieldDefinition($field, FieldType::TEXT, [IndexType::SEARCHABLE]));
+        }
+
+        return $this->getSearchMappingTrait($schema);
     }
 
     public function getRules(): array
