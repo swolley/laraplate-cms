@@ -2,7 +2,14 @@
 
 # function to get the last commit message
 get_last_commit_message() {
-    git log -1 --pretty=%B
+    # git log -1 --pretty=%B
+    local last_tag=$(git describe --tags --abbrev=0 HEAD 2>/dev/null)
+    
+    if [ -z "$last_tag" ]; then
+        git log -1 --pretty=%B
+    else
+        git log "$last_tag..HEAD" --pretty=%B
+    fi
 }
 
 is_already_tagged() {
@@ -15,13 +22,65 @@ is_already_tagged() {
     fi
 }
 
+# Function to determine the maximum importance among all commit messages
+determine_max_importance() {
+    local commit_messages="$1"
+    local max_importance="null"
+    
+    # Read each line (each commit message)
+    while IFS= read -r commit_message; do
+        if [ -n "$commit_message" ]; then
+            local importance=$(get_commit_importance "$commit_message")
+            
+            # Update the maximum importance
+            case "$importance" in
+                "major")
+                    max_importance="major"
+                    break  # Major is the maximum, we can stop
+                    ;;
+                "minor")
+                    if [ "$max_importance" != "major" ]; then
+                        max_importance="minor"
+                    fi
+                    ;;
+                "patch")
+                    if [ "$max_importance" = "null" ]; then
+                        max_importance="patch"
+                    fi
+                    ;;
+            esac
+        fi
+    done <<< "$commit_messages"
+    
+    echo "$max_importance"
+}
+
+# Determine the release type from the commit messages
+determine_release_type() {
+    local commit_messages=$(get_last_commit_message)
+    
+    echo "Analyzing commits since last tag:"
+    echo "$commit_messages"
+    echo "---"
+    
+    if is_already_tagged; then
+        echo "Commit is already tagged, skipping version bump"
+        echo "null"
+        return
+    fi
+    
+    # Determine the maximum importance among all commit messages
+    local max_importance=$(determine_max_importance "$commit_messages")
+    echo "Maximum importance found: $max_importance"
+    echo "$max_importance"
+}
+
 # function to determine release type from commit message
 determine_release_type() {
     local commit_message=$(get_last_commit_message)
 
     echo "Last commit message: '$commit_message'"
 
-    
     if is_already_tagged; then
         echo "Commit is already tagged, skipping version bump"
         echo "null" # Skip version bump if commit is already tagged
