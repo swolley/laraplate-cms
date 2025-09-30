@@ -12,6 +12,32 @@ get_last_commit_message() {
     fi
 }
 
+# Function to determine the importance of a single commit message
+get_commit_importance() {
+    local commit_message="$1"
+    
+    # Check for breaking changes (major) - highest priority
+    if [[ "$commit_message" =~ ^(feat|fix|perf|refactor)(\([a-z0-9-]+\))?! ]]; then
+        echo "major"
+        return
+    fi
+    
+    # Check for features (minor) - medium priority
+    if [[ "$commit_message" =~ ^feat(\([a-z0-9-]+\))?: ]]; then
+        echo "minor"
+        return
+    fi
+    
+    # Check for other conventional commit types (patch) - low priority
+    if [[ "$commit_message" =~ ^(fix|perf|refactor)(\([a-z0-9-]+\))?: ]]; then
+        echo "patch"
+        return
+    fi
+    
+    # If no recognizable pattern is found, default to null
+    echo "null"
+}
+
 is_already_tagged() {
     local last_commit_hash=$(git rev-parse HEAD)
     local tag_at_commit=$(git tag --points-at "$last_commit_hash")
