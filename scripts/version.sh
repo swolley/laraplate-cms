@@ -93,7 +93,6 @@ determine_release_type() {
     
     # Determine the maximum importance among all commit messages
     local max_importance=$(determine_max_importance "$commit_messages")
-    echo "Maximum importance found: $max_importance"
     echo "$max_importance"
 }
 
