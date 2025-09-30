@@ -75,30 +75,6 @@ determine_release_type() {
     echo "$max_importance"
 }
 
-# function to determine release type from commit message
-determine_release_type() {
-    local commit_message=$(get_last_commit_message)
-
-    echo "Last commit message: '$commit_message'"
-
-    if is_already_tagged; then
-        echo "Commit is already tagged, skipping version bump"
-        echo "null" # Skip version bump if commit is already tagged
-    elif [[ "$commit_message" =~ ^(feat|fix|perf|refactor)(\([a-z0-9-]+\))?! ]]; then
-        # Check for breaking changes (major)
-        echo "major"
-    elif [[ "$commit_message" =~ ^feat(\([a-z0-9-]+\))?: ]]; then
-        # Check for features (minor)
-        echo "minor"
-    elif [[ "$commit_message" =~ ^(fix|perf|refactor)(\([a-z0-9-]+\))?: ]]; then
-        # Check for other conventional commit types (patch)
-        echo "patch"
-    else
-        # If no recognizable pattern is found, default to null
-        echo "null"
-    fi
-}
-
 # Function to increment the version
 # Arguments:
 #   $1: Version string
