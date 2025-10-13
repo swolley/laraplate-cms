@@ -23,6 +23,7 @@ use Modules\Cms\Models\Pivot\Categorizable;
 use Modules\Cms\Models\Pivot\Locatable;
 use Modules\Cms\Models\Pivot\Relatable;
 use Modules\Core\Helpers\HasApprovals;
+use Modules\Core\Helpers\HasChildren;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
@@ -36,7 +37,6 @@ use Modules\Core\Search\Schema\FieldType;
 use Modules\Core\Search\Schema\IndexType;
 use Modules\Core\Search\Traits\Searchable;
 use Override;
-use Parental\HasChildren;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\MediaLibrary\HasMedia;
 
