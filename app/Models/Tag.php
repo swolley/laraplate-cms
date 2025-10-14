@@ -93,7 +93,7 @@ final class Tag extends Model implements Sortable
         $tag = self::findFromString($name, $type);
 
         if (! $tag) {
-            return self::create([
+            return self::query()->create([
                 'name' => $name,
                 'type' => $type,
             ]);
@@ -104,7 +104,7 @@ final class Tag extends Model implements Sortable
 
     public static function getTypes(): Collection
     {
-        return self::groupBy('type')->pluck('type');
+        return self::query()->groupBy('type')->pluck('type');
     }
 
     public function getRules(): array
@@ -140,14 +140,19 @@ final class Tag extends Model implements Sortable
         return null;
     }
 
+    protected static function newFactory(): TagFactory
+    {
+        return TagFactory::new();
+    }
+
     #[Scope]
-    public function ordered(Builder $query): Builder
+    protected function ordered(Builder $query): Builder
     {
         return $query->orderBy('order_column', 'asc');
     }
 
     #[Scope]
-    public function withType(Builder $query, ?string $type = null): void
+    protected function withType(Builder $query, ?string $type = null): void
     {
         if (! is_null($type)) {
             $query->where('type', $type)->ordered();
@@ -155,17 +160,12 @@ final class Tag extends Model implements Sortable
     }
 
     #[Scope]
-    public function containing(Builder $query, string $name, $locale = null): void
+    protected function containing(Builder $query, string $name, $locale = null): void
     {
         // if (is_null($locale)) {
         //     $locale = static::getLocale();
         // }
         $query->whereRaw('lower(' . $this->getQuery()->getGrammar()->wrap('name') . ') like ?', ['%' . mb_strtolower($name) . '%']);
-    }
-
-    protected static function newFactory(): TagFactory
-    {
-        return TagFactory::new();
     }
 
     #[Override]

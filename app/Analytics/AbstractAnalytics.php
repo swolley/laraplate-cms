@@ -9,6 +9,7 @@ use Elastic\Elasticsearch\ClientBuilder;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Log;
 
 abstract class AbstractAnalytics
@@ -237,8 +238,8 @@ abstract class AbstractAnalytics
         $client = $this->getElasticsearchClient();
 
         // Default all'ultimo mese se non specificato
-        $start_date ??= Carbon::now()->subMonth();
-        $end_date ??= Carbon::now();
+        $start_date ??= Date::now()->subMonth();
+        $end_date ??= Date::now();
 
         $query = [
             'index' => $model->searchableAs(),

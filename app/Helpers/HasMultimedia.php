@@ -60,7 +60,7 @@ trait HasMultimedia
     protected function cover(): Attribute
     {
         return Attribute::make(
-            get: fn(): ?Media => $this->getFirstMedia('cover'),
+            get: fn (): ?Media => $this->getFirstMedia('cover'),
             // set: fn (Media $value) => $this->addMedia($value->getPath())->toMediaCollection('cover'),
         );
     }

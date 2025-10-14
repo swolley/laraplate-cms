@@ -118,17 +118,6 @@ trait HasTags
             ->ordered();
     }
 
-    public function setTagsAttribute(string|array|ArrayAccess|Tag $tags): void
-    {
-        if (! $this->exists) {
-            $this->queuedTags = $tags;
-
-            return;
-        }
-
-        $this->syncTags($tags);
-    }
-
     public function tagsWithType(?string $type = null): Collection
     {
         return $this->tags->filter(fn (Tag $tag): bool => $tag->type === $type);
@@ -201,9 +190,7 @@ trait HasTags
 
         return collect($values)->map(function ($value) use ($type) {
             if ($value instanceof Tag) {
-                if (isset($type) && $value->type !== $type) {
-                    throw new InvalidArgumentException("Type was set to {$type} but tag is of type {$value->type}");
-                }
+                throw_if(isset($type) && $value->type !== $type, InvalidArgumentException::class, "Type was set to {$type} but tag is of type {$value->type}");
 
                 return $value;
             }
@@ -214,13 +201,24 @@ trait HasTags
 
     protected static function convertToTagsOfAnyType($values)
     {
-        return collect($values)->map(function ($value) {
+        return collect($values)->map(function ($value): Tag|\Illuminate\Support\Collection {
             if ($value instanceof Tag) {
                 return $value;
             }
 
             return Tag::findFromStringOfAnyType($value);
         })->flatten();
+    }
+
+    protected function setTagsAttribute(string|array|ArrayAccess|Tag $tags): void
+    {
+        if (! $this->exists) {
+            $this->queuedTags = $tags;
+
+            return;
+        }
+
+        $this->syncTags($tags);
     }
 
     protected function syncTagIds($ids, ?string $type = null, $detaching = true): void

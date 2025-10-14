@@ -43,9 +43,7 @@ final class CmsServiceProvider extends ServiceProvider
     #[Override]
     public function register(): void
     {
-        if (! Module::find('Core')) {
-            throw new Exception('Core is required and must be enabled');
-        }
+        throw_unless(Module::find('Core'), Exception::class, 'Core is required and must be enabled');
 
         $this->registerConfig();
 

@@ -47,9 +47,7 @@ final class LocationsTable
                     TextColumn::make('geolocation')
                         ->toggleable(isToggledHiddenByDefault: true),
                     TextColumn::make('map')
-                        ->formatStateUsing(function (Location $record) {
-                            return "<div class=\"space-y-1\">{$record->geolocation}->getLatitude() {$record->geolocation}->getLongitude()</div>";
-                        })
+                        ->formatStateUsing(fn (Location $record): string => "<div class=\"space-y-1\">{$record->geolocation}->getLatitude() {$record->geolocation}->getLongitude()</div>")
                         ->html()
                         ->toggleable(isToggledHiddenByDefault: true),
                 ]);

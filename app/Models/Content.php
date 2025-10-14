@@ -61,18 +61,18 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         Searchable,
         SoftDeletes,
         SortableTrait {
-        toSearchableArray as protected toSearchableArrayTrait;
-        getSearchMapping as protected getSearchMappingTrait;
-        HasValidations::getRules as protected getRulesTrait;
-        HasDynamicContents::getRules as protected getRulesDynamicContents;
-        HasChildren::hasMany as protected hasChildrenHasMany;
-        HasChildren::belongsTo as protected hasChildrenBelongsTo;
-        HasChildren::belongsToMany as protected hasChildrenBelongsToMany;
-        requiresApprovalWhen as protected requiresApprovalWhenTrait;
-        HasDynamicContents::toArray as protected dynamicContentsToArray;
-        HasApprovals::toArray as protected approvalsToArray;
-        SortableTrait::scopeOrdered as protected scopePriorityOrdered;
-    }
+            toSearchableArray as protected toSearchableArrayTrait;
+            getSearchMapping as protected getSearchMappingTrait;
+            HasValidations::getRules as protected getRulesTrait;
+            HasDynamicContents::getRules as protected getRulesDynamicContents;
+            HasChildren::hasMany as protected hasChildrenHasMany;
+            HasChildren::belongsTo as protected hasChildrenBelongsTo;
+            HasChildren::belongsToMany as protected hasChildrenBelongsToMany;
+            requiresApprovalWhen as protected requiresApprovalWhenTrait;
+            HasDynamicContents::toArray as protected dynamicContentsToArray;
+            HasApprovals::toArray as protected approvalsToArray;
+            SortableTrait::scopeOrdered as protected scopePriorityOrdered;
+        }
 
     public static array $childTypes = [];
 
@@ -127,42 +127,18 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         if (is_int($entity)) {
             $entity_id = array_key_exists($entity, self::getChildTypes()) ? $entity : null;
         } elseif (is_string($entity)) {
-            $entity_id = array_key_first(array_filter(self::getChildTypes(), fn($class) => Str::endsWith($class, '\\' . Str::studly($entity))));
+            $entity_id = array_key_first(array_filter(self::getChildTypes(), fn ($class) => Str::endsWith($class, '\\' . Str::studly($entity))));
         } elseif (is_object($entity) && array_key_exists($entity->id, self::getChildTypes())) {
             $entity_id = $entity->id;
         }
 
-        if ($entity_id === '' || $entity_id === '0' || $entity_id === 0 || $entity_id === null || $entity->type !== EntityType::CONTENTS) {
-            throw new InvalidArgumentException('Invalid entity: ' . $entity);
-        }
+        throw_if(in_array($entity_id, ['', '0', 0, null], true) || $entity->type !== EntityType::CONTENTS, InvalidArgumentException::class, 'Invalid entity: ' . $entity);
 
         $preset_id = self::fetchAvailablePresets(EntityType::CONTENTS)->firstWhere('entity_id', $entity_id)?->id;
 
-        if (! $preset_id) {
-            throw new InvalidArgumentException('No preset found for entity: ' . $entity);
-        }
+        throw_unless($preset_id, InvalidArgumentException::class, 'No preset found for entity: ' . $entity);
 
         return new self::$childTypes[$entity_id](['preset_id' => $preset_id, 'entity_id' => $entity_id]);
-    }
-
-    // region Scopes
-
-    /**
-     * Order contents by priority and validity.
-     */
-    #[Scope]
-    public function ordered(Builder $query): Builder
-    {
-        return $query->priorityOrdered()->validityOrdered()->orderBy($this->qualifyColumn(Model::CREATED_AT), 'desc');
-    }
-
-    /**
-     * Filter contents by entity.
-     */
-    #[Scope]
-    public function forEntity(Builder $query, Entity $entity): Builder
-    {
-        return $query->where('entity_id', $entity->id);
     }
 
     // endregion
@@ -212,7 +188,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         $relation = $this->belongsToMany(self::class, 'relatables')->using(Relatable::class)->withTimestamps();
 
         if ($withInverse === true) {
-            $relation->orWhere(fn($query) => $query->where('related_content_id', $this->id));
+            $relation->orWhere(fn ($query) => $query->where('related_content_id', $this->id));
         }
 
         return $relation;
@@ -239,6 +215,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         $document['slug'] = $this->slug;
         $document['type'] = $this->type;
         $document['title'] = $this->title;
+
         foreach ($this->components as $field => $value) {
             $document[$field] = gettype($value) === 'string' ? Str::replaceMatches('/\\n|\\r|\\t/', '', $value) : $value;
         }
@@ -257,7 +234,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
                 'id' => FieldType::INTEGER,
                 'slug' => FieldType::KEYWORD,
                 'path' => FieldType::KEYWORD,
-            ]
+            ],
         ]));
         $schema->addField(new FieldDefinition('categories', FieldType::ARRAY, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE], [
             'properties' => [
@@ -265,7 +242,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
                 'id' => FieldType::INTEGER,
                 'slug' => FieldType::KEYWORD,
                 'path' => FieldType::KEYWORD,
-            ]
+            ],
         ]));
         $schema->addField(new FieldDefinition('tags', FieldType::ARRAY, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE], [
             'properties' => [
@@ -273,7 +250,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
                 'id' => FieldType::INTEGER,
                 'slug' => FieldType::KEYWORD,
                 'path' => FieldType::KEYWORD,
-            ]
+            ],
         ]));
         $schema->addField(new FieldDefinition('locations', FieldType::ARRAY, [IndexType::SEARCHABLE, IndexType::FILTERABLE], [
             'properties' => [
@@ -288,7 +265,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
                 'postcode' => FieldType::KEYWORD,
                 'zone' => FieldType::KEYWORD,
                 'geolocation' => FieldType::GEOCODE,
-            ]
+            ],
         ]));
         $schema->addField(new FieldDefinition('slug', FieldType::KEYWORD, [IndexType::SEARCHABLE]));
         $schema->addField(new FieldDefinition('type', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE]));
@@ -297,6 +274,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         $schema->addField(new FieldDefinition('is_deleted', FieldType::BOOLEAN, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
         $schema->addField(new FieldDefinition('title', FieldType::TEXT, [IndexType::SEARCHABLE, IndexType::FILTERABLE]));
         $schema->addField(new FieldDefinition('embedding', FieldType::VECTOR, [IndexType::SEARCHABLE, IndexType::VECTOR]));
+
         foreach ($this->components as $field => $value) {
             $schema->addField(new FieldDefinition($field, FieldType::TEXT, [IndexType::SEARCHABLE]));
         }
@@ -370,7 +348,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
 
         // if ensure that the factory is created for the correct derived entity
         if (static::class !== self::class) {
-            $factory->state(fn(): array => [
+            $factory->state(fn (): array => [
                 'entity_id' => Entity::query()
                     ->where('name', Str::lower(class_basename(static::class)))
                     ->where('type', EntityType::CONTENTS)
@@ -380,6 +358,26 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         }
 
         return $factory;
+    }
+
+    // region Scopes
+
+    /**
+     * Order contents by priority and validity.
+     */
+    #[Scope]
+    protected function ordered(Builder $query): Builder
+    {
+        return $query->priorityOrdered()->validityOrdered()->orderBy($this->qualifyColumn(Model::CREATED_AT), 'desc');
+    }
+
+    /**
+     * Filter contents by entity.
+     */
+    #[Scope]
+    protected function forEntity(Builder $query, Entity $entity): Builder
+    {
+        return $query->where('entity_id', $entity->id);
     }
 
     // TODO: how to extract embedding dynamic contents?
@@ -406,7 +404,7 @@ class Content extends ComposhipsModel implements HasMedia, Sortable
         return [...$this->dynamicSlugFields(), 'title'];
     }
 
-    protected function requiresApprovalWhen($modifications): bool
+    protected function requiresApprovalWhen(array $modifications): bool
     {
         return $this->requiresApprovalWhenTrait($modifications) && ($modifications[static::$valid_from_column] ?? $modifications[static::$valid_to_column] ?? false);
     }

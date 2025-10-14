@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Modules\Cms\Models;
 
 use Awobaz\Compoships\Compoships;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -26,7 +27,7 @@ use Override;
  */
 final class Preset extends Model
 {
-    use Compoships, HasApprovals, HasCache, HasValidations, HasVersions, SoftDeletes {
+    use Compoships, HasApprovals, HasCache, HasFactory, HasValidations, HasVersions, SoftDeletes {
         getRules as protected getRulesTrait;
     }
 

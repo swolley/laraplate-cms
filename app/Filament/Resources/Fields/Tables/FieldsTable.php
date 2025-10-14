@@ -32,7 +32,7 @@ final class FieldsTable
                     TextColumn::make('type')
                         ->searchable(),
                     TextColumn::make('options')
-                        ->formatStateUsing(function (Field $record) {
+                        ->formatStateUsing(function (Field $record): string {
                             $options = json_decode((string) $record->options, true);
                             $string = '';
 

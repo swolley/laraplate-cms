@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Validation\Rule;
@@ -17,11 +18,12 @@ use Override;
 
 /**
  * @property-read object $options
+ *
  * @mixin IdeHelperField
  */
 final class Field extends Model
 {
-    use HasValidations, HasVersions, SoftDeletes {
+    use HasFactory, HasValidations, HasVersions, SoftDeletes {
         getRules as protected getRulesTrait;
     }
 

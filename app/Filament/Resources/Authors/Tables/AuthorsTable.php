@@ -8,6 +8,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Support\Collection;
 use Modules\Cms\Models\Author;
 use Modules\Core\Filament\Utils\HasTable;
@@ -27,10 +28,10 @@ final class AuthorsTable
                         ->trueIcon('heroicon-o-user')
                         ->falseIcon('heroicon-o-pencil')
                         ->falseColor('gray')
-                        ->state(fn (Author $record) => $record->user?->id !== null)
+                        ->state(fn (Author $record): bool => $record->user?->id !== null)
                         ->alignCenter()
                         ->tooltip(
-                            fn (Author $record) => $record->user !== null
+                            fn (Author $record): string => $record->user !== null
                                 ? sprintf('User (#%d: %s)', $record->user->id, $record->user->name)
                                 : 'Author',
                         )
@@ -42,7 +43,7 @@ final class AuthorsTable
                         ->circular()
                         ->toggleable(isToggledHiddenByDefault: false)
                         ->grow(false)
-                        ->defaultImageUrl(function (Author $record) {
+                        ->defaultImageUrl(function (Author $record): UrlGenerator|string {
                             $hash = abs(crc32($record->name));
 
                             $hue = $hash % 360;

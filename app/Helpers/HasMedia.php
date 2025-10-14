@@ -85,9 +85,7 @@ trait HasMedia
 
         $media = $this->allMedia->find($mediaId);
 
-        if (! $media) {
-            throw MediaCannotBeDeleted::doesNotBelongToModel($mediaId, $this);
-        }
+        throw_unless($media, MediaCannotBeDeleted::doesNotBelongToModel($mediaId, $this));
 
         $media->forceDelete();
     }

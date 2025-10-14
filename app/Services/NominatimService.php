@@ -136,15 +136,15 @@ final class NominatimService implements IGeocodingService
             'limit' => $limit,
         ];
 
-        if ($city) {
+        if ($city !== null && $city !== '' && $city !== '0') {
             $params['city'] = $city;
         }
 
-        if ($province) {
+        if ($province !== null && $province !== '' && $province !== '0') {
             $params['province'] = $province;
         }
 
-        if ($country) {
+        if ($country !== null && $country !== '' && $country !== '0') {
             $params['country'] = $country;
         }
 
@@ -159,7 +159,7 @@ final class NominatimService implements IGeocodingService
         $result = $response->json();
 
         if ($limit > 1) {
-            return array_map(fn (array $result) => $this->getAddressDetails($result), $result);
+            return array_map(fn (array $result): Location => $this->getAddressDetails($result), $result);
         }
 
         return $this->getAddressDetails($result[0]);
@@ -186,7 +186,7 @@ final class NominatimService implements IGeocodingService
     {
         $address = $result['address'];
 
-        return (new Location())->fill([
+        return new Location()->fill([
             'address' => $address['road'] ? $address['road'] . ($address['house_number'] ? ' ' . $address['house_number'] : '') : null,
             'city' => $address['city'] ?? $address['town'] ?? $address['village'] ?? null,
             'province' => $address['state'] ?? null,

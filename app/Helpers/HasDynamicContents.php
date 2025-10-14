@@ -61,7 +61,7 @@ trait HasDynamicContents
         /** @phpstan-ignore staticMethod.notFound */
         return Cache::memo()->rememberForever(
             new Entity()->getCacheKey(),
-            fn(): Collection => Entity::query()->withoutGlobalScopes()->get(),
+            fn (): Collection => Entity::query()->withoutGlobalScopes()->get(),
         )->where('type', $type);
     }
 
@@ -70,7 +70,7 @@ trait HasDynamicContents
         /** @phpstan-ignore staticMethod.notFound */
         return Cache::memo()->rememberForever(
             new Preset()->getCacheKey(),
-            fn(): Collection => Preset::withoutGlobalScopes()->with(['fields', 'entity'])->get(),
+            fn (): Collection => Preset::query()->withoutGlobalScopes()->with(['fields', 'entity'])->get(),
         )->where('entity.type', $type);
     }
 
@@ -187,7 +187,7 @@ trait HasDynamicContents
             if (isset($field->options->max)) {
                 $rule .= '|max:' . $field->options->max;
             }
-            $fields[$field->name] = mb_trim((string) $rule, '|');
+            $fields[$field->name] = mb_trim($rule, '|');
 
             if ($field->type === FieldType::EDITOR) {
                 $fields[$field->name . '.blocks'] = 'array';
@@ -199,7 +199,22 @@ trait HasDynamicContents
         return $fields;
     }
 
-    public function getTextualOnlyAttribute(): string
+    protected static function bootHasDynamicContents(): void
+    {
+        static::saving(function (Model $model): void {
+            /** @var Model&HasDynamicContents $model */
+            if ($model->preset) {
+                $model->preset_id = $model->preset->id;
+
+                throw_if($model->entity_id && $model->entity_id !== $model->preset->entity_id, UnexpectedValueException::class, "Entity mismatch: {$model->entity->name} is not compatible with {$model->preset->name}");
+                $model->entity_id = $model->preset->entity_id;
+            } elseif (! $model->preset_id) {
+                $model->preset_id = static::fetchAvailablePresets(EntityType::tryFrom($model->getTable()))->firstOrFail()->id;
+            }
+        });
+    }
+
+    protected function getTextualOnlyAttribute(): string
     {
         $accumulator = '';
 
@@ -216,23 +231,6 @@ trait HasDynamicContents
         }
 
         return strip_tags($accumulator);
-    }
-
-    protected static function bootHasDynamicContents(): void
-    {
-        static::saving(function (Model $model): void {
-            /** @var Model&HasDynamicContents $model */
-            if ($model->preset) {
-                $model->preset_id = $model->preset->id;
-
-                if ($model->entity_id && $model->entity_id !== $model->preset->entity_id) {
-                    throw new UnexpectedValueException("Entity mismatch: {$model->entity->name} is not compatible with {$model->preset->name}");
-                }
-                $model->entity_id = $model->preset->entity_id;
-            } elseif (! $model->preset_id) {
-                $model->preset_id = static::fetchAvailablePresets(EntityType::tryFrom($model->getTable()))->firstOrFail()->id;
-            }
-        });
     }
 
     protected function type(): Attribute
@@ -285,6 +283,6 @@ trait HasDynamicContents
 
     private function mergeComponentsValues(array $components): array
     {
-        return $this->fields()->mapWithKeys(fn(Field $field) => [$field->name => data_get($components, $field->name) ?? $field->pivot->default])->toArray();
+        return $this->fields()->mapWithKeys(fn (Field $field): array => [$field->name => data_get($components, $field->name, $field->pivot->default)])->toArray();
     }
 }

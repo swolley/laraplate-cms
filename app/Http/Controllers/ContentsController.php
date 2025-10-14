@@ -14,10 +14,10 @@ use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 
 final class ContentsController extends CrudController
 {
-	/**
-	 * @route-comment
-	 * Route(path: 'api/v1/{relation}/{value}/{entity}', name: 'cms.api.relation.contents', methods: [GET, HEAD], middleware: [api])
-	 */
+    /**
+     * @route-comment
+     * Route(path: 'api/v1/{relation}/{value}/{entity}', name: 'cms.api.relation.contents', methods: [GET, HEAD], middleware: [api])
+     */
     public function getContentsByRelation(ListRequest $request, string $relation, string $value, string $entity): \Symfony\Component\HttpFoundation\Response
     {
         $filters = $this->createCommonFilters($request, $relation, $value);
@@ -62,9 +62,7 @@ final class ContentsController extends CrudController
             $relation = Str::endsWith($relation, 's') ? Str::singular($relation) : Str::plural($relation);
         }
 
-        if (! method_exists(Content::class, $relation)) {
-            throw new BadRequestException('Invalid relation');
-        }
+        throw_unless(method_exists(Content::class, $relation), BadRequestException::class, 'Invalid relation');
 
         $filters[0]['filters'][] = [
             'operator' => WhereClause::OR->value,

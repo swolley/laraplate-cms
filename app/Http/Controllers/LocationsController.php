@@ -15,10 +15,10 @@ final class LocationsController extends Controller
 {
     public function __construct(private readonly IGeocodingService $geocoding_service) {}
 
-	/**
-	 * @route-comment
-	 * Route(path: 'app/locations/geocode', name: 'cms.locations.geocode', methods: [GET, HEAD], middleware: [web])
-	 */
+    /**
+     * @route-comment
+     * Route(path: 'app/locations/geocode', name: 'cms.locations.geocode', methods: [GET, HEAD], middleware: [web])
+     */
     public function geocode(GeocodeRequest $request): JsonResponse
     {
         $response = new ResponseBuilder($request);

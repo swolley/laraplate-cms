@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
 use Modules\Core\Helpers\HasValidations;
@@ -15,7 +16,7 @@ use Override;
  */
 final class Template extends Model
 {
-    use HasValidations, HasVersions {
+    use HasFactory, HasValidations, HasVersions {
         getRules as protected getRulesTrait;
     }
 

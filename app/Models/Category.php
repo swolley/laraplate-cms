@@ -95,19 +95,6 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
         'bloodline',
     ];
 
-    // region Scopes
-
-    public function scopeOrdered(Builder $query): Builder
-    {
-        return $query->priorityOrdered()->validityOrdered();
-    }
-
-    #[Scope]
-    public function active(Builder $query): Builder
-    {
-        return $query->where($this->qualifyColumn('is_active'), true);
-    }
-
     // endregion
 
     // region Relations
@@ -194,6 +181,20 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
         return CategoryFactory::new();
     }
 
+    // region Scopes
+
+    #[Scope]
+    protected function ordered(Builder $query): Builder
+    {
+        return $query->priorityOrdered()->validityOrdered();
+    }
+
+    #[Scope]
+    protected function active(Builder $query): Builder
+    {
+        return $query->where($this->qualifyColumn('is_active'), true);
+    }
+
     #[Override]
     protected function casts(): array
     {
@@ -217,7 +218,7 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
         return [...$this->dynamicSlugFields(), 'name'];
     }
 
-    protected function requiresApprovalWhen($modifications): bool
+    protected function requiresApprovalWhen(array $modifications): bool
     {
         return $this->requiresApprovalWhenTrait($modifications) && ($modifications[self::$valid_from_column] ?? $modifications[self::$valid_to_column] ?? false);
     }
@@ -226,21 +227,21 @@ final class Category extends ComposhipsModel implements IMediable, Sortable
 
     // region Attributes
 
-    private function ids(): Attribute
+    protected function ids(): Attribute
     {
         return Attribute::make(
             get: fn () => $this->ancestors->pluck('id')->reverse()->merge([$this->id])->join('.'),
         );
     }
 
-    private function fullName(): Attribute
+    protected function fullName(): Attribute
     {
         return Attribute::make(
             get: fn () => $this->ancestors->pluck('name')->reverse()->merge([$this->name])->join(' > '),
         );
     }
 
-    private function title(): Attribute
+    protected function title(): Attribute
     {
         return Attribute::make(
             get: fn () => $this->name,

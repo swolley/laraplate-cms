@@ -72,9 +72,7 @@ final class Author extends ComposhipsModel implements IMediable
         $user_can_update = $session_user && $session_user->can("{$table}.update");
 
         if (in_array($key, $entity->getFillable(), true) && ($user_can_insert || $user_can_update)) {
-            if (! $this->user && ! $user_can_insert) {
-                throw new UnauthorizedException(ResponseAlias::HTTP_FORBIDDEN, "User cannot insert {$entity}");
-            }
+            throw_if(! $this->user && ! $user_can_insert, UnauthorizedException::class, ResponseAlias::HTTP_FORBIDDEN, "User cannot insert {$entity}");
 
             if (! $this->user && ! $this->tempUser instanceof User && $user_can_insert) {
                 $this->tempUser = new User();
@@ -165,13 +163,13 @@ final class Author extends ComposhipsModel implements IMediable
         return $this->user !== null || $this->tempUser instanceof User;
     }
 
-    protected function isUserAttribute(): bool
-    {
-        return $this->getCanLoginAttribute();
-    }
-
     protected function getIsSignatureAttribute(): bool
     {
         return ! $this->getCanLoginAttribute();
+    }
+
+    private function isUserAttribute(): bool
+    {
+        return $this->getCanLoginAttribute();
     }
 }

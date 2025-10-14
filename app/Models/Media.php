@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Carbon;
 use Modules\Core\Helpers\SoftDeletes;
 use Spatie\MediaLibrary\MediaCollections\Models\Media as BaseMedia;
@@ -13,13 +14,13 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media as BaseMedia;
  */
 final class Media extends BaseMedia
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $appends = [
         'expires_at',
     ];
 
-    public function getExpiresAtAttribute(): ?Carbon
+    protected function getExpiresAtAttribute(): ?Carbon
     {
         $expirationDays = config('core.soft_deletes_expiration_days');
 

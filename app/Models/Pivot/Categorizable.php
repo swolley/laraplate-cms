@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models\Pivot;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Override;
 
@@ -12,6 +13,8 @@ use Override;
  */
 final class Categorizable extends Pivot
 {
+    use HasFactory;
+
     public $incrementing = false;
 
     protected $table = 'categorizables';

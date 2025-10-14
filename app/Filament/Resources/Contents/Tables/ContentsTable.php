@@ -41,7 +41,7 @@ final class ContentsTable
                         ->state(function (Content $record) {
                             $images = collect($record->cover ? [$record->cover?->getUrl('thumb-low')] : []);
 
-                            return $images->merge($record->getMedia('images')->map(fn(Media $media) => $media->getUrl('thumb-low')))->unique();
+                            return $images->merge($record->getMedia('images')->map(fn (Media $media): string => $media->getUrl('thumb-low')))->unique();
                         })
                         ->stacked()
                         ->limit(3)

@@ -16,7 +16,7 @@ final class MediaFileNamer extends DefaultFileNamer
             return sprintf(
                 '%s-%s',
                 pathinfo($fileName, PATHINFO_FILENAME),
-                Str::after($conversion->getName(), '-')
+                Str::after($conversion->getName(), '-'),
             );
         }
 

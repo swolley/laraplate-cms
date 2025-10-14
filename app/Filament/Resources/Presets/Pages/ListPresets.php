@@ -25,7 +25,7 @@ final class ListPresets extends ListRecords
         foreach (Entity::query()->get(['id', 'name']) as $entity) {
             $tabs[$entity->name] = Tab::make($entity->name)
                 ->badge(Preset::query()->where('entity_id', $entity->id)->count())
-                ->modifyQueryUsing(fn(Builder $query) => $query->where('entity_id', $entity->id));
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('entity_id', $entity->id));
         }
 
         return array_merge([

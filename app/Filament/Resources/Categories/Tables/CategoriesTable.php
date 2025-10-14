@@ -36,7 +36,7 @@ final class CategoriesTable
                     TextColumn::make('name')
                         ->searchable()
                         ->sortable()
-                        ->state(fn (Category $record) => Str::repeat('&nbsp;', $record->ancestors->count() * 4) . $record->name)
+                        ->state(fn (Category $record): string => Str::repeat('&nbsp;', $record->ancestors->count() * 4) . $record->name)
                         ->html(),
                     TextColumn::make('path')
                         ->searchable()
