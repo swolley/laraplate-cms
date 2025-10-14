@@ -10,7 +10,7 @@ use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 use Modules\Cms\Filament\Resources\Categories\CategoryResource;
 
-class EditCategory extends EditRecord
+final class EditCategory extends EditRecord
 {
     protected static string $resource = CategoryResource::class;
 

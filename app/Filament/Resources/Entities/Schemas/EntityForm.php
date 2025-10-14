@@ -11,7 +11,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 use Modules\Cms\Casts\EntityType;
 
-class EntityForm
+final class EntityForm
 {
     public static function configure(Schema $schema): Schema
     {

@@ -12,7 +12,7 @@ use Modules\Cms\Filament\Resources\Entities\EntityResource;
 use Modules\Cms\Filament\Utils\HasRecords;
 use Modules\Cms\Models\Entity;
 
-class ListEntities extends ListRecords
+final class ListEntities extends ListRecords
 {
     use HasRecords;
 
@@ -27,7 +27,7 @@ class ListEntities extends ListRecords
         foreach (EntityType::cases() as $type) {
             $tabls[$type->value] = Tab::make($type->value)
                 ->badge(Entity::query()->where('type', $type)->count())
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('type', $type));
+                ->modifyQueryUsing(fn(Builder $query) => $query->where('type', $type));
         }
 
         return $tabls;

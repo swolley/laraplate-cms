@@ -10,7 +10,7 @@ use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 use Modules\Cms\Filament\Resources\Locations\LocationResource;
 
-class EditLocation extends EditRecord
+final class EditLocation extends EditRecord
 {
     protected static string $resource = LocationResource::class;
 

@@ -8,7 +8,7 @@ use Filament\Resources\Pages\ListRecords;
 use Modules\Cms\Filament\Resources\Templates\TemplateResource;
 use Modules\Cms\Filament\Utils\HasRecords;
 
-class ListTemplates extends ListRecords
+final class ListTemplates extends ListRecords
 {
     use HasRecords;
 

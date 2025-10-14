@@ -21,7 +21,7 @@ use Modules\Cms\Filament\Resources\Authors\Tables\AuthorsTable;
 use Modules\Cms\Models\Author;
 use UnitEnum;
 
-class AuthorResource extends Resource
+final class AuthorResource extends Resource
 {
     protected static ?string $model = Author::class;
 

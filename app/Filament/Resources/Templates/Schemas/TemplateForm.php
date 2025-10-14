@@ -9,7 +9,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
-class TemplateForm
+final class TemplateForm
 {
     public static function configure(Schema $schema): Schema
     {

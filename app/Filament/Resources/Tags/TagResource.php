@@ -21,7 +21,7 @@ use Modules\Cms\Filament\Resources\Tags\Tables\TagsTable;
 use Modules\Cms\Models\Tag;
 use UnitEnum;
 
-class TagResource extends Resource
+final class TagResource extends Resource
 {
     protected static ?string $model = Tag::class;
 

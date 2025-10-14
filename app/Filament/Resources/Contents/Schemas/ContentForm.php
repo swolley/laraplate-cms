@@ -10,7 +10,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
-class ContentForm
+final class ContentForm
 {
     public static function configure(Schema $schema): Schema
     {

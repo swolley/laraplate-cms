@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use Spatie\MediaLibrary\Support\FileNamer\DefaultFileNamer;
 
-class MediaFileNamer extends DefaultFileNamer
+final class MediaFileNamer extends DefaultFileNamer
 {
     public function conversionFileName(string $fileName, Conversion $conversion): string
     {

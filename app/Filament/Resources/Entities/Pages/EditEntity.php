@@ -8,7 +8,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Modules\Cms\Filament\Resources\Entities\EntityResource;
 
-class EditEntity extends EditRecord
+final class EditEntity extends EditRecord
 {
     protected static string $resource = EntityResource::class;
 

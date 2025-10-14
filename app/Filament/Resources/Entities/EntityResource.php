@@ -19,7 +19,7 @@ use Modules\Cms\Filament\Resources\Entities\Tables\EntitiesTable;
 use Modules\Cms\Models\Entity;
 use UnitEnum;
 
-class EntityResource extends Resource
+final class EntityResource extends Resource
 {
     protected static ?string $model = Entity::class;
 

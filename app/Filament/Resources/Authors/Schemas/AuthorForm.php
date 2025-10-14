@@ -9,7 +9,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
-class AuthorForm
+final class AuthorForm
 {
     public static function configure(Schema $schema): Schema
     {

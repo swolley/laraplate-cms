@@ -10,7 +10,7 @@ use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 use Modules\Cms\Filament\Resources\Presets\PresetResource;
 
-class EditPreset extends EditRecord
+final class EditPreset extends EditRecord
 {
     protected static string $resource = PresetResource::class;
 

@@ -21,7 +21,7 @@ use Modules\Cms\Filament\Resources\Contents\Tables\ContentsTable;
 use Modules\Cms\Models\Content;
 use UnitEnum;
 
-class ContentResource extends Resource
+final class ContentResource extends Resource
 {
     protected static ?string $model = Content::class;
 

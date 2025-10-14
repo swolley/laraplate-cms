@@ -10,7 +10,7 @@ use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 use Modules\Cms\Filament\Resources\Tags\TagResource;
 
-class EditTag extends EditRecord
+final class EditTag extends EditRecord
 {
     protected static string $resource = TagResource::class;
 

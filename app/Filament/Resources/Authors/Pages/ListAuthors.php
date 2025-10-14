@@ -8,7 +8,7 @@ use Filament\Resources\Pages\ListRecords;
 use Modules\Cms\Filament\Resources\Authors\AuthorResource;
 use Modules\Cms\Filament\Utils\HasRecords;
 
-class ListAuthors extends ListRecords
+final class ListAuthors extends ListRecords
 {
     use HasRecords;
 

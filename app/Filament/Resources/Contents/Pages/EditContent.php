@@ -10,7 +10,7 @@ use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 use Modules\Cms\Filament\Resources\Contents\ContentResource;
 
-class EditContent extends EditRecord
+final class EditContent extends EditRecord
 {
     protected static string $resource = ContentResource::class;
 

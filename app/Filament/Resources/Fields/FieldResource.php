@@ -21,7 +21,7 @@ use Modules\Cms\Filament\Resources\Fields\Tables\FieldsTable;
 use Modules\Cms\Models\Field;
 use UnitEnum;
 
-class FieldResource extends Resource
+final class FieldResource extends Resource
 {
     protected static ?string $model = Field::class;
 

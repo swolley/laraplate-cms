@@ -21,7 +21,7 @@ use Modules\Cms\Filament\Resources\Presets\Tables\PresetsTable;
 use Modules\Cms\Models\Preset;
 use UnitEnum;
 
-class PresetResource extends Resource
+final class PresetResource extends Resource
 {
     protected static ?string $model = Preset::class;
 

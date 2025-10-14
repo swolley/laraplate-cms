@@ -18,7 +18,7 @@ use Modules\Cms\Filament\Resources\Templates\Tables\TemplatesTable;
 use Modules\Cms\Models\Template;
 use UnitEnum;
 
-class TemplateResource extends Resource
+final class TemplateResource extends Resource
 {
     protected static ?string $model = Template::class;
 

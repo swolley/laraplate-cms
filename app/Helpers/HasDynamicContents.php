@@ -58,17 +58,19 @@ trait HasDynamicContents
 
     public static function fetchAvailableEntities(EntityType $type): Collection
     {
+        /** @phpstan-ignore staticMethod.notFound */
         return Cache::memo()->rememberForever(
             new Entity()->getCacheKey(),
-            fn (): Collection => Entity::query()->withoutGlobalScopes()->get(),
+            fn(): Collection => Entity::query()->withoutGlobalScopes()->get(),
         )->where('type', $type);
     }
 
     public static function fetchAvailablePresets(EntityType $type): Collection
     {
+        /** @phpstan-ignore staticMethod.notFound */
         return Cache::memo()->rememberForever(
             new Preset()->getCacheKey(),
-            fn (): Collection => Preset::withoutGlobalScopes()->with(['fields', 'entity'])->get(),
+            fn(): Collection => Preset::withoutGlobalScopes()->with(['fields', 'entity'])->get(),
         )->where('entity.type', $type);
     }
 
@@ -283,6 +285,6 @@ trait HasDynamicContents
 
     private function mergeComponentsValues(array $components): array
     {
-        return $this->fields()->mapWithKeys(fn (Field $field) => [$field->name => data_get($components, $field->name) ?? $field->pivot->default])->toArray();
+        return $this->fields()->mapWithKeys(fn(Field $field) => [$field->name => data_get($components, $field->name) ?? $field->pivot->default])->toArray();
     }
 }

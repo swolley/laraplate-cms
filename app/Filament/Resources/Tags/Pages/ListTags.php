@@ -8,7 +8,7 @@ use Filament\Resources\Pages\ListRecords;
 use Modules\Cms\Filament\Resources\Tags\TagResource;
 use Modules\Cms\Filament\Utils\HasRecords;
 
-class ListTags extends ListRecords
+final class ListTags extends ListRecords
 {
     use HasRecords;
 

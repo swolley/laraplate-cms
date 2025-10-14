@@ -21,7 +21,7 @@ use Modules\Cms\Filament\Resources\Locations\Tables\LocationsTable;
 use Modules\Cms\Models\Location;
 use UnitEnum;
 
-class LocationResource extends Resource
+final class LocationResource extends Resource
 {
     protected static ?string $model = Location::class;
 

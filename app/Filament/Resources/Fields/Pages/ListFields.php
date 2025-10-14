@@ -8,7 +8,7 @@ use Filament\Resources\Pages\ListRecords;
 use Modules\Cms\Filament\Resources\Fields\FieldResource;
 use Modules\Cms\Filament\Utils\HasRecords;
 
-class ListFields extends ListRecords
+final class ListFields extends ListRecords
 {
     use HasRecords;
 

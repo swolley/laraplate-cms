@@ -8,7 +8,7 @@ use Filament\Resources\Pages\ListRecords;
 use Modules\Cms\Filament\Resources\Categories\CategoryResource;
 use Modules\Cms\Filament\Utils\HasRecords;
 
-class ListCategories extends ListRecords
+final class ListCategories extends ListRecords
 {
     use HasRecords;
 

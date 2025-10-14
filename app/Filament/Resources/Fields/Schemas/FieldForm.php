@@ -10,7 +10,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 use Modules\Cms\Casts\FieldType;
 
-class FieldForm
+final class FieldForm
 {
     public static function configure(Schema $schema): Schema
     {

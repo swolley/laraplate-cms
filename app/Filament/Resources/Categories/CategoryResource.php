@@ -21,7 +21,7 @@ use Modules\Cms\Filament\Resources\Categories\Tables\CategoriesTable;
 use Modules\Cms\Models\Category;
 use UnitEnum;
 
-class CategoryResource extends Resource
+final class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
 

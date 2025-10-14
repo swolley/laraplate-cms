@@ -40,7 +40,8 @@
     },
     "scripts": {
         "lint": [
-            "pint",
+            "rector",
+            "pint --parallel",
             "php artisan ide-helper:generate",
             "php artisan ide-helper:models -MN",
             "php artisan ide-helper:meta"
@@ -48,19 +49,25 @@
         "check": "vendor/bin/phpstan analyse --memory-limit=2G -v",
         "fix": "vendor/bin/phpstan analyse --memory-limit=2G -v --fix",
         "refactor": "rector",
-        "test:type-coverage": "pest --type-coverage --exactly=100",
+        "test:type-coverage": "pest --type-coverage --min=100",
         "test:typos": "peck",
-        "test:lint": "pint --test",
+        "test:lint": [
+            "pint --parallel --test",
+            "rector --dry-run"
+        ],
         "test:unit": "pest --parallel --coverage --exactly=100",
         "test:types": "phpstan",
         "test:refactor": "rector",
         "test": [
             "@test:type-coverage",
-            "@test:typos",
             "@test:unit",
             "@test:lint",
             "@test:types",
             "@test:refactor"
+        ],
+        "update:requirements": [
+            "composer bump",
+            "npx npm-check-updates -u"
         ],
         "version": "./scripts/version.sh --nointeractive",
         "version:silent": "./scripts/version.sh --silent --nointeractive",
