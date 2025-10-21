@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Core\Helpers\MigrateUtils;
 
@@ -18,7 +19,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('entity_id')->nullable(false)->constrained('entities', 'id', 'contents_entity_id_FK')->cascadeOnDelete()->comment('The entity that the content belongs to');
             $table->unsignedBigInteger('preset_id')->nullable(false)->comment('The preset that the content belongs to');
-            $table->string('title')->nullable(false)->fullText('contents_title_IDX')->comment('The title of the content');
+            $table->string('title')->nullable(false)->comment('The title of the content');
             $table->json('components')->nullable(false)->comment('The content contents');
             $table->string('slug')->nullable(false)->index('contents_slug_IDX')->comment('The slug of the content');
             $table->integer('order_column')->nullable(false)->default(0)->index('contents_order_column_IDX')->comment('The order of the content');
@@ -37,6 +38,11 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->unique(['id', 'entity_id'], 'content_entity_UN');
         });
+
+        // Add fulltext index for databases that support them (not SQLite)
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE contents ADD FULLTEXT contents_title_IDX (title)');
+        }
 
         Schema::create('categorizables', function (Blueprint $table): void {
             // $table->id();

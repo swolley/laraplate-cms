@@ -17,8 +17,8 @@ return new class extends Migration
     {
         Schema::create('locations', function (Blueprint $table): void {
             $table->id();
-            $table->string('name')->nullable(false)->fulltext('locations_name_IDX')->comment('The friendly name of the location');
-            $table->string('slug')->nullable(false)->fulltext('locations_slug_IDX')->comment('The slug of the location');
+            $table->string('name')->nullable(false)->comment('The friendly name of the location');
+            $table->string('slug')->nullable(false)->comment('The slug of the location');
             $table->string('address')->nullable(true)->comment('The address of the location');
             $table->string('city')->nullable(true)->comment('The city of the location');
             $table->string('province')->nullable(true)->comment('The province of the location');
@@ -26,10 +26,14 @@ return new class extends Migration
             $table->string('postcode')->nullable(true)->comment('The postcode of the location');
             $table->string('zone')->nullable(true)->comment('The zone of the location');
 
-            if (DB::connection()->getDriverName() === 'pgsql') {
+            $driver = DB::connection()->getDriverName();
+            if ($driver === 'pgsql') {
                 // Create PostGIS extension first
                 DB::unprepared('CREATE EXTENSION IF NOT EXISTS postgis;');
                 $table->geometry('geolocation', 'point', 4326)->nullable()->spatialIndex()->comment('The geolocation of the location');
+            } elseif ($driver === 'sqlite') {
+                // SQLite doesn't support spatial indexes, just store as text
+                $table->text('geolocation')->nullable()->comment('The geolocation of the location (JSON for SQLite)');
             } else {
                 $table->geometry('geolocation')->nullable()->spatialIndex()->comment('The geolocation of the location');
             }
@@ -48,6 +52,12 @@ return new class extends Migration
             $table->index('province', 'locations_province_IDX');
             // }
         });
+
+        // Add fulltext indexes for databases that support them (not SQLite)
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE locations ADD FULLTEXT locations_name_IDX (name)');
+            DB::statement('ALTER TABLE locations ADD FULLTEXT locations_slug_IDX (slug)');
+        }
     }
 
     /**

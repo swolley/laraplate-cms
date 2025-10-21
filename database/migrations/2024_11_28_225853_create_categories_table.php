@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Core\Helpers\MigrateUtils;
 
@@ -45,7 +46,10 @@ return new class extends Migration
                 ->nullOnDelete();
         });
 
-        DB::statement('ALTER TABLE categories ADD CONSTRAINT categories_parent_id_check CHECK (parent_id <> id)');
+        // SQLite doesn't support CHECK constraints, skip for SQLite
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE categories ADD CONSTRAINT categories_parent_id_check CHECK (parent_id <> id)');
+        }
     }
 
     /**
