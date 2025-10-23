@@ -36,28 +36,29 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  */
 final class Category extends ComposhipsModel implements IMediable, Sortable
 {
-    use HasApprovals,
-        HasDynamicContents,
-        HasFactory,
-        HasLocks,
-        HasMultimedia,
-        HasPath,
-        HasRecursiveRelationships,
-        HasSlug,
-        HasTags,
-        HasValidations,
-        HasValidity,
-        HasVersions,
-        SoftDeletes,
-        SortableTrait {
-            HasValidations::getRules as protected getRulesTrait;
-            HasDynamicContents::getRules as protected getRulesDynamicContents;
-            getFullPath as protected getFullPathTrait;
-            requiresApprovalWhen as protected requiresApprovalWhenTrait;
-            HasDynamicContents::toArray as protected dynamicContentsToArray;
-            HasApprovals::toArray as protected approvalsToArray;
-            SortableTrait::scopeOrdered as protected scopePriorityOrdered;
-        }
+    use HasApprovals {
+        HasApprovals::toArray as protected approvalsToArray;
+    }
+    use HasDynamicContents {
+        HasDynamicContents::getRules as protected getRulesDynamicContents;
+        HasDynamicContents::toArray as protected dynamicContentsToArray;
+    }
+    use HasFactory;
+    use HasLocks;
+    use HasMultimedia;
+    use HasPath;
+    use HasRecursiveRelationships;
+    use HasSlug;
+    use HasTags;
+    use HasValidations {
+        HasValidations::getRules as protected getRulesTrait;
+    }
+    use HasValidity;
+    use HasVersions;
+    use SoftDeletes;
+    use SortableTrait {
+        SortableTrait::scopeOrdered as protected scopePriorityOrdered;
+    }
 
     /**
      * The attributes that are mass assignable.

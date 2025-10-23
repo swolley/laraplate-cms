@@ -182,7 +182,7 @@ trait HasTags
             ->contains(fn ($modelTag): bool => $modelTag->name === $tag || $modelTag->id === $tag);
     }
 
-    protected static function convertToTags($values, $type = null)
+    protected static function convertToTags($values, ?string $type = null)
     {
         if ($values instanceof Tag) {
             $values = [$values];
@@ -190,7 +190,7 @@ trait HasTags
 
         return collect($values)->map(function ($value) use ($type) {
             if ($value instanceof Tag) {
-                throw_if(isset($type) && $value->type !== $type, InvalidArgumentException::class, "Type was set to {$type} but tag is of type {$value->type}");
+                throw_if(isset($type) && $value->type !== $type, InvalidArgumentException::class, sprintf('Type was set to %s but tag is of type %s', $type, $value->type));
 
                 return $value;
             }

@@ -27,6 +27,7 @@ return new class extends Migration
             $table->string('zone')->nullable(true)->comment('The zone of the location');
 
             $driver = DB::connection()->getDriverName();
+
             if ($driver === 'pgsql') {
                 // Create PostGIS extension first
                 DB::unprepared('CREATE EXTENSION IF NOT EXISTS postgis;');

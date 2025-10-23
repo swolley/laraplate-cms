@@ -39,32 +39,32 @@ pest()->extend(Tests\TestCase::class)
 */
 
 /**
- * Create a test content with all required relationships
+ * Create a test content with all required relationships.
  */
-function createTestContent(array $attributes = []): \Modules\Cms\Models\Content
+function createTestContent(array $attributes = []): Modules\Cms\Models\Content
 {
-    $content = \Modules\Cms\Models\Content::factory()->create($attributes);
-    
+    $content = Modules\Cms\Models\Content::factory()->create($attributes);
+
     // Create related entities if not provided
-    if (!isset($attributes['category_id'])) {
-        $category = \Modules\Cms\Models\Category::factory()->create();
+    if (! isset($attributes['category_id'])) {
+        $category = Modules\Cms\Models\Category::factory()->create();
         $content->categories()->attach($category);
     }
-    
-    if (!isset($attributes['author_id'])) {
-        $author = \Modules\Cms\Models\Author::factory()->create();
+
+    if (! isset($attributes['author_id'])) {
+        $author = Modules\Cms\Models\Author::factory()->create();
         $content->authors()->attach($author);
     }
-    
+
     return $content;
 }
 
 /**
- * Create a test location with coordinates
+ * Create a test location with coordinates.
  */
-function createTestLocation(array $attributes = []): \Modules\Cms\Models\Location
+function createTestLocation(array $attributes = []): Modules\Cms\Models\Location
 {
-    return \Modules\Cms\Models\Location::factory()->create(array_merge([
+    return Modules\Cms\Models\Location::factory()->create(array_merge([
         'latitude' => 45.4642,
         'longitude' => 9.1900,
         'address' => 'Milan, Italy',
@@ -72,27 +72,27 @@ function createTestLocation(array $attributes = []): \Modules\Cms\Models\Locatio
 }
 
 /**
- * Assert that a content has the expected relationships
+ * Assert that a content has the expected relationships.
  */
 function expectContentRelationships($content, array $relationships): void
 {
     foreach ($relationships as $relation => $expectedCount) {
-        expect($content->$relation()->count())->toBe($expectedCount);
+        expect($content->{$relation}()->count())->toBe($expectedCount);
     }
 }
 
 /**
- * Assert that a model has the expected attributes
+ * Assert that a model has the expected attributes.
  */
 function expectModelAttributes($model, array $attributes): void
 {
     foreach ($attributes as $key => $value) {
-        expect($model->$key)->toBe($value);
+        expect($model->{$key})->toBe($value);
     }
 }
 
 /**
- * Assert that a model exists in database with given attributes
+ * Assert that a model exists in database with given attributes.
  */
 function assertModelExists(string $modelClass, array $attributes): void
 {
@@ -100,7 +100,7 @@ function assertModelExists(string $modelClass, array $attributes): void
 }
 
 /**
- * Assert that a model does not exist in database with given attributes
+ * Assert that a model does not exist in database with given attributes.
  */
 function assertModelNotExists(string $modelClass, array $attributes): void
 {

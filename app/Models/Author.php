@@ -29,12 +29,19 @@ use Symfony\Component\HttpFoundation\Response as ResponseAlias;
  */
 final class Author extends ComposhipsModel implements IMediable
 {
-    use HasDynamicContents, HasFactory, HasMultimedia, HasTags, HasValidations, HasVersions, SoftDeletes {
-        HasValidations::getRules as protected getRulesTrait;
+    use HasDynamicContents {
         HasDynamicContents::getRules as protected getRulesDynamicContents;
         HasDynamicContents::__get as protected dynamicContentsGet;
         HasDynamicContents::__set as protected dynamicContentsSet;
     }
+    use HasFactory;
+    use HasMultimedia;
+    use HasTags;
+    use HasValidations {
+        HasValidations::getRules as protected getRulesTrait;
+    }
+    use HasVersions;
+    use SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -68,11 +75,11 @@ final class Author extends ComposhipsModel implements IMediable
         $session_user = Auth::user();
         $entity = new User();
         $table = $entity->getTable();
-        $user_can_insert = $session_user && $session_user->can("{$table}.create");
-        $user_can_update = $session_user && $session_user->can("{$table}.update");
+        $user_can_insert = $session_user && $session_user->can($table . '.create');
+        $user_can_update = $session_user && $session_user->can($table . '.update');
 
         if (in_array($key, $entity->getFillable(), true) && ($user_can_insert || $user_can_update)) {
-            throw_if(! $this->user && ! $user_can_insert, UnauthorizedException::class, ResponseAlias::HTTP_FORBIDDEN, "User cannot insert {$entity}");
+            throw_if(! $this->user && ! $user_can_insert, UnauthorizedException::class, ResponseAlias::HTTP_FORBIDDEN, 'User cannot insert ' . $entity);
 
             if (! $this->user && ! $this->tempUser instanceof User && $user_can_insert) {
                 $this->tempUser = new User();

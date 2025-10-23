@@ -62,12 +62,13 @@ final class CreateEntityCommand extends Command
 
                     continue;
                 }
+
                 $entity->{$attribute} = text(ucfirst($attribute), '', $attribute === 'slug' ? Str::slug($entity->name) : '', true, fn (string $value) => $this->validationCallback($attribute, $value, $validations));
             }
 
             $entity->save();
 
-            $this->output->info("A default preset 'standard' will be created for the entity '{$entity->name}'");
+            $this->output->info(sprintf("A default preset 'standard' will be created for the entity '%s'", $entity->name));
 
             $preset = new Preset();
             $preset->name = 'standard';
@@ -78,7 +79,7 @@ final class CreateEntityCommand extends Command
 
             foreach ($preset_fields as $field) {
                 $field = $all_fields->get($field);
-                $is_required = confirm("Do you want '{$field['name']}' to be required?", false);
+                $is_required = confirm(sprintf("Do you want '%s' to be required?", $field['name']), false);
                 $this->assignFieldToPreset($preset, $field, $is_required);
             }
 
@@ -86,7 +87,7 @@ final class CreateEntityCommand extends Command
                 $this->call(CreateContentModelCommand::class, ['entity' => $entity->name]);
             }
 
-            $this->info("Entity '{$entity->name}' created");
+            $this->info(sprintf("Entity '%s' created", $entity->name));
         });
     }
 
@@ -125,7 +126,7 @@ final class CreateEntityCommand extends Command
     private function getDefaultFieldValue(Field $field, bool $is_required): mixed
     {
         $default = text(
-            "Specify a default value for '{$field->name}'",
+            sprintf("Specify a default value for '%s'", $field->name),
             required: $is_required,
             validate: match ($field->type) {
                 FieldType::SELECT && isset($field->options->multiple) && $field->options->multiple => '[]',

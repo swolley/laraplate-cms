@@ -187,6 +187,7 @@ trait HasDynamicContents
             if (isset($field->options->max)) {
                 $rule .= '|max:' . $field->options->max;
             }
+
             $fields[$field->name] = mb_trim($rule, '|');
 
             if ($field->type === FieldType::EDITOR) {
@@ -206,7 +207,7 @@ trait HasDynamicContents
             if ($model->preset) {
                 $model->preset_id = $model->preset->id;
 
-                throw_if($model->entity_id && $model->entity_id !== $model->preset->entity_id, UnexpectedValueException::class, "Entity mismatch: {$model->entity->name} is not compatible with {$model->preset->name}");
+                throw_if($model->entity_id && $model->entity_id !== $model->preset->entity_id, UnexpectedValueException::class, sprintf('Entity mismatch: %s is not compatible with %s', $model->entity->name, $model->preset->name));
                 $model->entity_id = $model->preset->entity_id;
             } elseif (! $model->preset_id) {
                 $model->preset_id = static::fetchAvailablePresets(EntityType::tryFrom($model->getTable()))->firstOrFail()->id;

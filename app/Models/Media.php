@@ -14,7 +14,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media as BaseMedia;
  */
 final class Media extends BaseMedia
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
     protected $appends = [
         'expires_at',

@@ -31,8 +31,8 @@ final class LocationsController extends Controller
                 $request->get('country'),
             );
             $response->setData($location);
-        } catch (Exception $e) {
-            $response->setError($e->getMessage());
+        } catch (Exception $exception) {
+            $response->setError($exception->getMessage());
         }
 
         return $response->json();

@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\Cms\Models\Content;
-use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Author;
+use Modules\Cms\Models\Category;
+use Modules\Cms\Models\Content;
 use Modules\Core\Models\User;
 use Tests\TestCase;
 
@@ -14,7 +14,7 @@ uses(TestCase::class, RefreshDatabase::class);
 beforeEach(function (): void {
     $this->user = User::factory()->create();
     $this->actingAs($this->user);
-    
+
     $this->category = Category::factory()->create(['name' => 'Test Category']);
     $this->author = Author::factory()->create(['name' => 'Test Author']);
     $this->content = Content::factory()->create([
@@ -30,7 +30,7 @@ test('get contents by relation returns contents for category', function (): void
         'value' => $this->category->id,
         'entity' => 'contents',
     ]));
-    
+
     $response->assertStatus(200)
         ->assertJsonStructure([
             'data' => [
@@ -47,15 +47,15 @@ test('get contents by relation filters by category', function (): void {
         'title' => 'Other Content',
         'category_id' => $otherCategory->id,
     ]);
-    
+
     $response = $this->getJson(route('cms.api.relation.contents', [
         'relation' => 'categories',
         'value' => $this->category->id,
         'entity' => 'contents',
     ]));
-    
+
     $response->assertStatus(200);
-    
+
     $data = $response->json('data');
     expect($data)->toHaveCount(1);
     expect($data[0]['id'])->toBe($this->content->id);
@@ -67,9 +67,9 @@ test('get contents by relation filters by author', function (): void {
         'value' => $this->author->id,
         'entity' => 'contents',
     ]));
-    
+
     $response->assertStatus(200);
-    
+
     $data = $response->json('data');
     expect($data)->toHaveCount(1);
     expect($data[0]['id'])->toBe($this->content->id);
@@ -81,7 +81,7 @@ test('get contents by relation handles singular entity names', function (): void
         'value' => $this->category->id,
         'entity' => 'content', // singular
     ]));
-    
+
     $response->assertStatus(200)
         ->assertJsonStructure([
             'data' => [
@@ -94,13 +94,13 @@ test('get contents by relation handles singular entity names', function (): void
 
 test('get contents by relation returns empty array when no contents', function (): void {
     $emptyCategory = Category::factory()->create(['name' => 'Empty Category']);
-    
+
     $response = $this->getJson(route('cms.api.relation.contents', [
         'relation' => 'categories',
         'value' => $emptyCategory->id,
         'entity' => 'contents',
     ]));
-    
+
     $response->assertStatus(200)
         ->assertJson([
             'data' => [],
@@ -113,7 +113,7 @@ test('get contents by relation handles invalid relation', function (): void {
         'value' => '1',
         'entity' => 'contents',
     ]));
-    
+
     $response->assertStatus(200);
 });
 
@@ -123,7 +123,7 @@ test('get contents by relation handles invalid value', function (): void {
         'value' => '99999',
         'entity' => 'contents',
     ]));
-    
+
     $response->assertStatus(200)
         ->assertJson([
             'data' => [],
@@ -135,7 +135,7 @@ test('get contents by relation supports pagination', function (): void {
     Content::factory()->count(5)->create([
         'category_id' => $this->category->id,
     ]);
-    
+
     $response = $this->getJson(route('cms.api.relation.contents', [
         'relation' => 'categories',
         'value' => $this->category->id,
@@ -143,7 +143,7 @@ test('get contents by relation supports pagination', function (): void {
         'page' => 1,
         'per_page' => 3,
     ]));
-    
+
     $response->assertStatus(200)
         ->assertJsonStructure([
             'data' => [],
@@ -164,7 +164,7 @@ test('get contents by relation supports sorting', function (): void {
         'title' => 'Z Content',
         'category_id' => $this->category->id,
     ]);
-    
+
     $response = $this->getJson(route('cms.api.relation.contents', [
         'relation' => 'categories',
         'value' => $this->category->id,
@@ -172,9 +172,9 @@ test('get contents by relation supports sorting', function (): void {
         'sort' => 'title',
         'order' => 'asc',
     ]));
-    
+
     $response->assertStatus(200);
-    
+
     $data = $response->json('data');
     expect($data)->toHaveCount(3); // 2 new + 1 existing
     expect($data[0]['title'])->toBe('A Content');
@@ -185,7 +185,7 @@ test('get contents by relation supports filtering', function (): void {
         'title' => 'Filtered Content',
         'category_id' => $this->category->id,
     ]);
-    
+
     $response = $this->getJson(route('cms.api.relation.contents', [
         'relation' => 'categories',
         'value' => $this->category->id,
@@ -198,9 +198,9 @@ test('get contents by relation supports filtering', function (): void {
             ],
         ],
     ]));
-    
+
     $response->assertStatus(200);
-    
+
     $data = $response->json('data');
     expect($data)->toHaveCount(1);
     expect($data[0]['title'])->toBe('Filtered Content');
@@ -212,7 +212,7 @@ test('get contents by relation returns correct content structure', function (): 
         'value' => $this->category->id,
         'entity' => 'contents',
     ]));
-    
+
     $response->assertStatus(200)
         ->assertJsonStructure([
             'data' => [
@@ -235,9 +235,9 @@ test('get contents by relation handles multiple relations', function (): void {
         'value' => $this->author->id,
         'entity' => 'contents',
     ]));
-    
+
     $response->assertStatus(200);
-    
+
     $data = $response->json('data');
     expect($data)->toHaveCount(1);
     expect($data[0]['author_id'])->toBe($this->author->id);
@@ -249,7 +249,7 @@ test('get contents by relation works with different entity types', function (): 
         'value' => $this->category->id,
         'entity' => 'posts', // different entity
     ]));
-    
+
     $response->assertStatus(200);
 });
 
@@ -259,12 +259,12 @@ test('get contents by relation handles empty parameters', function (): void {
         'value' => '',
         'entity' => 'contents',
     ]));
-    
+
     $response->assertStatus(200);
 });
 
 test('get contents by relation returns proper error for invalid route', function (): void {
     $response = $this->getJson('/api/v1/invalid/1/contents');
-    
+
     $response->assertStatus(404);
 });

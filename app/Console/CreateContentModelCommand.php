@@ -34,7 +34,7 @@ final class CreateContentModelCommand extends Command implements PromptsForMissi
 
         if (! file_exists($file_path)) {
             if (! Entity::query()->withoutGlobalScopes()->where('name', $entity)->exists()) {
-                if ($this->confirm("Entity '{$entity}' not found, do you want to create it?", false)) {
+                if ($this->confirm(sprintf("Entity '%s' not found, do you want to create it?", $entity), false)) {
                     $this->call(CreateEntityCommand::class, ['entity' => $entity, '--content-model' => true]);
                 }
 

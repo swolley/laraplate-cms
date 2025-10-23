@@ -7,7 +7,6 @@ namespace Modules\Cms\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Cache;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Database\Factories\EntityFactory;
 use Modules\Cms\Helpers\HasPath;
@@ -23,9 +22,12 @@ use Override;
  */
 final class Entity extends ComposhipsModel
 {
-    use HasCache, HasFactory, HasLocks, HasPath, HasSlug, HasValidations {
-        getRules as protected getRulesTrait;
-    }
+    use HasCache;
+    use HasFactory;
+    use HasLocks;
+    use HasPath;
+    use HasSlug;
+    use HasValidations;
 
     /**
      * The attributes that are mass assignable.
@@ -118,20 +120,6 @@ final class Entity extends ComposhipsModel
         // });
         self::addGlobalScope('active', function (Builder $builder): void {
             $builder->where('is_active', true);
-        });
-    }
-
-    #[Override]
-    protected static function booted(): void
-    {
-        self::saved(function (Entity $entity): void {
-            Cache::forget(new Preset()->getCacheKey());
-            Content::resolveChildTypes();
-        });
-
-        self::deleted(function (Entity $entity): void {
-            Cache::forget(new Preset()->getCacheKey());
-            Content::resolveChildTypes();
         });
     }
 

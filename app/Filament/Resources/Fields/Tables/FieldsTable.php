@@ -47,7 +47,7 @@ final class FieldsTable
                                 );
                             }
 
-                            return "<div class=\"space-y-1\">{$string}</div";
+                            return sprintf('<div class="space-y-1">%s</div', $string);
                         })
                         ->toggleable(isToggledHiddenByDefault: false)
                         ->html(),

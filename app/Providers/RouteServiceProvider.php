@@ -50,9 +50,9 @@ final class RouteServiceProvider extends ServiceProvider
     {
         $name_prefix = $this->getPrefix();
         $route_prefix = 'api';
-        Route::prefix("{$route_prefix}/v1")
+        Route::prefix($route_prefix . '/v1')
             ->middleware($route_prefix)
-            ->name("{$name_prefix}.{$route_prefix}.")
+            ->name(sprintf('%s.%s.', $name_prefix, $route_prefix))
             ->group([
                 module_path($this->name, '/routes/api.php'),
             ]);

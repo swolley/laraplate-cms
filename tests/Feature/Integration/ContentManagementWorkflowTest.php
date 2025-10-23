@@ -64,7 +64,7 @@ test('entity and field management workflow structure', function (): void {
 
 test('content model creation workflow structure', function (): void {
     // 1. Test CreateContentModelCommand structure
-    $reflection = new ReflectionClass(\Modules\Cms\Console\CreateContentModelCommand::class);
+    $reflection = new ReflectionClass(Modules\Cms\Console\CreateContentModelCommand::class);
     expect($reflection->hasMethod('handle'))->toBeTrue();
 
     // 2. Test command signature
@@ -81,7 +81,7 @@ test('content model creation workflow structure', function (): void {
     expect($source)->toContain('file_put_contents');
 
     // 5. Test Event model structure
-    $reflection = new ReflectionClass(\Modules\Cms\Models\Contents\Event::class);
+    $reflection = new ReflectionClass(Modules\Cms\Models\Contents\Event::class);
     expect($reflection->hasMethod('authors'))->toBeTrue();
     expect($reflection->hasMethod('categories'))->toBeTrue();
 });
@@ -97,7 +97,7 @@ test('location and geocoding workflow structure', function (): void {
     expect($source)->toContain('belongsToMany');
 
     // 3. Test LocationsController structure
-    $reflection = new ReflectionClass(\Modules\Cms\Http\Controllers\LocationsController::class);
+    $reflection = new ReflectionClass(Modules\Cms\Http\Controllers\LocationsController::class);
     expect($reflection->hasMethod('geocode'))->toBeTrue();
 
     // 4. Test controller methods
@@ -106,11 +106,11 @@ test('location and geocoding workflow structure', function (): void {
     expect($source)->toContain('IGeocodingService');
 
     // 5. Test geocoding services
-    $reflection = new ReflectionClass(\Modules\Cms\Services\GoogleMapsService::class);
+    $reflection = new ReflectionClass(Modules\Cms\Services\GoogleMapsService::class);
     expect($reflection->hasMethod('search'))->toBeTrue();
     expect($reflection->hasMethod('url'))->toBeTrue();
 
-    $reflection = new ReflectionClass(\Modules\Cms\Services\NominatimService::class);
+    $reflection = new ReflectionClass(Modules\Cms\Services\NominatimService::class);
     expect($reflection->hasMethod('search'))->toBeTrue();
     expect($reflection->hasMethod('url'))->toBeTrue();
 });
@@ -152,7 +152,7 @@ test('content publishing workflow structure', function (): void {
     // 1. Test Content model publishing methods
     $reflection = new ReflectionClass(Content::class);
     $source = file_get_contents($reflection->getFileName());
-    
+
     expect($source)->toContain('HasDynamicContents');
     expect($source)->toContain('HasApprovals');
     expect($source)->toContain('HasVersions');
@@ -180,7 +180,7 @@ test('content publishing workflow structure', function (): void {
 
 test('content database seeder workflow structure', function (): void {
     // 1. Test CMS seeder structure
-    $reflection = new ReflectionClass(\Modules\Cms\Database\Seeders\CmsDatabaseSeeder::class);
+    $reflection = new ReflectionClass(Modules\Cms\Database\Seeders\CmsDatabaseSeeder::class);
     expect($reflection->hasMethod('run'))->toBeTrue();
 
     // 2. Test seeder populates basic data
@@ -205,7 +205,7 @@ test('content migration workflow structure', function (): void {
 
 test('content filament resources workflow structure', function (): void {
     // 1. Test ContentResource structure
-    $reflection = new ReflectionClass(\Modules\Cms\Filament\Resources\Contents\ContentResource::class);
+    $reflection = new ReflectionClass(Modules\Cms\Filament\Resources\Contents\ContentResource::class);
     expect($reflection->hasMethod('form'))->toBeTrue();
     expect($reflection->hasMethod('table'))->toBeTrue();
 

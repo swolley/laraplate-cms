@@ -31,15 +31,18 @@ use Override;
  * @method static whereContains(Polygon $polygon)
  * @method static whereNotContains(Polygon $polygon)
  * @method static whereEquals(Point $point)
- *
  * @mixin IdeHelperLocation
  */
 final class Location extends Model
 {
-    use HasFactory, HasPath, HasSlug, HasSpatial, HasTags, HasValidations, Searchable, SoftDeletes {
-        toSearchableArray as toSearchableArrayTrait;
-        getRules as protected getRulesTrait;
-    }
+    use HasFactory;
+    use HasPath;
+    use HasSlug;
+    use HasSpatial;
+    use HasTags;
+    use HasValidations;
+    use Searchable;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.

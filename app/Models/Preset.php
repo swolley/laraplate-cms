@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Cache;
 use Modules\Cms\Models\Pivot\Fieldable;
 use Modules\Core\Cache\HasCache;
 use Modules\Core\Helpers\HasApprovals;
@@ -27,9 +26,13 @@ use Override;
  */
 final class Preset extends Model
 {
-    use Compoships, HasApprovals, HasCache, HasFactory, HasValidations, HasVersions, SoftDeletes {
-        getRules as protected getRulesTrait;
-    }
+    use Compoships;
+    use HasApprovals;
+    use HasCache;
+    use HasFactory;
+    use HasValidations;
+    use HasVersions;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -118,18 +121,6 @@ final class Preset extends Model
     //         }
     //     });
     // }
-
-    #[Override]
-    protected static function booted(): void
-    {
-        self::saved(function (Preset $preset): void {
-            Cache::forget($preset->getCacheKey());
-        });
-
-        self::forceDeleted(function (Preset $preset): void {
-            Cache::forget($preset->getCacheKey());
-        });
-    }
 
     #[Override]
     protected function casts(): array

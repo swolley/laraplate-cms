@@ -18,7 +18,9 @@ use Spatie\EloquentSortable\Sortable;
  */
 final class Fieldable extends Pivot implements Sortable
 {
-    use HasFactory, HasVersions, SortableTrait;
+    use HasFactory;
+    use HasVersions;
+    use SortableTrait;
 
     public $incrementing = true;
 

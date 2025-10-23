@@ -60,14 +60,14 @@ final class NominatimService implements IGeocodingService
 
                     // Prova prima con i tag
                     if (Cache::supportsTags()) {
-                        Cache::tags('geocoding')->put($cache_key, $result, config('cache.duration.long'));
+                        Cache::tags(Cache::getCacheTags('geocoding'))->put($cache_key, $result, config('cache.duration.long'));
                     } else {
                         Cache::put($cache_key, $result, config('cache.duration.long'));
                     }
 
                     return $result;
-                } catch (Exception $e) {
-                    Log::error('Nominatim geocoding cache error: ' . $e->getMessage());
+                } catch (Exception $exception) {
+                    Log::error('Nominatim geocoding cache error: ' . $exception->getMessage());
 
                     // Se la cache fallisce, esegui comunque la ricerca
                     return $result ?? null;
@@ -136,15 +136,15 @@ final class NominatimService implements IGeocodingService
             'limit' => $limit,
         ];
 
-        if ($city !== null && $city !== '' && $city !== '0') {
+        if (! in_array($city, [null, '', '0'], true)) {
             $params['city'] = $city;
         }
 
-        if ($province !== null && $province !== '' && $province !== '0') {
+        if (! in_array($province, [null, '', '0'], true)) {
             $params['province'] = $province;
         }
 
-        if ($country !== null && $country !== '' && $country !== '0') {
+        if (! in_array($country, [null, '', '0'], true)) {
             $params['country'] = $country;
         }
 
@@ -159,7 +159,7 @@ final class NominatimService implements IGeocodingService
         $result = $response->json();
 
         if ($limit > 1) {
-            return array_map(fn (array $result): Location => $this->getAddressDetails($result), $result);
+            return array_map($this->getAddressDetails(...), $result);
         }
 
         return $this->getAddressDetails($result[0]);

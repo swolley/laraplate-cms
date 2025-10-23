@@ -68,12 +68,12 @@ final class ContentsController extends CrudController
             'operator' => WhereClause::OR->value,
             'filters' => [
                 [
-                    'property' => "contents.{$relation}.name",
+                    'property' => sprintf('contents.%s.name', $relation),
                     'value' => $value,
                     'operator' => FilterOperator::EQUALS->value,
                 ],
                 [
-                    'property' => "contents.{$relation}.slug",
+                    'property' => sprintf('contents.%s.slug', $relation),
                     'value' => $value,
                     'operator' => FilterOperator::EQUALS->value,
                 ],

@@ -16,9 +16,9 @@ use Override;
  */
 final class Template extends Model
 {
-    use HasFactory, HasValidations, HasVersions {
-        getRules as protected getRulesTrait;
-    }
+    use HasFactory;
+    use HasValidations;
+    use HasVersions;
 
     /**
      * The attributes that are mass assignable.

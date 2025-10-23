@@ -26,9 +26,12 @@ use Spatie\EloquentSortable\Sortable;
  */
 final class Tag extends Model implements Sortable
 {
-    use HasFactory, HasPath, HasSlug, HasValidations, SoftDeletes, SortableTrait {
-        getRules as protected getRulesTrait;
-    }
+    use HasFactory;
+    use HasPath;
+    use HasSlug;
+    use HasValidations;
+    use SoftDeletes;
+    use SortableTrait;
 
     /**
      * The attributes that are mass assignable.

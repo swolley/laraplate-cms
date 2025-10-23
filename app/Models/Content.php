@@ -45,34 +45,35 @@ use Spatie\MediaLibrary\HasMedia;
  */
 class Content extends ComposhipsModel implements HasMedia, Sortable
 {
-    use HasApprovals,
-        HasChildren,
-        HasDynamicContents,
-        HasFactory,
-        HasLocks,
-        HasMultimedia,
-        HasOptimisticLocking,
-        HasPath,
-        HasSlug,
-        HasTags,
-        HasValidations,
-        HasValidity,
-        HasVersions,
-        Searchable,
-        SoftDeletes,
-        SortableTrait {
-            toSearchableArray as protected toSearchableArrayTrait;
-            getSearchMapping as protected getSearchMappingTrait;
-            HasValidations::getRules as protected getRulesTrait;
-            HasDynamicContents::getRules as protected getRulesDynamicContents;
-            HasChildren::hasMany as protected hasChildrenHasMany;
-            HasChildren::belongsTo as protected hasChildrenBelongsTo;
-            HasChildren::belongsToMany as protected hasChildrenBelongsToMany;
-            requiresApprovalWhen as protected requiresApprovalWhenTrait;
-            HasDynamicContents::toArray as protected dynamicContentsToArray;
-            HasApprovals::toArray as protected approvalsToArray;
-            SortableTrait::scopeOrdered as protected scopePriorityOrdered;
-        }
+    use HasApprovals {
+        HasApprovals::toArray as protected approvalsToArray;
+    }
+    use HasChildren {
+        HasChildren::hasMany as protected hasChildrenHasMany;
+        HasChildren::belongsTo as protected hasChildrenBelongsTo;
+        HasChildren::belongsToMany as protected hasChildrenBelongsToMany;
+    }
+    use HasDynamicContents {
+        HasDynamicContents::getRules as protected getRulesDynamicContents;
+        HasDynamicContents::toArray as protected dynamicContentsToArray;
+    }
+    use HasFactory;
+    use HasLocks;
+    use HasMultimedia;
+    use HasOptimisticLocking;
+    use HasPath;
+    use HasSlug;
+    use HasTags;
+    use HasValidations {
+        HasValidations::getRules as protected getRulesTrait;
+    }
+    use HasValidity;
+    use HasVersions;
+    use Searchable;
+    use SoftDeletes;
+    use SortableTrait {
+        SortableTrait::scopeOrdered as protected scopePriorityOrdered;
+    }
 
     public static array $childTypes = [];
 

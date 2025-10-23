@@ -90,7 +90,7 @@ final class AuthorsTable
 
                             $hex = sprintf('%02x%02x%02x', $r, $g, $b);
 
-                            return url("https://ui-avatars.com/api/?name={$record->name[0]}&color=FFFFFF&background={$hex}");
+                            return url(sprintf('https://ui-avatars.com/api/?name=%s&color=FFFFFF&background=%s', $record->name[0], $hex));
                         })
                         ->extraImgAttributes(['loading' => 'lazy']),
                     TextColumn::make('name')

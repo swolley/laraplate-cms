@@ -38,7 +38,7 @@ it('has fillable attributes', function (): void {
 it('belongs to many contents', function (): void {
     $content1 = Content::factory()->create(['title' => 'Article 1']);
     $content2 = Content::factory()->create(['title' => 'Article 2']);
-    
+
     $this->category->contents()->attach([$content1->id, $content2->id]);
 
     expect($this->category->contents)->toHaveCount(2);
@@ -48,7 +48,7 @@ it('belongs to many contents', function (): void {
 it('has recursive relationships for parent-child categories', function (): void {
     $parentCategory = Category::factory()->create(['name' => 'Technology']);
     $childCategory = Category::factory()->create(['name' => 'Programming']);
-    
+
     $childCategory->parent_id = $parentCategory->id;
     $childCategory->save();
 
@@ -100,7 +100,7 @@ it('has versions trait', function (): void {
 
 it('has soft deletes trait', function (): void {
     $this->category->delete();
-    
+
     expect($this->category->trashed())->toBeTrue();
     expect(Category::withTrashed()->find($this->category->id))->not->toBeNull();
 });
@@ -139,27 +139,27 @@ it('can be created with specific attributes', function (): void {
 
 it('can be found by name', function (): void {
     $category = Category::factory()->create(['name' => 'Unique Category']);
-    
+
     $foundCategory = Category::where('name', 'Unique Category')->first();
-    
+
     expect($foundCategory->id)->toBe($category->id);
 });
 
 it('can be found by slug', function (): void {
     $category = Category::factory()->create(['slug' => 'unique-slug']);
-    
+
     $foundCategory = Category::where('slug', 'unique-slug')->first();
-    
+
     expect($foundCategory->id)->toBe($category->id);
 });
 
 it('can be found by active status', function (): void {
     $activeCategory = Category::factory()->create(['is_active' => true]);
     $inactiveCategory = Category::factory()->create(['is_active' => false]);
-    
+
     $activeCategories = Category::where('is_active', true)->get();
     $inactiveCategories = Category::where('is_active', false)->get();
-    
+
     expect($activeCategories)->toHaveCount(1);
     expect($inactiveCategories)->toHaveCount(1);
     expect($activeCategories->first()->id)->toBe($activeCategory->id);
@@ -168,9 +168,9 @@ it('can be found by active status', function (): void {
 
 it('has proper timestamps', function (): void {
     $category = Category::factory()->create();
-    
-    expect($category->created_at)->toBeInstanceOf(\Carbon\Carbon::class);
-    expect($category->updated_at)->toBeInstanceOf(\Carbon\Carbon::class);
+
+    expect($category->created_at)->toBeInstanceOf(Carbon\Carbon::class);
+    expect($category->updated_at)->toBeInstanceOf(Carbon\Carbon::class);
 });
 
 it('can be serialized to array', function (): void {
@@ -180,7 +180,7 @@ it('can be serialized to array', function (): void {
         'is_active' => true,
     ]);
     $categoryArray = $category->toArray();
-    
+
     expect($categoryArray)->toHaveKey('id');
     expect($categoryArray)->toHaveKey('name');
     expect($categoryArray)->toHaveKey('slug');
@@ -195,30 +195,30 @@ it('can be serialized to array', function (): void {
 it('can be restored after soft delete', function (): void {
     $category = Category::factory()->create();
     $category->delete();
-    
+
     expect($category->trashed())->toBeTrue();
-    
+
     $category->restore();
-    
+
     expect($category->trashed())->toBeFalse();
 });
 
 it('can be permanently deleted', function (): void {
     $category = Category::factory()->create();
     $categoryId = $category->id;
-    
+
     $category->forceDelete();
-    
+
     expect(Category::withTrashed()->find($categoryId))->toBeNull();
 });
 
 it('can have parent category', function (): void {
     $parentCategory = Category::factory()->create(['name' => 'Parent']);
     $childCategory = Category::factory()->create(['name' => 'Child']);
-    
+
     $childCategory->parent_id = $parentCategory->id;
     $childCategory->save();
-    
+
     expect($childCategory->parent)->toBeInstanceOf(Category::class);
     expect($childCategory->parent->id)->toBe($parentCategory->id);
 });
@@ -226,10 +226,10 @@ it('can have parent category', function (): void {
 it('can have children categories', function (): void {
     $parentCategory = Category::factory()->create(['name' => 'Parent']);
     $childCategory = Category::factory()->create(['name' => 'Child']);
-    
+
     $childCategory->parent_id = $parentCategory->id;
     $childCategory->save();
-    
+
     expect($parentCategory->children)->toHaveCount(1);
     expect($parentCategory->children->first()->id)->toBe($childCategory->id);
 });

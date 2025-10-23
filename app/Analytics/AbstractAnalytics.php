@@ -106,10 +106,10 @@ abstract class AbstractAnalytics
             $results = $response->asArray();
 
             return $results['aggregations']['by_term']['buckets'] ?? [];
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             // Log dell'errore
             Log::error('Elasticsearch term-based metrics query failed', [
-                'error' => $e->getMessage(),
+                'error' => $exception->getMessage(),
                 'field' => $field,
                 'index' => $model->searchableAs(),
                 'filters' => $filters,
@@ -162,10 +162,10 @@ abstract class AbstractAnalytics
             $results = $response->asArray();
 
             return $results['aggregations']['geo_clusters']['buckets'] ?? [];
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             // Log dell'errore
             Log::error('Elasticsearch geo-based metrics query failed', [
-                'error' => $e->getMessage(),
+                'error' => $exception->getMessage(),
                 'index' => $model->searchableAs(),
                 'filters' => $filters,
             ]);
@@ -217,10 +217,10 @@ abstract class AbstractAnalytics
             $results = $response->asArray();
 
             return $results['aggregations']['distribution']['buckets'] ?? [];
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             // Log dell'errore
             Log::error('Elasticsearch distribution metrics query failed', [
-                'error' => $e->getMessage(),
+                'error' => $exception->getMessage(),
                 'field' => $field,
                 'index' => $model->searchableAs(),
                 'filters' => $filters,
@@ -281,10 +281,10 @@ abstract class AbstractAnalytics
             $results = $response->asArray();
 
             return $results['aggregations']['time_series']['buckets'] ?? [];
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             // Log dell'errore
             Log::error('Elasticsearch time-based metrics query failed', [
-                'error' => $e->getMessage(),
+                'error' => $exception->getMessage(),
                 'date_field' => $date_field,
                 'interval' => $interval,
                 'index' => $model->searchableAs(),

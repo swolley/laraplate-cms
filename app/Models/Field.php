@@ -18,14 +18,14 @@ use Override;
 
 /**
  * @property-read object $options
- *
  * @mixin IdeHelperField
  */
 final class Field extends Model
 {
-    use HasFactory, HasValidations, HasVersions, SoftDeletes {
-        getRules as protected getRulesTrait;
-    }
+    use HasFactory;
+    use HasValidations;
+    use HasVersions;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -70,6 +70,7 @@ final class Field extends Model
 
             return;
         }
+
         parent::__set($key, $value);
     }
 

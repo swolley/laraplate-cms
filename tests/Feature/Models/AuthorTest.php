@@ -42,7 +42,7 @@ it('has hidden attributes', function (): void {
 it('belongs to many contents', function (): void {
     $content1 = Content::factory()->create(['title' => 'Article 1']);
     $content2 = Content::factory()->create(['title' => 'Article 2']);
-    
+
     $this->author->contents()->attach([$content1->id, $content2->id]);
 
     expect($this->author->contents)->toHaveCount(2);
@@ -71,7 +71,7 @@ it('has versions trait', function (): void {
 
 it('has soft deletes trait', function (): void {
     $this->author->delete();
-    
+
     expect($this->author->trashed())->toBeTrue();
     expect(Author::withTrashed()->find($this->author->id))->not->toBeNull();
 });
@@ -94,17 +94,17 @@ it('can be created with specific attributes', function (): void {
 
 it('can be found by name', function (): void {
     $author = Author::factory()->create(['name' => 'Unique Author']);
-    
+
     $foundAuthor = Author::where('name', 'Unique Author')->first();
-    
+
     expect($foundAuthor->id)->toBe($author->id);
 });
 
 it('has proper timestamps', function (): void {
     $author = Author::factory()->create();
-    
-    expect($author->created_at)->toBeInstanceOf(\Carbon\Carbon::class);
-    expect($author->updated_at)->toBeInstanceOf(\Carbon\Carbon::class);
+
+    expect($author->created_at)->toBeInstanceOf(Carbon\Carbon::class);
+    expect($author->updated_at)->toBeInstanceOf(Carbon\Carbon::class);
 });
 
 it('can be serialized to array', function (): void {
@@ -112,7 +112,7 @@ it('can be serialized to array', function (): void {
         'name' => 'Test Author',
     ]);
     $authorArray = $author->toArray();
-    
+
     expect($authorArray)->toHaveKey('id');
     expect($authorArray)->toHaveKey('name');
     expect($authorArray['name'])->toBe('Test Author');
@@ -121,19 +121,19 @@ it('can be serialized to array', function (): void {
 it('can be restored after soft delete', function (): void {
     $author = Author::factory()->create();
     $author->delete();
-    
+
     expect($author->trashed())->toBeTrue();
-    
+
     $author->restore();
-    
+
     expect($author->trashed())->toBeFalse();
 });
 
 it('can be permanently deleted', function (): void {
     $author = Author::factory()->create();
     $authorId = $author->id;
-    
+
     $author->forceDelete();
-    
+
     expect(Author::withTrashed()->find($authorId))->toBeNull();
 });
