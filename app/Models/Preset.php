@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
-use Awobaz\Compoships\Compoships;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Modules\Cms\Models\Pivot\Fieldable;
+use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Core\Cache\HasCache;
 use Modules\Core\Helpers\HasApprovals;
 use Modules\Core\Helpers\HasValidations;
@@ -26,7 +27,6 @@ use Override;
  */
 final class Preset extends Model
 {
-    use Compoships;
     use HasApprovals;
     use HasCache;
     use HasFactory;
@@ -73,11 +73,11 @@ final class Preset extends Model
     }
 
     /**
-     * @return HasMany<Content>
+     * @return HasManyThrough<Content>
      */
-    public function contents(): HasMany
+    public function contents(): HasManyThrough
     {
-        return $this->hasMany(Content::class, ['preset_id', 'entity_id'], ['id', 'entity_id']);
+        return $this->hasManyThrough(Content::class, Presettable::class);
     }
 
     /**

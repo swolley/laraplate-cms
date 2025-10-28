@@ -14,6 +14,7 @@ use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Field;
+use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Cms\Models\Preset;
 use UnexpectedValueException;
 
@@ -74,6 +75,14 @@ trait HasDynamicContents
         )->where('entity.type', $type);
     }
 
+    public static function fetchAvailablePresettables(EntityType $type): Collection
+    {
+        return Cache::memo()->rememberForever(
+            new Presettable()->getCacheKey(),
+            fn (): Collection => Presettable::query()->withoutGlobalScopes()->get(),
+        )->where('entity.type', $type);
+    }
+
     public function initializeHasDynamicContents(): void
     {
         if (! in_array('components', $this->hidden, true)) {
@@ -121,32 +130,46 @@ trait HasDynamicContents
         }
 
         if (! in_array('preset', $this->with, true)) {
-            $this->with[] = 'preset';
+            $this->with[] = 'presettable';
         }
+    }
+
+    /**
+     * Convenience relation to avoid multiple column foreign key references.
+     *
+     * @return BelongsTo<Presettable>
+     */
+    public function presettable(): BelongsTo
+    {
+        /** @var BelongsTo<Presettable> $relation */
+        $relation = $this->belongsTo(Presettable::class);
+        $relation->withTrashed();
+
+        return $relation;
     }
 
     /**
      * The entity that belongs to the content.
      *
-     * @return BelongsTo<Entity>
+     * @return Attribute<Entity|null>
      */
-    public function entity(): BelongsTo
+    public function entity(): Attribute
     {
-        return $this->belongsTo(Entity::class);
+        return new Attribute(
+            get: fn () => $this->presettable?->entity,
+        );
     }
 
     /**
      * The preset that belongs to the content.
      *
-     * @return BelongsTo<Preset>
+     * @return Attribute<Preset|null>
      */
-    public function preset(): BelongsTo
+    public function preset(): Attribute
     {
-        /** @var BelongsTo<Preset> $relation */
-        $relation = $this->belongsTo(Preset::class, ['preset_id', 'entity_id'], ['id', 'entity_id']);
-        $relation->withTrashed();
-
-        return $relation;
+        return new Attribute(
+            get: fn () => $this->presettable?->preset,
+        );
     }
 
     public function toArray(): array
@@ -204,13 +227,13 @@ trait HasDynamicContents
     {
         static::saving(function (Model $model): void {
             /** @var Model&HasDynamicContents $model */
-            if ($model->preset) {
-                $model->preset_id = $model->preset->id;
-
-                throw_if($model->entity_id && $model->entity_id !== $model->preset->entity_id, UnexpectedValueException::class, sprintf('Entity mismatch: %s is not compatible with %s', $model->entity->name, $model->preset->name));
-                $model->entity_id = $model->preset->entity_id;
-            } elseif (! $model->preset_id) {
-                $model->preset_id = static::fetchAvailablePresets(EntityType::tryFrom($model->getTable()))->firstOrFail()->id;
+            if ($model->presettable) {
+                $model->presettable_id = $model->presettable->id;
+                $model->entity_id = $model->presettable->entity_id;
+            } else {
+                $first_available = static::fetchAvailablePresettables(EntityType::tryFrom($model->getTable()))->firstOrFail();
+                $model->presettable_id = $first_available->id;
+                $model->entity_id = $first_available->entity_id;
             }
         });
     }

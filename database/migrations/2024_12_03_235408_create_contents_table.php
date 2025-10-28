@@ -18,7 +18,7 @@ return new class extends Migration
         Schema::create('contents', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('entity_id')->nullable(false)->constrained('entities', 'id', 'contents_entity_id_FK')->cascadeOnDelete()->comment('The entity that the content belongs to');
-            $table->unsignedBigInteger('preset_id')->nullable(false)->comment('The preset that the content belongs to');
+            $table->foreignId('presettable_id')->nullable(false)->constrained('presettables', 'id', 'contents_presettable_id_FK')->cascadeOnDelete()->comment('The entity preset that the content belongs to');
             $table->string('title')->nullable(false)->comment('The title of the content');
             $table->json('components')->nullable(false)->comment('The content contents');
             $table->string('slug')->nullable(false)->index('contents_slug_IDX')->comment('The slug of the content');
@@ -32,16 +32,20 @@ return new class extends Migration
                 isValidityRequired: false,
             );
 
-            $table->foreign(['entity_id', 'preset_id'], 'contents_preset_FK')
-                ->references(['entity_id', 'id'])
-                ->on('presets')
-                ->cascadeOnDelete();
             $table->unique(['id', 'entity_id'], 'content_entity_UN');
         });
 
         // Add fulltext index for databases that support them (not SQLite)
-        if (DB::getDriverName() !== 'sqlite') {
+        // if (DB::getDriverName() !== 'sqlite') {
+        //     DB::statement('ALTER TABLE contents ADD FULLTEXT contents_title_IDX (title)');
+        // }
+        // Add fulltext indexes for databases that support them
+        if (DB::getDriverName() === 'mysql') {
             DB::statement('ALTER TABLE contents ADD FULLTEXT contents_title_IDX (title)');
+        } elseif (DB::getDriverName() === 'pgsql') {
+            // PostgreSQL fulltext search indexes
+            // TODO: This is temporary fixed to english for now
+            DB::statement('CREATE INDEX contents_title_fts_idx ON contents USING gin(to_tsvector(\'english\', title))');
         }
 
         Schema::create('categorizables', function (Blueprint $table): void {

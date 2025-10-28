@@ -8,6 +8,7 @@ use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Validation\Rule;
@@ -25,7 +26,6 @@ use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Helpers\SortableTrait;
 use Modules\Core\Locking\Traits\HasLocks;
-use Modules\Core\Overrides\ComposhipsModel;
 use Override;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\MediaLibrary\HasMedia as IMediable;
@@ -34,7 +34,7 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 /**
  * @mixin IdeHelperCategory
  */
-final class Category extends ComposhipsModel implements IMediable, Sortable
+final class Category extends Model implements IMediable, Sortable
 {
     use HasApprovals {
         HasApprovals::toArray as protected approvalsToArray;

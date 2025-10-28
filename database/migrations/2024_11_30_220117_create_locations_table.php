@@ -55,9 +55,15 @@ return new class extends Migration
         });
 
         // Add fulltext indexes for databases that support them (not SQLite)
-        if (DB::getDriverName() !== 'sqlite') {
+        // Add fulltext indexes for databases that support them
+        if (DB::getDriverName() === 'mysql') {
             DB::statement('ALTER TABLE locations ADD FULLTEXT locations_name_IDX (name)');
             DB::statement('ALTER TABLE locations ADD FULLTEXT locations_slug_IDX (slug)');
+        } elseif (DB::getDriverName() === 'pgsql') {
+            // PostgreSQL fulltext search indexes
+            // TODO: This is temporary fixed to english for now
+            DB::statement('CREATE INDEX locations_name_fts_idx ON locations USING gin(to_tsvector(\'english\', name))');
+            DB::statement('CREATE INDEX locations_slug_fts_idx ON locations USING gin(to_tsvector(\'english\', slug))');
         }
     }
 

@@ -93,23 +93,24 @@ abstract class DynamicContentFactory extends Factory
             throw new RuntimeException('Entity type not set for model: ' . $model_name);
         }
 
-        $all_presets = $model_name::fetchAvailablePresets($this->entityType);
+        $all_presettables = $model_name::fetchAvailablePresettables($this->entityType);
 
         /** @var Preset|null $preset */
-        $preset = $model->preset_id
-            ? $all_presets->where('entity_id', $model->entity_id)->where('id', $model->preset_id)->first()
-            : $all_presets->where('entity_id', $model->entity_id)->random();
+        $presettable = $model->presettable_id
+            ? $all_presettables->where('entity_id', $model->entity_id)->where('id', $model->presettable_id)->first()
+            : $all_presettables->where('entity_id', $model->entity_id)->random();
 
-        if (! $preset) {
+        if (! $presettable) {
             /** @var HasDynamicContents $model */
-            throw new RuntimeException("No preset found for entity: {$model->entity->name}");
+            throw new RuntimeException("No presettable found for entity: {$model->entity->name}");
         }
 
         /** @var HasDynamicContents $model */
-        $model->preset_id = $preset->id;
+        $model->presettable_id = $presettable->id;
+        $model->entity_id = $presettable->entity_id;
 
         // set the components depending on the preset configured fields
-        $model->components = $preset->fields->mapWithKeys(function (Field $field) use ($forcedValues) {
+        $model->components = $presettable->preset->fields->mapWithKeys(function (Field $field) use ($forcedValues) {
             $value = $field->pivot->default;
 
             if ($field->pivot->is_required || fake()->boolean()) {

@@ -6,6 +6,7 @@ namespace Modules\Cms\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Database\Factories\EntityFactory;
@@ -14,13 +15,12 @@ use Modules\Cms\Helpers\HasSlug;
 use Modules\Core\Cache\HasCache;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Locking\Traits\HasLocks;
-use Modules\Core\Overrides\ComposhipsModel;
 use Override;
 
 /**
  * @mixin IdeHelperEntity
  */
-final class Entity extends ComposhipsModel
+final class Entity extends Model
 {
     use HasCache;
     use HasFactory;

@@ -6,6 +6,7 @@ namespace Modules\Cms\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User;
@@ -18,7 +19,6 @@ use Modules\Cms\Models\Pivot\Authorable;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
-use Modules\Core\Overrides\ComposhipsModel;
 use Override;
 use Spatie\MediaLibrary\HasMedia as IMediable;
 use Spatie\Permission\Exceptions\UnauthorizedException;
@@ -27,7 +27,7 @@ use Symfony\Component\HttpFoundation\Response as ResponseAlias;
 /**
  * @mixin IdeHelperAuthor
  */
-final class Author extends ComposhipsModel implements IMediable
+final class Author extends Model implements IMediable
 {
     use HasDynamicContents {
         HasDynamicContents::getRules as protected getRulesDynamicContents;

@@ -31,7 +31,6 @@ use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Helpers\SortableTrait;
 use Modules\Core\Locking\HasOptimisticLocking;
 use Modules\Core\Locking\Traits\HasLocks;
-use Modules\Core\Overrides\ComposhipsModel;
 use Modules\Core\Search\Schema\FieldDefinition;
 use Modules\Core\Search\Schema\FieldType;
 use Modules\Core\Search\Schema\IndexType;
@@ -43,7 +42,7 @@ use Spatie\MediaLibrary\HasMedia;
 /**
  * @mixin IdeHelperContent
  */
-class Content extends ComposhipsModel implements HasMedia, Sortable
+class Content extends Model implements HasMedia, Sortable
 {
     use HasApprovals {
         HasApprovals::toArray as protected approvalsToArray;
