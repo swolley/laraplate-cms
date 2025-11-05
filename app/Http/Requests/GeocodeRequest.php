@@ -6,6 +6,14 @@ namespace Modules\Cms\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * @inheritdoc
+ * @package Modules\Cms\Http\Requests
+ * @property string $q
+ * @property ?string $city
+ * @property ?string $province
+ * @property ?string $country
+ */
 final class GeocodeRequest extends FormRequest
 {
     /**

@@ -40,7 +40,9 @@ final class Location extends Model
     use HasSlug;
     use HasSpatial;
     use HasTags;
-    use HasValidations;
+    use HasValidations {
+        getRules as protected getRulesTrait;
+    }
     use Searchable;
     use SoftDeletes;
 

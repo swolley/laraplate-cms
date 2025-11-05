@@ -25,7 +25,7 @@ final class TagFactory extends Factory
         try {
             $name = fake()->unique()->words(fake()->numberBetween(1, 3), true);
         } catch (Exception $e) {
-            $name = fake()->words(fake()->numberBetween(1, 3), true) . fake()->numberBetween(1, 1000);
+            $name = fake()->words(fake()->numberBetween(1, 3), true) . '_' . uniqid();
         }
 
         return [

@@ -27,7 +27,9 @@ final class Entity extends Model
     use HasLocks;
     use HasPath;
     use HasSlug;
-    use HasValidations;
+    use HasValidations {
+        getRules as protected getRulesTrait;
+    }
 
     /**
      * The attributes that are mass assignable.

@@ -1,5 +1,6 @@
 {
     "name": "swolley/laraplate-cms",
+    "vendor": "swolley",
     "description": "Cms Module contains all the necessary functionalities for build up a new Cms system.",
     "version": "v1.18.0",
     "keywords": [

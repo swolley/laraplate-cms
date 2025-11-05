@@ -30,7 +30,9 @@ final class Preset extends Model
     use HasApprovals;
     use HasCache;
     use HasFactory;
-    use HasValidations;
+    use HasValidations {
+        getRules as protected getRulesTrait;
+    }
     use HasVersions;
     use SoftDeletes;
 

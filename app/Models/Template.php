@@ -17,7 +17,9 @@ use Override;
 final class Template extends Model
 {
     use HasFactory;
-    use HasValidations;
+    use HasValidations {
+        getRules as protected getRulesTrait;
+    }
     use HasVersions;
 
     /**

@@ -9,6 +9,7 @@ use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Casts\FieldType;
@@ -40,7 +41,7 @@ final class CreateEntityCommand extends Command
      */
     public function handle(): void
     {
-        $this->db->transaction(function (): void {
+        DB::transaction(function (): void {
             $entity = new Entity();
             $fillables = $entity->getFillable();
             $validations = $entity->getOperationRules('create');

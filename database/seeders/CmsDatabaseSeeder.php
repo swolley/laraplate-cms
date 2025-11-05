@@ -6,6 +6,7 @@ namespace Modules\Cms\Database\Seeders;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Models\Entity;
@@ -51,7 +52,7 @@ final class CmsDatabaseSeeder extends Seeder
 
         $this->fields = Field::query()->withoutGlobalScopes()->get()->keyBy('name');
 
-        $this->db->transaction(function (): void {
+        DB::transaction(function (): void {
             foreach (['kicker', 'subtitle'] as $field) {
                 if (! $this->fields->has($field)) {
                     $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::TEXT, 'options' => (object) ['max_length' => 255]]));
@@ -123,7 +124,7 @@ final class CmsDatabaseSeeder extends Seeder
 
         $this->entities = Entity::query()->withoutGlobalScopes()->get()->keyBy('name');
 
-        $this->db->transaction(function (): void {
+        DB::transaction(function (): void {
             $standard = 'standard';
 
             $entities = [

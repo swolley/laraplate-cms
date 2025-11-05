@@ -29,7 +29,9 @@ final class Tag extends Model implements Sortable
     use HasFactory;
     use HasPath;
     use HasSlug;
-    use HasValidations;
+    use HasValidations {
+        getRules as protected getRulesTrait;
+    }
     use SoftDeletes;
     use SortableTrait;
 
