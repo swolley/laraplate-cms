@@ -26,7 +26,7 @@ use UnexpectedValueException;
  * @property-read ?Entity $entity
  * @property-read ?Preset $preset
  * @property ?int $entity_id
- * @property ?int $preset_id
+ * @property ?int $presettable_id
  */
 trait HasDynamicContents
 {
@@ -52,8 +52,8 @@ trait HasDynamicContents
 
         parent::__set($key, $value);
 
-        if ($key === 'preset_id' && $value) {
-            $this->entity_id = $this->preset?->entity_id;
+        if ($key === 'presettable_id' && $value) {
+            $this->entity_id = $this->presettable?->entity_id;
         }
     }
 
@@ -78,7 +78,7 @@ trait HasDynamicContents
     public static function fetchAvailablePresettables(EntityType $type): Collection
     {
         return Cache::memo()->rememberForever(
-            new Presettable()->getCacheKey(),
+            new Presettable()->getTable(),
             fn (): Collection => Presettable::query()->withoutGlobalScopes()->get(),
         )->where('entity.type', $type);
     }
@@ -97,9 +97,9 @@ trait HasDynamicContents
             $this->fillable[] = 'entity_id';
         }
 
-        if (! in_array('preset_id', $this->fillable, true)) {
-            $this->fillable[] = 'preset_id';
-        }
+        if (! in_array('presettable_id', $this->fillable, true)) {
+            $this->fillable[] = 'presettable_id';
+        }  
 
         if (! isset($this->attributes['components'])) {
             $this->attributes['components'] = '{}';
@@ -113,8 +113,8 @@ trait HasDynamicContents
             $this->hidden[] = 'entity_id';
         }
 
-        if (! in_array('preset_id', $this->hidden, true)) {
-            $this->hidden[] = 'preset_id';
+        if (! in_array('presettable_id', $this->hidden, true)) {
+            $this->hidden[] = 'presettable_id';
         }
 
         if (! in_array('preset', $this->hidden, true)) {
@@ -129,7 +129,7 @@ trait HasDynamicContents
             $this->with[] = 'entity';
         }
 
-        if (! in_array('preset', $this->with, true)) {
+        if (! in_array('presettable', $this->with, true)) {
             $this->with[] = 'presettable';
         }
     }
@@ -265,8 +265,8 @@ trait HasDynamicContents
                     return $this->preset?->entity?->name;
                 }
 
-                if ($this->preset_id) {
-                    return static::fetchAvailablePresets(EntityType::tryFrom($this->getTable()))->firstWhere('id', $this->preset_id)?->entity?->name;
+                if ($this->presettable_id) {
+                    return static::fetchAvailablePresets(EntityType::tryFrom($this->getTable()))->firstWhere('id', $this->presettable_id)?->entity?->name;
                 }
 
                 return null;
@@ -308,5 +308,14 @@ trait HasDynamicContents
     private function mergeComponentsValues(array $components): array
     {
         return $this->fields()->mapWithKeys(fn (Field $field): array => [$field->name => data_get($components, $field->name, $field->pivot->default)])->toArray();
+    }
+
+    protected function dynamicContentsCasts(): array
+    {
+        return [
+            'components' => 'json',
+            'entity_id' => 'integer',
+            'presettable_id' => 'integer',
+        ];
     }
 }

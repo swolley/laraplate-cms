@@ -158,11 +158,11 @@ final class Author extends Model implements IMediable
     #[Override]
     protected function casts(): array
     {
-        return [
+        return array_merge($this->dynamicContentsCasts(), [
             'user_id' => 'integer',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
-        ];
+        ]);
     }
 
     protected function getCanLoginAttribute(): bool

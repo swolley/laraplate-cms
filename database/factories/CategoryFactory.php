@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Preset;
+use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
 
 final class CategoryFactory extends DynamicContentFactory
 {
+    use HasUniqueFactoryValues;
+    
     /**
      * The name of the factory's corresponding model.
      */

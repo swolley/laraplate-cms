@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Modules\Cms\Models\Pivot\Fieldable;
 use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Core\Cache\HasCache;
+use Modules\Core\Helpers\HasActivation;
 use Modules\Core\Helpers\HasApprovals;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasVersions;
@@ -30,6 +31,7 @@ final class Preset extends Model
     use HasApprovals;
     use HasCache;
     use HasFactory;
+    use HasActivation;
     use HasValidations {
         getRules as protected getRulesTrait;
     }
@@ -42,20 +44,14 @@ final class Preset extends Model
     protected $fillable = [
         'entity_id',
         'name',
-        'is_active',
         'template_id',
     ];
 
     protected $hidden = [
         'entity_id',
         'template_id',
-        'is_active',
         'created_at',
         'updated_at',
-    ];
-
-    protected $attributes = [
-        'is_active' => true,
     ];
 
     /**
@@ -127,11 +123,10 @@ final class Preset extends Model
     #[Override]
     protected function casts(): array
     {
-        return [
+        return array_merge($this->activationCasts(), [
             'template_id' => 'integer',
-            'is_active' => 'boolean',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
-        ];
+        ]);
     }
 }

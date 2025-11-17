@@ -7,10 +7,13 @@ namespace Modules\Cms\Database\Factories;
 use Exception;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
+use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
 
 final class TagFactory extends Factory
 {
+    use HasUniqueFactoryValues;
+    
     /**
      * The name of the factory's corresponding model.
      */
@@ -23,7 +26,7 @@ final class TagFactory extends Factory
     public function definition(): array
     {
         try {
-            $name = fake()->unique()->words(fake()->numberBetween(1, 3), true);
+            $name = $this->uniqueValue(fn () => fake()->words(fake()->numberBetween(1, 3), true), $this->model, 'name');
         } catch (Exception $e) {
             $name = fake()->words(fake()->numberBetween(1, 3), true) . '_' . uniqid();
         }

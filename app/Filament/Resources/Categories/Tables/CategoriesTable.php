@@ -22,9 +22,6 @@ final class CategoriesTable
             table: $table,
             columns: function (Collection $default_columns): void {
                 $default_columns->unshift(...[
-                    ToggleColumn::make('is_active')
-                        ->alignCenter()
-                        ->grow(false),
                     TextColumn::make('entity.name')
                         ->searchable()
                         ->sortable()

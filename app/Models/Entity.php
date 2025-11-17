@@ -13,6 +13,7 @@ use Modules\Cms\Database\Factories\EntityFactory;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Core\Cache\HasCache;
+use Modules\Core\Helpers\HasActivation;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Locking\Traits\HasLocks;
 use Override;
@@ -27,6 +28,7 @@ final class Entity extends Model
     use HasLocks;
     use HasPath;
     use HasSlug;
+    use HasActivation;
     use HasValidations {
         getRules as protected getRulesTrait;
     }
@@ -43,12 +45,7 @@ final class Entity extends Model
     protected $hidden = [
         'created_at',
         'updated_at',
-        'is_active',
         'type',
-    ];
-
-    protected $attributes = [
-        'is_active' => true,
     ];
 
     /**
@@ -121,18 +118,17 @@ final class Entity extends Model
         //     }
         // });
         self::addGlobalScope('active', function (Builder $builder): void {
-            $builder->where('is_active', true);
+            $builder->active();
         });
     }
 
     #[Override]
     protected function casts(): array
     {
-        return [
-            'is_active' => 'boolean',
+        return array_merge($this->activationCasts(), [
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
             'type' => EntityType::class,
-        ];
+        ]);
     }
 }

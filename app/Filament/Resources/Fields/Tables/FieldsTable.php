@@ -22,11 +22,6 @@ final class FieldsTable
             table: $table,
             columns: function (Collection $columns): void {
                 $columns->unshift(...[
-                    ToggleColumn::make('is_active')
-                        // ->searchable()
-                        ->alignCenter()
-                        ->grow(false)
-                        ->toggleable(isToggledHiddenByDefault: false),
                     TextColumn::make('name')
                         ->searchable(),
                     TextColumn::make('type')

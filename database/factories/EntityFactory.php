@@ -6,10 +6,13 @@ namespace Modules\Cms\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Cms\Casts\EntityType;
+use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
 
 final class EntityFactory extends Factory
 {
+    use HasUniqueFactoryValues;
+    
     /**
      * The name of the factory's corresponding model.
      */
@@ -22,7 +25,7 @@ final class EntityFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->unique()->word(),
+            'name' => $this->uniqueValue(fn () => fake()->word(), $this->model, 'name'),
             'type' => fake()->randomElement(EntityType::cases()),
         ];
     }

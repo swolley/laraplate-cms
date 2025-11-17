@@ -21,9 +21,6 @@ final class PresetsTable
             table: $table,
             columns: function (Collection $columns): void {
                 $columns->unshift(...[
-                    ToggleColumn::make('is_active')
-                        ->grow(false)
-                        ->alignCenter(),
                     TextColumn::make('entity.name')
                         ->searchable(),
                     TextColumn::make('name')
@@ -31,14 +28,6 @@ final class PresetsTable
                     TextColumn::make('template.name')
                         ->searchable(),
                 ]);
-            },
-            filters: function (Collection $default_filters): void {
-                $default_filters->unshift(
-                    TernaryFilter::make('is_active')
-                        ->label('Active')
-                        ->attribute('is_active')
-                        ->nullable(),
-                );
             },
         );
     }

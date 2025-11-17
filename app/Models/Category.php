@@ -19,6 +19,7 @@ use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Models\Pivot\Categorizable;
+use Modules\Core\Helpers\HasActivation;
 use Modules\Core\Helpers\HasApprovals;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasValidity;
@@ -54,6 +55,7 @@ final class Category extends Model implements IMediable, Sortable
         HasValidations::getRules as protected getRulesTrait;
     }
     use HasValidity;
+    use HasActivation;
     use HasVersions;
     use SoftDeletes;
     use SortableTrait {
@@ -64,15 +66,12 @@ final class Category extends Model implements IMediable, Sortable
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'preset_id',
-        'entity_id',
         'parent_id',
         'name',
         'slug',
         'persistence',
         'logo',
         'logo_full',
-        'is_active',
     ];
 
     //    protected $with = [
@@ -80,12 +79,10 @@ final class Category extends Model implements IMediable, Sortable
     //    ];
 
     protected $hidden = [
-        'entity_id',
         'entity',
         'parent_id',
         'model_type_id',
         'persistence',
-        'is_active',
         'created_at',
         'updated_at',
         'ancestorsAndSelf',
@@ -190,28 +187,18 @@ final class Category extends Model implements IMediable, Sortable
         return $query->priorityOrdered()->validityOrdered();
     }
 
-    #[Scope]
-    protected function active(Builder $query): Builder
-    {
-        return $query->where($this->qualifyColumn('is_active'), true);
-    }
-
     #[Override]
     protected function casts(): array
     {
-        return [
-            'components' => 'json',
-            'preset_id' => 'integer',
-            'entity_id' => 'integer',
+        return array_merge($this->activationCasts(), $this->dynamicContentsCasts(), [
             'parent_id' => 'integer',
             'model_type_id' => 'integer',
             'order' => 'integer',
             'persistence' => 'integer',
-            'is_active' => 'boolean',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
             'content' => 'json',
-        ];
+        ]);
     }
 
     protected function slugFields(): array

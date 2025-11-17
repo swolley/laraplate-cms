@@ -386,13 +386,10 @@ class Content extends Model implements HasMedia, Sortable
     #[Override]
     protected function casts(): array
     {
-        return [
-            'components' => 'json',
-            'preset_id' => 'integer',
-            'entity_id' => 'integer',
+        return array_merge($this->dynamicContentsCasts(), [
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
-        ];
+        ]);
     }
 
     // endregion

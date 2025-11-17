@@ -19,8 +19,8 @@ final class ContentForm
                 Select::make('entity_id')
                     ->relationship('entity', 'name')
                     ->required(),
-                Select::make('preset_id')
-                    ->relationship('preset', 'name')
+                Select::make('presettable_id')
+                    ->relationship('presettable', 'name')
                     ->required(),
                 TextInput::make('title')
                     ->required(),

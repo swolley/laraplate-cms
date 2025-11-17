@@ -6,10 +6,13 @@ namespace Modules\Cms\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
+use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
 
 final class LocationFactory extends Factory
 {
+    use HasUniqueFactoryValues;
+    
     /**
      * The name of the factory's corresponding model.
      */
@@ -21,7 +24,7 @@ final class LocationFactory extends Factory
     #[Override]
     public function definition(): array
     {
-        $name = fake()->unique()->text(fake()->numberBetween(50, 255));
+        $name = $this->uniqueValue(fn () => fake()->text(fake()->numberBetween(50, 255)), $this->model, 'name');
 
         return [
             'name' => $name,

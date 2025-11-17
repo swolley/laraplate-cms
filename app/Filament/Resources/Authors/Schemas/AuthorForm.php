@@ -20,7 +20,7 @@ final class AuthorForm
                 Select::make('entity_id')
                     ->relationship('entity', 'name')
                     ->required(),
-                Select::make('preset_id')
+                Select::make('presettable_id')
                     ->relationship('preset', 'name')
                     ->required(),
                 TextInput::make('name')

@@ -21,9 +21,6 @@ final class EntitiesTable
             table: $table,
             columns: function (Collection $columns): void {
                 $columns->unshift(...[
-                    ToggleColumn::make('is_active')
-                        ->alignCenter()
-                        ->grow(false),
                     TextColumn::make('type')
                         ->searchable()
                         ->grow(false)
@@ -36,14 +33,6 @@ final class EntitiesTable
                         ->sortable()
                         ->toggleable(isToggledHiddenByDefault: true),
                 ]);
-            },
-            filters: function (Collection $default_filters): void {
-                $default_filters->unshift(
-                    TernaryFilter::make('is_active')
-                        ->label('Active')
-                        ->attribute('is_active')
-                        ->nullable(),
-                );
             },
         );
     }

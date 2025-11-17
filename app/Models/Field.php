@@ -11,6 +11,7 @@ use Illuminate\Validation\Rule;
 use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Casts\ObjectCast;
 use Modules\Cms\Models\Pivot\Fieldable;
+use Modules\Core\Helpers\HasActivation;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
@@ -23,6 +24,7 @@ use Override;
 final class Field extends Model
 {
     use HasFactory;
+    use HasActivation;
     use HasValidations {
         getRules as protected getRulesTrait;
     }
@@ -36,17 +38,11 @@ final class Field extends Model
         'name',
         'type',
         'options',
-        'is_active',
     ];
 
     protected $hidden = [
         'created_at',
         'updated_at',
-        'is_active',
-    ];
-
-    protected $attributes = [
-        'is_active' => true,
     ];
 
     #[Override]
@@ -134,12 +130,11 @@ final class Field extends Model
     #[Override]
     protected function casts(): array
     {
-        return [
+        return array_merge($this->activationCasts(), [
             'options' => ObjectCast::class,
-            'is_active' => 'boolean',
             'type' => FieldType::class,
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
-        ];
+        ]);
     }
 }
