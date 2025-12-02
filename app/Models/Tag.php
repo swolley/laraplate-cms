@@ -11,10 +11,10 @@ use Illuminate\Database\Eloquent\Collection as DbCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Illuminate\Validation\Rule;
 use Modules\Cms\Database\Factories\TagFactory;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
+use Modules\Core\Helpers\HasTranslations;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Helpers\SortableTrait;
@@ -29,6 +29,7 @@ final class Tag extends Model implements Sortable
     use HasFactory;
     use HasPath;
     use HasSlug;
+    use HasTranslations;
     use HasValidations {
         getRules as protected getRulesTrait;
     }
@@ -39,8 +40,7 @@ final class Tag extends Model implements Sortable
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'name',
-        'slug',
+        // name, slug are now in translations table
         'type',
         'order_column',
     ];
@@ -98,10 +98,15 @@ final class Tag extends Model implements Sortable
         $tag = self::findFromString($name, $type);
 
         if (! $tag) {
-            return self::query()->create([
-                'name' => $name,
+            $tag = self::query()->create([
                 'type' => $type,
             ]);
+            // Set name in default locale translation
+            $tag->setTranslation(config('app.locale'), [
+                'name' => $name,
+            ]);
+
+            return $tag;
         }
 
         return $tag;
@@ -116,24 +121,20 @@ final class Tag extends Model implements Sortable
     {
         $rules = $this->getRulesTrait();
         $rules['create'] = array_merge($rules['create'], [
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('tags')->where(function ($query): void {
-                    $query->where('deleted_at', null);
-                }),
-            ],
+            'name' => 'required|string|max:255', // Validated in translation
+            'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
+            'translations' => 'sometimes|array',
+            'translations.*.locale' => 'required|string|max:10',
+            'translations.*.name' => 'required|string|max:255',
+            'translations.*.slug' => 'sometimes|nullable|string|max:255',
         ]);
         $rules['update'] = array_merge($rules['update'], [
-            'name' => [
-                'sometimes',
-                'string',
-                'max:255',
-                Rule::unique('tags')->where(function ($query): void {
-                    $query->where('deleted_at', null);
-                })->ignore($this->id, 'id'),
-            ],
+            'name' => 'sometimes|required|string|max:255', // Validated in translation
+            'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
+            'translations' => 'sometimes|array',
+            'translations.*.locale' => 'required|string|max:10',
+            'translations.*.name' => 'sometimes|required|string|max:255',
+            'translations.*.slug' => 'sometimes|nullable|string|max:255',
         ]);
 
         return $rules;
@@ -143,6 +144,25 @@ final class Tag extends Model implements Sortable
     public function getPath(): ?string
     {
         return null;
+    }
+
+    #[Override]
+    public function toArray(): array
+    {
+        $array = parent::toArray();
+
+        // Merge translatable fields from translation (trasparente)
+        $translation = $this->getRelationValue('translation');
+
+        if ($translation) {
+            foreach ($this->getTranslatableFields() as $field) {
+                if (isset($translation->{$field})) {
+                    $array[$field] = $translation->{$field};
+                }
+            }
+        }
+
+        return $array;
     }
 
     protected static function newFactory(): TagFactory
@@ -173,7 +193,6 @@ final class Tag extends Model implements Sortable
         $query->whereRaw('lower(' . $this->getQuery()->getGrammar()->wrap('name') . ') like ?', ['%' . mb_strtolower($name) . '%']);
     }
 
-    #[Override]
     protected function casts(): array
     {
         return [
@@ -181,5 +200,11 @@ final class Tag extends Model implements Sortable
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    protected function slugFields(): array
+    {
+        // Use name from translation
+        return ['name'];
     }
 }

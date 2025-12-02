@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Preset;
 use Modules\Core\Helpers\SoftDeletes;
-use Override;
 
 /**
  * @mixin IdeHelperPresettable
@@ -30,14 +29,6 @@ final class Presettable extends Pivot
         'entity',
     ];
 
-    #[Override]
-    protected function casts(): array
-    {
-        return [
-            'deleted_at' => 'immutable_datetime',
-        ];
-    }
-
     public function preset(): BelongsTo
     {
         return $this->belongsTo(Preset::class);
@@ -46,5 +37,12 @@ final class Presettable extends Pivot
     public function entity(): BelongsTo
     {
         return $this->belongsTo(Entity::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'deleted_at' => 'immutable_datetime',
+        ];
     }
 }

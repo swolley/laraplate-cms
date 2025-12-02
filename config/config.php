@@ -6,4 +6,8 @@ return [
     'name' => 'Cms',
 
     'slugger' => env('CMS_SLUGGER', '\Illuminate\Support\Str::slug'),
+
+    'locale' => [
+        'auto_translate' => env('LOCALE_AUTO_TRANSLATE', false),
+    ],
 ];

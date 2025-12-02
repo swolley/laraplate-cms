@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Database\Factories\EntityFactory;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
+use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Core\Cache\HasCache;
 use Modules\Core\Helpers\HasActivation;
 use Modules\Core\Helpers\HasValidations;
@@ -23,15 +25,19 @@ use Override;
  */
 final class Entity extends Model
 {
+    // region Traits
+    use HasActivation {
+        HasActivation::casts as protected activationCasts;
+    }
     use HasCache;
     use HasFactory;
     use HasLocks;
     use HasPath;
     use HasSlug;
-    use HasActivation;
     use HasValidations {
         getRules as protected getRulesTrait;
     }
+    // endregion
 
     /**
      * The attributes that are mass assignable.
@@ -61,21 +67,21 @@ final class Entity extends Model
     /**
      * The contents that belong to the entity.
      *
-     * @return HasMany<Content>
+     * @return HasManyThrough<Content>
      */
-    public function contents(): HasMany
+    public function contents(): HasManyThrough
     {
-        return $this->hasMany(Content::class);
+        return $this->hasManyThrough(Content::class, Presettable::class);
     }
 
     /**
      * The categories that belong to the entity.
      *
-     * @return HasMany<Category>
+     * @return HasManyThrough<Category>
      */
-    public function categories(): HasMany
+    public function categories(): HasManyThrough
     {
-        return $this->hasMany(Category::class);
+        return $this->hasManyThrough(Category::class, Presettable::class);
     }
 
     public function getRules(): array
@@ -108,21 +114,13 @@ final class Entity extends Model
     }
 
     #[Override]
-    protected static function boot(): void
+    protected static function booted(): void
     {
-        parent::boot();
-
-        // self::addGlobalScope('api', function (Builder $builder) {
-        //     if (request()?->is('api/*')) {
-        //         $builder->where('is_active', true);
-        //     }
-        // });
         self::addGlobalScope('active', function (Builder $builder): void {
             $builder->active();
         });
     }
 
-    #[Override]
     protected function casts(): array
     {
         return array_merge($this->activationCasts(), [

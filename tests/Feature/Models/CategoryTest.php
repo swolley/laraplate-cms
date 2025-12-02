@@ -17,27 +17,33 @@ it('can be created with factory', function (): void {
     expect($this->category->id)->not->toBeNull();
 });
 
-it('has fillable attributes', function (): void {
-    $categoryData = [
+it('has translatable attributes', function (): void {
+    $category = Category::factory()->create();
+    
+    // Set translation for default locale
+    $default_locale = config('app.locale');
+    $category->setTranslation($default_locale, [
         'name' => 'Technology',
         'slug' => 'technology',
-        'description' => 'Technology category',
-        'is_active' => true,
-    ];
-
-    $category = Category::create($categoryData);
-
-    expectModelAttributes($category, [
-        'name' => 'Technology',
-        'slug' => 'technology',
-        'description' => 'Technology category',
-        'is_active' => true,
+        'components' => [
+            'description' => 'Technology category',
+        ],
     ]);
+    $category->save();
+
+    expect($category->name)->toBe('Technology');
+    expect($category->slug)->toBe('technology');
+    expect($category->description)->toBe('Technology category');
 });
 
 it('belongs to many contents', function (): void {
-    $content1 = Content::factory()->create(['title' => 'Article 1']);
-    $content2 = Content::factory()->create(['title' => 'Article 2']);
+    $content1 = Content::factory()->create();
+    $content1->setTranslation(config('app.locale'), ['title' => 'Article 1']);
+    $content1->save();
+    
+    $content2 = Content::factory()->create();
+    $content2->setTranslation(config('app.locale'), ['title' => 'Article 2']);
+    $content2->save();
 
     $this->category->contents()->attach([$content1->id, $content2->id]);
 
@@ -46,9 +52,12 @@ it('belongs to many contents', function (): void {
 });
 
 it('has recursive relationships for parent-child categories', function (): void {
-    $parentCategory = Category::factory()->create(['name' => 'Technology']);
-    $childCategory = Category::factory()->create(['name' => 'Programming']);
-
+    $parentCategory = Category::factory()->create();
+    $parentCategory->setTranslation(config('app.locale'), ['name' => 'Technology']);
+    $parentCategory->save();
+    
+    $childCategory = Category::factory()->create();
+    $childCategory->setTranslation(config('app.locale'), ['name' => 'Programming']);
     $childCategory->parent_id = $parentCategory->id;
     $childCategory->save();
 
@@ -119,38 +128,55 @@ it('has validations trait', function (): void {
     expect($this->category)->toHaveMethod('getRules');
 });
 
-it('can be created with specific attributes', function (): void {
-    $categoryData = [
+it('can be created with specific translation attributes', function (): void {
+    $category = Category::factory()->create();
+    $default_locale = config('app.locale');
+    $category->setTranslation($default_locale, [
         'name' => 'Science',
         'slug' => 'science',
-        'description' => 'Science category',
-        'is_active' => false,
-    ];
-
-    $category = Category::create($categoryData);
-
-    expectModelAttributes($category, [
-        'name' => 'Science',
-        'slug' => 'science',
-        'description' => 'Science category',
-        'is_active' => false,
+        'components' => [
+            'description' => 'Science category',
+        ],
     ]);
+    $category->save();
+
+    expect($category->name)->toBe('Science');
+    expect($category->slug)->toBe('science');
+    expect($category->description)->toBe('Science category');
 });
 
-it('can be found by name', function (): void {
-    $category = Category::factory()->create(['name' => 'Unique Category']);
+it('can be found by name through translation', function (): void {
+    $category = Category::factory()->create();
+    $default_locale = config('app.locale');
+    $category->setTranslation($default_locale, [
+        'name' => 'Unique Category',
+        'slug' => 'unique-category',
+    ]);
+    $category->save();
 
-    $foundCategory = Category::where('name', 'Unique Category')->first();
+    $foundCategory = Category::whereHas('translations', function ($q) {
+        $q->where('name', 'Unique Category');
+    })->first();
 
     expect($foundCategory->id)->toBe($category->id);
+    expect($foundCategory->name)->toBe('Unique Category');
 });
 
-it('can be found by slug', function (): void {
-    $category = Category::factory()->create(['slug' => 'unique-slug']);
+it('can be found by slug through translation', function (): void {
+    $category = Category::factory()->create();
+    $default_locale = config('app.locale');
+    $category->setTranslation($default_locale, [
+        'name' => 'Test Category',
+        'slug' => 'unique-slug',
+    ]);
+    $category->save();
 
-    $foundCategory = Category::where('slug', 'unique-slug')->first();
+    $foundCategory = Category::whereHas('translations', function ($q) {
+        $q->where('slug', 'unique-slug');
+    })->first();
 
     expect($foundCategory->id)->toBe($category->id);
+    expect($foundCategory->slug)->toBe('unique-slug');
 });
 
 it('can be found by active status', function (): void {
@@ -173,23 +199,24 @@ it('has proper timestamps', function (): void {
     expect($category->updated_at)->toBeInstanceOf(Carbon\Carbon::class);
 });
 
-it('can be serialized to array', function (): void {
-    $category = Category::factory()->create([
+it('can be serialized to array with translations', function (): void {
+    $category = Category::factory()->create();
+    $default_locale = config('app.locale');
+    $category->setTranslation($default_locale, [
         'name' => 'Test Category',
         'slug' => 'test-category',
-        'is_active' => true,
     ]);
+    $category->save();
+    
     $categoryArray = $category->toArray();
 
     expect($categoryArray)->toHaveKey('id');
     expect($categoryArray)->toHaveKey('name');
     expect($categoryArray)->toHaveKey('slug');
-    expect($categoryArray)->toHaveKey('is_active');
     expect($categoryArray)->toHaveKey('created_at');
     expect($categoryArray)->toHaveKey('updated_at');
     expect($categoryArray['name'])->toBe('Test Category');
     expect($categoryArray['slug'])->toBe('test-category');
-    expect($categoryArray['is_active'])->toBeTrue();
 });
 
 it('can be restored after soft delete', function (): void {
@@ -212,24 +239,11 @@ it('can be permanently deleted', function (): void {
     expect(Category::withTrashed()->find($categoryId))->toBeNull();
 });
 
-it('can have parent category', function (): void {
-    $parentCategory = Category::factory()->create(['name' => 'Parent']);
-    $childCategory = Category::factory()->create(['name' => 'Child']);
-
-    $childCategory->parent_id = $parentCategory->id;
-    $childCategory->save();
-
-    expect($childCategory->parent)->toBeInstanceOf(Category::class);
-    expect($childCategory->parent->id)->toBe($parentCategory->id);
-});
-
-it('can have children categories', function (): void {
-    $parentCategory = Category::factory()->create(['name' => 'Parent']);
-    $childCategory = Category::factory()->create(['name' => 'Child']);
-
-    $childCategory->parent_id = $parentCategory->id;
-    $childCategory->save();
-
-    expect($parentCategory->children)->toHaveCount(1);
-    expect($parentCategory->children->first()->id)->toBe($childCategory->id);
+it('has translations trait', function (): void {
+    expect($this->category)->toHaveMethod('translations');
+    expect($this->category)->toHaveMethod('translation');
+    expect($this->category)->toHaveMethod('getTranslation');
+    expect($this->category)->toHaveMethod('setTranslation');
+    expect($this->category)->toHaveMethod('hasTranslation');
+    expect($this->category)->toHaveMethod('getTranslatableFields');
 });

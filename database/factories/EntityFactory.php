@@ -12,7 +12,7 @@ use Override;
 final class EntityFactory extends Factory
 {
     use HasUniqueFactoryValues;
-    
+
     /**
      * The name of the factory's corresponding model.
      */

@@ -50,4 +50,11 @@ trait HasPath
             get: fn () => $this->getFullPath(),
         );
     }
+
+    public function initializeHasPath(): void
+    {
+        if (! in_array('path', $this->appends, true)) {
+            $this->appends[] = 'path';
+        }
+    }
 }

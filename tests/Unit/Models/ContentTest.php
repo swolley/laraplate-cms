@@ -26,7 +26,6 @@ test('content model uses correct traits', function (): void {
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasSlug');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasTags');
     expect($traits)->toContain('Modules\\Core\\Helpers\\HasApprovals');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasChildren');
     expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');
     expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidity');
     expect($traits)->toContain('Modules\\Core\\Helpers\\HasVersions');

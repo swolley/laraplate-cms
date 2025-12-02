@@ -7,7 +7,6 @@ namespace Modules\Cms\Providers;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
-use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Preset;
 use Override;
@@ -49,8 +48,8 @@ final class EventServiceProvider extends ServiceProvider
 
     private function clearEntityCache(): void
     {
+        Cache::forget(new Entity()->getCacheKey());
         $this->clearPresetCache();
-        Content::resolveChildTypes();
     }
 
     private function clearPresetCache(): void

@@ -94,10 +94,6 @@ MEDIA_PREFIX=									#media prefix for storage
 
 The Cms Module utilizes several packages to enhance its functionality. Below is a list of the key packages included in the `composer.json` file:
 
--   **Parent-Child Relationships:**
-
-    -   [tightenco/parental](https://github.com/tightenco/parental): Provides a way to manage parent-child relationships in models.
-
 -   **Media Management:**
 
     -   [spatie/laravel-medialibrary](https://github.com/spatie/laravel-medialibrary): Provides a way to manage media files in models.

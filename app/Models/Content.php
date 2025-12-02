@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -13,20 +13,20 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Database\Factories\ContentFactory;
-use Modules\Cms\Helpers\HasDynamicContents;
 use Modules\Cms\Helpers\HasMultimedia;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
+use Modules\Cms\Helpers\HasTranslatedDynamicContents;
 use Modules\Cms\Models\Pivot\Authorable;
 use Modules\Cms\Models\Pivot\Categorizable;
 use Modules\Cms\Models\Pivot\Locatable;
 use Modules\Cms\Models\Pivot\Relatable;
 use Modules\Core\Helpers\HasApprovals;
-use Modules\Core\Helpers\HasChildren;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
+use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Helpers\SortableTrait;
 use Modules\Core\Locking\HasOptimisticLocking;
@@ -42,19 +42,12 @@ use Spatie\MediaLibrary\HasMedia;
 /**
  * @mixin IdeHelperContent
  */
-class Content extends Model implements HasMedia, Sortable
+final class Content extends Model implements HasMedia, Sortable
 {
+    // region Traits
     use HasApprovals {
-        HasApprovals::toArray as protected approvalsToArray;
-    }
-    use HasChildren {
-        HasChildren::hasMany as protected hasChildrenHasMany;
-        HasChildren::belongsTo as protected hasChildrenBelongsTo;
-        HasChildren::belongsToMany as protected hasChildrenBelongsToMany;
-    }
-    use HasDynamicContents {
-        HasDynamicContents::getRules as protected getRulesDynamicContents;
-        HasDynamicContents::toArray as protected dynamicContentsToArray;
+        HasApprovals::toArray as private approvalsToArray;
+        HasApprovals::requiresApprovalWhen as private requiresApprovalWhenTrait;
     }
     use HasFactory;
     use HasLocks;
@@ -63,22 +56,24 @@ class Content extends Model implements HasMedia, Sortable
     use HasPath;
     use HasSlug;
     use HasTags;
+    use HasTranslatedDynamicContents {
+        HasTranslatedDynamicContents::getRules as private getRulesTranslatedDynamicContents;
+        HasTranslatedDynamicContents::toArray as private translatedDynamicContentsToArray;
+        HasTranslatedDynamicContents::casts as private translatedDynamicContentsCasts;
+    }
     use HasValidations {
-        HasValidations::getRules as protected getRulesTrait;
+        HasValidations::getRules as private getRulesTrait;
     }
     use HasValidity;
     use HasVersions;
     use Searchable;
     use SoftDeletes;
     use SortableTrait {
-        SortableTrait::scopeOrdered as protected scopePriorityOrdered;
+        SortableTrait::scopeOrdered as private scopePriorityOrdered;
     }
+    // endregion
 
     public static array $childTypes = [];
-
-    protected $fillable = [
-        'title',
-    ];
 
     protected $hidden = [
         'created_at',
@@ -87,37 +82,45 @@ class Content extends Model implements HasMedia, Sortable
         'withoutObjectCaching',
     ];
 
-    protected string $childColumn = 'entity_id';
-
     protected array $sortable = [
         'order_column_name' => 'order_column',
         'sort_when_creating' => true,
     ];
 
-    protected $appends = [
-        'path',
-    ];
-
     protected $embed = ['title', 'textual_only'];
 
-    public static function resolveChildTypes(): void
+    /**
+     * Handle __get to merge translations and dynamic contents.
+     */
+    public function __get($key)
     {
-        self::$childTypes = [];
+        // First check translatable fields (cache to avoid recursion)
+        $translatable_fields = $this->getTranslatableFields();
 
-        foreach (self::fetchAvailableEntities(EntityType::CONTENTS) as $entity) {
-            $class_name = Str::studly($entity->name);
-            $full_class_name = 'Modules\\Cms\\Models\\Contents\\' . $class_name;
-
-            if (! class_exists($full_class_name)) {
-                $class_definition = file_get_contents(module_path('Cms', 'stubs/content.stub'));
-                $class_definition = str_replace(['$CLASS$', '<?php'], [$class_name, ''], $class_definition);
-
-                // generate the class at runtime
-                eval($class_definition);
-            }
-
-            self::$childTypes[$entity->id] = $full_class_name;
+        if (in_array($key, $translatable_fields, true)) {
+            return $this->translationsGet($key);
         }
+
+        // Then check dynamic contents
+        return $this->dynamicContentsGet($key);
+    }
+
+    /**
+     * Handle __set to merge translations and dynamic contents.
+     */
+    public function __set($key, $value): void
+    {
+        // First check translatable fields (cache to avoid recursion)
+        $translatable_fields = $this->getTranslatableFields();
+
+        if (in_array($key, $translatable_fields, true)) {
+            $this->translationsSet($key, $value);
+
+            return;
+        }
+
+        // Then check dynamic contents
+        $this->dynamicContentsSet($key, $value);
     }
 
     public static function makeFromEntity(Entity|string|int $entity): static
@@ -125,9 +128,9 @@ class Content extends Model implements HasMedia, Sortable
         $entity_id = null;
 
         if (is_int($entity)) {
-            $entity_id = array_key_exists($entity, self::getChildTypes()) ? $entity : null;
+            $entity_id = self::fetchAvailableEntities(EntityType::CONTENTS)->firstWhere('id', $entity)?->id;
         } elseif (is_string($entity)) {
-            $entity_id = array_key_first(array_filter(self::getChildTypes(), fn ($class) => Str::endsWith($class, '\\' . Str::studly($entity))));
+            $entity_id = self::fetchAvailableEntities(EntityType::CONTENTS)->firstWhere('slug', $entity)?->id;
         } elseif (is_object($entity) && array_key_exists($entity->id, self::getChildTypes())) {
             $entity_id = $entity->id;
         }
@@ -141,9 +144,13 @@ class Content extends Model implements HasMedia, Sortable
         return new self::$childTypes[$entity_id](['preset_id' => $preset_id, 'entity_id' => $entity_id]);
     }
 
-    // endregion
+    public static function makeWithDefaults(array $attributes = []): static
+    {
+        $model = new static($attributes);
+        $model->setDefaultEntityAndPreset();
 
-    // region Relations
+        return $model;
+    }
 
     /**
      * The folders that belong to the content.
@@ -194,8 +201,6 @@ class Content extends Model implements HasMedia, Sortable
         return $relation;
     }
 
-    // endregion
-
     public function toSearchableArray(): array
     {
         // TODO: transform splitted values into objects? (authors, categories, tags, locations)
@@ -212,12 +217,44 @@ class Content extends Model implements HasMedia, Sortable
         // $document['tags_id'] = $this->tags->pluck('id')->toArray();
         $document['locations'] = (object) $this->locations->only(['id', 'name', 'slug', 'path', 'address', 'city', 'province', 'country', 'postcode', 'zone', 'geolocation'])->toArray();
         // $document['location_id'] = $this->locations->pluck('id')->toArray();
-        $document['slug'] = $this->slug;
         $document['type'] = $this->type;
-        $document['title'] = $this->title;
 
-        foreach ($this->components as $field => $value) {
-            $document[$field] = gettype($value) === 'string' ? Str::replaceMatches('/\\n|\\r|\\t/', '', $value) : $value;
+        // Load all translations for indexing
+        $translations = $this->translations;
+        $default_locale = config('app.locale');
+        $available_locales = LocaleContext::getAvailable();
+
+        // Add base fields with default translation (for compatibility/fallback)
+        $default_translation = $translations->firstWhere('locale', $default_locale);
+
+        if ($default_translation) {
+            $document['slug'] = $default_translation->slug;
+            $document['title'] = $default_translation->title;
+
+            // Add default components
+            if (isset($default_translation->components)) {
+                foreach ($default_translation->components as $field => $value) {
+                    $document[$field] = gettype($value) === 'string' ? Str::replaceMatches('/\\n|\\r|\\t/', '', $value) : $value;
+                }
+            }
+        }
+
+        // Add fields for each locale (title_locale, slug_locale, components_locale)
+        foreach ($available_locales as $locale) {
+            $translation = $translations->firstWhere('locale', $locale);
+
+            if ($translation) {
+                $document['title_' . $locale] = $translation->title;
+                $document['slug_' . $locale] = $translation->slug;
+
+                // Add components for this locale
+                if (isset($translation->components)) {
+                    foreach ($translation->components as $field => $value) {
+                        $field_name = $field . '_' . $locale;
+                        $document[$field_name] = gettype($value) === 'string' ? Str::replaceMatches('/\\n|\\r|\\t/', '', $value) : $value;
+                    }
+                }
+            }
         }
 
         return $document;
@@ -267,15 +304,41 @@ class Content extends Model implements HasMedia, Sortable
                 'geolocation' => FieldType::GEOCODE,
             ],
         ]));
-        $schema->addField(new FieldDefinition('slug', FieldType::KEYWORD, [IndexType::SEARCHABLE]));
         $schema->addField(new FieldDefinition('type', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE]));
         $schema->addField(new FieldDefinition('valid_from', FieldType::DATE, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::SORTABLE]));
         $schema->addField(new FieldDefinition('valid_to', FieldType::DATE, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::SORTABLE]));
         $schema->addField(new FieldDefinition('is_deleted', FieldType::BOOLEAN, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
-        $schema->addField(new FieldDefinition('title', FieldType::TEXT, [IndexType::SEARCHABLE, IndexType::FILTERABLE]));
         $schema->addField(new FieldDefinition('embedding', FieldType::VECTOR, [IndexType::SEARCHABLE, IndexType::VECTOR]));
 
-        foreach ($this->components as $field => $value) {
+        // Base fields with default translation (for compatibility/fallback)
+        $schema->addField(new FieldDefinition('slug', FieldType::KEYWORD, [IndexType::SEARCHABLE]));
+        $schema->addField(new FieldDefinition('title', FieldType::TEXT, [IndexType::SEARCHABLE, IndexType::FILTERABLE]));
+
+        // Add fields for each locale
+        $available_locales = LocaleContext::getAvailable();
+        $translations = $this->translations;
+        $default_translation = $translations->firstWhere('locale', config('app.locale'));
+
+        // Get component fields from default translation
+        $component_fields = [];
+
+        if ($default_translation && isset($default_translation->components)) {
+            $component_fields = array_keys($default_translation->components);
+        }
+
+        foreach ($available_locales as $locale) {
+            // Add title and slug for each locale
+            $schema->addField(new FieldDefinition('title_' . $locale, FieldType::TEXT, [IndexType::SEARCHABLE, IndexType::FILTERABLE]));
+            $schema->addField(new FieldDefinition('slug_' . $locale, FieldType::KEYWORD, [IndexType::SEARCHABLE]));
+
+            // Add component fields for each locale
+            foreach ($component_fields as $field) {
+                $schema->addField(new FieldDefinition($field . '_' . $locale, FieldType::TEXT, [IndexType::SEARCHABLE]));
+            }
+        }
+
+        // Add base component fields (from default translation)
+        foreach ($component_fields as $field) {
             $schema->addField(new FieldDefinition($field, FieldType::TEXT, [IndexType::SEARCHABLE]));
         }
 
@@ -285,19 +348,29 @@ class Content extends Model implements HasMedia, Sortable
     public function getRules(): array
     {
         $rules = $this->getRulesTrait();
-        $fields = $this->getRulesDynamicContents();
+        $fields = $this->getRulesTranslatedDynamicContents();
         $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], $fields);
         $rules['create'] = array_merge($rules['create'], [
-            'title' => 'required|string|max:255',
-            'slug' => 'sometimes|nullable|string|max:255',
+            'title' => 'required|string|max:255', // Validated in translation
+            'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
             'entity_id' => 'required|exists:entities,id',
             'preset_id' => 'required|exists:presets,id',
+            'translations' => 'sometimes|array',
+            'translations.*.locale' => 'required|string|max:10',
+            'translations.*.title' => 'required|string|max:255',
+            'translations.*.slug' => 'sometimes|nullable|string|max:255',
+            'translations.*.components' => 'sometimes|array',
         ]);
         $rules['update'] = array_merge($rules['update'], [
-            'title' => 'sometimes|required|string|max:255',
-            'slug' => 'sometimes|nullable|string|max:255',
+            'title' => 'sometimes|required|string|max:255', // Validated in translation
+            'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
             'entity_id' => 'sometimes|required|exists:entities,id',
             'preset_id' => 'sometimes|required|exists:presets,id',
+            'translations' => 'sometimes|array',
+            'translations.*.locale' => 'required|string|max:10',
+            'translations.*.title' => 'sometimes|required|string|max:255',
+            'translations.*.slug' => 'sometimes|nullable|string|max:255',
+            'translations.*.components' => 'sometimes|array',
         ]);
 
         return $rules;
@@ -317,16 +390,40 @@ class Content extends Model implements HasMedia, Sortable
     #[Override]
     public function toArray(): array
     {
-        return array_merge($this->dynamicContentsToArray(), $this->approvalsToArray());
+        $parsed = parent::toArray() ?? $this->attributesToArray();
+
+        return array_merge($parsed, $this->translatedDynamicContentsToArray($parsed), $this->approvalsToArray($parsed));
     }
 
-    protected static function getChildTypes(bool $forceRefresh = false): array
+    /**
+     * Set default entity and preset based on class name.
+     */
+    public function setDefaultEntityAndPreset(): void
     {
-        if (static::$childTypes === [] || $forceRefresh) {
-            static::resolveChildTypes();
+        $class_name = class_basename(static::class);
+        $entity_name = Str::lower($class_name);
+
+        // Find entity by name
+        $entity = static::fetchAvailableEntities(EntityType::CONTENTS)->firstWhere('name', $entity_name);
+
+        if (! $entity) {
+            return;
         }
 
-        return static::$childTypes;
+        // Only set if not already set
+        $this->entity_id = $entity->id;
+        $this->setRelation('entity', $entity);
+
+        // Find first available preset for this entity
+        $presettable = static::fetchAvailablePresettables(EntityType::CONTENTS)
+            ->firstWhere('entity_id', $entity->id);
+
+        if (! $presettable) {
+            return;
+        }
+
+        $this->presettable_id = $presettable->id;
+        $this->setRelation('presettable', $presettable);
     }
 
     #[Override]
@@ -334,6 +431,18 @@ class Content extends Model implements HasMedia, Sortable
     {
         parent::boot();
 
+        // Auto-assign entity and preset for child classes based on class name
+        static::creating(function (Model $model): void {
+            /** @var Content $model */
+            // Only auto-assign if not already set and this is a child class
+            if (static::class !== self::class && ($model->entity_id === null || $model->presettable_id === null)) {
+                $model->setDefaultEntityAndPreset();
+            }
+        });
+    }
+
+    protected static function booted(): void
+    {
         static::addGlobalScope('global_filters', function (Builder $query): void {
             $query->valid();
         });
@@ -360,44 +469,35 @@ class Content extends Model implements HasMedia, Sortable
         return $factory;
     }
 
-    // region Scopes
-
     /**
-     * Order contents by priority and validity.
+     * Override components accessor to coordinate HasTranslations and HasDynamicContents.
+     * When components is translatable, get it from translation and merge with defaults.
      */
-    #[Scope]
-    protected function ordered(Builder $query): Builder
+    protected function components(): Attribute
     {
-        return $query->priorityOrdered()->validityOrdered()->orderBy($this->qualifyColumn(Model::CREATED_AT), 'desc');
+        return Attribute::make(
+            get: function (): array {
+                // components is a translatable field, get it from HasTranslations
+                $raw_components = $this->translationsGet('components');
+
+                // If we got components from translation, merge with defaults using HasDynamicContents
+                if ($raw_components !== null) {
+                    return $this->mergeComponentsValues($raw_components ?? []);
+                }
+
+                // Fallback: if no translation, merge empty array with defaults
+                return $this->mergeComponentsValues([]);
+            },
+            set: function (array $components): void {
+                // components is a translatable field, save it through HasTranslations
+                $this->translationsSet('components', $components);
+            },
+        );
     }
-
-    /**
-     * Filter contents by entity.
-     */
-    #[Scope]
-    protected function forEntity(Builder $query, Entity $entity): Builder
-    {
-        return $query->where('entity_id', $entity->id);
-    }
-
-    // TODO: how to extract embedding dynamic contents?
-    // protected $embed = ['components'];
-
-    #[Override]
-    protected function casts(): array
-    {
-        return array_merge($this->dynamicContentsCasts(), [
-            'created_at' => 'immutable_datetime',
-            'updated_at' => 'datetime',
-        ]);
-    }
-
-    // endregion
-
-    // region Attributes
 
     protected function slugFields(): array
     {
+        // Use title from translation
         return [...$this->dynamicSlugFields(), 'title'];
     }
 

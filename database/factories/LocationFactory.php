@@ -12,7 +12,7 @@ use Override;
 final class LocationFactory extends Factory
 {
     use HasUniqueFactoryValues;
-    
+
     /**
      * The name of the factory's corresponding model.
      */

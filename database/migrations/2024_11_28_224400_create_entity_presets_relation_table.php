@@ -34,7 +34,7 @@ return new class extends Migration
 
         $this->createTriggers();
     }
-    
+
     /**
      * Reverse the migrations.
      */
@@ -45,7 +45,7 @@ return new class extends Migration
     }
 
     /**
-     * Create database-specific triggers
+     * Create database-specific triggers.
      */
     private function createTriggers(): void
     {
@@ -57,12 +57,12 @@ return new class extends Migration
             'sqlite' => $this->createSQLiteTriggers(),
             'sqlsrv' => $this->createSQLServerTriggers(),
             'oracle' => $this->createOracleTriggers(),
-            default => throw new \Exception("Unsupported database driver: {$driver}")
+            default => throw new Exception("Unsupported database driver: {$driver}"),
         };
     }
 
     /**
-     * Drop database-specific triggers
+     * Drop database-specific triggers.
      */
     private function dropTriggers(): void
     {
@@ -74,12 +74,12 @@ return new class extends Migration
             'sqlite' => $this->dropSQLiteTriggers(),
             'sqlsrv' => $this->dropSQLServerTriggers(),
             'oracle' => $this->dropOracleTriggers(),
-            default => throw new \Exception("Unsupported database driver: {$driver}")
+            default => throw new Exception("Unsupported database driver: {$driver}"),
         };
     }
 
     /**
-     * MySQL Triggers
+     * MySQL Triggers.
      */
     private function createMySQLTriggers(): void
     {
@@ -116,7 +116,7 @@ return new class extends Migration
     }
 
     /**
-     * PostgreSQL Triggers
+     * PostgreSQL Triggers.
      */
     private function createPostgreSQLTriggers(): void
     {
@@ -172,7 +172,7 @@ return new class extends Migration
     }
 
     /**
-     * SQLite Triggers (limited support)
+     * SQLite Triggers (limited support).
      */
     private function createSQLiteTriggers(): void
     {
@@ -210,7 +210,7 @@ return new class extends Migration
     }
 
     /**
-     * SQL Server Triggers
+     * SQL Server Triggers.
      */
     private function createSQLServerTriggers(): void
     {
@@ -259,7 +259,7 @@ return new class extends Migration
     }
 
     /**
-     * Oracle Database Triggers
+     * Oracle Database Triggers.
      */
     private function createOracleTriggers(): void
     {

@@ -9,15 +9,13 @@ use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Validation\Rule;
 use Modules\Cms\Database\Factories\CategoryFactory;
-use Modules\Cms\Helpers\HasDynamicContents;
 use Modules\Cms\Helpers\HasMultimedia;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
+use Modules\Cms\Helpers\HasTranslatedDynamicContents;
 use Modules\Cms\Models\Pivot\Categorizable;
 use Modules\Core\Helpers\HasActivation;
 use Modules\Core\Helpers\HasApprovals;
@@ -37,12 +35,13 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  */
 final class Category extends Model implements IMediable, Sortable
 {
-    use HasApprovals {
-        HasApprovals::toArray as protected approvalsToArray;
+    // region Traits
+    use HasActivation {
+        HasActivation::casts as private activationCasts;
     }
-    use HasDynamicContents {
-        HasDynamicContents::getRules as protected getRulesDynamicContents;
-        HasDynamicContents::toArray as protected dynamicContentsToArray;
+    use HasApprovals {
+        HasApprovals::toArray as private approvalsToArray;
+        HasApprovals::requiresApprovalWhen as private requiresApprovalWhenTrait;
     }
     use HasFactory;
     use HasLocks;
@@ -51,32 +50,31 @@ final class Category extends Model implements IMediable, Sortable
     use HasRecursiveRelationships;
     use HasSlug;
     use HasTags;
+    use HasTranslatedDynamicContents {
+        HasTranslatedDynamicContents::getRules as private getRulesDynamicContents;
+        HasTranslatedDynamicContents::toArray as private translatedDynamicContentsToArray;
+        HasTranslatedDynamicContents::casts as private translatedDynamicContentsCasts;
+    }
     use HasValidations {
-        HasValidations::getRules as protected getRulesTrait;
+        HasValidations::getRules as private getRulesTrait;
     }
     use HasValidity;
-    use HasActivation;
     use HasVersions;
     use SoftDeletes;
     use SortableTrait {
-        SortableTrait::scopeOrdered as protected scopePriorityOrdered;
+        SortableTrait::scopeOrdered as private scopePriorityOrdered;
     }
+    // endregion
 
     /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [
         'parent_id',
-        'name',
-        'slug',
         'persistence',
         'logo',
         'logo_full',
     ];
-
-    //    protected $with = [
-    //        'entity',
-    //    ];
 
     protected $hidden = [
         'entity',
@@ -93,20 +91,6 @@ final class Category extends Model implements IMediable, Sortable
         'bloodline',
     ];
 
-    // endregion
-
-    // region Relations
-
-    /**
-     * The entity that belongs to the category.
-     *
-     * @return BelongsTo<Entity>
-     */
-    public function entity(): BelongsTo
-    {
-        return $this->belongsTo(Entity::class);
-    }
-
     /**
      * The contents that belong to the category.
      *
@@ -117,28 +101,28 @@ final class Category extends Model implements IMediable, Sortable
         return $this->belongsToMany(Content::class, 'categorizables')->using(Categorizable::class)->withTimestamps();
     }
 
-    // endregion
-
     public function getRules(): array
     {
         $rules = $this->getRulesTrait();
-        $fields = $this->getRulesDynamicContents();
-        $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], $fields);
+        $dynamic_fields = $this->getRulesDynamicContents();
+        $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], $dynamic_fields);
         $rules['create'] = array_merge($rules['create'], [
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('categories')->where(fn ($query) => $query->where('parent_id', request('parent_id'))->whereNull('deleted_at')),
-            ],
+            'name' => 'required|string|max:255', // Validated in translation
+            'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
+            'translations' => 'sometimes|array',
+            'translations.*.locale' => 'required|string|max:10',
+            'translations.*.name' => 'required|string|max:255',
+            'translations.*.slug' => 'sometimes|nullable|string|max:255',
+            'translations.*.components' => 'sometimes|array',
         ]);
         $rules['update'] = array_merge($rules['update'], [
-            'name' => [
-                'sometimes',
-                'string',
-                'max:255',
-                Rule::unique('categories')->where(fn ($query) => $query->where('parent_id', request('parent_id'))->whereNull('deleted_at'))->ignore($this->id, 'id'),
-            ],
+            'name' => 'sometimes|required|string|max:255', // Validated in translation
+            'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
+            'translations' => 'sometimes|array',
+            'translations.*.locale' => 'required|string|max:10',
+            'translations.*.name' => 'sometimes|required|string|max:255',
+            'translations.*.slug' => 'sometimes|nullable|string|max:255',
+            'translations.*.components' => 'sometimes|array',
         ]);
 
         return $rules;
@@ -147,6 +131,7 @@ final class Category extends Model implements IMediable, Sortable
     #[Override]
     public function getPath(): string
     {
+        // Use slug from translation
         return $this->ancestors->pluck('slug')->reverse()->merge([$this->slug])->join('/');
     }
 
@@ -160,7 +145,9 @@ final class Category extends Model implements IMediable, Sortable
     #[Override]
     public function toArray(): array
     {
-        return array_merge($this->dynamicContentsToArray(), $this->approvalsToArray());
+        $parsed = parent::toArray() ?? $this->attributesToArray();
+
+        return array_merge($parsed, $this->translatedDynamicContentsToArray($parsed), $this->approvalsToArray($parsed));
     }
 
     #[Override]
@@ -179,18 +166,15 @@ final class Category extends Model implements IMediable, Sortable
         return CategoryFactory::new();
     }
 
-    // region Scopes
-
     #[Scope]
     protected function ordered(Builder $query): Builder
     {
         return $query->priorityOrdered()->validityOrdered();
     }
 
-    #[Override]
     protected function casts(): array
     {
-        return array_merge($this->activationCasts(), $this->dynamicContentsCasts(), [
+        return array_merge($this->activationCasts(), $this->translatedDynamicContentsCasts(), [
             'parent_id' => 'integer',
             'model_type_id' => 'integer',
             'order' => 'integer',
@@ -203,6 +187,7 @@ final class Category extends Model implements IMediable, Sortable
 
     protected function slugFields(): array
     {
+        // Use name from translation
         return [...$this->dynamicSlugFields(), 'name'];
     }
 
@@ -210,10 +195,6 @@ final class Category extends Model implements IMediable, Sortable
     {
         return $this->requiresApprovalWhenTrait($modifications) && ($modifications[self::$valid_from_column] ?? $modifications[self::$valid_to_column] ?? false);
     }
-
-    // endregion
-
-    // region Attributes
 
     protected function ids(): Attribute
     {

@@ -10,13 +10,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Cms\Models\Preset;
-use UnexpectedValueException;
+use Override;
 
 /**
  * Trait for models that have dynamic contents.
@@ -36,16 +37,17 @@ trait HasDynamicContents
             return parent::__get($key);
         }
 
-        return data_get($this->getComponentsAttribute(), $key);
+        if ($this->isDynamicField($key)) {
+            return data_get($this->getComponentsAttribute(), $key);
+        }
+
+        return parent::__get($key);
     }
 
     public function __set($key, $value): void
     {
-        $components = $this->getComponentsAttribute();
-
-        if (array_key_exists($key, $components)) {
-            $components[$key] = $value;
-            $this->setComponentsAttribute($components);
+        if ($this->isDynamicField($key)) {
+            $this->setComponentsAttribute($key, $value);
 
             return;
         }
@@ -57,12 +59,19 @@ trait HasDynamicContents
         }
     }
 
+    /**
+     * Fetch available entities for a given type.
+     *
+     * @return Collection<Entity>
+     */
     public static function fetchAvailableEntities(EntityType $type): Collection
     {
         /** @phpstan-ignore staticMethod.notFound */
         return Cache::memo()->rememberForever(
             new Entity()->getCacheKey(),
-            fn (): Collection => Entity::query()->withoutGlobalScopes()->get(),
+            function (): Collection {
+                return Entity::query()->withoutGlobalScopes()->orderBy('is_default', 'desc')->orderBy('name', 'asc')->get();
+            },
         )->where('type', $type);
     }
 
@@ -71,7 +80,7 @@ trait HasDynamicContents
         /** @phpstan-ignore staticMethod.notFound */
         return Cache::memo()->rememberForever(
             new Preset()->getCacheKey(),
-            fn (): Collection => Preset::query()->withoutGlobalScopes()->with(['fields', 'entity'])->get(),
+            fn (): Collection => Preset::query()->withoutGlobalScopes()->with(['fields', 'entity'])->orderBy('is_default', 'desc')->orderBy('name', 'asc')->get(),
         )->where('entity.type', $type);
     }
 
@@ -79,8 +88,28 @@ trait HasDynamicContents
     {
         return Cache::memo()->rememberForever(
             new Presettable()->getTable(),
-            fn (): Collection => Presettable::query()->withoutGlobalScopes()->get(),
+            function (): Collection {
+                return Presettable::query()->withoutGlobalScopes()
+                    ->join('presets', 'presettables.preset_id', '=', 'presets.id')
+                    ->join('entities', 'presets.entity_id', '=', 'entities.id')
+                    ->addSelect('presettables.*', DB::raw('CASE WHEN presets.is_default THEN 1 ELSE 0 END + CASE WHEN entities.is_default THEN 1 ELSE 0 END as order_score'))
+                    ->orderBy('order_score', 'desc')->get();
+            },
         )->where('entity.type', $type);
+    }
+
+    /**
+     * Override setAttribute to handle translatable fields.
+     */
+    public function setAttribute($key, $value)
+    {
+        if ($this->isDynamicField($key)) {
+            $this->setComponentsAttribute($key, $value);
+
+            return $this;
+        }
+
+        return parent::setAttribute($key, $value);
     }
 
     public function initializeHasDynamicContents(): void
@@ -99,7 +128,7 @@ trait HasDynamicContents
 
         if (! in_array('presettable_id', $this->fillable, true)) {
             $this->fillable[] = 'presettable_id';
-        }  
+        }
 
         if (! isset($this->attributes['components'])) {
             $this->attributes['components'] = '{}';
@@ -125,12 +154,12 @@ trait HasDynamicContents
             $this->hidden[] = 'entity';
         }
 
-        if (! in_array('entity', $this->with, true)) {
-            $this->with[] = 'entity';
-        }
-
         if (! in_array('presettable', $this->with, true)) {
             $this->with[] = 'presettable';
+        }
+
+        if (! in_array('presettable', $this->hidden, true)) {
+            $this->hidden[] = 'presettable';
         }
     }
 
@@ -148,33 +177,9 @@ trait HasDynamicContents
         return $relation;
     }
 
-    /**
-     * The entity that belongs to the content.
-     *
-     * @return Attribute<Entity|null>
-     */
-    public function entity(): Attribute
+    public function toArray(?array $parsed = null): array
     {
-        return new Attribute(
-            get: fn () => $this->presettable?->entity,
-        );
-    }
-
-    /**
-     * The preset that belongs to the content.
-     *
-     * @return Attribute<Preset|null>
-     */
-    public function preset(): Attribute
-    {
-        return new Attribute(
-            get: fn () => $this->presettable?->preset,
-        );
-    }
-
-    public function toArray(): array
-    {
-        $content = method_exists(parent::class, 'toArray') ? parent::toArray() : $this->attributesToArray();
+        $content = $parsed ?? (method_exists(parent::class, 'toArray') ? parent::toArray() : $this->attributesToArray());
 
         if (isset($content['components'])) {
             $components = $content['components'];
@@ -184,6 +189,16 @@ trait HasDynamicContents
         }
 
         return array_merge($content, $this->getComponentsAttribute());
+    }
+
+    public function getDynamicFields(): array
+    {
+        return $this->fields()->pluck('name')->toArray();
+    }
+
+    public function isDynamicField(string $field): bool
+    {
+        return in_array($field, $this->getDynamicFields(), true);
     }
 
     public function getRules(): array
@@ -223,6 +238,14 @@ trait HasDynamicContents
         return $fields;
     }
 
+    public function setDefaultPresettable(): void
+    {
+        $first_available = static::fetchAvailablePresettables(EntityType::tryFrom($this->getTable()))->firstOrFail();
+        $this->presettable_id = $first_available->id;
+        $this->entity_id = $first_available->entity_id;
+        $this->setRelation('presettable', $first_available);
+    }
+
     protected static function bootHasDynamicContents(): void
     {
         static::saving(function (Model $model): void {
@@ -230,12 +253,44 @@ trait HasDynamicContents
             if ($model->presettable) {
                 $model->presettable_id = $model->presettable->id;
                 $model->entity_id = $model->presettable->entity_id;
+                $model->setRelation('presettable', $model->presettable);
             } else {
-                $first_available = static::fetchAvailablePresettables(EntityType::tryFrom($model->getTable()))->firstOrFail();
-                $model->presettable_id = $first_available->id;
-                $model->entity_id = $first_available->entity_id;
+                $model->setDefaultPresettable();
             }
         });
+    }
+
+    /**
+     * The entity that belongs to the content.
+     *
+     * @return Attribute<Entity|null>
+     */
+    protected function entity(): Attribute
+    {
+        return new Attribute(
+            get: function () {
+                $presettable = $this->presettable;
+
+                if (! $presettable) {
+                    $this->setDefaultPresettable();
+                    $presettable = $this->presettable;
+                }
+
+                return $presettable?->entity;
+            },
+        );
+    }
+
+    /**
+     * The preset that belongs to the content.
+     *
+     * @return Attribute<Preset|null>
+     */
+    protected function preset(): Attribute
+    {
+        return new Attribute(
+            get: fn () => $this->presettable?->preset,
+        );
     }
 
     protected function getTextualOnlyAttribute(): string
@@ -261,37 +316,68 @@ trait HasDynamicContents
     {
         return new Attribute(
             get: function () {
-                if ($this->relationLoaded('preset')) {
-                    return $this->preset?->entity?->name;
+                if (! $this->relationLoaded('preset') && $this->presettable_id) {
+                    $this->load('presettable');
+
+                    return $this->entity?->name;
                 }
 
                 if ($this->presettable_id) {
                     return static::fetchAvailablePresets(EntityType::tryFrom($this->getTable()))->firstWhere('id', $this->presettable_id)?->entity?->name;
                 }
 
-                return null;
+                $this->setDefaultPresettable();
+
+                return $this->entity?->name;
             },
         );
     }
 
     protected function getComponentsAttribute(): array
     {
-        return isset($this->attributes['components'])
-            ? $this->mergeComponentsValues(json_decode((string) $this->attributes['components'], true))
+        // Get components from model attributes (for models without translations)
+        $components = isset($this->attributes['components'])
+            ? json_decode((string) $this->attributes['components'], true)
             : [];
+
+        return $this->mergeComponentsValues($components);
     }
 
     protected function setComponentsAttribute(array $components): void
     {
+        // Store components in model attributes (for models without translations)
         $this->attributes['components'] = json_encode($this->mergeComponentsValues($components));
     }
 
     protected function dynamicSlugFields(): array
     {
-        return $this->preset?->fields()
+        if (! $this->preset) {
+            return [];
+        }
+
+        return $this->preset->fields()
             ->select(['name', 'is_slug'])
             ->where('is_slug', true)
             ->pluck('name')
+            ->toArray();
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'components' => 'json',
+            'entity_id' => 'integer',
+            'presettable_id' => 'integer',
+        ];
+    }
+
+    /**
+     * Merge components with default values from fields.
+     */
+    protected function mergeComponentsValues(array $components): array
+    {
+        return $this->fields()
+            ->mapWithKeys(fn (Field $field): array => [$field->name => data_get($components, $field->name, $field->pivot->default)])
             ->toArray();
     }
 
@@ -303,19 +389,5 @@ trait HasDynamicContents
     private function fields(): Collection
     {
         return $this->preset?->fields ?? new Collection();
-    }
-
-    private function mergeComponentsValues(array $components): array
-    {
-        return $this->fields()->mapWithKeys(fn (Field $field): array => [$field->name => data_get($components, $field->name, $field->pivot->default)])->toArray();
-    }
-
-    protected function dynamicContentsCasts(): array
-    {
-        return [
-            'components' => 'json',
-            'entity_id' => 'integer',
-            'presettable_id' => 'integer',
-        ];
     }
 }

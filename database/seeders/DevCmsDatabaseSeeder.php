@@ -36,6 +36,8 @@ final class DevCmsDatabaseSeeder extends BatchSeeder
             $this->seedTags();
             $this->seedContents();
         });
+
+        Artisan::call('cache:clear');
     }
 
     private function seedAuthors(): void

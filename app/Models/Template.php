@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasVersions;
-use Override;
 
 /**
  * @mixin IdeHelperTemplate
@@ -62,7 +61,6 @@ final class Template extends Model
         return $rules;
     }
 
-    #[Override]
     protected function casts(): array
     {
         return [

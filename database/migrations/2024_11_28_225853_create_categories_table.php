@@ -20,9 +20,6 @@ return new class extends Migration
             $table->foreignId('entity_id')->nullable(false)->constrained('entities', 'id', 'categories_entity_id_FK')->cascadeOnDelete()->comment('The entity that the category belongs to');
             $table->foreignId('presettable_id')->nullable(false)->constrained('presettables', 'id', 'categories_presettable_id_FK')->cascadeOnDelete()->comment('The entity preset that the category belongs to');
             $table->foreignId('parent_id')->nullable(true)->constrained('categories', 'id', 'categories_parent_id_FK')->nullOnDelete()->comment('The parent category');
-            $table->string('name')->nullable(false)->comment('The name of the category');
-            $table->string('slug')->nullable(false)->index('categories_slug_IDX')->comment('The slug of the category');
-            $table->json('components')->nullable(false)->comment('The category contents');
             $table->integer('persistence')->nullable(true)->comment('The persistence in days of the content in the category');
             $table->string('logo')->nullable(true)->comment('The logo of the category');
             $table->string('logo_full')->nullable(true)->comment('The full logo of the category');
@@ -36,8 +33,7 @@ return new class extends Migration
                 hasValidity: true,
             );
 
-            $table->unique(['entity_id', 'parent_id', 'name', 'deleted_at'], 'categories_name_UN');
-            $table->unique(['entity_id', 'parent_id', 'slug', 'deleted_at'], 'categories_slug_UN');
+            // Unique constraints for name and slug are now in category_translations table (per locale)
             $table->unique(['id', 'parent_id'], 'category_parent_UN');
             $table->unique(['id', 'entity_id'], 'category_entity_UN');
         });

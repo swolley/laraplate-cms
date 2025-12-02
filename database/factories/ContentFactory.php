@@ -5,17 +5,23 @@ declare(strict_types=1);
 namespace Modules\Cms\Database\Factories;
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Helpers\HasDynamicContentFactory;
 use Modules\Cms\Models\Author;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Tag;
+use Modules\Core\Helpers\HasTranslationsFactory;
 use Override;
 
-final class ContentFactory extends DynamicContentFactory
+final class ContentFactory extends Factory
 {
+    use HasDynamicContentFactory, HasTranslationsFactory;
+
     /**
      * The name of the factory's corresponding model.
      */
@@ -29,12 +35,12 @@ final class ContentFactory extends DynamicContentFactory
     #[Override]
     public function definition(): array
     {
-        $definition = parent::definition();
+        $definition = $this->dynamicContentDefinition();
         $valid_from = fake()->boolean() ? now()->addDays(fake()->numberBetween(-10, 10)) : null;
         $valid_to = $valid_from && fake()->boolean() ? $valid_from->addDays(fake()->numberBetween(-10, 10)) : null;
 
         return $definition + [
-            'title' => fake()->text(fake()->numberBetween(100, 255)),
+            // title, slug, components are now in translations table
             'valid_from' => $valid_from,
             'valid_to' => $valid_to,
         ];
@@ -44,7 +50,7 @@ final class ContentFactory extends DynamicContentFactory
     public function configure(): self
     {
         return $this->afterMaking(function (Content &$content): void {
-            $this->fillContents($content);
+            $this->fillDynamicContents($content);
 
             if (array_key_exists('period_to', $content->components) && fake()->boolean()) {
                 $content->period_to = max(fake()->dateTime($content->valid_to ?? 'now'), $content->valid_from)->format('Y-m-d H:i:s');
@@ -56,6 +62,22 @@ final class ContentFactory extends DynamicContentFactory
 
             $content->setForcedApprovalUpdate(fake()->boolean(85));
         })->afterCreating(function (Content $content): void {
+            // Create default translation
+            $this->createTranslations($content, function (string $locale) {
+                return [
+                    'title' => fake($locale)->text(fake()->numberBetween(100, 255)),
+                    'slug' => Str::slug(fake($locale)->text(fake()->numberBetween(100, 255))),
+                    'content' => [
+                        'blocks' => array_map(fn (string $paragraph) => [
+                            'type' => 'paragraph',
+                            'data' => [
+                                'text' => $paragraph,
+                            ],
+                        ], fake($locale)->paragraphs(fake()->rand(1, 10))),
+                    ],
+                ];
+            });
+
             if ($content->exists && $content->getKey()) {
                 $this->createRelations($content);
             } else {
@@ -78,10 +100,9 @@ final class ContentFactory extends DynamicContentFactory
      *
      * @param  Content|Collection<Content>  $content
      */
-    #[Override]
     public function createRelations(Model|Collection $content, ?callable $callback = null): void
     {
-        parent::createRelations($content, function (Content $content) use ($callback): void {
+        $this->createDynamicContentRelations($content, function (Content $content) use ($callback): void {
             if (! $content->getKey() || ! $content->exists) {
                 return;
             }

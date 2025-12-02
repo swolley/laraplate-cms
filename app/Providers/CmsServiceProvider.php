@@ -50,8 +50,6 @@ final class CmsServiceProvider extends ServiceProvider
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
         $this->app->register(GeocodingServiceProvider::class);
-
-        // $this->initializeEntities();
     }
 
     /**
@@ -140,25 +138,4 @@ final class CmsServiceProvider extends ServiceProvider
 
         return $paths;
     }
-
-    // protected function initializeEntities(): void
-    // {
-
-    //     try {
-    //         if (! Schema::hasTable('entities')) {
-    //             return;
-    //         }
-    //         $entity_cache_key = 'cms.entities.cache';
-
-    //         $entities = Cache::get($entity_cache_key, collect());
-
-    //         if ($entities->isEmpty()) {
-    //             $entities = Entity::query()->withoutGlobalScopes()->get();
-    //             Cache::forever($entity_cache_key, $entities);
-    //             Content::resolveChildTypes($entities);
-    //         }
-    //     } catch (\Exception $e) {
-    //         report($e);
-    //     }
-    // }
 }

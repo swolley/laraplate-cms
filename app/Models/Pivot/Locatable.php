@@ -6,7 +6,6 @@ namespace Modules\Cms\Models\Pivot;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\Pivot;
-use Override;
 
 /**
  * @mixin IdeHelperLocatable
@@ -17,7 +16,6 @@ final class Locatable extends Pivot
 
     protected $table = 'locatables';
 
-    #[Override]
     protected function casts(): array
     {
         return [

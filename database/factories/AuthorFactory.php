@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Database\Factories;
 
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Helpers\HasDynamicContentFactory;
 use Modules\Cms\Helpers\HasDynamicContents;
 use Modules\Cms\Models\Author;
 use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
 
-final class AuthorFactory extends DynamicContentFactory
+final class AuthorFactory extends Factory
 {
-    use HasUniqueFactoryValues;
-    
+    use HasDynamicContentFactory, HasUniqueFactoryValues;
+
     /**
      * The name of the factory's corresponding model.
      */
@@ -28,7 +30,7 @@ final class AuthorFactory extends DynamicContentFactory
     #[Override]
     public function definition(): array
     {
-        $definition = parent::definition();
+        $definition = $this->dynamicContentDefinition();
         $user = fake()->boolean() ? user_class()::inRandomOrder()->first() : null;
 
         if (! $user || Author::where('name', $user->name)->exists()) {
@@ -60,7 +62,7 @@ final class AuthorFactory extends DynamicContentFactory
     {
         /** @param Model&HasDynamicContents $model */
         return $this->afterMaking(function (Author $model): void {
-            $this->fillContents($model, [
+            $this->fillDynamicContents($model, [
                 'public_email' => fake()->boolean() ? fake()->unique()->email() : ($model->user ? $model->user->email : null),
             ]);
         });

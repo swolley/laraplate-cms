@@ -23,8 +23,10 @@ use Override;
  */
 final class Field extends Model
 {
+    use HasActivation {
+        HasActivation::casts as protected activationCasts;
+    }
     use HasFactory;
-    use HasActivation;
     use HasValidations {
         getRules as protected getRulesTrait;
     }
@@ -58,10 +60,6 @@ final class Field extends Model
     #[Override]
     public function __set($key, $value): void
     {
-        // if (array_key_exists($key, $this->attributes)) {
-        //     parent::__set($key, $value);
-        //     return;
-        // }
         if (property_exists($this, 'pivot') && $this->pivot !== null && array_key_exists($key, $this->pivot->getAttributes())) {
             // @phpstan-ignore assign.propertyReadOnly
             data_set($this->pivot, $key, $value);
@@ -114,12 +112,6 @@ final class Field extends Model
     {
         parent::boot();
 
-        // self::addGlobalScope('api', function (Builder $builder) {
-        //     if (request()?->is('api/*')) {
-        //         $builder->where('is_active', true);
-        //     }
-        // });
-
         self::updating(function (Field $model): void {
             if (property_exists($model, 'pivot') && $model->pivot && $model->pivot->isDirty()) {
                 $model->pivot->save();
@@ -127,7 +119,6 @@ final class Field extends Model
         });
     }
 
-    #[Override]
     protected function casts(): array
     {
         return array_merge($this->activationCasts(), [

@@ -124,7 +124,6 @@ final class Location extends Model
         return LocationFactory::new();
     }
 
-    #[Override]
     protected function casts(): array
     {
         return [

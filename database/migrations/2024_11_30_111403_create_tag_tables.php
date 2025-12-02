@@ -14,16 +14,13 @@ return new class extends Migration
         Schema::create('tags', function (Blueprint $table): void {
             $table->id();
 
-            $table->string('name')->unique('tags_name_UN')->comment('The name of the tag');
-            $table->string('slug')->unique('tags_slug_UN')->comment('The slug of the tag');
+            // Unique constraints for name and slug are now in tag_translations table (per locale)
             $table->string('type')->nullable()->index('tags_type_IDX')->comment('The type of the tag');
             $table->integer('order_column')->nullable(false)->default(0)->index('tags_order_column_IDX')->comment('The order of the tag');
             MigrateUtils::timestamps(
                 $table,
                 hasSoftDelete: true,
             );
-
-            $table->index(['name', 'deleted_at'], 'tags_name_deleted_at_idx');
         });
 
         Schema::create('taggables', function (Blueprint $table): void {

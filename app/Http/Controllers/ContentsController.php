@@ -28,12 +28,12 @@ final class ContentsController extends CrudController
                 'operator' => WhereClause::OR->value,
                 'filters' => [
                     [
-                        'property' => 'contents.entity.name',
+                        'property' => 'contents.presettable.entity.name',
                         'value' => $entity,
                         'operator' => FilterOperator::EQUALS->value,
                     ],
                     [
-                        'property' => 'contents.entity.slug',
+                        'property' => 'contents.presettable.entity.slug',
                         'value' => $entity,
                         'operator' => FilterOperator::EQUALS->value,
                     ],

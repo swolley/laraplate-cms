@@ -20,7 +20,6 @@ return new class extends Migration
             $table->foreignId('entity_id')->nullable(false)->constrained('entities', 'id', 'authors_entity_id_FK')->cascadeOnDelete()->comment('The entity that the author belongs to');
             $table->foreignId('presettable_id')->nullable(false)->constrained('presettables', 'id', 'authors_presettable_id_FK')->cascadeOnDelete()->comment('The entity preset that the author belongs to');
             $table->string('name')->comment('The name of the author');
-            $table->json('components')->nullable(false)->comment('The author contents');
             MigrateUtils::timestamps(
                 $table,
                 hasCreateUpdate: true,

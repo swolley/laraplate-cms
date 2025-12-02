@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SortableTrait;
-use Override;
 use Spatie\EloquentSortable\Sortable;
 
 /**
@@ -50,7 +49,6 @@ final class Fieldable extends Pivot implements Sortable
         return $query->orderBy('order_column', 'asc');
     }
 
-    #[Override]
     protected function casts(): array
     {
         return [

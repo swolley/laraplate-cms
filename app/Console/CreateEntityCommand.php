@@ -29,7 +29,7 @@ final class CreateEntityCommand extends Command
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'model:create-entity {entity?} {--content-model}';
+    protected $signature = 'model:create-entity {entity?}';
 
     /**
      * The console command description.
@@ -82,10 +82,6 @@ final class CreateEntityCommand extends Command
                 $field = $all_fields->get($field);
                 $is_required = confirm(sprintf("Do you want '%s' to be required?", $field['name']), false);
                 $this->assignFieldToPreset($preset, $field, $is_required);
-            }
-
-            if ($this->option('content-model') || confirm('Do you want to create a content model file for this entity?', false)) {
-                $this->call(CreateContentModelCommand::class, ['entity' => $entity->name]);
             }
 
             $this->info(sprintf("Entity '%s' created", $entity->name));

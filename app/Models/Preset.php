@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Modules\Cms\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-// use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Modules\Cms\Models\Pivot\Fieldable;
 use Modules\Cms\Models\Pivot\Presettable;
@@ -19,19 +17,18 @@ use Modules\Core\Helpers\HasApprovals;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
-use Override;
-
-// use Modules\Cms\Database\Factories\ModelTypeFactory;
 
 /**
  * @mixin IdeHelperPreset
  */
 final class Preset extends Model
 {
+    use HasActivation {
+        HasActivation::casts as protected activationCasts;
+    }
     use HasApprovals;
     use HasCache;
     use HasFactory;
-    use HasActivation;
     use HasValidations {
         getRules as protected getRulesTrait;
     }
@@ -104,23 +101,6 @@ final class Preset extends Model
         return $rules;
     }
 
-    // protected static function newFactory(): ModelTypeFactory
-    // {
-    //     // return ModelTypeFactory::new();
-    // }
-
-    // protected static function boot()
-    // {
-    //     parent::boot();
-
-    //     self::addGlobalScope('api', function (Builder $builder) {
-    //         if (request()?->is('api/*')) {
-    //             $builder->where('is_active', true);
-    //         }
-    //     });
-    // }
-
-    #[Override]
     protected function casts(): array
     {
         return array_merge($this->activationCasts(), [

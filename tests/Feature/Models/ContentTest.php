@@ -20,26 +20,25 @@ it('can be created with factory', function (): void {
     expect($this->content->id)->not->toBeNull();
 });
 
-it('has fillable attributes', function (): void {
-    $contentData = [
+it('has translatable attributes', function (): void {
+    $content = Content::factory()->create();
+    
+    // Set translation for default locale
+    $default_locale = config('app.locale');
+    $content->setTranslation($default_locale, [
         'title' => 'Test Content',
         'slug' => 'test-content',
-        'body' => 'Test content body',
-        'excerpt' => 'Test excerpt',
-        'status' => 'published',
-        'entity_type' => 'article',
-    ];
-
-    $content = Content::create($contentData);
-
-    expectModelAttributes($content, [
-        'title' => 'Test Content',
-        'slug' => 'test-content',
-        'body' => 'Test content body',
-        'excerpt' => 'Test excerpt',
-        'status' => 'published',
-        'entity_type' => 'article',
+        'components' => [
+            'body' => 'Test content body',
+            'excerpt' => 'Test excerpt',
+        ],
     ]);
+    $content->save();
+
+    expect($content->title)->toBe('Test Content');
+    expect($content->slug)->toBe('test-content');
+    expect($content->body)->toBe('Test content body');
+    expect($content->excerpt)->toBe('Test excerpt');
 });
 
 it('belongs to many categories', function (): void {
@@ -158,68 +157,68 @@ it('has optimistic locking trait', function (): void {
     expect($this->content)->toHaveMethod('incrementLockVersion');
 });
 
-it('can be created with specific attributes', function (): void {
-    $contentData = [
+it('can be created with specific translation attributes', function (): void {
+    $content = Content::factory()->create();
+    $default_locale = config('app.locale');
+    $content->setTranslation($default_locale, [
         'title' => 'Custom Content',
         'slug' => 'custom-content',
-        'body' => 'Custom content body',
-        'excerpt' => 'Custom excerpt',
-        'status' => 'draft',
-        'entity_type' => 'page',
-    ];
-
-    $content = Content::create($contentData);
-
-    expectModelAttributes($content, [
-        'title' => 'Custom Content',
-        'slug' => 'custom-content',
-        'body' => 'Custom content body',
-        'excerpt' => 'Custom excerpt',
-        'status' => 'draft',
-        'entity_type' => 'page',
+        'components' => [
+            'body' => 'Custom content body',
+            'excerpt' => 'Custom excerpt',
+        ],
     ]);
+    $content->save();
+
+    expect($content->title)->toBe('Custom Content');
+    expect($content->slug)->toBe('custom-content');
+    expect($content->body)->toBe('Custom content body');
+    expect($content->excerpt)->toBe('Custom excerpt');
 });
 
-it('can be found by title', function (): void {
-    $content = Content::factory()->create(['title' => 'Unique Content']);
+it('can be found by title through translation', function (): void {
+    $content = Content::factory()->create();
+    $default_locale = config('app.locale');
+    $content->setTranslation($default_locale, [
+        'title' => 'Unique Content',
+        'slug' => 'unique-content',
+    ]);
+    $content->save();
 
-    $foundContent = Content::where('title', 'Unique Content')->first();
+    // Title is now in translations, so we need to search through the relation
+    $foundContent = Content::whereHas('translations', function ($q) {
+        $q->where('title', 'Unique Content');
+    })->first();
 
     expect($foundContent->id)->toBe($content->id);
+    expect($foundContent->title)->toBe('Unique Content');
 });
 
-it('can be found by slug', function (): void {
-    $content = Content::factory()->create(['slug' => 'unique-slug']);
+it('can be found by slug through translation', function (): void {
+    $content = Content::factory()->create();
+    $default_locale = config('app.locale');
+    $content->setTranslation($default_locale, [
+        'title' => 'Test Content',
+        'slug' => 'unique-slug',
+    ]);
+    $content->save();
 
-    $foundContent = Content::where('slug', 'unique-slug')->first();
+    // Slug is now in translations, so we need to search through the relation
+    $foundContent = Content::whereHas('translations', function ($q) {
+        $q->where('slug', 'unique-slug');
+    })->first();
 
     expect($foundContent->id)->toBe($content->id);
+    expect($foundContent->slug)->toBe('unique-slug');
 });
 
-it('can be found by status', function (): void {
-    $publishedContent = Content::factory()->create(['status' => 'published']);
-    $draftContent = Content::factory()->create(['status' => 'draft']);
-
-    $publishedContents = Content::where('status', 'published')->get();
-    $draftContents = Content::where('status', 'draft')->get();
-
-    expect($publishedContents)->toHaveCount(1);
-    expect($draftContents)->toHaveCount(1);
-    expect($publishedContents->first()->id)->toBe($publishedContent->id);
-    expect($draftContents->first()->id)->toBe($draftContent->id);
-});
-
-it('can be found by entity type', function (): void {
-    $article = Content::factory()->create(['entity_type' => 'article']);
-    $page = Content::factory()->create(['entity_type' => 'page']);
-
-    $articles = Content::where('entity_type', 'article')->get();
-    $pages = Content::where('entity_type', 'page')->get();
-
-    expect($articles)->toHaveCount(1);
-    expect($pages)->toHaveCount(1);
-    expect($articles->first()->id)->toBe($article->id);
-    expect($pages->first()->id)->toBe($page->id);
+it('has translations trait', function (): void {
+    expect($this->content)->toHaveMethod('translations');
+    expect($this->content)->toHaveMethod('translation');
+    expect($this->content)->toHaveMethod('getTranslation');
+    expect($this->content)->toHaveMethod('setTranslation');
+    expect($this->content)->toHaveMethod('hasTranslation');
+    expect($this->content)->toHaveMethod('getTranslatableFields');
 });
 
 it('has proper timestamps', function (): void {
@@ -229,23 +228,24 @@ it('has proper timestamps', function (): void {
     expect($content->updated_at)->toBeInstanceOf(Carbon\Carbon::class);
 });
 
-it('can be serialized to array', function (): void {
-    $content = Content::factory()->create([
+it('can be serialized to array with translations', function (): void {
+    $content = Content::factory()->create();
+    $default_locale = config('app.locale');
+    $content->setTranslation($default_locale, [
         'title' => 'Test Content',
         'slug' => 'test-content',
-        'status' => 'published',
     ]);
+    $content->save();
+    
     $contentArray = $content->toArray();
 
     expect($contentArray)->toHaveKey('id');
     expect($contentArray)->toHaveKey('title');
     expect($contentArray)->toHaveKey('slug');
-    expect($contentArray)->toHaveKey('status');
     expect($contentArray)->toHaveKey('created_at');
     expect($contentArray)->toHaveKey('updated_at');
     expect($contentArray['title'])->toBe('Test Content');
     expect($contentArray['slug'])->toBe('test-content');
-    expect($contentArray['status'])->toBe('published');
 });
 
 it('can be restored after soft delete', function (): void {

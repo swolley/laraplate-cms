@@ -17,22 +17,19 @@ it('can be created with factory', function (): void {
     expect($this->tag->id)->not->toBeNull();
 });
 
-it('has fillable attributes', function (): void {
-    $tagData = [
+it('has translatable attributes', function (): void {
+    $tag = Tag::factory()->create();
+    
+    // Set translation for default locale
+    $default_locale = config('app.locale');
+    $tag->setTranslation($default_locale, [
         'name' => 'Laravel',
         'slug' => 'laravel',
-        'type' => 'technology',
-        'order_column' => 1,
-    ];
-
-    $tag = Tag::create($tagData);
-
-    expectModelAttributes($tag, [
-        'name' => 'Laravel',
-        'slug' => 'laravel',
-        'type' => 'technology',
-        'order_column' => 1,
     ]);
+    $tag->save();
+
+    expect($tag->name)->toBe('Laravel');
+    expect($tag->slug)->toBe('laravel');
 });
 
 it('has hidden attributes', function (): void {
@@ -45,8 +42,13 @@ it('has hidden attributes', function (): void {
 });
 
 it('belongs to many contents', function (): void {
-    $content1 = Content::factory()->create(['title' => 'Article 1']);
-    $content2 = Content::factory()->create(['title' => 'Article 2']);
+    $content1 = Content::factory()->create();
+    $content1->setTranslation(config('app.locale'), ['title' => 'Article 1']);
+    $content1->save();
+    
+    $content2 = Content::factory()->create();
+    $content2->setTranslation(config('app.locale'), ['title' => 'Article 2']);
+    $content2->save();
 
     $this->tag->contents()->attach([$content1->id, $content2->id]);
 
@@ -80,14 +82,23 @@ it('has validations trait', function (): void {
     expect($this->tag)->toHaveMethod('getRules');
 });
 
+it('has translations trait', function (): void {
+    expect($this->tag)->toHaveMethod('translations');
+    expect($this->tag)->toHaveMethod('translation');
+    expect($this->tag)->toHaveMethod('getTranslation');
+    expect($this->tag)->toHaveMethod('setTranslation');
+    expect($this->tag)->toHaveMethod('hasTranslation');
+    expect($this->tag)->toHaveMethod('getTranslatableFields');
+});
+
 it('can find or create tags', function (): void {
-    $tag = Tag::findOrCreate('Laravel');
+    $tag = Tag::findOrCreateFromString('Laravel');
 
     expect($tag)->toBeInstanceOf(Tag::class);
     expect($tag->name)->toBe('Laravel');
 
     // Should return the same tag if called again
-    $sameTag = Tag::findOrCreate('Laravel');
+    $sameTag = Tag::findOrCreateFromString('Laravel');
     expect($sameTag->id)->toBe($tag->id);
 });
 
@@ -98,38 +109,53 @@ it('can find or create multiple tags', function (): void {
     expect($tags->pluck('name')->toArray())->toContain('Laravel', 'PHP', 'Web Development');
 });
 
-it('can be created with specific attributes', function (): void {
-    $tagData = [
+it('can be created with specific translation attributes', function (): void {
+    $tag = Tag::factory()->create(['type' => 'programming', 'order_column' => 2]);
+    $default_locale = config('app.locale');
+    $tag->setTranslation($default_locale, [
         'name' => 'JavaScript',
         'slug' => 'javascript',
-        'type' => 'programming',
-        'order_column' => 2,
-    ];
-
-    $tag = Tag::create($tagData);
-
-    expectModelAttributes($tag, [
-        'name' => 'JavaScript',
-        'slug' => 'javascript',
-        'type' => 'programming',
-        'order_column' => 2,
     ]);
+    $tag->save();
+
+    expect($tag->name)->toBe('JavaScript');
+    expect($tag->slug)->toBe('javascript');
+    expect($tag->type)->toBe('programming');
+    expect($tag->order_column)->toBe(2);
 });
 
-it('can be found by name', function (): void {
-    $tag = Tag::factory()->create(['name' => 'Unique Tag']);
+it('can be found by name through translation', function (): void {
+    $tag = Tag::factory()->create();
+    $default_locale = config('app.locale');
+    $tag->setTranslation($default_locale, [
+        'name' => 'Unique Tag',
+        'slug' => 'unique-tag',
+    ]);
+    $tag->save();
 
-    $foundTag = Tag::where('name', 'Unique Tag')->first();
+    $foundTag = Tag::whereHas('translations', function ($q) {
+        $q->where('name', 'Unique Tag');
+    })->first();
 
     expect($foundTag->id)->toBe($tag->id);
+    expect($foundTag->name)->toBe('Unique Tag');
 });
 
-it('can be found by slug', function (): void {
-    $tag = Tag::factory()->create(['slug' => 'unique-slug']);
+it('can be found by slug through translation', function (): void {
+    $tag = Tag::factory()->create();
+    $default_locale = config('app.locale');
+    $tag->setTranslation($default_locale, [
+        'name' => 'Test Tag',
+        'slug' => 'unique-slug',
+    ]);
+    $tag->save();
 
-    $foundTag = Tag::where('slug', 'unique-slug')->first();
+    $foundTag = Tag::whereHas('translations', function ($q) {
+        $q->where('slug', 'unique-slug');
+    })->first();
 
     expect($foundTag->id)->toBe($tag->id);
+    expect($foundTag->slug)->toBe('unique-slug');
 });
 
 it('can be found by type', function (): void {
@@ -147,12 +173,15 @@ it('has proper timestamps', function (): void {
     expect($tag->updated_at)->toBeInstanceOf(Carbon\Carbon::class);
 });
 
-it('can be serialized to array', function (): void {
-    $tag = Tag::factory()->create([
+it('can be serialized to array with translations', function (): void {
+    $tag = Tag::factory()->create(['type' => 'test']);
+    $default_locale = config('app.locale');
+    $tag->setTranslation($default_locale, [
         'name' => 'Test Tag',
         'slug' => 'test-tag',
-        'type' => 'test',
     ]);
+    $tag->save();
+    
     $tagArray = $tag->toArray();
 
     expect($tagArray)->toHaveKey('id');

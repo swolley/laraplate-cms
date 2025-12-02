@@ -12,8 +12,22 @@ trait HasSlug
     public static function bootHasSlug(): void
     {
         static::saving(function (Model $model): void {
-            if (! $model->getRawOriginal('slug') && ! $model->isDirty('slug')) {
-                $model->slug = $model->generateSlug();
+            if (in_array('slug', $model->getFillable(), true)) {
+                // If model uses HasTranslations, slug is in translation
+                if (method_exists($model, 'getRelationValue')) {
+                    $translation = $model->getRelationValue('translation');
+
+                    // If translation exists and slug is not set, generate it
+                    if ($translation && ! isset($translation->slug)) {
+                        $model->slug = $model->generateSlug();
+                    } elseif (! $translation) {
+                        // No translation yet, generate slug (will be saved in translation via HasTranslations)
+                        $model->slug = $model->generateSlug();
+                    }
+                } elseif (! isset($model->attributes['slug']) && ! $model->isDirty('slug')) {
+                    // Fallback for models without translations
+                    $model->slug = $model->generateSlug();
+                }
             }
         });
     }
@@ -25,9 +39,7 @@ trait HasSlug
 
     public function initializeHasSlug(): void
     {
-        if (! in_array('slug', $this->fillable, true)) {
-            $this->fillable[] = 'slug';
-        }
+        // Slug is now in translations table, don't add to fillable
     }
 
     public function generateSlug(): string
@@ -46,7 +58,19 @@ trait HasSlug
     protected function slug(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->attributes['slug'] ?? $this->generateSlug(),
+            get: function () {
+                // If model uses HasTranslations, get slug from translation
+                if (method_exists($this, 'getRelationValue') && $this->relationLoaded('translation')) {
+                    $translation = $this->getRelationValue('translation');
+
+                    if ($translation && isset($translation->slug)) {
+                        return $translation->slug;
+                    }
+                }
+
+                // Generate slug if not exists
+                return $this->attributes['slug'] ?? $this->generateSlug();
+            },
         );
     }
 }
