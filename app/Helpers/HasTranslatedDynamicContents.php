@@ -16,6 +16,8 @@ trait HasTranslatedDynamicContents
         HasDynamicContents::__get as private __dynamicContentsGet;
         HasDynamicContents::__set as private __dynamicContentsSet;
         HasDynamicContents::setAttribute as private dynamicContentsSetAttribute;
+        HasDynamicContents::getComponentsAttribute as private getComponentsAttributeDynamicContents;
+        HasDynamicContents::setComponentsAttribute as private setComponentsAttributeDynamicContents;
     }
     use HasTranslations;
     use HasTranslations {
@@ -93,4 +95,16 @@ trait HasTranslatedDynamicContents
 
         return parent::setAttribute($key, $value);
     }
+
+    protected function getComponentsAttribute(): array
+    {
+        $raw_components = $this->getTranslatableFieldValue('components');
+
+        return $this->mergeComponentsValues($raw_components ?? []);
+    }
+
+    // protected function setComponentsAttribute(array $components): void
+    // {
+    //     $this->setTranslatableFieldValue('components', $this->mergeComponentsValues($components));
+    // }
 }

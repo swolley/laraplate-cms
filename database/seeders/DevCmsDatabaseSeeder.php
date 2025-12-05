@@ -42,27 +42,27 @@ final class DevCmsDatabaseSeeder extends BatchSeeder
 
     private function seedAuthors(): void
     {
-        $this->createInBatches(Author::class, self::TARGET_COUNT_AUTHORS);
+        $this->createInParallelBatches(Author::class, self::TARGET_COUNT_AUTHORS);
     }
 
     private function seedCategories(): void
     {
-        $this->createInBatches(Category::class, self::TARGET_COUNT_CATEGORIES);
+        $this->createInParallelBatches(Category::class, self::TARGET_COUNT_CATEGORIES);
     }
 
     private function seedLocations(): void
     {
-        $this->createInBatches(Location::class, self::TARGET_COUNT_LOCATIONS);
+        $this->createInParallelBatches(Location::class, self::TARGET_COUNT_LOCATIONS);
     }
 
     private function seedTags(): void
     {
-        $this->createInBatches(Tag::class, self::TARGET_COUNT_TAGS);
+        $this->createInParallelBatches(Tag::class, self::TARGET_COUNT_TAGS);
     }
 
     private function seedContents(): void
     {
-        $this->createInBatches(Content::class, self::TARGET_COUNT_CONTENTS);
+        $this->createInParallelBatches(Content::class, self::TARGET_COUNT_CONTENTS);
 
         // Create pivot relations after contents are created
         $this->createPivotRelations();
