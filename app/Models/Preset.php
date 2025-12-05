@@ -24,13 +24,13 @@ use Modules\Core\Helpers\SoftDeletes;
 final class Preset extends Model
 {
     use HasActivation {
-        HasActivation::casts as protected activationCasts;
+        HasActivation::casts as private activationCasts;
     }
     use HasApprovals;
     use HasCache;
     use HasFactory;
     use HasValidations {
-        getRules as protected getRulesTrait;
+        getRules as private getRulesTrait;
     }
     use HasVersions;
     use SoftDeletes;

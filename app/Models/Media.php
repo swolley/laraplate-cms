@@ -25,6 +25,6 @@ final class Media extends BaseMedia
     {
         $expirationDays = config('core.soft_deletes_expiration_days');
 
-        return $this->trashed() && $expirationDays ? $this->deleted_at->addDays($expirationDays) : null;
+        return $this->trashed() && $expirationDays ? $this->{self::getDeletedAtColumn()}->addDays($expirationDays) : null;
     }
 }

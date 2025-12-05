@@ -45,6 +45,8 @@ trait HasDynamicContentFactory
      */
     public function createDynamicContentRelations(Model|Collection $content, ?callable $callback = null): void
     {
+        $i = 0;
+
         try {
             if (! $callback) {
                 return;
@@ -53,8 +55,6 @@ trait HasDynamicContentFactory
             if (! $content instanceof Collection) {
                 $content = collect([$content]);
             }
-
-            $i = 0;
 
             for ($i; $i < $content->count(); $i++) {
                 $callback($content[$i]);

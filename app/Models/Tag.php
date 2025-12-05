@@ -23,6 +23,12 @@ use Spatie\EloquentSortable\Sortable;
 
 /**
  * @mixin IdeHelperTag
+ * @mixin \Modules\Core\Helpers\HasTranslations
+ * @mixin \Modules\Core\Helpers\HasValidations
+ * @mixin \Modules\Core\Helpers\SoftDeletes
+ * @mixin \Modules\Cms\Helpers\HasSlug
+ * @mixin \Modules\Cms\Helpers\HasPath
+ * @mixin \Modules\Core\Helpers\SortableTrait
  */
 final class Tag extends Model implements Sortable
 {
@@ -31,7 +37,7 @@ final class Tag extends Model implements Sortable
     use HasSlug;
     use HasTranslations;
     use HasValidations {
-        getRules as protected getRulesTrait;
+        getRules as private getRulesTrait;
     }
     use SoftDeletes;
     use SortableTrait;

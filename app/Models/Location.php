@@ -31,6 +31,7 @@ use Override;
  * @method static whereContains(Polygon $polygon)
  * @method static whereNotContains(Polygon $polygon)
  * @method static whereEquals(Point $point)
+ *
  * @mixin IdeHelperLocation
  */
 final class Location extends Model
@@ -41,9 +42,11 @@ final class Location extends Model
     use HasSpatial;
     use HasTags;
     use HasValidations {
-        getRules as protected getRulesTrait;
+        getRules as private getRulesTrait;
     }
-    use Searchable;
+    use Searchable {
+        toSearchableArray as private toSearchableArrayTrait;
+    }
     use SoftDeletes;
 
     /**

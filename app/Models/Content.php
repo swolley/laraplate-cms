@@ -41,6 +41,22 @@ use Spatie\MediaLibrary\HasMedia;
 
 /**
  * @mixin IdeHelperContent
+ * @mixin \Modules\Core\Helpers\HasTranslations
+ * @mixin \Modules\Cms\Helpers\HasDynamicContents
+ * @mixin \Modules\Cms\Helpers\HasTranslatedDynamicContents
+ * @mixin \Modules\Core\Helpers\HasValidations
+ * @mixin \Modules\Core\Helpers\HasApprovals
+ * @mixin \Modules\Core\Helpers\HasVersions
+ * @mixin \Modules\Core\Helpers\HasValidity
+ * @mixin \Modules\Core\Helpers\SoftDeletes
+ * @mixin \Modules\Core\Search\Traits\Searchable
+ * @mixin \Modules\Cms\Helpers\HasSlug
+ * @mixin \Modules\Cms\Helpers\HasPath
+ * @mixin \Modules\Cms\Helpers\HasTags
+ * @mixin \Modules\Cms\Helpers\HasMultimedia
+ * @mixin \Modules\Core\Locking\Traits\HasLocks
+ * @mixin \Modules\Core\Locking\HasOptimisticLocking
+ * @mixin \Modules\Core\Helpers\SortableTrait
  */
 final class Content extends Model implements HasMedia, Sortable
 {

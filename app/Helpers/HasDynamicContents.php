@@ -47,7 +47,7 @@ trait HasDynamicContents
     public function __set($key, $value): void
     {
         if ($this->isDynamicField($key)) {
-            $this->setComponentsAttribute($key, $value);
+            $this->setComponentAttribute($key, $value);
 
             return;
         }
@@ -104,7 +104,7 @@ trait HasDynamicContents
     public function setAttribute($key, $value)
     {
         if ($this->isDynamicField($key)) {
-            $this->setComponentsAttribute($key, $value);
+            $this->setComponentAttribute($key, $value);
 
             return $this;
         }
@@ -379,6 +379,11 @@ trait HasDynamicContents
         return $this->fields()
             ->mapWithKeys(fn (Field $field): array => [$field->name => data_get($components, $field->name, $field->pivot->default)])
             ->toArray();
+    }
+
+    private function setComponentAttribute(string $key, $value): void
+    {
+        $this->setComponentsAttribute([$key => $value]);
     }
 
     /**

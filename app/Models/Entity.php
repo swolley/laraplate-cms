@@ -27,7 +27,7 @@ final class Entity extends Model
 {
     // region Traits
     use HasActivation {
-        HasActivation::casts as protected activationCasts;
+        HasActivation::casts as private activationCasts;
     }
     use HasCache;
     use HasFactory;
@@ -35,7 +35,7 @@ final class Entity extends Model
     use HasPath;
     use HasSlug;
     use HasValidations {
-        getRules as protected getRulesTrait;
+        getRules as private getRulesTrait;
     }
     // endregion
 

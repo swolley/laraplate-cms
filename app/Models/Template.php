@@ -17,7 +17,7 @@ final class Template extends Model
 {
     use HasFactory;
     use HasValidations {
-        getRules as protected getRulesTrait;
+        getRules as private getRulesTrait;
     }
     use HasVersions;
 

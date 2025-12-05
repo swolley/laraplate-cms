@@ -24,11 +24,11 @@ use Override;
 final class Field extends Model
 {
     use HasActivation {
-        HasActivation::casts as protected activationCasts;
+        HasActivation::casts as private activationCasts;
     }
     use HasFactory;
     use HasValidations {
-        getRules as protected getRulesTrait;
+        getRules as private getRulesTrait;
     }
     use HasVersions;
     use SoftDeletes;

@@ -32,6 +32,24 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 
 /**
  * @mixin IdeHelperCategory
+ * @mixin \Modules\Core\Helpers\HasTranslations
+ * @mixin \Modules\Cms\Helpers\HasDynamicContents
+ * @mixin \Modules\Cms\Helpers\HasTranslatedDynamicContents
+ * @mixin \Modules\Core\Helpers\HasValidations
+ * @mixin \Modules\Core\Helpers\SoftDeletes
+ * @mixin \Modules\Cms\Helpers\HasSlug
+ * @mixin \Modules\Cms\Helpers\HasPath
+ * @mixin \Modules\Core\Helpers\SortableTrait
+ * @mixin \Spatie\EloquentSortable\SortableTrait
+ *
+ * @method void setHighestOrderNumber() Set the highest order number
+ * @method int getHighestOrderNumber() Get the highest order number
+ * @method int getLowestOrderNumber() Get the lowest order number
+ * @method \Illuminate\Database\Eloquent\Builder scopeOrdered(\Illuminate\Database\Eloquent\Builder $query, string $direction = 'asc') Scope to order by order column
+ * @method static void setNewOrder(array|\ArrayAccess $ids, int $startOrder = 1, ?string $primaryKeyColumn = null, ?callable $modifyQuery = null) Set new order for multiple models
+ * @method bool shouldSortWhenCreating() Check if should sort when creating
+ * @method string determineOrderColumnName() Determine the order column name
+ * @method \Illuminate\Database\Eloquent\Builder buildSortQuery() Build query for sorting
  */
 final class Category extends Model implements IMediable, Sortable
 {
@@ -105,7 +123,8 @@ final class Category extends Model implements IMediable, Sortable
     {
         $rules = $this->getRulesTrait();
         $dynamic_fields = $this->getRulesDynamicContents();
-        $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], $dynamic_fields);
+        $default_rule = HasValidations::DEFAULT_RULE;
+        $rules[$default_rule] = array_merge($rules[$default_rule], $dynamic_fields);
         $rules['create'] = array_merge($rules['create'], [
             'name' => 'required|string|max:255', // Validated in translation
             'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
@@ -147,7 +166,7 @@ final class Category extends Model implements IMediable, Sortable
     {
         $parsed = parent::toArray() ?? $this->attributesToArray();
 
-        return array_merge($parsed, $this->translatedDynamicContentsToArray($parsed), $this->approvalsToArray($parsed));
+        return array_merge($parsed, $this->translatedDynamicContentsToArray(), $this->approvalsToArray($parsed));
     }
 
     #[Override]
