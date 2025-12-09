@@ -31,7 +31,6 @@ use Spatie\MediaLibrary\HasMedia as IMediable;
 use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 
 /**
- * @mixin IdeHelperCategory
  * @mixin \Modules\Core\Helpers\HasTranslations
  * @mixin \Modules\Cms\Helpers\HasDynamicContents
  * @mixin \Modules\Cms\Helpers\HasTranslatedDynamicContents
@@ -41,7 +40,6 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @mixin \Modules\Cms\Helpers\HasPath
  * @mixin \Modules\Core\Helpers\SortableTrait
  * @mixin \Spatie\EloquentSortable\SortableTrait
- *
  * @method void setHighestOrderNumber() Set the highest order number
  * @method int getHighestOrderNumber() Get the highest order number
  * @method int getLowestOrderNumber() Get the lowest order number
@@ -50,6 +48,7 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @method bool shouldSortWhenCreating() Check if should sort when creating
  * @method string determineOrderColumnName() Determine the order column name
  * @method \Illuminate\Database\Eloquent\Builder buildSortQuery() Build query for sorting
+ * @mixin IdeHelperCategory
  */
 final class Category extends Model implements IMediable, Sortable
 {

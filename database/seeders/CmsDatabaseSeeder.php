@@ -6,8 +6,8 @@ namespace Modules\Cms\Database\Seeders;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Models\Entity;

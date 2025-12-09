@@ -19,7 +19,7 @@ it('can be created with factory', function (): void {
 
 it('has translatable attributes', function (): void {
     $category = Category::factory()->create();
-    
+
     // Set translation for default locale
     $default_locale = config('app.locale');
     $category->setTranslation($default_locale, [
@@ -40,7 +40,7 @@ it('belongs to many contents', function (): void {
     $content1 = Content::factory()->create();
     $content1->setTranslation(config('app.locale'), ['title' => 'Article 1']);
     $content1->save();
-    
+
     $content2 = Content::factory()->create();
     $content2->setTranslation(config('app.locale'), ['title' => 'Article 2']);
     $content2->save();
@@ -55,7 +55,7 @@ it('has recursive relationships for parent-child categories', function (): void 
     $parentCategory = Category::factory()->create();
     $parentCategory->setTranslation(config('app.locale'), ['name' => 'Technology']);
     $parentCategory->save();
-    
+
     $childCategory = Category::factory()->create();
     $childCategory->setTranslation(config('app.locale'), ['name' => 'Programming']);
     $childCategory->parent_id = $parentCategory->id;
@@ -154,7 +154,7 @@ it('can be found by name through translation', function (): void {
     ]);
     $category->save();
 
-    $foundCategory = Category::whereHas('translations', function ($q) {
+    $foundCategory = Category::whereHas('translations', function ($q): void {
         $q->where('name', 'Unique Category');
     })->first();
 
@@ -171,7 +171,7 @@ it('can be found by slug through translation', function (): void {
     ]);
     $category->save();
 
-    $foundCategory = Category::whereHas('translations', function ($q) {
+    $foundCategory = Category::whereHas('translations', function ($q): void {
         $q->where('slug', 'unique-slug');
     })->first();
 
@@ -207,7 +207,7 @@ it('can be serialized to array with translations', function (): void {
         'slug' => 'test-category',
     ]);
     $category->save();
-    
+
     $categoryArray = $category->toArray();
 
     expect($categoryArray)->toHaveKey('id');

@@ -19,7 +19,7 @@ it('can be created with factory', function (): void {
 
 it('has translatable attributes', function (): void {
     $tag = Tag::factory()->create();
-    
+
     // Set translation for default locale
     $default_locale = config('app.locale');
     $tag->setTranslation($default_locale, [
@@ -45,7 +45,7 @@ it('belongs to many contents', function (): void {
     $content1 = Content::factory()->create();
     $content1->setTranslation(config('app.locale'), ['title' => 'Article 1']);
     $content1->save();
-    
+
     $content2 = Content::factory()->create();
     $content2->setTranslation(config('app.locale'), ['title' => 'Article 2']);
     $content2->save();
@@ -133,7 +133,7 @@ it('can be found by name through translation', function (): void {
     ]);
     $tag->save();
 
-    $foundTag = Tag::whereHas('translations', function ($q) {
+    $foundTag = Tag::whereHas('translations', function ($q): void {
         $q->where('name', 'Unique Tag');
     })->first();
 
@@ -150,7 +150,7 @@ it('can be found by slug through translation', function (): void {
     ]);
     $tag->save();
 
-    $foundTag = Tag::whereHas('translations', function ($q) {
+    $foundTag = Tag::whereHas('translations', function ($q): void {
         $q->where('slug', 'unique-slug');
     })->first();
 
@@ -181,7 +181,7 @@ it('can be serialized to array with translations', function (): void {
         'slug' => 'test-tag',
     ]);
     $tag->save();
-    
+
     $tagArray = $tag->toArray();
 
     expect($tagArray)->toHaveKey('id');

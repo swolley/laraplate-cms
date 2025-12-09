@@ -40,7 +40,6 @@ use Spatie\EloquentSortable\Sortable;
 use Spatie\MediaLibrary\HasMedia;
 
 /**
- * @mixin IdeHelperContent
  * @mixin \Modules\Core\Helpers\HasTranslations
  * @mixin \Modules\Cms\Helpers\HasDynamicContents
  * @mixin \Modules\Cms\Helpers\HasTranslatedDynamicContents
@@ -57,6 +56,7 @@ use Spatie\MediaLibrary\HasMedia;
  * @mixin \Modules\Core\Locking\Traits\HasLocks
  * @mixin \Modules\Core\Locking\HasOptimisticLocking
  * @mixin \Modules\Core\Helpers\SortableTrait
+ * @mixin IdeHelperContent
  */
 final class Content extends Model implements HasMedia, Sortable
 {
@@ -98,12 +98,12 @@ final class Content extends Model implements HasMedia, Sortable
         'withoutObjectCaching',
     ];
 
+    protected $embed = ['title', 'textual_only'];
+
     private array $sortable = [
         'order_column_name' => 'order_column',
         'sort_when_creating' => true,
     ];
-
-    protected $embed = ['title', 'textual_only'];
 
     /**
      * Handle __get to merge translations and dynamic contents.

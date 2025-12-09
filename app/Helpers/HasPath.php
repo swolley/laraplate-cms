@@ -13,6 +13,13 @@ trait HasPath
      */
     abstract protected function getPath(): ?string;
 
+    public function initializeHasPath(): void
+    {
+        if (! in_array('path', $this->appends, true)) {
+            $this->appends[] = 'path';
+        }
+    }
+
     /** @class-property string|null $slug */
     /**
      * get prefix for full path.
@@ -49,12 +56,5 @@ trait HasPath
         return Attribute::make(
             get: fn () => $this->getFullPath(),
         );
-    }
-
-    public function initializeHasPath(): void
-    {
-        if (! in_array('path', $this->appends, true)) {
-            $this->appends[] = 'path';
-        }
     }
 }

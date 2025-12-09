@@ -22,7 +22,7 @@ it('can be created with factory', function (): void {
 
 it('has translatable attributes', function (): void {
     $content = Content::factory()->create();
-    
+
     // Set translation for default locale
     $default_locale = config('app.locale');
     $content->setTranslation($default_locale, [
@@ -186,7 +186,7 @@ it('can be found by title through translation', function (): void {
     $content->save();
 
     // Title is now in translations, so we need to search through the relation
-    $foundContent = Content::whereHas('translations', function ($q) {
+    $foundContent = Content::whereHas('translations', function ($q): void {
         $q->where('title', 'Unique Content');
     })->first();
 
@@ -204,7 +204,7 @@ it('can be found by slug through translation', function (): void {
     $content->save();
 
     // Slug is now in translations, so we need to search through the relation
-    $foundContent = Content::whereHas('translations', function ($q) {
+    $foundContent = Content::whereHas('translations', function ($q): void {
         $q->where('slug', 'unique-slug');
     })->first();
 
@@ -236,7 +236,7 @@ it('can be serialized to array with translations', function (): void {
         'slug' => 'test-content',
     ]);
     $content->save();
-    
+
     $contentArray = $content->toArray();
 
     expect($contentArray)->toHaveKey('id');
