@@ -19,6 +19,7 @@ use Override;
 
 /**
  * @property-read object $options
+ *
  * @mixin IdeHelperField
  */
 final class Field extends Model
@@ -70,6 +71,9 @@ final class Field extends Model
         parent::__set($key, $value);
     }
 
+    /**
+     * @return BelongsToMany<Preset>
+     */
     public function presets(): BelongsToMany
     {
         return $this->belongsToMany(Preset::class, 'fieldables')->using(Fieldable::class)->withTimestamps()->withPivot(['order_column', 'is_required', 'default']);

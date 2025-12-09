@@ -110,6 +110,9 @@ trait HasTags
         );
     }
 
+    /**
+     * @return MorphToMany<Tag>
+     */
     public function tags(): MorphToMany
     {
         return $this

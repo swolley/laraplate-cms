@@ -28,6 +28,8 @@ use Override;
  * @property-read ?Preset $preset
  * @property ?int $entity_id
  * @property ?int $presettable_id
+ *
+ * @template TModel of Model
  */
 trait HasDynamicContents
 {

@@ -29,11 +29,17 @@ final class Presettable extends Pivot
         'entity',
     ];
 
+    /**
+     * @return BelongsTo<Preset>
+     */
     public function preset(): BelongsTo
     {
         return $this->belongsTo(Preset::class);
     }
 
+    /**
+     * @return BelongsTo<Entity>
+     */
     public function entity(): BelongsTo
     {
         return $this->belongsTo(Entity::class);

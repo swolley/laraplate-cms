@@ -40,6 +40,7 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @mixin \Modules\Cms\Helpers\HasPath
  * @mixin \Modules\Core\Helpers\SortableTrait
  * @mixin \Spatie\EloquentSortable\SortableTrait
+ *
  * @method void setHighestOrderNumber() Set the highest order number
  * @method int getHighestOrderNumber() Get the highest order number
  * @method int getLowestOrderNumber() Get the lowest order number
@@ -48,6 +49,7 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @method bool shouldSortWhenCreating() Check if should sort when creating
  * @method string determineOrderColumnName() Determine the order column name
  * @method \Illuminate\Database\Eloquent\Builder buildSortQuery() Build query for sorting
+ *
  * @mixin IdeHelperCategory
  */
 final class Category extends Model implements IMediable, Sortable
@@ -172,9 +174,11 @@ final class Category extends Model implements IMediable, Sortable
     protected static function booted(): void
     {
         self::addGlobalScope('global_filters', function (Builder $query): void {
+            /** @var Builder<static> $query */
             $query->active()->valid();
         });
         self::addGlobalScope('global_ordered', function (Builder $query): void {
+            /** @var Builder<static> $query */
             $query->ordered();
         });
     }

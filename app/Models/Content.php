@@ -40,22 +40,6 @@ use Spatie\EloquentSortable\Sortable;
 use Spatie\MediaLibrary\HasMedia;
 
 /**
- * @mixin \Modules\Core\Helpers\HasTranslations
- * @mixin \Modules\Cms\Helpers\HasDynamicContents
- * @mixin \Modules\Cms\Helpers\HasTranslatedDynamicContents
- * @mixin \Modules\Core\Helpers\HasValidations
- * @mixin \Modules\Core\Helpers\HasApprovals
- * @mixin \Modules\Core\Helpers\HasVersions
- * @mixin \Modules\Core\Helpers\HasValidity
- * @mixin \Modules\Core\Helpers\SoftDeletes
- * @mixin \Modules\Core\Search\Traits\Searchable
- * @mixin \Modules\Cms\Helpers\HasSlug
- * @mixin \Modules\Cms\Helpers\HasPath
- * @mixin \Modules\Cms\Helpers\HasTags
- * @mixin \Modules\Cms\Helpers\HasMultimedia
- * @mixin \Modules\Core\Locking\Traits\HasLocks
- * @mixin \Modules\Core\Locking\HasOptimisticLocking
- * @mixin \Modules\Core\Helpers\SortableTrait
  * @mixin IdeHelperContent
  */
 final class Content extends Model implements HasMedia, Sortable
@@ -65,6 +49,8 @@ final class Content extends Model implements HasMedia, Sortable
         HasApprovals::toArray as private approvalsToArray;
         HasApprovals::requiresApprovalWhen as private requiresApprovalWhenTrait;
     }
+
+    /** @use HasFactory<ContentFactory> */
     use HasFactory;
     use HasLocks;
     use HasMultimedia;
@@ -449,7 +435,7 @@ final class Content extends Model implements HasMedia, Sortable
 
         // Auto-assign entity and preset for child classes based on class name
         self::creating(function (Model $model): void {
-            /** @var Content $model */
+            /** @var static $model */
             // Only auto-assign if not already set and this is a child class
             if (self::class !== self::class && ($model->entity_id === null || $model->presettable_id === null)) {
                 $model->setDefaultEntityAndPreset();
@@ -460,9 +446,11 @@ final class Content extends Model implements HasMedia, Sortable
     protected static function booted(): void
     {
         self::addGlobalScope('global_filters', function (Builder $query): void {
+            /** @var Builder<static> $query */
             $query->valid();
         });
         self::addGlobalScope('global_ordered', function (Builder $query): void {
+            /** @var Builder<static> $query */
             $query->ordered();
         });
     }

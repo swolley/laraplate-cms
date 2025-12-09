@@ -176,12 +176,19 @@ final class Tag extends Model implements Sortable
         return TagFactory::new();
     }
 
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
     #[Scope]
     protected function ordered(Builder $query): Builder
     {
         return $query->orderBy('order_column', 'asc');
     }
 
+    /**
+     * @param  Builder<static>  $query
+     */
     #[Scope]
     protected function withType(Builder $query, ?string $type = null): void
     {
@@ -190,6 +197,9 @@ final class Tag extends Model implements Sortable
         }
     }
 
+    /**
+     * @param  Builder<static>  $query
+     */
     #[Scope]
     protected function containing(Builder $query, string $name, $locale = null): void
     {
