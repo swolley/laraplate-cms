@@ -29,7 +29,6 @@ trait HasDynamicContentFactory
 
         throw_unless(isset($this->entityType), RuntimeException::class, 'Entity type not set for model: ' . $model_name . ' factory class');
 
-        /** @var Entity|null $entity */
         $presettable = $model_name::fetchAvailablePresettables($this->entityType)->random();
 
         return [

@@ -98,7 +98,7 @@ final class Content extends Model implements HasMedia, Sortable
         'withoutObjectCaching',
     ];
 
-    protected array $sortable = [
+    private array $sortable = [
         'order_column_name' => 'order_column',
         'sort_when_creating' => true,
     ];
@@ -162,7 +162,7 @@ final class Content extends Model implements HasMedia, Sortable
 
     public static function makeWithDefaults(array $attributes = []): static
     {
-        $model = new static($attributes);
+        $model = new self($attributes);
         $model->setDefaultEntityAndPreset();
 
         return $model;
@@ -408,7 +408,7 @@ final class Content extends Model implements HasMedia, Sortable
     {
         $parsed = parent::toArray() ?? $this->attributesToArray();
 
-        return array_merge($parsed, $this->translatedDynamicContentsToArray($parsed), $this->approvalsToArray($parsed));
+        return array_merge($parsed, $this->translatedDynamicContentsToArray(), $this->approvalsToArray($parsed));
     }
 
     /**
@@ -416,11 +416,11 @@ final class Content extends Model implements HasMedia, Sortable
      */
     public function setDefaultEntityAndPreset(): void
     {
-        $class_name = class_basename(static::class);
+        $class_name = class_basename(self::class);
         $entity_name = Str::lower($class_name);
 
         // Find entity by name
-        $entity = static::fetchAvailableEntities(EntityType::CONTENTS)->firstWhere('name', $entity_name);
+        $entity = self::fetchAvailableEntities(EntityType::CONTENTS)->firstWhere('name', $entity_name);
 
         if (! $entity) {
             return;
@@ -431,7 +431,7 @@ final class Content extends Model implements HasMedia, Sortable
         $this->setRelation('entity', $entity);
 
         // Find first available preset for this entity
-        $presettable = static::fetchAvailablePresettables(EntityType::CONTENTS)
+        $presettable = self::fetchAvailablePresettables(EntityType::CONTENTS)
             ->firstWhere('entity_id', $entity->id);
 
         if (! $presettable) {
@@ -448,10 +448,10 @@ final class Content extends Model implements HasMedia, Sortable
         parent::boot();
 
         // Auto-assign entity and preset for child classes based on class name
-        static::creating(function (Model $model): void {
+        self::creating(function (Model $model): void {
             /** @var Content $model */
             // Only auto-assign if not already set and this is a child class
-            if (static::class !== self::class && ($model->entity_id === null || $model->presettable_id === null)) {
+            if (self::class !== self::class && ($model->entity_id === null || $model->presettable_id === null)) {
                 $model->setDefaultEntityAndPreset();
             }
         });
@@ -459,10 +459,10 @@ final class Content extends Model implements HasMedia, Sortable
 
     protected static function booted(): void
     {
-        static::addGlobalScope('global_filters', function (Builder $query): void {
+        self::addGlobalScope('global_filters', function (Builder $query): void {
             $query->valid();
         });
-        static::addGlobalScope('global_ordered', function (Builder $query): void {
+        self::addGlobalScope('global_ordered', function (Builder $query): void {
             $query->ordered();
         });
     }
@@ -472,10 +472,10 @@ final class Content extends Model implements HasMedia, Sortable
         $factory = ContentFactory::new();
 
         // if ensure that the factory is created for the correct derived entity
-        if (static::class !== self::class) {
+        if (self::class !== self::class) {
             $factory->state(fn (): array => [
                 'entity_id' => Entity::query()
-                    ->where('name', Str::lower(class_basename(static::class)))
+                    ->where('name', Str::lower(class_basename(self::class)))
                     ->where('type', EntityType::CONTENTS)
                     ->firstOrFail()
                     ->id,
@@ -519,6 +519,6 @@ final class Content extends Model implements HasMedia, Sortable
 
     protected function requiresApprovalWhen(array $modifications): bool
     {
-        return $this->requiresApprovalWhenTrait($modifications) && ($modifications[static::$valid_from_column] ?? $modifications[static::$valid_to_column] ?? false);
+        return $this->requiresApprovalWhenTrait($modifications) && ($modifications[self::$valid_from_column] ?? $modifications[self::$valid_to_column] ?? false);
     }
 }

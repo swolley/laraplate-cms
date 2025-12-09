@@ -100,7 +100,7 @@ final class TranslateMissingCommand extends Command
 
             if ($sync) {
                 $job = new TranslateModelJob($model, $locales, false);
-                $job->handle(app(\Modules\Core\Services\Translation\TranslationService::class));
+                $job->handle(resolve(\Modules\Core\Services\Translation\TranslationService::class));
             } else {
                 dispatch(new TranslateModelJob($model, $locales, false));
             }

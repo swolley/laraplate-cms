@@ -80,7 +80,7 @@ final class TranslateContentCommand extends Command
             if ($sync) {
                 // Run synchronously
                 $job = new TranslateModelJob($model, $locales, $force);
-                $job->handle(app(\Modules\Core\Services\Translation\TranslationService::class));
+                $job->handle(resolve(\Modules\Core\Services\Translation\TranslationService::class));
             } else {
                 // Dispatch to queue
                 dispatch(new TranslateModelJob($model, $locales, $force));

@@ -69,9 +69,7 @@ trait HasDynamicContents
         /** @phpstan-ignore staticMethod.notFound */
         return Cache::memo()->rememberForever(
             new Entity()->getCacheKey(),
-            function (): Collection {
-                return Entity::query()->withoutGlobalScopes()->orderBy('is_default', 'desc')->orderBy('name', 'asc')->get();
-            },
+            fn(): Collection => Entity::query()->withoutGlobalScopes()->orderBy('is_default', 'desc')->orderBy('name', 'asc')->get(),
         )->where('type', $type);
     }
 
@@ -88,13 +86,11 @@ trait HasDynamicContents
     {
         return Cache::memo()->rememberForever(
             new Presettable()->getTable(),
-            function (): Collection {
-                return Presettable::query()->withoutGlobalScopes()
-                    ->join('presets', 'presettables.preset_id', '=', 'presets.id')
-                    ->join('entities', 'presets.entity_id', '=', 'entities.id')
-                    ->addSelect('presettables.*', DB::raw('CASE WHEN presets.is_default THEN 1 ELSE 0 END + CASE WHEN entities.is_default THEN 1 ELSE 0 END as order_score'))
-                    ->orderBy('order_score', 'desc')->get();
-            },
+            fn(): Collection => Presettable::query()->withoutGlobalScopes()
+                ->join('presets', 'presettables.preset_id', '=', 'presets.id')
+                ->join('entities', 'presets.entity_id', '=', 'entities.id')
+                ->addSelect('presettables.*', DB::raw('CASE WHEN presets.is_default THEN 1 ELSE 0 END + CASE WHEN entities.is_default THEN 1 ELSE 0 END as order_score'))
+                ->orderBy('order_score', 'desc')->get(),
         )->where('entity.type', $type);
     }
 
@@ -381,7 +377,7 @@ trait HasDynamicContents
             ->toArray();
     }
 
-    private function setComponentAttribute(string $key, $value): void
+    protected function setComponentAttribute(string $key, $value): void
     {
         $this->setComponentsAttribute([$key => $value]);
     }
