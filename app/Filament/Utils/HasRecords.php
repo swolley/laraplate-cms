@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Helpers\HasDynamicContents;
 use Modules\Core\Filament\Utils\HasRecords as BaseHasRecords;
+use ReflectionClass;
 
 trait HasRecords
 {
@@ -26,7 +27,8 @@ trait HasRecords
             return [];
         }
 
-        $entities = $model::fetchAvailableEntities(EntityType::tryFrom(new $model()->getTable()));
+        $table = (new ReflectionClass($model))->newInstanceWithoutConstructor()->getTable();
+        $entities = $model::fetchAvailableEntities(EntityType::tryFrom($table));
 
         if ($entities->count() < 2) {
             return [];

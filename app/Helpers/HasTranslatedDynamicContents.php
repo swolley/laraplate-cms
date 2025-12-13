@@ -96,6 +96,25 @@ trait HasTranslatedDynamicContents
         return parent::setAttribute($key, $value);
     }
 
+    /**
+     * Initialize the trait after HasDynamicContents and HasTranslations have initialized.
+     * This ensures components is removed from fillable since it's stored in translations table.
+     */
+    public function initializeHasTranslatedDynamicContents(): void
+    {
+        // components is a translatable field, remove it from fillable and attributes
+        // It should be stored in the translations table, not in the main model table
+        $fillable_key = array_search('components', $this->fillable, true);
+
+        if ($fillable_key !== false) {
+            unset($this->fillable[$fillable_key]);
+            $this->fillable = array_values($this->fillable); // Re-index array
+        }
+
+        // Remove components from attributes if it was set by HasDynamicContents
+        unset($this->attributes['components']);
+    }
+
     protected function getComponentsAttribute(): array
     {
         $raw_components = $this->getTranslatableFieldValue('components');

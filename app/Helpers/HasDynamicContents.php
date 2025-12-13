@@ -9,15 +9,15 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Cms\Models\Preset;
+use Modules\Cms\Services\DynamicContentsService;
 use Override;
+use stdClass;
 
 /**
  * Trait for models that have dynamic contents.
@@ -68,32 +68,17 @@ trait HasDynamicContents
      */
     public static function fetchAvailableEntities(EntityType $type): Collection
     {
-        /** @phpstan-ignore staticMethod.notFound */
-        return Cache::memo()->rememberForever(
-            new Entity()->getCacheKey(),
-            fn (): Collection => Entity::query()->withoutGlobalScopes()->orderBy('is_default', 'desc')->orderBy('name', 'asc')->get(),
-        )->where('type', $type);
+        return DynamicContentsService::getInstance()->fetchAvailableEntities($type);
     }
 
     public static function fetchAvailablePresets(EntityType $type): Collection
     {
-        /** @phpstan-ignore staticMethod.notFound */
-        return Cache::memo()->rememberForever(
-            new Preset()->getCacheKey(),
-            fn (): Collection => Preset::query()->withoutGlobalScopes()->with(['fields', 'entity'])->orderBy('is_default', 'desc')->orderBy('name', 'asc')->get(),
-        )->where('entity.type', $type);
+        return DynamicContentsService::getInstance()->fetchAvailablePresets($type);
     }
 
     public static function fetchAvailablePresettables(EntityType $type): Collection
     {
-        return Cache::memo()->rememberForever(
-            new Presettable()->getTable(),
-            fn (): Collection => Presettable::query()->withoutGlobalScopes()
-                ->join('presets', 'presettables.preset_id', '=', 'presets.id')
-                ->join('entities', 'presets.entity_id', '=', 'entities.id')
-                ->addSelect('presettables.*', DB::raw('CASE WHEN presets.is_default THEN 1 ELSE 0 END + CASE WHEN entities.is_default THEN 1 ELSE 0 END as order_score'))
-                ->orderBy('order_score', 'desc')->get(),
-        )->where('entity.type', $type);
+        return DynamicContentsService::getInstance()->fetchAvailablePresettables($type);
     }
 
     /**
@@ -375,7 +360,22 @@ trait HasDynamicContents
     protected function mergeComponentsValues(array $components): array
     {
         return $this->fields()
-            ->mapWithKeys(fn (Field $field): array => [$field->name => data_get($components, $field->name, $field->pivot->default)])
+            ->mapWithKeys(function (Field $field) use ($components): array {
+                $value = data_get($components, $field->name, $field->pivot->default);
+
+                // Ensure ARRAY fields always have an array value (even if empty) to pass validation
+                if ($field->type === FieldType::ARRAY && $value === null) {
+                    $value = [];
+                }
+
+                // Ensure OBJECT/JSON fields always have a valid JSON value (empty object) to pass validation
+                // Laravel's 'json' rule doesn't accept null unless 'nullable' is also present
+                if (($field->type === FieldType::OBJECT || $field->type === FieldType::EDITOR) && $value === null) {
+                    $value = $field->type === FieldType::EDITOR ? ['blocks' => []] : new stdClass();
+                }
+
+                return [$field->name => $value];
+            })
             ->toArray();
     }
 

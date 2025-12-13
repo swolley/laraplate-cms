@@ -7,13 +7,13 @@ namespace Modules\Cms\Http\Controllers;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
+use Modules\Cms\Actions\Locations\GeocodeLocationAction;
 use Modules\Cms\Http\Requests\GeocodeRequest;
-use Modules\Cms\Services\Contracts\IGeocodingService;
 use Modules\Core\Helpers\ResponseBuilder;
 
 final class LocationsController extends Controller
 {
-    public function __construct(private readonly IGeocodingService $geocoding_service) {}
+    public function __construct(private readonly GeocodeLocationAction $geocodeLocationAction) {}
 
     /**
      * @route-comment
@@ -24,7 +24,7 @@ final class LocationsController extends Controller
         $response = new ResponseBuilder($request);
 
         try {
-            $location = $this->geocoding_service->search(
+            $location = ($this->geocodeLocationAction)(
                 $request->get('q'),
                 $request->get('city'),
                 $request->get('province'),

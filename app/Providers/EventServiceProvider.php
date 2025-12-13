@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Preset;
+use Modules\Cms\Services\DynamicContentsService;
 use Override;
 
 final class EventServiceProvider extends ServiceProvider
@@ -49,11 +50,14 @@ final class EventServiceProvider extends ServiceProvider
     private function clearEntityCache(): void
     {
         Cache::forget(new Entity()->getCacheKey());
+        DynamicContentsService::getInstance()->clearEntitiesCache();
         $this->clearPresetCache();
     }
 
     private function clearPresetCache(): void
     {
         Cache::forget(new Preset()->getCacheKey());
+        DynamicContentsService::getInstance()->clearPresetsCache();
+        DynamicContentsService::getInstance()->clearPresettablesCache();
     }
 }

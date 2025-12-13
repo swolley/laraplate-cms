@@ -26,6 +26,8 @@ final class TranslateModelJob implements ShouldQueue
 
     public int $tries = 3;
 
+    public $deleteWhenMissingModels = true;
+
     /**
      * @var array|int[]
      */

@@ -7,6 +7,7 @@ namespace Modules\Cms\Providers;
 use Exception;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Str;
+use Modules\Cms\Services\DynamicContentsService;
 use Modules\Core\Overrides\ServiceProvider;
 use Nwidart\Modules\Facades\Module;
 use Nwidart\Modules\Traits\PathNamespace;
@@ -50,6 +51,8 @@ final class CmsServiceProvider extends ServiceProvider
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
         $this->app->register(GeocodingServiceProvider::class);
+
+        $this->app->singleton(DynamicContentsService::class, DynamicContentsService::getInstance(...));
     }
 
     /**

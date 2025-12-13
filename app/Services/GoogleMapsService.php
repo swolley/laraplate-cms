@@ -4,24 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Services;
 
-use Exception;
 use Illuminate\Database\Eloquent\MassAssignmentException;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\RateLimiter;
 use Modules\Cms\Models\Location;
-use Modules\Cms\Services\Contracts\IGeocodingService;
+use Modules\Cms\Services\Contracts\AbstractGeocodingService;
 use Override;
 
-final class GoogleMapsService implements IGeocodingService
+final class GoogleMapsService extends AbstractGeocodingService
 {
-    private const string BASE_URL = 'https://maps.googleapis.com/maps/api/geocode';
-
-    /**
-     * Singleton instance of the service.
-     */
-    private static ?self $instance = null;
+    public const BASE_URL = 'https://maps.googleapis.com/maps/api/geocode';
 
     private readonly string $api_key;
 
@@ -33,101 +24,8 @@ final class GoogleMapsService implements IGeocodingService
         $this->api_key = (string) config('services.geocoding.api_key', '');
     }
 
-    /**
-     * Get service instance (singleton pattern).
-     */
     #[Override]
-    public static function getInstance(): self
-    {
-        return self::$instance ??= new self();
-    }
-
-    #[Override]
-    public function search(
-        string $query,
-        ?string $city = null,
-        ?string $province = null,
-        ?string $country = null,
-        int $limit = 1,
-    ): array|Location|null {
-        return RateLimiter::attempt(
-            'google_maps',
-            1,
-            function () use ($query, $city, $province, $country, $limit) {
-                try {
-                    // Genera una chiave cache più robusta
-                    $cache_key = $this->generateCacheKey($query, $city, $province, $country, $limit);
-
-                    if (Cache::has($cache_key)) {
-                        return Cache::get($cache_key);
-                    }
-
-                    $result = $this->performSearch($query, $city, $province, $country, $limit);
-
-                    // Prova prima con i tag
-                    if (Cache::supportsTags()) {
-                        Cache::tags(Cache::getCacheTags('geocoding'))->put($cache_key, $result, config('cache.duration.long'));
-                    } else {
-                        Cache::put($cache_key, $result, config('cache.duration.long'));
-                    }
-
-                    return $result;
-                } catch (Exception $exception) {
-                    Log::error('Google Maps geocoding cache error: ' . $exception->getMessage());
-
-                    // Se la cache fallisce, esegui comunque la ricerca
-                    return $result ?? null;
-                }
-            },
-            1,
-        );
-    }
-
-    #[Override]
-    public function url(Location $location): string
-    {
-        if ($location->latitude && $location->longitude) {
-            $search_string = $location->latitude . ',' . $location->longitude;
-        } else {
-            $search_string = '';
-
-            if ($location->address) {
-                $search_string .= $location->address;
-            }
-
-            if ($location->postcode) {
-                $search_string .= ' ' . $location->postcode;
-            }
-
-            if ($location->city) {
-                $search_string .= $location->city;
-            }
-
-            if ($location->province) {
-                $search_string .= ', ' . $location->province;
-            }
-
-            if ($location->country) {
-                $search_string .= ', ' . $location->country;
-            }
-        }
-
-        return self::BASE_URL . '/maps?q=' . $search_string . '&key=' . $this->api_key;
-    }
-
-    private function generateCacheKey(
-        string $query,
-        ?string $city,
-        ?string $province,
-        ?string $country,
-        int $limit,
-    ): string {
-        $params = ['query' => $query, 'city' => $city, 'province' => $province, 'country' => $country, 'limit' => $limit];
-
-        return md5(serialize(array_filter($params)));
-    }
-
-    private function performSearch(
+    protected function performSearch(
         string $query,
         ?string $city,
         ?string $province,
@@ -157,6 +55,12 @@ final class GoogleMapsService implements IGeocodingService
         return $this->getAddressDetails($results[0]);
     }
 
+    #[Override]
+    protected function getSearchUrl(string $search_string): string
+    {
+        return self::BASE_URL . '/maps?q=' . $search_string . '&key=' . $this->api_key;
+    }
+
     /**
      * Extracts address details from a Google Maps API result array and returns a Location model instance.
      *
@@ -173,7 +77,8 @@ final class GoogleMapsService implements IGeocodingService
      *
      * @throws MassAssignmentException
      */
-    private function getAddressDetails(array $result): Location
+    #[Override]
+    protected function getAddressDetails(array $result): Location
     {
         $components = [];
 

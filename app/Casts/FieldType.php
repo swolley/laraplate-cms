@@ -31,12 +31,11 @@ enum FieldType: string
             // self::SELECT => 'string',
             self::DATETIME => 'date',
             self::NUMBER => 'number',
-            self::OBJECT => 'json',
+            self::OBJECT, self::EDITOR => 'json',
             self::ARRAY => 'array',
             self::EMAIL => 'email',
             self::PHONE => 'string|regex:/^[\+]?[1-9][\d]{0,15}$/',
             self::URL => 'url',
-            self::EDITOR => 'array',
             default => '',
         };
     }
