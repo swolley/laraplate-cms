@@ -89,7 +89,7 @@ trait HasTranslatedDynamicContents
 
         $components = $this->getComponentsAttribute();
 
-        if (array_key_exists($key, $components)) {
+        if (array_key_exists((string) $key, $components)) {
             return $this->dynamicContentsSetAttribute($key, $value);
         }
 

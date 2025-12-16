@@ -27,7 +27,7 @@ trait HasRecords
             return [];
         }
 
-        $table = (new ReflectionClass($model))->newInstanceWithoutConstructor()->getTable();
+        $table = new ReflectionClass($model)->newInstanceWithoutConstructor()->getTable();
         $entities = $model::fetchAvailableEntities(EntityType::tryFrom($table));
 
         if ($entities->count() < 2) {

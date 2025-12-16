@@ -6,10 +6,10 @@ namespace Modules\Cms\Actions\Locations;
 
 use Modules\Cms\Services\Contracts\IGeocodingService;
 
-final class GeocodeLocationAction
+final readonly class GeocodeLocationAction
 {
     public function __construct(
-        private readonly IGeocodingService $geocodingService,
+        private IGeocodingService $geocodingService,
     ) {}
 
     public function __invoke(?string $query, ?string $city, ?string $province, ?string $country): array

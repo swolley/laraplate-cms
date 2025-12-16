@@ -69,7 +69,7 @@ final class DynamicContentsService
     public function fetchAvailableEntities(EntityType $type): Collection
     {
         // Check in-memory cache first
-        if ($this->entities_cache !== null) {
+        if ($this->entities_cache instanceof Collection) {
             return $this->entities_cache->where('type', $type);
         }
 
@@ -98,7 +98,7 @@ final class DynamicContentsService
     public function fetchAvailablePresets(EntityType $type): Collection
     {
         // Check in-memory cache first
-        if ($this->presets_cache !== null) {
+        if ($this->presets_cache instanceof Collection) {
             return $this->presets_cache->filter(fn (Preset $preset): bool => $preset->entity?->type === $type);
         }
 
@@ -128,13 +128,13 @@ final class DynamicContentsService
     public function fetchAvailablePresettables(EntityType $type): Collection
     {
         // Check in-memory cache first
-        if ($this->presettables_cache !== null) {
+        if ($this->presettables_cache instanceof Collection) {
             return $this->presettables_cache->filter(fn (Presettable $presettable): bool => $presettable->entity?->type === $type);
         }
 
         // Load from external cache or database, then store in memory
         // Use class name to get table name without instantiating model (avoids database access during boot)
-        $cache_key = (new ReflectionClass(Presettable::class))->newInstanceWithoutConstructor()->getTable();
+        $cache_key = new ReflectionClass(Presettable::class)->newInstanceWithoutConstructor()->getTable();
 
         $this->presettables_cache = Cache::memo()->rememberForever(
             $cache_key,

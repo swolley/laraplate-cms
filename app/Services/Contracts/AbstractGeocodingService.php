@@ -64,7 +64,7 @@ abstract class AbstractGeocodingService implements IGeocodingService
                     // Genera una chiave cache più robusta
                     $cache_key = $this->generateCacheKey($query, $city, $province, $country, $limit);
 
-                    return Cache::remember($cache_key, config('cache.duration.long'), function () use ($query, $city, $province, $country, $limit, $cache_key) {
+                    return Cache::remember($cache_key, config('cache.duration.long'), function () use ($query, $city, $province, $country, $limit, $cache_key): Location|array|null {
                         $result = $this->performSearch($query, $city, $province, $country, $limit);
 
                         // Store with tags if supported
