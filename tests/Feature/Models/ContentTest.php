@@ -3,16 +3,51 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Models\Author;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
+use Modules\Cms\Models\Entity;
+use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Location;
+use Modules\Cms\Models\Preset;
+use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Cms\Models\Tag;
 use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
+    // Create Entity, Preset, Presettable, and Field required for Content factory
+    $entity = Entity::firstOrCreate(
+        ['name' => 'contents'],
+        ['type' => EntityType::CONTENTS]
+    );
+
+    $preset = Preset::firstOrCreate(
+        ['entity_id' => $entity->id, 'name' => 'default'],
+        ['entity_id' => $entity->id, 'name' => 'default']
+    );
+
+    Presettable::firstOrCreate(
+        ['entity_id' => $entity->id, 'preset_id' => $preset->id],
+        ['entity_id' => $entity->id, 'preset_id' => $preset->id]
+    );
+
+    // Create at least one Field for the Preset (required by fillDynamicContents)
+    if ($preset->fields()->count() === 0) {
+        $field = Field::create([
+            'name' => 'description_' . uniqid(),
+            'type' => FieldType::TEXT,
+            'options' => new \stdClass(),
+        ]);
+        $preset->fields()->attach($field->id, [
+            'default' => null,
+            'is_required' => false,
+        ]);
+    }
+
     $this->content = Content::factory()->create();
 });
 
@@ -225,8 +260,8 @@ it('has translations trait', function (): void {
 it('has proper timestamps', function (): void {
     $content = Content::factory()->create();
 
-    expect($content->created_at)->toBeInstanceOf(Carbon\Carbon::class);
-    expect($content->updated_at)->toBeInstanceOf(Carbon\Carbon::class);
+    expect($content->created_at)->toBeInstanceOf(\Carbon\CarbonImmutable::class);
+    expect($content->updated_at)->toBeInstanceOf(\Carbon\CarbonImmutable::class);
 });
 
 it('can be serialized to array with translations', function (): void {

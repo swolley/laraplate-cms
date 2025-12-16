@@ -3,13 +3,35 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Models\Author;
 use Modules\Cms\Models\Content;
+use Modules\Cms\Models\Entity;
+use Modules\Cms\Models\Field;
+use Modules\Cms\Models\Preset;
+use Modules\Cms\Models\Pivot\Presettable;
 use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
+    // Create Entity, Preset, and Presettable required for Author factory
+    $entity = Entity::firstOrCreate(
+        ['name' => 'authors'],
+        ['type' => EntityType::AUTHORS]
+    );
+
+    $preset = Preset::firstOrCreate(
+        ['entity_id' => $entity->id, 'name' => 'default'],
+        ['entity_id' => $entity->id, 'name' => 'default']
+    );
+
+    // Presettable might be created automatically by triggers, so use firstOrCreate
+    $presettable = Presettable::firstOrCreate(
+        ['entity_id' => $entity->id, 'preset_id' => $preset->id],
+        ['entity_id' => $entity->id, 'preset_id' => $preset->id]
+    );
+
     $this->author = Author::factory()->create();
 });
 
@@ -25,9 +47,7 @@ it('has fillable attributes', function (): void {
 
     $author = Author::create($authorData);
 
-    expectModelAttributes($author, [
-        'name' => 'John Doe',
-    ]);
+    expect($author->name)->toBe('John Doe');
 });
 
 it('has hidden attributes', function (): void {
@@ -88,9 +108,7 @@ it('can be created with specific attributes', function (): void {
 
     $author = Author::create($authorData);
 
-    expectModelAttributes($author, [
-        'name' => 'Jane Smith',
-    ]);
+    expect($author->name)->toBe('Jane Smith');
 });
 
 it('can be found by name', function (): void {
@@ -104,8 +122,8 @@ it('can be found by name', function (): void {
 it('has proper timestamps', function (): void {
     $author = Author::factory()->create();
 
-    expect($author->created_at)->toBeInstanceOf(Carbon\Carbon::class);
-    expect($author->updated_at)->toBeInstanceOf(Carbon\Carbon::class);
+    expect($author->created_at)->toBeInstanceOf(\Carbon\CarbonImmutable::class);
+    expect($author->updated_at)->toBeInstanceOf(\Carbon\CarbonImmutable::class);
 });
 
 it('can be serialized to array', function (): void {

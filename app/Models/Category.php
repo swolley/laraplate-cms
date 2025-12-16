@@ -124,7 +124,7 @@ final class Category extends Model implements IMediable, Sortable
     {
         $rules = $this->getRulesTrait();
         $dynamic_fields = $this->getRulesDynamicContents();
-        $default_rule = HasValidations::DEFAULT_RULE;
+        $default_rule = self::DEFAULT_RULE;
         $rules[$default_rule] = array_merge($rules[$default_rule], $dynamic_fields);
         $rules['create'] = array_merge($rules['create'], [
             'name' => 'required|string|max:255', // Validated in translation
@@ -191,7 +191,11 @@ final class Category extends Model implements IMediable, Sortable
     #[Scope]
     protected function ordered(Builder $query): Builder
     {
-        return $query->priorityOrdered()->validityOrdered();
+        // In global scope, $this is not available, so use $query->getModel() to get instance
+        $model = $query->getModel();
+        $orderColumn = $model->qualifyColumn($model->determineOrderColumnName());
+
+        return $query->orderBy($orderColumn, 'asc')->validityOrdered();
     }
 
     protected function casts(): array
