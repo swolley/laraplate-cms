@@ -36,9 +36,9 @@ abstract class AbstractGeocodingService implements IGeocodingService
      * Get service instance (singleton pattern).
      */
     #[Override]
-    public static function getInstance(): self
+    public static function getInstance(): static
     {
-        return self::$instance ??= new self();
+        return static::$instance ??= new static();
     }
 
     public function url(Location $location): string

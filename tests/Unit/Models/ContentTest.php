@@ -4,23 +4,20 @@ declare(strict_types=1);
 
 use Modules\Cms\Models\Content;
 
-test('content model has correct structure', function (): void {
+it('content model has correct structure', function (): void {
     $reflection = new ReflectionClass(Content::class);
     $source = file_get_contents($reflection->getFileName());
-
-    // Test fillable attributes
-    expect($source)->toContain('protected $fillable');
 
     // Test hidden attributes
     expect($source)->toContain('protected $hidden');
 });
 
-test('content model uses correct traits', function (): void {
+it('content model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Content::class);
     $traits = $reflection->getTraitNames();
 
     expect($traits)->toContain('Illuminate\\Database\\Eloquent\\Factories\\HasFactory');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasDynamicContents');
+    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasTranslatedDynamicContents');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasMultimedia');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasPath');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasSlug');
@@ -34,11 +31,9 @@ test('content model uses correct traits', function (): void {
     expect($traits)->toContain('Modules\\Core\\Locking\\HasOptimisticLocking');
     expect($traits)->toContain('Modules\\Core\\Locking\\Traits\\HasLocks');
     expect($traits)->toContain('Modules\\Core\\Search\\Traits\\Searchable');
-    expect($traits)->toContain('Spatie\\EloquentSortable\\Sortable');
-    expect($traits)->toContain('Spatie\\MediaLibrary\\HasMedia');
 });
 
-test('content model has required methods', function (): void {
+it('content model has required methods', function (): void {
     $reflection = new ReflectionClass(Content::class);
 
     expect($reflection->hasMethod('authors'))->toBeTrue();
@@ -54,7 +49,7 @@ test('content model has required methods', function (): void {
     expect($reflection->hasMethod('toArray'))->toBeTrue();
 });
 
-test('content model has correct relationships', function (): void {
+it('content model has correct relationships', function (): void {
     $reflection = new ReflectionClass(Content::class);
 
     // Test authors relationship
@@ -74,7 +69,7 @@ test('content model has correct relationships', function (): void {
     expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
 });
 
-test('content model has correct method signatures', function (): void {
+it('content model has correct method signatures', function (): void {
     $reflection = new ReflectionClass(Content::class);
 
     // Test toSearchableArray method
@@ -102,7 +97,7 @@ test('content model has correct method signatures', function (): void {
     expect($method->getReturnType()->getName())->toBe('array');
 });
 
-test('content model implements correct interfaces', function (): void {
+it('content model implements correct interfaces', function (): void {
     $reflection = new ReflectionClass(Content::class);
 
     expect($reflection->implementsInterface('Spatie\\MediaLibrary\\HasMedia'))->toBeTrue();

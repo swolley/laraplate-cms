@@ -10,9 +10,9 @@ it('trait can be used', function (): void {
         use HasTags;
     };
 
-    expect($trait)->toHaveMethod('attachTags');
-    expect($trait)->toHaveMethod('detachTags');
-    expect($trait)->toHaveMethod('syncTags');
+    expect(method_exists($trait, 'attachTags'))->toBeTrue();
+    expect(method_exists($trait, 'detachTags'))->toBeTrue();
+    expect(method_exists($trait, 'syncTags'))->toBeTrue();
 });
 
 it('trait has required methods', function (): void {
@@ -32,9 +32,9 @@ it('trait methods are callable', function (): void {
         use HasTags;
     };
 
-    expect(fn () => $trait->attachTags([]))->not->toThrow();
-    expect(fn () => $trait->detachTags([]))->not->toThrow();
-    expect(fn () => $trait->syncTags([]))->not->toThrow();
+    expect(fn () => $trait->attachTags([]))->not->toThrow(Throwable::class);
+    expect(fn () => $trait->detachTags([]))->not->toThrow(Throwable::class);
+    expect(fn () => $trait->syncTags([]))->not->toThrow(Throwable::class);
 });
 
 it('trait can be used in different classes', function (): void {
@@ -48,8 +48,8 @@ it('trait can be used in different classes', function (): void {
         use HasTags;
     };
 
-    expect($class1)->toHaveMethod('attachTags');
-    expect($class2)->toHaveMethod('attachTags');
+    expect(method_exists($class1, 'attachTags'))->toBeTrue();
+    expect(method_exists($class2, 'attachTags'))->toBeTrue();
 });
 
 it('trait is properly namespaced', function (): void {
@@ -58,9 +58,9 @@ it('trait is properly namespaced', function (): void {
         use HasTags;
     };
 
-    expect($trait)->toHaveMethod('attachTags');
-    expect($trait)->toHaveMethod('detachTags');
-    expect($trait)->toHaveMethod('syncTags');
+    expect(method_exists($trait, 'attachTags'))->toBeTrue();
+    expect(method_exists($trait, 'detachTags'))->toBeTrue();
+    expect(method_exists($trait, 'syncTags'))->toBeTrue();
 });
 
 it('trait can be extended', function (): void {
@@ -79,9 +79,9 @@ it('trait can be extended', function (): void {
         }
     };
 
-    expect($baseClass)->toHaveMethod('attachTags');
-    expect($extendedClass)->toHaveMethod('attachTags');
-    expect($extendedClass)->toHaveMethod('customMethod');
+    expect(method_exists($baseClass, 'attachTags'))->toBeTrue();
+    expect(method_exists($extendedClass, 'attachTags'))->toBeTrue();
+    expect(method_exists($extendedClass, 'customMethod'))->toBeTrue();
 });
 
 it('trait has proper structure', function (): void {
@@ -90,9 +90,9 @@ it('trait has proper structure', function (): void {
         use HasTags;
     };
 
-    expect($trait)->toHaveMethod('attachTags');
-    expect($trait)->toHaveMethod('detachTags');
-    expect($trait)->toHaveMethod('syncTags');
+    expect(method_exists($trait, 'attachTags'))->toBeTrue();
+    expect(method_exists($trait, 'detachTags'))->toBeTrue();
+    expect(method_exists($trait, 'syncTags'))->toBeTrue();
 });
 
 it('trait methods are accessible', function (): void {
@@ -101,9 +101,9 @@ it('trait methods are accessible', function (): void {
         use HasTags;
     };
 
-    expect($trait)->toHaveMethod('attachTags');
-    expect($trait)->toHaveMethod('detachTags');
-    expect($trait)->toHaveMethod('syncTags');
+    expect(method_exists($trait, 'attachTags'))->toBeTrue();
+    expect(method_exists($trait, 'detachTags'))->toBeTrue();
+    expect(method_exists($trait, 'syncTags'))->toBeTrue();
 });
 
 it('trait can be used in different scenarios', function (): void {
@@ -117,6 +117,6 @@ it('trait can be used in different scenarios', function (): void {
         use HasTags;
     };
 
-    expect($scenario1)->toHaveMethod('attachTags');
-    expect($scenario2)->toHaveMethod('attachTags');
+    expect(method_exists($scenario1, 'attachTags'))->toBeTrue();
+    expect(method_exists($scenario2, 'attachTags'))->toBeTrue();
 });

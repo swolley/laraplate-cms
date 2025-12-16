@@ -8,8 +8,9 @@ use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Location;
 use Modules\Cms\Models\Tag;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->content = Content::factory()->create();
@@ -82,48 +83,48 @@ it('belongs to many locations', function (): void {
 });
 
 it('has slug trait', function (): void {
-    expect($this->content)->toHaveMethod('generateSlug');
-    expect($this->content)->toHaveMethod('getSlug');
+    expect(method_exists($this->content, 'generateSlug'))->toBeTrue();
+    expect(method_exists($this->content, 'getSlug'))->toBeTrue();
 });
 
 it('has tags trait', function (): void {
-    expect($this->content)->toHaveMethod('attachTags');
-    expect($this->content)->toHaveMethod('detachTags');
+    expect(method_exists($this->content, 'attachTags'))->toBeTrue();
+    expect(method_exists($this->content, 'detachTags'))->toBeTrue();
 });
 
 it('has multimedia trait', function (): void {
-    expect($this->content)->toHaveMethod('addMedia');
-    expect($this->content)->toHaveMethod('getMedia');
+    expect(method_exists($this->content, 'addMedia'))->toBeTrue();
+    expect(method_exists($this->content, 'getMedia'))->toBeTrue();
 });
 
 it('has dynamic contents trait', function (): void {
-    expect($this->content)->toHaveMethod('getDynamicContents');
-    expect($this->content)->toHaveMethod('setDynamicContents');
+    expect(method_exists($this->content, 'getDynamicContents'))->toBeTrue();
+    expect(method_exists($this->content, 'setDynamicContents'))->toBeTrue();
 });
 
 it('has path trait', function (): void {
-    expect($this->content)->toHaveMethod('getPath');
-    expect($this->content)->toHaveMethod('setPath');
+    expect(method_exists($this->content, 'getPath'))->toBeTrue();
+    expect(method_exists($this->content, 'setPath'))->toBeTrue();
 });
 
 it('has approvals trait', function (): void {
-    expect($this->content)->toHaveMethod('approve');
-    expect($this->content)->toHaveMethod('reject');
+    expect(method_exists($this->content, 'approve'))->toBeTrue();
+    expect(method_exists($this->content, 'reject'))->toBeTrue();
 });
 
 it('has children trait', function (): void {
-    expect($this->content)->toHaveMethod('children');
-    expect($this->content)->toHaveMethod('parent');
+    expect(method_exists($this->content, 'children'))->toBeTrue();
+    expect(method_exists($this->content, 'parent'))->toBeTrue();
 });
 
 it('has validity trait', function (): void {
-    expect($this->content)->toHaveMethod('isValid');
-    expect($this->content)->toHaveMethod('isExpired');
+    expect(method_exists($this->content, 'isValid'))->toBeTrue();
+    expect(method_exists($this->content, 'isExpired'))->toBeTrue();
 });
 
 it('has versions trait', function (): void {
-    expect($this->content)->toHaveMethod('versions');
-    expect($this->content)->toHaveMethod('createVersion');
+    expect(method_exists($this->content, 'versions'))->toBeTrue();
+    expect(method_exists($this->content, 'createVersion'))->toBeTrue();
 });
 
 it('has soft deletes trait', function (): void {
@@ -134,27 +135,27 @@ it('has soft deletes trait', function (): void {
 });
 
 it('has sortable trait', function (): void {
-    expect($this->content)->toHaveMethod('moveOrder');
-    expect($this->content)->toHaveMethod('getOrder');
+    expect(method_exists($this->content, 'moveOrder'))->toBeTrue();
+    expect(method_exists($this->content, 'getOrder'))->toBeTrue();
 });
 
 it('has locks trait', function (): void {
-    expect($this->content)->toHaveMethod('lock');
-    expect($this->content)->toHaveMethod('unlock');
+    expect(method_exists($this->content, 'lock'))->toBeTrue();
+    expect(method_exists($this->content, 'unlock'))->toBeTrue();
 });
 
 it('has validations trait', function (): void {
-    expect($this->content)->toHaveMethod('getRules');
+    expect(method_exists($this->content, 'getRules'))->toBeTrue();
 });
 
 it('has searchable trait', function (): void {
-    expect($this->content)->toHaveMethod('toSearchableArray');
-    expect($this->content)->toHaveMethod('shouldBeSearchable');
+    expect(method_exists($this->content, 'toSearchableArray'))->toBeTrue();
+    expect(method_exists($this->content, 'shouldBeSearchable'))->toBeTrue();
 });
 
 it('has optimistic locking trait', function (): void {
-    expect($this->content)->toHaveMethod('getLockVersion');
-    expect($this->content)->toHaveMethod('incrementLockVersion');
+    expect(method_exists($this->content, 'getLockVersion'))->toBeTrue();
+    expect(method_exists($this->content, 'incrementLockVersion'))->toBeTrue();
 });
 
 it('can be created with specific translation attributes', function (): void {
@@ -213,12 +214,12 @@ it('can be found by slug through translation', function (): void {
 });
 
 it('has translations trait', function (): void {
-    expect($this->content)->toHaveMethod('translations');
-    expect($this->content)->toHaveMethod('translation');
-    expect($this->content)->toHaveMethod('getTranslation');
-    expect($this->content)->toHaveMethod('setTranslation');
-    expect($this->content)->toHaveMethod('hasTranslation');
-    expect($this->content)->toHaveMethod('getTranslatableFields');
+    expect(method_exists($this->content, 'translations'))->toBeTrue();
+    expect(method_exists($this->content, 'translation'))->toBeTrue();
+    expect(method_exists($this->content, 'getTranslation'))->toBeTrue();
+    expect(method_exists($this->content, 'setTranslation'))->toBeTrue();
+    expect(method_exists($this->content, 'hasTranslation'))->toBeTrue();
+    expect(method_exists($this->content, 'getTranslatableFields'))->toBeTrue();
 });
 
 it('has proper timestamps', function (): void {

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Modules\Core\Models\User;
 use Tests\TestCase;
@@ -10,11 +11,14 @@ use Tests\TestCase;
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    $this->user = User::factory()->create();
-    $this->actingAs($this->user);
+    /** @var TestCase $this */
+    /** @var User $user */
+    $user = User::factory()->create();
+    $this->actingAs($user);
 });
 
-test('geocode returns location data for valid query', function (): void {
+it('geocode returns location data for valid query', function (): void {
+    /** @var TestCase $this */
     Http::fake([
         'nominatim.openstreetmap.org/search*' => Http::response([
             [
@@ -41,7 +45,8 @@ test('geocode returns location data for valid query', function (): void {
         ]);
 });
 
-test('geocode returns location data with city parameter', function (): void {
+it('geocode returns location data with city parameter', function (): void {
+    /** @var TestCase $this */
     Http::fake([
         'nominatim.openstreetmap.org/search*' => Http::response([
             [
@@ -69,7 +74,8 @@ test('geocode returns location data with city parameter', function (): void {
         ]);
 });
 
-test('geocode returns location data with province parameter', function (): void {
+it('geocode returns location data with province parameter', function (): void {
+    /** @var TestCase $this */
     Http::fake([
         'nominatim.openstreetmap.org/search*' => Http::response([
             [
@@ -97,7 +103,8 @@ test('geocode returns location data with province parameter', function (): void 
         ]);
 });
 
-test('geocode returns location data with country parameter', function (): void {
+it('geocode returns location data with country parameter', function (): void {
+    /** @var TestCase $this */
     Http::fake([
         'nominatim.openstreetmap.org/search*' => Http::response([
             [
@@ -125,7 +132,8 @@ test('geocode returns location data with country parameter', function (): void {
         ]);
 });
 
-test('geocode returns null when no results found', function (): void {
+it('geocode returns null when no results found', function (): void {
+    /** @var TestCase $this */
     Http::fake([
         'nominatim.openstreetmap.org/search*' => Http::response([], 200),
     ]);
@@ -140,7 +148,8 @@ test('geocode returns null when no results found', function (): void {
         ]);
 });
 
-test('geocode handles API errors gracefully', function (): void {
+it('geocode handles API errors gracefully', function (): void {
+    /** @var TestCase $this */
     Http::fake([
         'nominatim.openstreetmap.org/search*' => Http::response([
             'error' => 'Invalid request',
@@ -157,7 +166,8 @@ test('geocode handles API errors gracefully', function (): void {
         ]);
 });
 
-test('geocode handles HTTP errors gracefully', function (): void {
+it('geocode handles HTTP errors gracefully', function (): void {
+    /** @var TestCase $this */
     Http::fake([
         'nominatim.openstreetmap.org/search*' => Http::response([], 500),
     ]);
@@ -172,14 +182,16 @@ test('geocode handles HTTP errors gracefully', function (): void {
         ]);
 });
 
-test('geocode validates required query parameter', function (): void {
+it('geocode validates required query parameter', function (): void {
+    /** @var TestCase $this */
     $response = $this->getJson(route('cms.locations.geocode'));
 
     $response->assertStatus(422)
         ->assertJsonValidationErrors(['q']);
 });
 
-test('geocode validates query parameter is string', function (): void {
+it('geocode validates query parameter is string', function (): void {
+    /** @var TestCase $this */
     $response = $this->getJson(route('cms.locations.geocode', [
         'q' => 123,
     ]));
@@ -188,7 +200,8 @@ test('geocode validates query parameter is string', function (): void {
         ->assertJsonValidationErrors(['q']);
 });
 
-test('geocode validates query parameter is not empty', function (): void {
+it('geocode validates query parameter is not empty', function (): void {
+    /** @var TestCase $this */
     $response = $this->getJson(route('cms.locations.geocode', [
         'q' => '',
     ]));
@@ -197,7 +210,8 @@ test('geocode validates query parameter is not empty', function (): void {
         ->assertJsonValidationErrors(['q']);
 });
 
-test('geocode accepts optional city parameter', function (): void {
+it('geocode accepts optional city parameter', function (): void {
+    /** @var TestCase $this */
     Http::fake([
         'nominatim.openstreetmap.org/search*' => Http::response([
             [
@@ -217,7 +231,8 @@ test('geocode accepts optional city parameter', function (): void {
     $response->assertStatus(200);
 });
 
-test('geocode accepts optional province parameter', function (): void {
+it('geocode accepts optional province parameter', function (): void {
+    /** @var TestCase $this */
     Http::fake([
         'nominatim.openstreetmap.org/search*' => Http::response([
             [
@@ -237,7 +252,8 @@ test('geocode accepts optional province parameter', function (): void {
     $response->assertStatus(200);
 });
 
-test('geocode accepts optional country parameter', function (): void {
+it('geocode accepts optional country parameter', function (): void {
+    /** @var TestCase $this */
     Http::fake([
         'nominatim.openstreetmap.org/search*' => Http::response([
             [
@@ -257,7 +273,8 @@ test('geocode accepts optional country parameter', function (): void {
     $response->assertStatus(200);
 });
 
-test('geocode returns correct response structure', function (): void {
+it('geocode returns correct response structure', function (): void {
+    /** @var TestCase $this */
     Http::fake([
         'nominatim.openstreetmap.org/search*' => Http::response([
             [
@@ -284,7 +301,8 @@ test('geocode returns correct response structure', function (): void {
         ]);
 });
 
-test('geocode handles network timeouts', function (): void {
+it('geocode handles network timeouts', function (): void {
+    /** @var TestCase $this */
     Http::fake([
         'nominatim.openstreetmap.org/search*' => Http::response([], 408),
     ]);
@@ -299,7 +317,8 @@ test('geocode handles network timeouts', function (): void {
         ]);
 });
 
-test('geocode handles malformed responses', function (): void {
+it('geocode handles malformed responses', function (): void {
+    /** @var TestCase $this */
     Http::fake([
         'nominatim.openstreetmap.org/search*' => Http::response('invalid json', 200),
     ]);
@@ -314,7 +333,8 @@ test('geocode handles malformed responses', function (): void {
         ]);
 });
 
-test('geocode works with different query types', function (): void {
+it('geocode works with different query types', function (): void {
+    /** @var TestCase $this */
     Http::fake([
         'nominatim.openstreetmap.org/search*' => Http::response([
             [
@@ -341,7 +361,8 @@ test('geocode works with different query types', function (): void {
         ]);
 });
 
-test('geocode handles multiple results', function (): void {
+it('geocode handles multiple results', function (): void {
+    /** @var TestCase $this */
     Http::fake([
         'nominatim.openstreetmap.org/search*' => Http::response([
             [
@@ -374,7 +395,8 @@ test('geocode handles multiple results', function (): void {
         ]);
 });
 
-test('geocode requires authentication', function (): void {
+it('geocode requires authentication', function (): void {
+    /** @var TestCase $this */
     Auth::logout();
 
     $response = $this->getJson(route('cms.locations.geocode', [

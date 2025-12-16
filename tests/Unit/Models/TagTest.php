@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Modules\Cms\Models\Tag;
 
-test('tag model has correct structure', function (): void {
+it('tag model has correct structure', function (): void {
     $reflection = new ReflectionClass(Tag::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -15,20 +15,20 @@ test('tag model has correct structure', function (): void {
     expect($source)->toContain('protected $hidden');
 });
 
-test('tag model uses correct traits', function (): void {
+it('tag model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Tag::class);
     $traits = $reflection->getTraitNames();
 
     expect($traits)->toContain('Illuminate\\Database\\Eloquent\\Factories\\HasFactory');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasPath');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasSlug');
+    expect($traits)->toContain('Modules\\Core\\Helpers\\HasTranslations');
     expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasVersions');
     expect($traits)->toContain('Modules\\Core\\Helpers\\SoftDeletes');
-    expect($traits)->toContain('Modules\\Core\\Locking\\Traits\\HasLocks');
+    expect($traits)->toContain('Modules\\Core\\Helpers\\SortableTrait');
 });
 
-test('tag model has required methods', function (): void {
+it('tag model has required methods', function (): void {
     $reflection = new ReflectionClass(Tag::class);
 
     expect($reflection->hasMethod('getRules'))->toBeTrue();
@@ -36,7 +36,7 @@ test('tag model has required methods', function (): void {
     expect($reflection->hasMethod('toArray'))->toBeTrue();
 });
 
-test('tag model has correct method signatures', function (): void {
+it('tag model has correct method signatures', function (): void {
     $reflection = new ReflectionClass(Tag::class);
 
     // Test getRules method

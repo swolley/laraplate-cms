@@ -6,8 +6,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Location;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->location = Location::factory()->create();
@@ -53,30 +54,30 @@ it('belongs to many contents', function (): void {
 });
 
 it('has spatial trait', function (): void {
-    expect($this->location)->toHaveMethod('whereDistance');
-    expect($this->location)->toHaveMethod('orderByDistance');
-    expect($this->location)->toHaveMethod('whereDistanceSphere');
-    expect($this->location)->toHaveMethod('orderByDistanceSphere');
+    expect(method_exists($this->location, 'whereDistance'))->toBeTrue();
+    expect(method_exists($this->location, 'orderByDistance'))->toBeTrue();
+    expect(method_exists($this->location, 'whereDistanceSphere'))->toBeTrue();
+    expect(method_exists($this->location, 'orderByDistanceSphere'))->toBeTrue();
 });
 
 it('has slug trait', function (): void {
-    expect($this->location)->toHaveMethod('generateSlug');
-    expect($this->location)->toHaveMethod('getSlug');
+    expect(method_exists($this->location, 'generateSlug'))->toBeTrue();
+    expect(method_exists($this->location, 'getSlug'))->toBeTrue();
 });
 
 it('has tags trait', function (): void {
-    expect($this->location)->toHaveMethod('attachTags');
-    expect($this->location)->toHaveMethod('detachTags');
+    expect(method_exists($this->location, 'attachTags'))->toBeTrue();
+    expect(method_exists($this->location, 'detachTags'))->toBeTrue();
 });
 
 it('has path trait', function (): void {
-    expect($this->location)->toHaveMethod('getPath');
-    expect($this->location)->toHaveMethod('setPath');
+    expect(method_exists($this->location, 'getPath'))->toBeTrue();
+    expect(method_exists($this->location, 'setPath'))->toBeTrue();
 });
 
 it('has searchable trait', function (): void {
-    expect($this->location)->toHaveMethod('toSearchableArray');
-    expect($this->location)->toHaveMethod('shouldBeSearchable');
+    expect(method_exists($this->location, 'toSearchableArray'))->toBeTrue();
+    expect(method_exists($this->location, 'shouldBeSearchable'))->toBeTrue();
 });
 
 it('has soft deletes trait', function (): void {
@@ -87,7 +88,7 @@ it('has soft deletes trait', function (): void {
 });
 
 it('has validations trait', function (): void {
-    expect($this->location)->toHaveMethod('getRules');
+    expect(method_exists($this->location, 'getRules'))->toBeTrue();
 });
 
 it('can be created with specific attributes', function (): void {
@@ -219,8 +220,8 @@ it('can work with spatial queries', function (): void {
     $point = new Point(45.4642, 9.1900);
 
     // Test that spatial methods exist
-    expect($this->location)->toHaveMethod('whereDistance');
-    expect($this->location)->toHaveMethod('orderByDistance');
-    expect($this->location)->toHaveMethod('whereDistanceSphere');
-    expect($this->location)->toHaveMethod('orderByDistanceSphere');
+    expect(method_exists($this->location, 'whereDistance'))->toBeTrue();
+    expect(method_exists($this->location, 'orderByDistance'))->toBeTrue();
+    expect(method_exists($this->location, 'whereDistanceSphere'))->toBeTrue();
+    expect(method_exists($this->location, 'orderByDistanceSphere'))->toBeTrue();
 });

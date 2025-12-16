@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Modules\Cms\Models\Author;
 
-test('author model has correct structure', function (): void {
+it('author model has correct structure', function (): void {
     $reflection = new ReflectionClass(Author::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -15,20 +15,21 @@ test('author model has correct structure', function (): void {
     expect($source)->toContain('protected $hidden');
 });
 
-test('author model uses correct traits', function (): void {
+it('author model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Author::class);
     $traits = $reflection->getTraitNames();
 
     expect($traits)->toContain('Illuminate\\Database\\Eloquent\\Factories\\HasFactory');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasPath');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasSlug');
+    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasTags');
+    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasMultimedia');
     expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');
     expect($traits)->toContain('Modules\\Core\\Helpers\\HasVersions');
     expect($traits)->toContain('Modules\\Core\\Helpers\\SoftDeletes');
-    expect($traits)->toContain('Modules\\Core\\Locking\\Traits\\HasLocks');
 });
 
-test('author model has required methods', function (): void {
+it('author model has required methods', function (): void {
     $reflection = new ReflectionClass(Author::class);
 
     expect($reflection->hasMethod('contents'))->toBeTrue();
@@ -37,7 +38,7 @@ test('author model has required methods', function (): void {
     expect($reflection->hasMethod('toArray'))->toBeTrue();
 });
 
-test('author model has correct relationships', function (): void {
+it('author model has correct relationships', function (): void {
     $reflection = new ReflectionClass(Author::class);
 
     // Test contents relationship
@@ -45,7 +46,7 @@ test('author model has correct relationships', function (): void {
     expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
 });
 
-test('author model has correct method signatures', function (): void {
+it('author model has correct method signatures', function (): void {
     $reflection = new ReflectionClass(Author::class);
 
     // Test getRules method

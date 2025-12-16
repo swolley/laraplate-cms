@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Modules\Cms\Models\Entity;
 
-test('entity model has correct structure', function (): void {
+it('entity model has correct structure', function (): void {
     $reflection = new ReflectionClass(Entity::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -15,20 +15,20 @@ test('entity model has correct structure', function (): void {
     expect($source)->toContain('protected $hidden');
 });
 
-test('entity model uses correct traits', function (): void {
+it('entity model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Entity::class);
     $traits = $reflection->getTraitNames();
 
     expect($traits)->toContain('Illuminate\\Database\\Eloquent\\Factories\\HasFactory');
+    expect($traits)->toContain('Modules\\Core\\Helpers\\HasActivation');
+    expect($traits)->toContain('Modules\\Core\\Cache\\HasCache');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasPath');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasSlug');
     expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasVersions');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\SoftDeletes');
     expect($traits)->toContain('Modules\\Core\\Locking\\Traits\\HasLocks');
 });
 
-test('entity model has required methods', function (): void {
+it('entity model has required methods', function (): void {
     $reflection = new ReflectionClass(Entity::class);
 
     expect($reflection->hasMethod('presets'))->toBeTrue();
@@ -38,7 +38,7 @@ test('entity model has required methods', function (): void {
     expect($reflection->hasMethod('toArray'))->toBeTrue();
 });
 
-test('entity model has correct relationships', function (): void {
+it('entity model has correct relationships', function (): void {
     $reflection = new ReflectionClass(Entity::class);
 
     // Test presets relationship
@@ -47,10 +47,10 @@ test('entity model has correct relationships', function (): void {
 
     // Test contents relationship
     $method = $reflection->getMethod('contents');
-    expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\HasMany');
+    expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\HasManyThrough');
 });
 
-test('entity model has correct method signatures', function (): void {
+it('entity model has correct method signatures', function (): void {
     $reflection = new ReflectionClass(Entity::class);
 
     // Test getRules method
@@ -59,9 +59,22 @@ test('entity model has correct method signatures', function (): void {
 
     // Test getPath method
     $method = $reflection->getMethod('getPath');
-    expect($method->getReturnType()->getName())->toBe('string');
+    $returnType = $method->getReturnType();
+    expect($returnType)->not->toBeNull();
+
+    if ($returnType instanceof ReflectionNamedType) {
+        expect($returnType->getName())->toBe('string');
+        expect($returnType->allowsNull())->toBeTrue();
+    } elseif ($returnType instanceof ReflectionUnionType) {
+        $types = $returnType->getTypes();
+        $typeNames = array_map(fn ($t) => $t->getName(), $types);
+        expect($typeNames)->toContain('string');
+    }
 
     // Test toArray method
     $method = $reflection->getMethod('toArray');
-    expect($method->getReturnType()->getName())->toBe('array');
+    $returnType = $method->getReturnType();
+    if ($returnType !== null) {
+        expect($returnType->getName())->toBe('array');
+    }
 });

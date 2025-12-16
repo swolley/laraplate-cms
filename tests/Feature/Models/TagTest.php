@@ -5,8 +5,9 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Tag;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->tag = Tag::factory()->create();
@@ -57,18 +58,18 @@ it('belongs to many contents', function (): void {
 });
 
 it('has slug trait', function (): void {
-    expect($this->tag)->toHaveMethod('generateSlug');
-    expect($this->tag)->toHaveMethod('getSlug');
+    expect(method_exists($this->tag, 'generateSlug'))->toBeTrue();
+    expect(method_exists($this->tag, 'getSlug'))->toBeTrue();
 });
 
 it('has path trait', function (): void {
-    expect($this->tag)->toHaveMethod('getPath');
-    expect($this->tag)->toHaveMethod('setPath');
+    expect(method_exists($this->tag, 'getPath'))->toBeTrue();
+    expect(method_exists($this->tag, 'setPath'))->toBeTrue();
 });
 
 it('has sortable trait', function (): void {
-    expect($this->tag)->toHaveMethod('moveOrder');
-    expect($this->tag)->toHaveMethod('getOrder');
+    expect(method_exists($this->tag, 'moveOrder'))->toBeTrue();
+    expect(method_exists($this->tag, 'getOrder'))->toBeTrue();
 });
 
 it('has soft deletes trait', function (): void {
@@ -79,16 +80,16 @@ it('has soft deletes trait', function (): void {
 });
 
 it('has validations trait', function (): void {
-    expect($this->tag)->toHaveMethod('getRules');
+    expect(method_exists($this->tag, 'getRules'))->toBeTrue();
 });
 
 it('has translations trait', function (): void {
-    expect($this->tag)->toHaveMethod('translations');
-    expect($this->tag)->toHaveMethod('translation');
-    expect($this->tag)->toHaveMethod('getTranslation');
-    expect($this->tag)->toHaveMethod('setTranslation');
-    expect($this->tag)->toHaveMethod('hasTranslation');
-    expect($this->tag)->toHaveMethod('getTranslatableFields');
+    expect(method_exists($this->tag, 'translations'))->toBeTrue();
+    expect(method_exists($this->tag, 'translation'))->toBeTrue();
+    expect(method_exists($this->tag, 'getTranslation'))->toBeTrue();
+    expect(method_exists($this->tag, 'setTranslation'))->toBeTrue();
+    expect(method_exists($this->tag, 'hasTranslation'))->toBeTrue();
+    expect(method_exists($this->tag, 'getTranslatableFields'))->toBeTrue();
 });
 
 it('can find or create tags', function (): void {

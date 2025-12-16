@@ -6,24 +6,21 @@ use Modules\Cms\Actions\Contents\GetContentsByRelationAction;
 use Modules\Core\Http\Requests\ListRequest;
 use Tests\TestCase;
 
-final class GetContentsByRelationActionTest extends TestCase
-{
-    public function test_builds_filters(): void
+uses(TestCase::class);
+
+it('builds filters', function (): void {
+    $request = new class extends ListRequest
     {
-        $request = new class extends ListRequest
+        public function get(string $key, mixed $default = null): mixed
         {
-            public function get(string $key, mixed $default = null): mixed
-            {
-                return $key === 'filters' ? [] : $default;
-            }
-        };
+            return $key === 'filters' ? [] : $default;
+        }
+    };
 
-        $action = new GetContentsByRelationAction();
+    $action = new GetContentsByRelationAction();
 
-        $result = $action($request, 'tags', 'value', 'articles');
+    $result = $action($request, 'tags', 'value', 'articles');
 
-        $this->assertSame('contents', $result['entity']);
-        $this->assertNotEmpty($result['filters']);
-    }
-}
-
+    expect($result['entity'])->toBe('contents');
+    expect($result['filters'])->not->toBeEmpty();
+});

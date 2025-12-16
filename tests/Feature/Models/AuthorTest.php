@@ -5,8 +5,9 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Cms\Models\Author;
 use Modules\Cms\Models\Content;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->author = Author::factory()->create();
@@ -50,23 +51,23 @@ it('belongs to many contents', function (): void {
 });
 
 it('has dynamic contents trait', function (): void {
-    expect($this->author)->toHaveMethod('getDynamicContents');
-    expect($this->author)->toHaveMethod('setDynamicContents');
+    expect(method_exists($this->author, 'getDynamicContents'))->toBeTrue();
+    expect(method_exists($this->author, 'setDynamicContents'))->toBeTrue();
 });
 
 it('has multimedia trait', function (): void {
-    expect($this->author)->toHaveMethod('addMedia');
-    expect($this->author)->toHaveMethod('getMedia');
+    expect(method_exists($this->author, 'addMedia'))->toBeTrue();
+    expect(method_exists($this->author, 'getMedia'))->toBeTrue();
 });
 
 it('has tags trait', function (): void {
-    expect($this->author)->toHaveMethod('attachTags');
-    expect($this->author)->toHaveMethod('detachTags');
+    expect(method_exists($this->author, 'attachTags'))->toBeTrue();
+    expect(method_exists($this->author, 'detachTags'))->toBeTrue();
 });
 
 it('has versions trait', function (): void {
-    expect($this->author)->toHaveMethod('versions');
-    expect($this->author)->toHaveMethod('createVersion');
+    expect(method_exists($this->author, 'versions'))->toBeTrue();
+    expect(method_exists($this->author, 'createVersion'))->toBeTrue();
 });
 
 it('has soft deletes trait', function (): void {
@@ -77,7 +78,7 @@ it('has soft deletes trait', function (): void {
 });
 
 it('has validations trait', function (): void {
-    expect($this->author)->toHaveMethod('getRules');
+    expect(method_exists($this->author, 'getRules'))->toBeTrue();
 });
 
 it('can be created with specific attributes', function (): void {

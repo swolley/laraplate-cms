@@ -5,8 +5,9 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->category = Category::factory()->create();
@@ -68,43 +69,43 @@ it('has recursive relationships for parent-child categories', function (): void 
 });
 
 it('has slug trait', function (): void {
-    expect($this->category)->toHaveMethod('generateSlug');
-    expect($this->category)->toHaveMethod('getSlug');
+    expect(method_exists($this->category, 'generateSlug'))->toBeTrue();
+    expect(method_exists($this->category, 'getSlug'))->toBeTrue();
 });
 
 it('has tags trait', function (): void {
-    expect($this->category)->toHaveMethod('attachTags');
-    expect($this->category)->toHaveMethod('detachTags');
+    expect(method_exists($this->category, 'attachTags'))->toBeTrue();
+    expect(method_exists($this->category, 'detachTags'))->toBeTrue();
 });
 
 it('has multimedia trait', function (): void {
-    expect($this->category)->toHaveMethod('addMedia');
-    expect($this->category)->toHaveMethod('getMedia');
+    expect(method_exists($this->category, 'addMedia'))->toBeTrue();
+    expect(method_exists($this->category, 'getMedia'))->toBeTrue();
 });
 
 it('has dynamic contents trait', function (): void {
-    expect($this->category)->toHaveMethod('getDynamicContents');
-    expect($this->category)->toHaveMethod('setDynamicContents');
+    expect(method_exists($this->category, 'getDynamicContents'))->toBeTrue();
+    expect(method_exists($this->category, 'setDynamicContents'))->toBeTrue();
 });
 
 it('has path trait', function (): void {
-    expect($this->category)->toHaveMethod('getPath');
-    expect($this->category)->toHaveMethod('setPath');
+    expect(method_exists($this->category, 'getPath'))->toBeTrue();
+    expect(method_exists($this->category, 'setPath'))->toBeTrue();
 });
 
 it('has approvals trait', function (): void {
-    expect($this->category)->toHaveMethod('approve');
-    expect($this->category)->toHaveMethod('reject');
+    expect(method_exists($this->category, 'approve'))->toBeTrue();
+    expect(method_exists($this->category, 'reject'))->toBeTrue();
 });
 
 it('has validity trait', function (): void {
-    expect($this->category)->toHaveMethod('isValid');
-    expect($this->category)->toHaveMethod('isExpired');
+    expect(method_exists($this->category, 'isValid'))->toBeTrue();
+    expect(method_exists($this->category, 'isExpired'))->toBeTrue();
 });
 
 it('has versions trait', function (): void {
-    expect($this->category)->toHaveMethod('versions');
-    expect($this->category)->toHaveMethod('createVersion');
+    expect(method_exists($this->category, 'versions'))->toBeTrue();
+    expect(method_exists($this->category, 'createVersion'))->toBeTrue();
 });
 
 it('has soft deletes trait', function (): void {
@@ -115,17 +116,17 @@ it('has soft deletes trait', function (): void {
 });
 
 it('has sortable trait', function (): void {
-    expect($this->category)->toHaveMethod('moveOrder');
-    expect($this->category)->toHaveMethod('getOrder');
+    expect(method_exists($this->category, 'moveOrder'))->toBeTrue();
+    expect(method_exists($this->category, 'getOrder'))->toBeTrue();
 });
 
 it('has locks trait', function (): void {
-    expect($this->category)->toHaveMethod('lock');
-    expect($this->category)->toHaveMethod('unlock');
+    expect(method_exists($this->category, 'lock'))->toBeTrue();
+    expect(method_exists($this->category, 'unlock'))->toBeTrue();
 });
 
 it('has validations trait', function (): void {
-    expect($this->category)->toHaveMethod('getRules');
+    expect(method_exists($this->category, 'getRules'))->toBeTrue();
 });
 
 it('can be created with specific translation attributes', function (): void {
@@ -240,10 +241,10 @@ it('can be permanently deleted', function (): void {
 });
 
 it('has translations trait', function (): void {
-    expect($this->category)->toHaveMethod('translations');
-    expect($this->category)->toHaveMethod('translation');
-    expect($this->category)->toHaveMethod('getTranslation');
-    expect($this->category)->toHaveMethod('setTranslation');
-    expect($this->category)->toHaveMethod('hasTranslation');
-    expect($this->category)->toHaveMethod('getTranslatableFields');
+    expect(method_exists($this->category, 'translations'))->toBeTrue();
+    expect(method_exists($this->category, 'translation'))->toBeTrue();
+    expect(method_exists($this->category, 'getTranslation'))->toBeTrue();
+    expect(method_exists($this->category, 'setTranslation'))->toBeTrue();
+    expect(method_exists($this->category, 'hasTranslation'))->toBeTrue();
+    expect(method_exists($this->category, 'getTranslatableFields'))->toBeTrue();
 });
