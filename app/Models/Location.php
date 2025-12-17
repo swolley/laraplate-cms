@@ -18,6 +18,9 @@ use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\SoftDeletes;
+use Modules\Core\Search\Schema\FieldDefinition;
+use Modules\Core\Search\Schema\FieldType;
+use Modules\Core\Search\Schema\IndexType;
 use Modules\Core\Search\Traits\Searchable;
 use Override;
 
@@ -31,6 +34,7 @@ use Override;
  * @method static whereContains(Polygon $polygon)
  * @method static whereNotContains(Polygon $polygon)
  * @method static whereEquals(Point $point)
+ *
  * @mixin IdeHelperLocation
  */
 final class Location extends Model
@@ -70,13 +74,36 @@ final class Location extends Model
 
     private array $textOnlyFields = ['name', 'address', 'city', 'province', 'country', 'postcode', 'zone'];
 
+    /**
+     * Typesense mapping to avoid empty schema errors.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getSearchMapping(): array
+    {
+        $schema = $this->getSchemaDefinition();
+        $schema->addField(new FieldDefinition('id', FieldType::KEYWORD, [IndexType::SEARCHABLE]));
+        $schema->addField(new FieldDefinition('entity', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
+        $schema->addField(new FieldDefinition('connection', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
+        $schema->addField(new FieldDefinition(self::$indexedAtField, FieldType::DATE, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::SORTABLE]));
+        $schema->addField(new FieldDefinition('name', FieldType::TEXT, [IndexType::SEARCHABLE, IndexType::FILTERABLE]));
+        $schema->addField(new FieldDefinition('slug', FieldType::KEYWORD, [IndexType::SEARCHABLE]));
+        $schema->addField(new FieldDefinition('address', FieldType::TEXT, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
+        $schema->addField(new FieldDefinition('city', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
+        $schema->addField(new FieldDefinition('province', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
+        $schema->addField(new FieldDefinition('country', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
+        $schema->addField(new FieldDefinition('postcode', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
+        $schema->addField(new FieldDefinition('zone', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
+        $schema->addField(new FieldDefinition('geocode', FieldType::GEOCODE, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
+
+        return $this->getSearchMappingTrait($schema);
+    }
+
     public function toSearchableArray(): array
     {
         $document = array_merge($this->toSearchableArrayTrait(), Arr::except($this->toArray(), ['id', 'latitude', 'longitude']));
-        $document['geocode'] = [
-            'lat' => (float) $this->latitude,
-            'lon' => (float) $this->longitude,
-        ];
+        $document['id'] = (string) $this->getKey();
+        $document['geocode'] = [(float) $this->latitude, (float) $this->longitude];
 
         return $document;
     }
@@ -137,12 +164,12 @@ final class Location extends Model
 
     protected function getLatitudeAttribute(): ?float
     {
-        return $this->geolocation?->getLatitude();
+        return $this->geolocation?->latitude;
     }
 
     protected function getLongitudeAttribute(): ?float
     {
-        return $this->geolocation?->getLongitude();
+        return $this->geolocation?->longitude;
     }
 
     protected function setLatitudeAttribute(float $value): void

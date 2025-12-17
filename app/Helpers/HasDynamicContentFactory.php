@@ -95,7 +95,7 @@ trait HasDynamicContentFactory
                         FieldType::TEXT => fake()->text(fake()->numberBetween(100, 255)),
                         FieldType::NUMBER => fake()->randomNumber(),
                         FieldType::EMAIL => fake()->unique()->email(),
-                        FieldType::PHONE => fake()->boolean() ? fake()->unique()->phoneNumber() : null,
+                        FieldType::PHONE => fake()->boolean() ? fake()->unique()->e164PhoneNumber() : null,
                         FieldType::URL => fake()->boolean() ? fake()->unique()->url() : null,
                         FieldType::EDITOR => (object) [
                             'blocks' => array_map(fn (string $paragraph) => (object) [

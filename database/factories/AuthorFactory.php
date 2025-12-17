@@ -33,27 +33,19 @@ final class AuthorFactory extends Factory
         $definition = $this->dynamicContentDefinition();
         $user = fake()->boolean() ? user_class()::inRandomOrder()->first() : null;
 
-        if (! $user || Author::where('name', $user->name)->exists()) {
-            $name = fake()->boolean() ? fake()->name() : fake()->userName();
-        } else {
-            $name = $user->name;
-        }
-        $name .= fake()->boolean() ? fake()->numberBetween(1, 1000) : '';
+        $nameGenerator = static function () use ($user): string {
+            $baseName = $user && ! Author::where('name', $user->name)->exists()
+                ? $user->name
+                : (fake()->boolean() ? fake()->name() : fake()->userName());
 
-        // If we have a user, we use their name.
-        if ($user) {
-            return $definition + [
-                'name' => $this->uniqueValue(fn () => $name, $this->model, 'name'),
-                'user_id' => $user->id,
-            ];
-        }
+            return $baseName . '-' . fake()->unique()->numerify('########');
+        };
 
-        // If we don't have a user, we generate a unique name.
-        $name = $this->uniqueValue(fn () => fake()->name(), $this->model, 'name');
+        $name = $this->uniqueValue($nameGenerator, $this->model, 'name', 50);
 
         return $definition + [
             'name' => $name,
-            'user_id' => null,
+            'user_id' => $user?->id,
         ];
     }
 

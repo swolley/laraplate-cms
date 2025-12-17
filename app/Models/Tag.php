@@ -127,16 +127,16 @@ final class Tag extends Model implements Sortable
     {
         $rules = $this->getRulesTrait();
         $rules['create'] = array_merge($rules['create'], [
-            'name' => 'required|string|max:255', // Validated in translation
-            'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
+            // 'name' => 'required|string|max:255', // Validated in translation
+            // 'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
             'translations' => 'sometimes|array',
             'translations.*.locale' => 'required|string|max:10',
             'translations.*.name' => 'required|string|max:255',
             'translations.*.slug' => 'sometimes|nullable|string|max:255',
         ]);
         $rules['update'] = array_merge($rules['update'], [
-            'name' => 'sometimes|required|string|max:255', // Validated in translation
-            'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
+            // 'name' => 'sometimes|required|string|max:255', // Validated in translation
+            // 'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
             'translations' => 'sometimes|array',
             'translations.*.locale' => 'required|string|max:10',
             'translations.*.name' => 'sometimes|required|string|max:255',

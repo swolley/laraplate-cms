@@ -354,7 +354,7 @@ final class Content extends Model implements HasMedia, Sortable
         $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], $fields);
         $rules['create'] = array_merge($rules['create'], [
             'title' => 'required|string|max:255', // Validated in translation
-            'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
+            // 'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
             'entity_id' => 'required|exists:entities,id',
             'preset_id' => 'required|exists:presets,id',
             'translations' => 'sometimes|array',
@@ -365,7 +365,7 @@ final class Content extends Model implements HasMedia, Sortable
         ]);
         $rules['update'] = array_merge($rules['update'], [
             'title' => 'sometimes|required|string|max:255', // Validated in translation
-            'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
+            // 'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
             'entity_id' => 'sometimes|required|exists:entities,id',
             'preset_id' => 'sometimes|required|exists:presets,id',
             'translations' => 'sometimes|array',

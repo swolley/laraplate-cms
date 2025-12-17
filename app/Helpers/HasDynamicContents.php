@@ -16,11 +16,21 @@ use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Cms\Models\Preset;
 use Modules\Cms\Services\DynamicContentsService;
-use Override;
 use stdClass;
 
 /**
- * Trait for models that have dynamic contents.
+ * Trait for models that have dynamic contents based on presets.
+ *
+ * Architecture:
+ * - Dynamic fields are determined from the preset's fields configuration
+ * - Field values are stored in a JSON `components` column
+ * - Individual dynamic fields can be accessed transparently (e.g., $model->public_email)
+ * - Custom accessors/mutators are supported for both components and individual fields
+ *
+ * Usage:
+ * - Add trait to model: use HasDynamicContents;
+ * - Model must have: components (JSON), entity_id, presettable_id columns
+ * - Access fields: $model->fieldName or $model->components['fieldName']
  *
  * @property array<string, mixed> $components
  * @property-read ?string $type
@@ -33,34 +43,6 @@ use stdClass;
  */
 trait HasDynamicContents
 {
-    public function __get($key)
-    {
-        if ($this->hasAttribute($key) || method_exists(self::class, $key) || in_array($key, $this->fillable, true) || $key === 'pivot') {
-            return parent::__get($key);
-        }
-
-        if ($this->isDynamicField($key)) {
-            return data_get($this->getComponentsAttribute(), $key);
-        }
-
-        return parent::__get($key);
-    }
-
-    public function __set($key, $value): void
-    {
-        if ($this->isDynamicField($key)) {
-            $this->setComponentAttribute($key, $value);
-
-            return;
-        }
-
-        parent::__set($key, $value);
-
-        if ($key === 'presettable_id' && $value) {
-            $this->entity_id = $this->presettable?->entity_id;
-        }
-    }
-
     /**
      * Fetch available entities for a given type.
      *
@@ -71,18 +53,68 @@ trait HasDynamicContents
         return DynamicContentsService::getInstance()->fetchAvailableEntities($type);
     }
 
+    /**
+     * Fetch available presets for a given entity type.
+     *
+     * @return Collection<Preset>
+     */
     public static function fetchAvailablePresets(EntityType $type): Collection
     {
         return DynamicContentsService::getInstance()->fetchAvailablePresets($type);
     }
 
+    /**
+     * Fetch available presettables for a given entity type.
+     *
+     * @return Collection<Presettable>
+     */
     public static function fetchAvailablePresettables(EntityType $type): Collection
     {
         return DynamicContentsService::getInstance()->fetchAvailablePresettables($type);
     }
 
     /**
-     * Override setAttribute to handle translatable fields.
+     * Override getAttribute to handle dynamic fields.
+     *
+     * Priority:
+     * 1. Standard Eloquent attributes (delegate to parent first)
+     * 2. If dynamic field → get from components
+     * 3. Otherwise → delegate to parent
+     *
+     * @param  string  $key
+     */
+    public function getAttribute($key): mixed
+    {
+        // Let Eloquent handle standard attributes, relations, and accessors first
+        // Check if it's in attributes, has a cast, or has an accessor
+        if (
+            array_key_exists($key, $this->attributes)
+            || $this->hasGetMutator($key)
+            || $this->hasAttributeMutator($key)
+            || method_exists($this, $key)
+            || $key === 'pivot'
+        ) {
+            return parent::getAttribute($key);
+        }
+
+        // Handle dynamic fields from preset
+        if ($this->isDynamicField($key)) {
+            return data_get($this->getComponentsAttribute(), $key);
+        }
+
+        return parent::getAttribute($key);
+    }
+
+    /**
+     * Override setAttribute to handle dynamic fields.
+     *
+     * Priority:
+     * 1. If dynamic field → store in components
+     * 2. Otherwise → delegate to parent
+     * 3. Special handling for presettable_id to sync entity_id
+     *
+     * @param  string  $key
+     * @return $this
      */
     public function setAttribute($key, $value)
     {
@@ -92,7 +124,14 @@ trait HasDynamicContents
             return $this;
         }
 
-        return parent::setAttribute($key, $value);
+        $result = parent::setAttribute($key, $value);
+
+        // Sync entity_id when presettable_id changes
+        if ($key === 'presettable_id' && $value) {
+            $this->entity_id = $this->presettable?->entity_id;
+        }
+
+        return $result;
     }
 
     public function initializeHasDynamicContents(): void
@@ -181,6 +220,12 @@ trait HasDynamicContents
 
     public function isDynamicField(string $field): bool
     {
+        // Can't determine dynamic fields without a preset assignment
+        // Access attributes directly to avoid recursion through getAttribute
+        if (empty($this->attributes['presettable_id'])) {
+            return false;
+        }
+
         return in_array($field, $this->getDynamicFields(), true);
     }
 

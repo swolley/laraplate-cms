@@ -22,6 +22,7 @@ final class AuthorTranslation extends Model
     protected $fillable = [
         'author_id',
         'locale',
+        'slug',
         'components',
     ];
 

@@ -4,126 +4,266 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Helpers;
 
+use Illuminate\Support\Str;
 use Modules\Core\Helpers\HasTranslations;
-use Override;
 
+/**
+ * Trait for models that need both dynamic contents AND translations.
+ *
+ * This trait combines HasDynamicContents and HasTranslations, resolving method conflicts
+ * and ensuring that translatable fields (defined in the translation model's $fillable)
+ * are stored in the translations table, while dynamic fields (from presets) work transparently.
+ *
+ * Architecture:
+ * - Translatable fields determined dynamically via getTranslatableFields() (from translation model's $fillable)
+ * - Dynamic fields determined dynamically via getDynamicFields() (from preset fields)
+ * - Components (container for dynamic field values) stored in translations if translatable
+ * - Custom accessors/mutators (getXxxAttribute/setXxxAttribute) are fully supported
+ *
+ * Priority for field access:
+ * 1. Standard Eloquent attributes (columns in main table)
+ * 2. Translatable fields (from translation model's $fillable)
+ * 3. Dynamic fields (from preset configuration)
+ *
+ * @template TModel of \Illuminate\Database\Eloquent\Model
+ */
 trait HasTranslatedDynamicContents
 {
-    // region Traits
+    // region Trait Aliases
     use HasDynamicContents {
-        HasDynamicContents::getRules as private getRulesDynamicContents;
-        HasDynamicContents::toArray as private dynamicContentsToArray;
-        HasDynamicContents::__get as private __dynamicContentsGet;
-        HasDynamicContents::__set as private __dynamicContentsSet;
-        HasDynamicContents::setAttribute as private dynamicContentsSetAttribute;
-        HasDynamicContents::getComponentsAttribute as private getComponentsAttributeDynamicContents;
-        HasDynamicContents::setComponentsAttribute as private setComponentsAttributeDynamicContents;
+        HasDynamicContents::getRules as private _internalDynamicContentsGetRules;
+        HasDynamicContents::toArray as private _internalDynamicContentsToArray;
+        HasDynamicContents::getAttribute as private _internalDynamicContentsGetAttribute;
+        HasDynamicContents::setAttribute as private _internalDynamicContentsSetAttribute;
+        HasDynamicContents::getComponentsAttribute as private _internalDynamicContentsGetComponentsAttribute;
+        HasDynamicContents::setComponentsAttribute as private _internalDynamicContentsSetComponentsAttribute;
+        HasDynamicContents::setComponentAttribute as private _internalDynamicContentsSetComponentAttribute;
+        HasDynamicContents::initializeHasDynamicContents as private _internalDynamicContentsInitialize;
     }
-    use HasTranslations;
     use HasTranslations {
-        HasTranslations::toArray as private translationsToArray;
-        HasTranslations::__get as private __translationsGet;
-        HasTranslations::__set as private __translationsSet;
-        HasTranslations::setAttribute as private translationsSetAttribute;
+        HasTranslations::toArray as private _internalTranslationsToArray;
+        HasTranslations::getAttribute as private _internalTranslationsGetAttribute;
+        HasTranslations::setAttribute as private _internalTranslationsSetAttribute;
     }
-    // endregion Traits
+    // endregion Trait Aliases
 
     /**
-     * Handle __get to merge translations and dynamic contents.
+     * Override getAttribute to handle both translations and dynamic contents.
+     *
+     * Priority:
+     * 1. Standard Eloquent attributes, accessors, casts, relations
+     * 2. Translatable fields → delegate to HasTranslations
+     * 3. Dynamic fields → delegate to HasDynamicContents
+     * 4. Default Eloquent behavior
+     *
+     * @param  string  $key
      */
-    public function __get($key)
+    public function getAttribute($key): mixed
     {
-        if ($this->isTranslatableField($key)) {
-            return $this->__translationsGet($key);
+        // First, check for standard Eloquent attributes, accessors, relations
+        // These take priority over translatable/dynamic fields
+        if (
+            array_key_exists($key, $this->attributes)
+            || $this->hasGetMutator($key)
+            || $this->hasAttributeMutator($key)
+            || method_exists($this, $key)
+            || $key === 'pivot'
+        ) {
+            return parent::getAttribute($key);
         }
 
-        // Then check dynamic contents
-        return $this->__dynamicContentsGet($key);
+        // Check if it's a translatable field (stored in translation table)
+        if ($this->isTranslatableField($key)) {
+            $value = $this->getTranslatableFieldValue($key);
+
+            // Check for custom accessor (e.g., getComponentsAttribute)
+            $accessor = 'get' . Str::studly($key) . 'Attribute';
+
+            if (method_exists($this, $accessor)) {
+                return $this->{$accessor}($value);
+            }
+
+            return $value;
+        }
+
+        // Check if it's a dynamic field (from preset, stored in components)
+        if ($this->isDynamicField($key)) {
+            return data_get($this->getComponentsAttribute(), $key);
+        }
+
+        // Default Eloquent behavior (relations, etc.)
+        return parent::getAttribute($key);
     }
 
     /**
-     * Handle __set to merge translations and dynamic contents.
+     * Override setAttribute to handle both translations and dynamic contents.
+     *
+     * Priority:
+     * 1. Translatable fields → delegate to HasTranslations (with mutator support)
+     * 2. Dynamic fields → store in components via translation
+     * 3. Default Eloquent behavior
+     *
+     * @param  string  $key
+     * @return $this
      */
-    public function __set($key, $value): void
+    public function setAttribute($key, $value)
     {
+        // Check if it's a translatable field
         if ($this->isTranslatableField($key)) {
-            $this->__translationsSet($key, $value);
+            // Check for custom mutator (e.g., setComponentsAttribute)
+            $mutator = 'set' . Str::studly($key) . 'Attribute';
 
-            return;
+            if (method_exists($this, $mutator)) {
+                $this->{$mutator}($value);
+
+                return $this;
+            }
+
+            $this->setTranslatableFieldValue($key, $value);
+
+            return $this;
         }
 
-        // Then check dynamic contents
-        $this->__dynamicContentsSet($key, $value);
+        // Check if it's a dynamic field
+        if ($this->isDynamicField($key)) {
+            $this->setComponentAttribute($key, $value);
+
+            return $this;
+        }
+
+        // Handle presettable_id sync
+        $result = parent::setAttribute($key, $value);
+
+        if ($key === 'presettable_id' && $value) {
+            $this->entity_id = $this->presettable?->entity_id;
+        }
+
+        return $result;
     }
 
+    /**
+     * Merge toArray output from both traits.
+     *
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
-        $parsed = parent::toArray() ?? $this->attributesToArray();
-        $array = array_merge($parsed, $this->dynamicContentsToArray($parsed), $this->translationsToArray($parsed));
+        $base = parent::toArray() ?? $this->attributesToArray();
 
-        // Merge translatable fields from translation (trasparente)
+        // Merge dynamic contents (expands components into individual fields)
+        $with_dynamic = $this->_internalDynamicContentsToArray($base);
+
+        // Merge translations
+        $with_translations = $this->_internalTranslationsToArray($with_dynamic);
+
+        // Ensure translatable fields from loaded translation are included
         $translation = $this->getRelationValue('translation');
 
         if ($translation) {
             foreach ($this->getTranslatableFields() as $field) {
                 if (isset($translation->{$field})) {
-                    $array[$field] = $translation->{$field};
+                    $with_translations[$field] = $translation->{$field};
                 }
             }
         }
 
-        return $array;
+        return $with_translations;
     }
 
     /**
-     * Override setAttribute to handle translatable fields.
+     * Override initializeHasDynamicContents to prevent translatable fields
+     * from being stored in the main model's attributes.
+     *
+     * Translatable fields (like components) should be stored in the translation table,
+     * not in the main model table. This method cleans up after HasDynamicContents
+     * initialization which adds components to fillable and attributes.
      */
-    public function setAttribute($key, $value)
+    public function initializeHasDynamicContents(): void
     {
-        // Check if it's a translatable field (cache the result to avoid recursion)
-        $translatable_fields = $this->getTranslatableFields();
+        // Call base initialization
+        $this->_internalDynamicContentsInitialize();
 
-        if (in_array($key, $translatable_fields, true)) {
-            return $this->translationsSetAttribute($key, $value);
+        // Remove translatable fields from fillable and attributes
+        // They belong in the translations table
+        foreach ($this->getTranslatableFields() as $field) {
+            $fillable_key = array_search($field, $this->fillable, true);
+
+            if ($fillable_key !== false) {
+                unset($this->fillable[$fillable_key]);
+            }
+
+            unset($this->attributes[$field]);
         }
 
-        $components = $this->getComponentsAttribute();
-
-        if (array_key_exists((string) $key, $components)) {
-            return $this->dynamicContentsSetAttribute($key, $value);
-        }
-
-        return parent::setAttribute($key, $value);
+        $this->fillable = array_values($this->fillable);
     }
 
     /**
-     * Initialize the trait after HasDynamicContents and HasTranslations have initialized.
-     * This ensures components is removed from fillable since it's stored in translations table.
+     * Safety initialization to ensure translatable fields are not in attributes.
      */
     public function initializeHasTranslatedDynamicContents(): void
     {
-        // components is a translatable field, remove it from fillable and attributes
-        // It should be stored in the translations table, not in the main model table
-        $fillable_key = array_search('components', $this->fillable, true);
-
-        if ($fillable_key !== false) {
-            unset($this->fillable[$fillable_key]);
-            $this->fillable = array_values($this->fillable); // Re-index array
+        foreach ($this->getTranslatableFields() as $field) {
+            unset($this->attributes[$field]);
         }
-
-        // Remove components from attributes if it was set by HasDynamicContents
-        unset($this->attributes['components']);
     }
 
-    protected function getComponentsAttribute(): array
+    /**
+     * Expose getRules from HasDynamicContents.
+     *
+     * @return array<string, string>
+     */
+    public function getRules(): array
+    {
+        return $this->_internalDynamicContentsGetRules();
+    }
+
+    /**
+     * Get components from translations and merge with preset defaults.
+     *
+     * This is the accessor for $model->components when components is translatable.
+     * It fetches the raw value from translations and merges with field defaults.
+     *
+     * @param  mixed  $value  Raw value (unused, we fetch from translations)
+     * @return array<string, mixed>
+     */
+    protected function getComponentsAttribute($value = null): array
     {
         $raw_components = $this->getTranslatableFieldValue('components');
 
         return $this->mergeComponentsValues($raw_components ?? []);
     }
 
-    // protected function setComponentsAttribute(array $components): void
-    // {
-    //     $this->setTranslatableFieldValue('components', $this->mergeComponentsValues($components));
-    // }
+    /**
+     * Store components in translations after merging with preset defaults.
+     *
+     * This is the mutator for $model->components when components is translatable.
+     *
+     * @param  array<string, mixed>|string|null  $components
+     */
+    protected function setComponentsAttribute(array|string|null $components): void
+    {
+        // Handle JSON string input
+        if (is_string($components)) {
+            $components = json_decode($components, true) ?? [];
+        }
+
+        $merged = $this->mergeComponentsValues($components ?? []);
+        $this->setTranslatableFieldValue('components', $merged);
+    }
+
+    /**
+     * Set a single dynamic field value within components.
+     *
+     * Used when setting individual fields like $model->public_email = 'test@example.com'
+     *
+     * @param  string  $key  Field name
+     * @param  mixed  $value  Field value
+     */
+    protected function setComponentAttribute(string $key, mixed $value): void
+    {
+        $components = $this->getTranslatableFieldValue('components') ?? [];
+        $components[$key] = $value;
+        $this->setComponentsAttribute($components);
+    }
 }

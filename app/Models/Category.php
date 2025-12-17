@@ -40,7 +40,6 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @mixin \Modules\Cms\Helpers\HasPath
  * @mixin \Modules\Core\Helpers\SortableTrait
  * @mixin \Spatie\EloquentSortable\SortableTrait
- *
  * @method void setHighestOrderNumber() Set the highest order number
  * @method int getHighestOrderNumber() Get the highest order number
  * @method int getLowestOrderNumber() Get the lowest order number
@@ -49,7 +48,6 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @method bool shouldSortWhenCreating() Check if should sort when creating
  * @method string determineOrderColumnName() Determine the order column name
  * @method \Illuminate\Database\Eloquent\Builder buildSortQuery() Build query for sorting
- *
  * @mixin IdeHelperCategory
  */
 final class Category extends Model implements IMediable, Sortable
@@ -90,6 +88,8 @@ final class Category extends Model implements IMediable, Sortable
      */
     protected $fillable = [
         'parent_id',
+        'presettable_id',
+        'entity_id',
         'persistence',
         'logo',
         'logo_full',
@@ -98,7 +98,9 @@ final class Category extends Model implements IMediable, Sortable
     protected $hidden = [
         'entity',
         'parent_id',
-        'model_type_id',
+        // 'model_type_id',
+        'presettable_id',
+        'entity_id',
         'persistence',
         'created_at',
         'updated_at',
@@ -125,10 +127,12 @@ final class Category extends Model implements IMediable, Sortable
         $rules = $this->getRulesTrait();
         $dynamic_fields = $this->getRulesDynamicContents();
         $default_rule = self::DEFAULT_RULE;
-        $rules[$default_rule] = array_merge($rules[$default_rule], $dynamic_fields);
+        $rules[$default_rule] = array_merge($rules[$default_rule], $dynamic_fields, [
+            'parent_id' => 'sometimes|nullable|exists:categories,id',
+        ]);
         $rules['create'] = array_merge($rules['create'], [
-            'name' => 'required|string|max:255', // Validated in translation
-            'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
+            // 'name' => 'required|string|max:255', // Validated in translation
+            // 'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
             'translations' => 'sometimes|array',
             'translations.*.locale' => 'required|string|max:10',
             'translations.*.name' => 'required|string|max:255',
@@ -136,8 +140,8 @@ final class Category extends Model implements IMediable, Sortable
             'translations.*.components' => 'sometimes|array',
         ]);
         $rules['update'] = array_merge($rules['update'], [
-            'name' => 'sometimes|required|string|max:255', // Validated in translation
-            'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
+            // 'name' => 'sometimes|required|string|max:255', // Validated in translation
+            // 'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
             'translations' => 'sometimes|array',
             'translations.*.locale' => 'required|string|max:10',
             'translations.*.name' => 'sometimes|required|string|max:255',

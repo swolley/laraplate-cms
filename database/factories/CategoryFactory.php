@@ -9,7 +9,6 @@ use Illuminate\Support\Str;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Helpers\HasDynamicContentFactory;
 use Modules\Cms\Models\Category;
-use Modules\Cms\Models\Preset;
 use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
 
@@ -42,23 +41,23 @@ final class CategoryFactory extends Factory
     public function configure(): self
     {
         return $this->afterMaking(function (Category $category): void {
+            // Ensure translatable fields are set before first save
+            $name = fake()->unique()->words(fake()->numberBetween(1, 3), true) . fake()->numberBetween(1, 1000);
+            $category->name = $name;
+            $category->slug = Str::slug($name);
+
             $this->fillDynamicContents($category);
 
             $category->setForcedApprovalUpdate(fake()->boolean(90));
 
             $parent = fake()->boolean(70) ? Category::inRandomOrder()->first() : null;
-            $preset = Preset::where('entity_id', $category->entity_id)->inRandomOrder()->first();
-
-            $category->preset_id = $preset->id;
             $category->parent_id = $parent?->id;
         })->afterCreating(function (Category $category): void {
             // Create default translation
             $default_locale = config('app.locale');
-            $name = fake()->unique()->words(fake()->numberBetween(1, 3), true) . fake()->numberBetween(1, 1000);
-
             $category->setTranslation($default_locale, [
-                'name' => $name,
-                'slug' => Str::slug($name),
+                'name' => $category->name,
+                'slug' => $category->slug,
                 'components' => $category->components ?? [],
             ]);
         });
