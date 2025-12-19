@@ -154,20 +154,7 @@ trait HasTranslatedDynamicContents
         $with_dynamic = $this->_internalDynamicContentsToArray($base);
 
         // Merge translations
-        $with_translations = $this->_internalTranslationsToArray($with_dynamic);
-
-        // Ensure translatable fields from loaded translation are included
-        $translation = $this->getRelationValue('translation');
-
-        if ($translation) {
-            foreach ($this->getTranslatableFields() as $field) {
-                if (isset($translation->{$field})) {
-                    $with_translations[$field] = $translation->{$field};
-                }
-            }
-        }
-
-        return $with_translations;
+        return $this->_internalTranslationsToArray($with_dynamic);
     }
 
     /**
