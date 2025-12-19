@@ -52,7 +52,7 @@ return new class extends Migration
         $driver = DB::getDriverName();
 
         match ($driver) {
-            'mysql' => $this->createMySQLTriggers(),
+            'mysql', 'mariadb' => $this->createMySQLTriggers(),
             'pgsql' => $this->createPostgreSQLTriggers(),
             'sqlite' => $this->createSQLiteTriggers(),
             'sqlsrv' => $this->createSQLServerTriggers(),
@@ -69,7 +69,7 @@ return new class extends Migration
         $driver = DB::getDriverName();
 
         match ($driver) {
-            'mysql' => $this->dropMySQLTriggers(),
+            'mysql', 'mariadb' => $this->dropMySQLTriggers(),
             'pgsql' => $this->dropPostgreSQLTriggers(),
             'sqlite' => $this->dropSQLiteTriggers(),
             'sqlsrv' => $this->dropSQLServerTriggers(),

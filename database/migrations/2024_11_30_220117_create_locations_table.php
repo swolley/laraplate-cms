@@ -32,11 +32,39 @@ return new class extends Migration
                 // Create PostGIS extension first
                 DB::unprepared('CREATE EXTENSION IF NOT EXISTS postgis;');
                 $table->geometry('geolocation', 'point', 4326)->nullable()->spatialIndex()->comment('The geolocation of the location');
-            } elseif ($driver === 'sqlite') {
-                // SQLite doesn't support spatial indexes, just store as text
-                $table->text('geolocation')->nullable()->comment('The geolocation of the location (JSON for SQLite)');
-            } else {
-                $table->geometry('geolocation')->nullable()->spatialIndex()->comment('The geolocation of the location');
+            } elseif (in_array($driver, ['mysql', 'mariadb', 'sqlite'], true)) {
+                // Campo opzionale, nessun spatial index per evitare NOT NULL forzato
+                $table->geometry('geolocation')->nullable()->comment('The geolocation of the location');
+            } elseif ($driver === 'oracle') {
+                // Campo opzionale; registriamo metadata SDO e creiamo indice spaziale
+                $table->geometry('geolocation')->nullable()->comment('The geolocation of the location');
+
+                DB::unprepared("
+                    DECLARE
+                        tbl VARCHAR2(128) := 'LOCATIONS';
+                        col VARCHAR2(128) := 'GEOLOCATION';
+                        srid NUMBER := 4326;
+                    BEGIN
+                        BEGIN
+                            DELETE FROM user_sdo_geom_metadata WHERE table_name = tbl AND column_name = col;
+                        EXCEPTION
+                            WHEN NO_DATA_FOUND THEN NULL;
+                        END;
+
+                        INSERT INTO user_sdo_geom_metadata (table_name, column_name, diminfo, srid)
+                        VALUES (
+                            tbl,
+                            col,
+                            MDSYS.SDO_DIM_ARRAY(
+                                MDSYS.SDO_DIM_ELEMENT('LONG', -180, 180, 0.005),
+                                MDSYS.SDO_DIM_ELEMENT('LAT', -90, 90, 0.005)
+                            ),
+                            srid
+                        );
+                    END;
+                ");
+
+                DB::unprepared('CREATE INDEX locations_geolocation_spx ON locations(geolocation) INDEXTYPE IS MDSYS.SPATIAL_INDEX');
             }
 
             MigrateUtils::timestamps(
@@ -56,7 +84,7 @@ return new class extends Migration
 
         // Add fulltext indexes for databases that support them (not SQLite)
         // Add fulltext indexes for databases that support them
-        if (DB::getDriverName() === 'mysql') {
+        if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
             DB::statement('ALTER TABLE locations ADD FULLTEXT locations_name_IDX (name)');
             DB::statement('ALTER TABLE locations ADD FULLTEXT locations_slug_IDX (slug)');
         } elseif (DB::getDriverName() === 'pgsql') {

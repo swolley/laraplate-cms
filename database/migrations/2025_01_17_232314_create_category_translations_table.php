@@ -29,7 +29,7 @@ return new class extends Migration
         });
 
         // Add fulltext indexes for databases that support them
-        if (DB::getDriverName() === 'mysql') {
+        if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
             DB::statement('ALTER TABLE category_translations ADD FULLTEXT category_translations_name_IDX (name)');
         } elseif (DB::getDriverName() === 'pgsql') {
             // PostgreSQL fulltext search indexes

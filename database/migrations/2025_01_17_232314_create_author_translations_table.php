@@ -18,7 +18,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('author_id')->nullable(false)->constrained('authors', 'id', 'author_translations_author_id_FK')->cascadeOnDelete()->comment('The author that the translation belongs to');
             $table->string('locale', 10)->nullable(false)->index('author_translations_locale_IDX')->comment('The locale of the translation');
-            $table->string('slug')->nullable()->after('locale');
+            $table->string('slug')->nullable();
             $table->json('components')->nullable(false)->comment('The translated author components');
             MigrateUtils::timestamps($table);
 

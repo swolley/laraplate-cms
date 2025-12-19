@@ -38,9 +38,35 @@ return new class extends Migration
             $table->unique(['id', 'entity_id'], 'category_entity_UN');
         });
 
-        // SQLite doesn't support CHECK constraints, skip for SQLite
-        if (DB::getDriverName() !== 'sqlite') {
+        // Evita auto-relazione (categoria che punta sé stessa)
+        $driver_name = DB::getDriverName();
+
+        if ($driver_name === 'pgsql') {
             DB::statement('ALTER TABLE categories ADD CONSTRAINT categories_parent_id_check CHECK (parent_id <> id)');
+        } elseif (in_array($driver_name, ['mysql', 'mariadb'], true)) {
+            // MySQL/MariaDB non consentono il CHECK con colonna usata da una FK (errore 3823),
+            // quindi usiamo trigger per bloccare parent_id = id.
+            DB::unprepared('
+                CREATE TRIGGER categories_parent_check_insert
+                BEFORE INSERT ON categories
+                FOR EACH ROW
+                BEGIN
+                    IF NEW.parent_id IS NOT NULL AND NEW.parent_id = NEW.id THEN
+                        SIGNAL SQLSTATE \'45000\' SET MESSAGE_TEXT = \'parent_id cannot reference self\';
+                    END IF;
+                END;
+            ');
+
+            DB::unprepared('
+                CREATE TRIGGER categories_parent_check_update
+                BEFORE UPDATE ON categories
+                FOR EACH ROW
+                BEGIN
+                    IF NEW.parent_id IS NOT NULL AND NEW.parent_id = NEW.id THEN
+                        SIGNAL SQLSTATE \'45000\' SET MESSAGE_TEXT = \'parent_id cannot reference self\';
+                    END IF;
+                END;
+            ');
         }
     }
 
