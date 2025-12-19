@@ -217,9 +217,11 @@ final class CmsDatabaseSeeder extends Seeder
         $role_class = config('permission.models.role');
         $permission_class = config('permission.models.permission');
 
+        $all_roles = $role_class::all(['id', 'name'])->keyBy('name');
+
         $name = 'publisher';
 
-        if (! Role::whereName($name)->exists()) {
+        if (! $all_roles->has($name)) {
             $this->create($role_class, [
                 'name' => $name,
                 'permissions' => fn () => $permission_class::whereIn('table_name', ['contents', 'categories', 'presets'])
@@ -233,9 +235,9 @@ final class CmsDatabaseSeeder extends Seeder
         }
 
         foreach (CoreDatabaseSeeder::getDefaultUserRoles() as $key => $role) {
-            $role = $role_class::whereName($role)->first(['id']);
+            $role = $all_roles->get($role);
 
-            if ($key === 'admin') {
+            if ($key === 'admin' && $role !== null) {
                 $role->permissions()->syncWithoutDetaching(
                     $permission_class::where(fn ($query) => $query->whereIn('table_name', ['contents', 'categories', 'presets'])
                         ->orWhere('name', 'like', '%.' . ActionEnum::SELECT->value))
