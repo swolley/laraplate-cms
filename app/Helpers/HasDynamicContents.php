@@ -16,6 +16,7 @@ use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Cms\Models\Preset;
 use Modules\Cms\Services\DynamicContentsService;
+use Override;
 use stdClass;
 
 /**
@@ -83,6 +84,7 @@ trait HasDynamicContents
      *
      * @param  string  $key
      */
+    #[Override]
     public function getAttribute($key): mixed
     {
         // Let Eloquent handle standard attributes, relations, and accessors first
@@ -116,6 +118,7 @@ trait HasDynamicContents
      * @param  string  $key
      * @return $this
      */
+    #[Override]
     public function setAttribute($key, $value)
     {
         if ($this->isDynamicField($key)) {

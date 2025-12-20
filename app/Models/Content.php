@@ -71,7 +71,10 @@ final class Content extends Model implements HasMedia, Sortable
     }
     use HasValidity;
     use HasVersions;
-    use Searchable;
+    use Searchable {
+        Searchable::toSearchableArray as private toSearchableArrayTrait;
+        Searchable::getSearchMapping as private getSearchMappingTrait;
+    }
     use SoftDeletes;
     use SortableTrait {
         SortableTrait::scopeOrdered as private scopePriorityOrdered;
@@ -108,11 +111,14 @@ final class Content extends Model implements HasMedia, Sortable
 
         throw_if(in_array($entity_id, ['', '0', 0, null], true) || $entity->type !== EntityType::CONTENTS, InvalidArgumentException::class, 'Invalid entity: ' . $entity);
 
-        $preset_id = self::fetchAvailablePresets(EntityType::CONTENTS)->firstWhere('entity_id', $entity_id)?->id;
+        $presettable = self::fetchAvailablePresettables(EntityType::CONTENTS)->firstWhere('entity_id', $entity_id);
 
-        throw_unless($preset_id, InvalidArgumentException::class, 'No preset found for entity: ' . $entity);
+        throw_unless($presettable, InvalidArgumentException::class, 'No presettable found for entity: ' . $entity);
 
-        return new self::$childTypes[$entity_id](['preset_id' => $preset_id, 'entity_id' => $entity_id]);
+        return new self::$childTypes[$entity_id]([
+            'presettable_id' => $presettable->id,
+            'entity_id' => $entity_id,
+        ]);
     }
 
     public static function makeWithDefaults(array $attributes = []): static
@@ -180,14 +186,21 @@ final class Content extends Model implements HasMedia, Sortable
         // $document['entity_id'] = $this->entity->id;
         $document['preset'] = $this->preset->name;
         // $document['preset_id'] = $this->preset->id;
-        $document['authors'] = $this->authors->only(['id', 'name', 'slug', 'path'])->toArray();
-        // $document['authors_id'] = $this->authors->pluck('id')->toArray();
-        $document['categories'] = $this->categories->only(['name', 'id', 'slug', 'path'])->toArray();
-        // $document['categories_id'] = $this->categories->pluck('id')->toArray();
-        $document['tags'] = $this->tags->only(['name', 'id', 'slug', 'path'])->toArray();
-        // $document['tags_id'] = $this->tags->pluck('id')->toArray();
-        $document['locations'] = (object) $this->locations->only(['id', 'name', 'slug', 'path', 'address', 'city', 'province', 'country', 'postcode', 'zone', 'geolocation'])->toArray();
-        // $document['location_id'] = $this->locations->pluck('id')->toArray();
+        $document['authors'] = $this->authors->map(fn ($author) => $author->only(['id', 'name', 'slug', 'path']))->values()->all();
+        $document['categories'] = $this->categories->map(fn ($category) => $category->only(['id', 'name', 'slug', 'path']))->values()->all();
+        $document['tags'] = $this->tags->map(fn ($tag) => $tag->only(['id', 'name', 'slug', 'path']))->values()->all();
+        $document['locations'] = $this->locations->map(fn ($location) => $location->only([
+            'id',
+            'name',
+            'slug',
+            'path',
+            'address',
+            'city',
+            'province',
+            'country',
+            'postcode',
+            'zone',
+        ]))->values()->all();
         $document['type'] = $this->type;
 
         // Load all translations for indexing
@@ -217,14 +230,6 @@ final class Content extends Model implements HasMedia, Sortable
             if ($translation) {
                 $document['title_' . $locale] = $translation->title;
                 $document['slug_' . $locale] = $translation->slug;
-
-                // Add components for this locale
-                if (isset($translation->components)) {
-                    foreach ($translation->components as $field => $value) {
-                        $field_name = $field . '_' . $locale;
-                        $document[$field_name] = gettype($value) === 'string' ? Str::replaceMatches('/\\n|\\r|\\t/', '', $value) : $value;
-                    }
-                }
             }
         }
 
@@ -272,7 +277,6 @@ final class Content extends Model implements HasMedia, Sortable
                 'country' => FieldType::KEYWORD,
                 'postcode' => FieldType::KEYWORD,
                 'zone' => FieldType::KEYWORD,
-                'geolocation' => FieldType::GEOCODE,
             ],
         ]));
         $schema->addField(new FieldDefinition('type', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE]));
@@ -301,11 +305,6 @@ final class Content extends Model implements HasMedia, Sortable
             // Add title and slug for each locale
             $schema->addField(new FieldDefinition('title_' . $locale, FieldType::TEXT, [IndexType::SEARCHABLE, IndexType::FILTERABLE]));
             $schema->addField(new FieldDefinition('slug_' . $locale, FieldType::KEYWORD, [IndexType::SEARCHABLE]));
-
-            // Add component fields for each locale
-            foreach ($component_fields as $field) {
-                $schema->addField(new FieldDefinition($field . '_' . $locale, FieldType::TEXT, [IndexType::SEARCHABLE]));
-            }
         }
 
         // Add base component fields (from default translation)
@@ -325,7 +324,7 @@ final class Content extends Model implements HasMedia, Sortable
             // 'title' => 'required|string|max:255', // Validated in translation
             // 'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
             'entity_id' => 'required|exists:entities,id',
-            'preset_id' => 'required|exists:presets,id',
+            'presettable_id' => 'required|exists:presettables,id',
             'translations' => 'sometimes|array',
             'translations.*.locale' => 'required|string|max:10',
             'translations.*.title' => 'required|string|max:255',
@@ -336,7 +335,7 @@ final class Content extends Model implements HasMedia, Sortable
             // 'title' => 'sometimes|required|string|max:255', // Validated in translation
             // 'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
             'entity_id' => 'sometimes|required|exists:entities,id',
-            'preset_id' => 'sometimes|required|exists:presets,id',
+            'presettable_id' => 'sometimes|required|exists:presettables,id',
             'translations' => 'sometimes|array',
             'translations.*.locale' => 'required|string|max:10',
             'translations.*.title' => 'sometimes|required|string|max:255',
@@ -356,6 +355,15 @@ final class Content extends Model implements HasMedia, Sortable
     public function getPath(): ?string
     {
         return $this->categories->first()?->getPath();
+    }
+
+    #[Override]
+    public function searchableAs(): string
+    {
+        $defaultEngine = config('search.default', 'typesense');
+        $prefix = config("search.engines.{$defaultEngine}.index_prefix", '');
+
+        return $prefix . $this->getTable() . '_v2';
     }
 
     #[Override]

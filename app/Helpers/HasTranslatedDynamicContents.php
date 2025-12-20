@@ -6,6 +6,7 @@ namespace Modules\Cms\Helpers;
 
 use Illuminate\Support\Str;
 use Modules\Core\Helpers\HasTranslations;
+use Override;
 
 /**
  * Trait for models that need both dynamic contents AND translations.
@@ -58,6 +59,7 @@ trait HasTranslatedDynamicContents
      *
      * @param  string  $key
      */
+    #[Override]
     public function getAttribute($key): mixed
     {
         // First, check for standard Eloquent attributes, accessors, relations
@@ -106,6 +108,7 @@ trait HasTranslatedDynamicContents
      * @param  string  $key
      * @return $this
      */
+    #[Override]
     public function setAttribute($key, $value)
     {
         // Check if it's a translatable field

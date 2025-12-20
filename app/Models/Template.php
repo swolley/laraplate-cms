@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasVersions;
+use Override;
 
 /**
  * @mixin IdeHelperTemplate
