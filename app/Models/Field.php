@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,6 +12,7 @@ use Illuminate\Validation\Rule;
 use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Casts\ObjectCast;
 use Modules\Cms\Models\Pivot\Fieldable;
+use Modules\Cms\Observers\FieldObserver;
 use Modules\Core\Helpers\HasActivation;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasVersions;
@@ -21,8 +23,10 @@ use Override;
  * @property-read object $options
  * @mixin IdeHelperField
  */
+#[ObservedBy(FieldObserver::class)]
 final class Field extends Model
 {
+    // region Traits
     use HasActivation {
         HasActivation::casts as private activationCasts;
     }
@@ -32,6 +36,7 @@ final class Field extends Model
     }
     use HasVersions;
     use SoftDeletes;
+    // endregion
 
     /**
      * The attributes that are mass assignable.
@@ -48,17 +53,17 @@ final class Field extends Model
     ];
 
     #[Override]
-    public function __get($key)
+    public function getAttribute($key): mixed
     {
         if (property_exists($this, 'pivot') && $this->pivot !== null && isset($this->pivot->{$key})) {
             return $this->pivot->{$key};
         }
 
-        return parent::__get($key);
+        return parent::getAttribute($key);
     }
 
     #[Override]
-    public function __set($key, $value): void
+    public function setAttribute($key, $value): void
     {
         if (property_exists($this, 'pivot') && $this->pivot !== null && array_key_exists($key, $this->pivot->getAttributes())) {
             // @phpstan-ignore assign.propertyReadOnly
@@ -67,7 +72,7 @@ final class Field extends Model
             return;
         }
 
-        parent::__set($key, $value);
+        parent::setAttribute($key, $value);
     }
 
     /**
@@ -109,17 +114,6 @@ final class Field extends Model
         ]);
 
         return $rules;
-    }
-
-    protected static function boot(): void
-    {
-        parent::boot();
-
-        self::updating(function (Field $model): void {
-            if (property_exists($model, 'pivot') && $model->pivot && $model->pivot->isDirty()) {
-                $model->pivot->save();
-            }
-        });
     }
 
     protected function casts(): array

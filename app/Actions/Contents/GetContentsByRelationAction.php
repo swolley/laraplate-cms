@@ -76,4 +76,3 @@ final class GetContentsByRelationAction
         return $filters;
     }
 }
-

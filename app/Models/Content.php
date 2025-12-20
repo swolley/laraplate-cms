@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,6 +23,7 @@ use Modules\Cms\Models\Pivot\Authorable;
 use Modules\Cms\Models\Pivot\Categorizable;
 use Modules\Cms\Models\Pivot\Locatable;
 use Modules\Cms\Models\Pivot\Relatable;
+use Modules\Cms\Observers\ContentObserver;
 use Modules\Core\Helpers\HasApprovals;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasValidity;
@@ -42,6 +44,7 @@ use Spatie\MediaLibrary\HasMedia;
 /**
  * @mixin IdeHelperContent
  */
+#[ObservedBy(ContentObserver::class)]
 final class Content extends Model implements HasMedia, Sortable
 {
     // region Traits
@@ -90,40 +93,6 @@ final class Content extends Model implements HasMedia, Sortable
         'order_column_name' => 'order_column',
         'sort_when_creating' => true,
     ];
-
-    /**
-     * Handle __get to merge translations and dynamic contents.
-     */
-    public function __get($key)
-    {
-        // First check translatable fields (cache to avoid recursion)
-        $translatable_fields = $this->getTranslatableFields();
-
-        if (in_array($key, $translatable_fields, true)) {
-            return $this->translationsGet($key);
-        }
-
-        // Then check dynamic contents
-        return $this->dynamicContentsGet($key);
-    }
-
-    /**
-     * Handle __set to merge translations and dynamic contents.
-     */
-    public function __set($key, $value): void
-    {
-        // First check translatable fields (cache to avoid recursion)
-        $translatable_fields = $this->getTranslatableFields();
-
-        if (in_array($key, $translatable_fields, true)) {
-            $this->translationsSet($key, $value);
-
-            return;
-        }
-
-        // Then check dynamic contents
-        $this->dynamicContentsSet($key, $value);
-    }
 
     public static function makeFromEntity(Entity|string|int $entity): static
     {
@@ -353,7 +322,7 @@ final class Content extends Model implements HasMedia, Sortable
         $fields = $this->getRulesTranslatedDynamicContents();
         $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], $fields);
         $rules['create'] = array_merge($rules['create'], [
-            'title' => 'required|string|max:255', // Validated in translation
+            // 'title' => 'required|string|max:255', // Validated in translation
             // 'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
             'entity_id' => 'required|exists:entities,id',
             'preset_id' => 'required|exists:presets,id',
@@ -364,7 +333,7 @@ final class Content extends Model implements HasMedia, Sortable
             'translations.*.components' => 'sometimes|array',
         ]);
         $rules['update'] = array_merge($rules['update'], [
-            'title' => 'sometimes|required|string|max:255', // Validated in translation
+            // 'title' => 'sometimes|required|string|max:255', // Validated in translation
             // 'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
             'entity_id' => 'sometimes|required|exists:entities,id',
             'preset_id' => 'sometimes|required|exists:presets,id',
@@ -428,28 +397,13 @@ final class Content extends Model implements HasMedia, Sortable
         $this->setRelation('presettable', $presettable);
     }
 
-    #[Override]
-    protected static function boot(): void
-    {
-        parent::boot();
-
-        // Auto-assign entity and preset for child classes based on class name
-        self::creating(function (Model $model): void {
-            /** @var static $model */
-            // Only auto-assign if not already set and this is a child class
-            if (self::class !== self::class && ($model->entity_id === null || $model->presettable_id === null)) {
-                $model->setDefaultEntityAndPreset();
-            }
-        });
-    }
-
     protected static function booted(): void
     {
-        self::addGlobalScope('global_filters', function (Builder $query): void {
+        self::addGlobalScope('global_filters', static function (Builder $query): void {
             /** @var Builder<static> $query */
             $query->valid();
         });
-        self::addGlobalScope('global_ordered', function (Builder $query): void {
+        self::addGlobalScope('global_ordered', static function (Builder $query): void {
             /** @var Builder<static> $query */
             $query->ordered();
         });
@@ -461,7 +415,7 @@ final class Content extends Model implements HasMedia, Sortable
 
         // if ensure that the factory is created for the correct derived entity
         if (self::class !== self::class) {
-            $factory->state(fn (): array => [
+            $factory->state(static fn (): array => [
                 'entity_id' => Entity::query()
                     ->where('name', Str::lower(class_basename(self::class)))
                     ->where('type', EntityType::CONTENTS)

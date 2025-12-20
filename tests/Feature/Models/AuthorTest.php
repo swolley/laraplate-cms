@@ -7,9 +7,8 @@ use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Models\Author;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Entity;
-use Modules\Cms\Models\Field;
-use Modules\Cms\Models\Preset;
 use Modules\Cms\Models\Pivot\Presettable;
+use Modules\Cms\Models\Preset;
 use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
@@ -18,18 +17,18 @@ beforeEach(function (): void {
     // Create Entity, Preset, and Presettable required for Author factory
     $entity = Entity::firstOrCreate(
         ['name' => 'authors'],
-        ['type' => EntityType::AUTHORS]
+        ['type' => EntityType::AUTHORS],
     );
 
     $preset = Preset::firstOrCreate(
         ['entity_id' => $entity->id, 'name' => 'default'],
-        ['entity_id' => $entity->id, 'name' => 'default']
+        ['entity_id' => $entity->id, 'name' => 'default'],
     );
 
     // Presettable might be created automatically by triggers, so use firstOrCreate
     $presettable = Presettable::firstOrCreate(
         ['entity_id' => $entity->id, 'preset_id' => $preset->id],
-        ['entity_id' => $entity->id, 'preset_id' => $preset->id]
+        ['entity_id' => $entity->id, 'preset_id' => $preset->id],
     );
 
     $this->author = Author::factory()->create();
@@ -101,7 +100,7 @@ it('has validations trait', function (): void {
     expect(method_exists($this->author, 'getRules'))->toBeTrue();
 });
 
-it('can be created with specific attributes', function (): void {
+it('can be created with specific attributes', static function (): void {
     $authorData = [
         'name' => 'Jane Smith',
     ];
@@ -111,7 +110,7 @@ it('can be created with specific attributes', function (): void {
     expect($author->name)->toBe('Jane Smith');
 });
 
-it('can be found by name', function (): void {
+it('can be found by name', static function (): void {
     $author = Author::factory()->create(['name' => 'Unique Author']);
 
     $foundAuthor = Author::where('name', 'Unique Author')->first();
@@ -119,14 +118,14 @@ it('can be found by name', function (): void {
     expect($foundAuthor->id)->toBe($author->id);
 });
 
-it('has proper timestamps', function (): void {
+it('has proper timestamps', static function (): void {
     $author = Author::factory()->create();
 
-    expect($author->created_at)->toBeInstanceOf(\Carbon\CarbonImmutable::class);
-    expect($author->updated_at)->toBeInstanceOf(\Carbon\CarbonImmutable::class);
+    expect($author->created_at)->toBeInstanceOf(Carbon\CarbonImmutable::class);
+    expect($author->updated_at)->toBeInstanceOf(Carbon\CarbonImmutable::class);
 });
 
-it('can be serialized to array', function (): void {
+it('can be serialized to array', static function (): void {
     $author = Author::factory()->create([
         'name' => 'Test Author',
     ]);
@@ -137,7 +136,7 @@ it('can be serialized to array', function (): void {
     expect($authorArray['name'])->toBe('Test Author');
 });
 
-it('can be restored after soft delete', function (): void {
+it('can be restored after soft delete', static function (): void {
     $author = Author::factory()->create();
     $author->delete();
 
@@ -148,7 +147,7 @@ it('can be restored after soft delete', function (): void {
     expect($author->trashed())->toBeFalse();
 });
 
-it('can be permanently deleted', function (): void {
+it('can be permanently deleted', static function (): void {
     $author = Author::factory()->create();
     $authorId = $author->id;
 

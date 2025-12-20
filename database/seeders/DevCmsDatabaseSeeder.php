@@ -73,7 +73,7 @@ final class DevCmsDatabaseSeeder extends BatchSeeder
         $this->command->info('Creating pivot relations...');
 
         // Get all contents and create relations in batches
-        Content::chunk(1000, function ($contents): void {
+        Content::chunk(1000, static function ($contents): void {
             foreach ($contents as $content) {
                 Content::factory()->createRelations($content);
             }

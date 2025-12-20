@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Modules\Cms\Models\Author;
 
-it('author model has correct structure', function (): void {
+it('author model has correct structure', static function (): void {
     $reflection = new ReflectionClass(Author::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -15,7 +15,7 @@ it('author model has correct structure', function (): void {
     expect($source)->toContain('protected $hidden');
 });
 
-it('author model uses correct traits', function (): void {
+it('author model uses correct traits', static function (): void {
     $reflection = new ReflectionClass(Author::class);
     $traits = $reflection->getTraitNames();
 
@@ -29,7 +29,7 @@ it('author model uses correct traits', function (): void {
     expect($traits)->toContain('Modules\\Core\\Helpers\\SoftDeletes');
 });
 
-it('author model has required methods', function (): void {
+it('author model has required methods', static function (): void {
     $reflection = new ReflectionClass(Author::class);
 
     expect($reflection->hasMethod('contents'))->toBeTrue();
@@ -38,7 +38,7 @@ it('author model has required methods', function (): void {
     expect($reflection->hasMethod('toArray'))->toBeTrue();
 });
 
-it('author model has correct relationships', function (): void {
+it('author model has correct relationships', static function (): void {
     $reflection = new ReflectionClass(Author::class);
 
     // Test contents relationship
@@ -46,7 +46,7 @@ it('author model has correct relationships', function (): void {
     expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
 });
 
-it('author model has correct method signatures', function (): void {
+it('author model has correct method signatures', static function (): void {
     $reflection = new ReflectionClass(Author::class);
 
     // Test getRules method

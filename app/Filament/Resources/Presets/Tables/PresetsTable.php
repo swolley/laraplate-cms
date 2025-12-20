@@ -17,7 +17,7 @@ final class PresetsTable
     {
         return self::configureTable(
             table: $table,
-            columns: function (Collection $columns): void {
+            columns: static function (Collection $columns): void {
                 $columns->unshift(...[
                     TextColumn::make('entity.name')
                         ->searchable(),

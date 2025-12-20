@@ -21,17 +21,17 @@ final class AuthorsTable
     {
         return self::configureTable(
             table: $table,
-            columns: function (Collection $columns): void {
+            columns: static function (Collection $columns): void {
                 $columns->unshift(...[
                     IconColumn::make('user.id')
                         ->label('Type')
                         ->trueIcon('heroicon-o-user')
                         ->falseIcon('heroicon-o-pencil')
                         ->falseColor('gray')
-                        ->state(fn (Author $record): bool => $record->user?->id !== null)
+                        ->state(static fn (Author $record): bool => $record->user?->id !== null)
                         ->alignCenter()
                         ->tooltip(
-                            fn (Author $record): string => $record->user !== null
+                            static fn (Author $record): string => $record->user !== null
                                 ? sprintf('User (#%d: %s)', $record->user->id, $record->user->name)
                                 : 'Author',
                         )
@@ -43,7 +43,7 @@ final class AuthorsTable
                         ->circular()
                         ->toggleable(isToggledHiddenByDefault: false)
                         ->grow(false)
-                        ->defaultImageUrl(function (Author $record): UrlGenerator|string {
+                        ->defaultImageUrl(static function (Author $record): UrlGenerator|string {
                             $hash = abs(crc32($record->name));
 
                             $hue = $hash % 360;

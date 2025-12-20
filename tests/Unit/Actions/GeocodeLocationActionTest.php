@@ -12,7 +12,7 @@ afterEach(function (): void {
     Mockery::close();
 });
 
-it('invokes geocoding service', function (): void {
+it('invokes geocoding service', static function (): void {
     $service = Mockery::mock(IGeocodingService::class);
     $service->shouldReceive('search')
         ->once()

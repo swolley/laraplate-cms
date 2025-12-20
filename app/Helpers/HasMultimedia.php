@@ -76,20 +76,20 @@ trait HasMultimedia
     //         ->fit(Fit::Fill, 300, 300)
     //         ->optimize()
     //         ->quality(75)
-    //         ->naming(fn(string $fileName, string $extension): string => $fileName . '-high.' . $extension);
+    //         ->naming(static fn (string $fileName, string $extension): string => $fileName . '-high.' . $extension);
     //     $conversion->width(300)
     //         ->height(300)
     //         ->sharpen(10)
     //         ->fit(Fit::Fill, 300, 300)
     //         ->optimize()
     //         ->quality(50)
-    //         ->naming(fn(string $fileName, string $extension): string => $fileName . '-mid.' . $extension);
+    //         ->naming(static fn (string $fileName, string $extension): string => $fileName . '-mid.' . $extension);
     //     $conversion->width(300)
     //         ->height(300)
     //         ->sharpen(10)
     //         ->fit(Fit::Fill, 300, 300)
     //         ->optimize()
     //         ->quality(25)
-    //         ->naming(fn(string $fileName, string $extension): string => $fileName . '-low.' . $extension);
+    //         ->naming(static fn (string $fileName, string $extension): string => $fileName . '-low.' . $extension);
     // }
 }

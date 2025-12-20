@@ -38,7 +38,7 @@ abstract class AbstractGeocodingService implements IGeocodingService
     #[Override]
     public static function getInstance(): static
     {
-        return static::$instance ??= new static();
+        return self::$instance ??= new static();
     }
 
     public function url(Location $location): string

@@ -19,7 +19,7 @@ final class CategoriesTable
     {
         return self::configureTable(
             table: $table,
-            columns: function (Collection $default_columns): void {
+            columns: static function (Collection $default_columns): void {
                 $default_columns->unshift(...[
                     TextColumn::make('entity.name')
                         ->searchable()
@@ -32,7 +32,7 @@ final class CategoriesTable
                     TextColumn::make('name')
                         ->searchable()
                         ->sortable()
-                        ->state(fn (Category $record): string => Str::repeat('&nbsp;', $record->ancestors->count() * 4) . $record->name)
+                        ->state(static fn (Category $record): string => Str::repeat('&nbsp;', $record->ancestors->count() * 4) . $record->name)
                         ->html(),
                     TextColumn::make('path')
                         ->searchable()

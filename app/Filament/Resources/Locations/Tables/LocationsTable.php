@@ -18,7 +18,7 @@ final class LocationsTable
     {
         return self::configureTable(
             table: $table,
-            columns: function (Collection $columns): void {
+            columns: static function (Collection $columns): void {
                 $columns->unshift(...[
                     TextColumn::make('name')
                         ->searchable()
@@ -47,7 +47,7 @@ final class LocationsTable
                     TextColumn::make('geolocation')
                         ->toggleable(isToggledHiddenByDefault: true),
                     TextColumn::make('map')
-                        ->formatStateUsing(fn (Location $record): string => sprintf('<div class="space-y-1">%s->getLatitude() %s->getLongitude()</div>', $record->geolocation, $record->geolocation))
+                        ->formatStateUsing(static fn (Location $record): string => sprintf('<div class="space-y-1">%s->getLatitude() %s->getLongitude()</div>', $record->geolocation, $record->geolocation))
                         ->html()
                         ->toggleable(isToggledHiddenByDefault: true),
                 ]);

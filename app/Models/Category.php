@@ -177,11 +177,11 @@ final class Category extends Model implements IMediable, Sortable
     #[Override]
     protected static function booted(): void
     {
-        self::addGlobalScope('global_filters', function (Builder $query): void {
+        self::addGlobalScope('global_filters', static function (Builder $query): void {
             /** @var Builder<static> $query */
             $query->active()->valid();
         });
-        self::addGlobalScope('global_ordered', function (Builder $query): void {
+        self::addGlobalScope('global_ordered', static function (Builder $query): void {
             /** @var Builder<static> $query */
             $query->ordered();
         });

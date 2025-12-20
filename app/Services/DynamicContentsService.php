@@ -79,7 +79,7 @@ final class DynamicContentsService
 
         $this->entities_cache = Cache::memo()->rememberForever(
             $cache_key,
-            fn (): Collection => Entity::query()
+            static fn (): Collection => Entity::query()
                 ->withoutGlobalScopes()
                 ->orderBy('is_default', 'desc')
                 ->orderBy('name', 'asc')
@@ -108,7 +108,7 @@ final class DynamicContentsService
 
         $this->presets_cache = Cache::memo()->rememberForever(
             $cache_key,
-            fn (): Collection => Preset::query()
+            static fn (): Collection => Preset::query()
                 ->withoutGlobalScopes()
                 ->with(['fields', 'entity'])
                 ->orderBy('is_default', 'desc')
@@ -138,7 +138,7 @@ final class DynamicContentsService
 
         $this->presettables_cache = Cache::memo()->rememberForever(
             $cache_key,
-            fn (): Collection => Presettable::query()
+            static fn (): Collection => Presettable::query()
                 ->withoutGlobalScopes()
                 ->join('presets', 'presettables.preset_id', '=', 'presets.id')
                 ->join('entities', 'presets.entity_id', '=', 'entities.id')

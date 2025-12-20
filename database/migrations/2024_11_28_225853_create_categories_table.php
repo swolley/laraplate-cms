@@ -15,7 +15,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categories', function (Blueprint $table): void {
+        Schema::create('categories', static function (Blueprint $table): void {
             $table->id();
             $table->foreignId('entity_id')->nullable(false)->constrained('entities', 'id', 'categories_entity_id_FK')->cascadeOnDelete()->comment('The entity that the category belongs to');
             $table->foreignId('presettable_id')->nullable(false)->constrained('presettables', 'id', 'categories_presettable_id_FK')->cascadeOnDelete()->comment('The entity preset that the category belongs to');

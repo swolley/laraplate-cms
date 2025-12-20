@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Modules\Cms\Helpers\HasSlug;
 
-it('trait can be used', function (): void {
+it('trait can be used', static function (): void {
     $trait = new class extends Illuminate\Database\Eloquent\Model
     {
         use HasSlug;
@@ -17,7 +17,7 @@ it('trait can be used', function (): void {
     expect(method_exists($trait, 'slugFields'))->toBeTrue();
 });
 
-it('trait has required methods', function (): void {
+it('trait has required methods', static function (): void {
     $trait = new class
     {
         use HasSlug;
@@ -28,7 +28,7 @@ it('trait has required methods', function (): void {
     expect(method_exists($trait, 'slugFields'))->toBeTrue();
 });
 
-it('can get slug fields', function (): void {
+it('can get slug fields', static function (): void {
     $trait = new class
     {
         use HasSlug;
@@ -40,7 +40,7 @@ it('can get slug fields', function (): void {
     expect($fields)->toContain('name');
 });
 
-it('trait methods are callable', function (): void {
+it('trait methods are callable', static function (): void {
     $trait = new class
     {
         use HasSlug;
@@ -49,7 +49,7 @@ it('trait methods are callable', function (): void {
     expect(fn () => $trait->slugFields())->not->toThrow(Throwable::class);
 });
 
-it('trait can be used in different classes', function (): void {
+it('trait can be used in different classes', static function (): void {
     $class1 = new class
     {
         use HasSlug;
@@ -64,7 +64,7 @@ it('trait can be used in different classes', function (): void {
     expect(method_exists($class2, 'generateSlug'))->toBeTrue();
 });
 
-it('trait can be extended', function (): void {
+it('trait can be extended', static function (): void {
     $baseClass = new class
     {
         use HasSlug;
@@ -85,7 +85,7 @@ it('trait can be extended', function (): void {
     expect(method_exists($extendedClass, 'customMethod'))->toBeTrue();
 });
 
-it('trait has proper structure', function (): void {
+it('trait has proper structure', static function (): void {
     $trait = new class extends Illuminate\Database\Eloquent\Model
     {
         use HasSlug;
@@ -98,7 +98,7 @@ it('trait has proper structure', function (): void {
     expect(method_exists($trait, 'slugFields'))->toBeTrue();
 });
 
-it('trait methods are accessible', function (): void {
+it('trait methods are accessible', static function (): void {
     $trait = new class extends Illuminate\Database\Eloquent\Model
     {
         use HasSlug;
@@ -111,7 +111,7 @@ it('trait methods are accessible', function (): void {
     expect(method_exists($trait, 'slugFields'))->toBeTrue();
 });
 
-it('trait can be used in different scenarios', function (): void {
+it('trait can be used in different scenarios', static function (): void {
     $scenario1 = new class
     {
         use HasSlug;

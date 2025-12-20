@@ -14,7 +14,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('authors', function (Blueprint $table): void {
+        Schema::create('authors', static function (Blueprint $table): void {
             $table->id();
             $table->unsignedBigInteger('user_id')->nullable()->comment('The user that the author belongs to');
             $table->foreignId('entity_id')->nullable(false)->constrained('entities', 'id', 'authors_entity_id_FK')->cascadeOnDelete()->comment('The entity that the author belongs to');

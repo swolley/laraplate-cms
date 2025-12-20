@@ -14,7 +14,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('author_translations', function (Blueprint $table): void {
+        Schema::create('author_translations', static function (Blueprint $table): void {
             $table->id();
             $table->foreignId('author_id')->nullable(false)->constrained('authors', 'id', 'author_translations_author_id_FK')->cascadeOnDelete()->comment('The author that the translation belongs to');
             $table->string('locale', 10)->nullable(false)->index('author_translations_locale_IDX')->comment('The locale of the translation');

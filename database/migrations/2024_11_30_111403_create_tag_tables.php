@@ -11,7 +11,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('tags', function (Blueprint $table): void {
+        Schema::create('tags', static function (Blueprint $table): void {
             $table->id();
 
             // Unique constraints for name and slug are now in tag_translations table (per locale)
@@ -23,7 +23,7 @@ return new class extends Migration
             );
         });
 
-        Schema::create('taggables', function (Blueprint $table): void {
+        Schema::create('taggables', static function (Blueprint $table): void {
             $table->foreignId('tag_id')->constrained('tags', 'id', 'taggables_tag_id_FK')->cascadeOnDelete()->comment('The tag that the taggable belongs to');
             $table->morphs('taggable', 'taggables_morph_idx');
 

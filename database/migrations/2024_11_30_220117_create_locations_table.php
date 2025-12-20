@@ -15,7 +15,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('locations', function (Blueprint $table): void {
+        Schema::create('locations', static function (Blueprint $table): void {
             $table->id();
             $table->string('name')->nullable(false)->comment('The friendly name of the location');
             $table->string('slug')->nullable(false)->comment('The slug of the location');

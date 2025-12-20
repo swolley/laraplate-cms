@@ -15,7 +15,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('category_translations', function (Blueprint $table): void {
+        Schema::create('category_translations', static function (Blueprint $table): void {
             $table->id();
             $table->foreignId('category_id')->nullable(false)->constrained('categories', 'id', 'category_translations_category_id_FK')->cascadeOnDelete()->comment('The category that the translation belongs to');
             $table->string('locale', 10)->nullable(false)->index('category_translations_locale_IDX')->comment('The locale of the translation');

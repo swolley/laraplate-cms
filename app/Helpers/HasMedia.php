@@ -30,7 +30,7 @@ trait HasMedia
     {
         $this
             ->getMedia($collectionName)
-            ->each(fn (Media $media) => $media->forceDelete());
+            ->each(static fn (Media $media) => $media->forceDelete());
 
         event(new CollectionHasBeenClearedEvent($this, $collectionName));
 
@@ -58,7 +58,7 @@ trait HasMedia
         $this
             ->getMedia($collectionName)
             ->reject(fn (Media $media) => $excludedMedia->where($media->getKeyName(), $media->getKey())->count())
-            ->each(fn (Media $media) => $media->forceDelete());
+            ->each(static fn (Media $media) => $media->forceDelete());
 
         if ($this->mediaIsPreloaded()) {
             unset($this->media);
@@ -125,7 +125,7 @@ trait HasMedia
                 array_column($newMediaArray, $currentMediaItem->getKeyName()),
                 true,
             ))
-            ->each(fn (Media $media) => $media->delete());
+            ->each(static fn (Media $media) => $media->delete());
 
         if ($this->mediaIsPreloaded()) {
             unset($this->media);

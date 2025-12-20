@@ -14,7 +14,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('templates', function (Blueprint $table): void {
+        Schema::create('templates', static function (Blueprint $table): void {
             $table->id();
             $table->string('name')->nullable(false)->comment('The name of the template');
             $table->longText('content')->nullable(false)->comment('The blade template content');

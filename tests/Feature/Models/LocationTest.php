@@ -91,7 +91,7 @@ it('has validations trait', function (): void {
     expect(method_exists($this->location, 'getRules'))->toBeTrue();
 });
 
-it('can be created with specific attributes', function (): void {
+it('can be created with specific attributes', static function (): void {
     $locationData = [
         'name' => 'Rome',
         'address' => 'Colosseum, Rome, Italy',
@@ -115,7 +115,7 @@ it('can be created with specific attributes', function (): void {
     ]);
 });
 
-it('can be found by name', function (): void {
+it('can be found by name', static function (): void {
     $location = Location::factory()->create(['name' => 'Unique Location']);
 
     $foundLocation = Location::where('name', 'Unique Location')->first();
@@ -123,7 +123,7 @@ it('can be found by name', function (): void {
     expect($foundLocation->id)->toBe($location->id);
 });
 
-it('can be found by city', function (): void {
+it('can be found by city', static function (): void {
     $location = Location::factory()->create(['city' => 'Unique City']);
 
     $foundLocation = Location::where('city', 'Unique City')->first();
@@ -131,7 +131,7 @@ it('can be found by city', function (): void {
     expect($foundLocation->id)->toBe($location->id);
 });
 
-it('can be found by country', function (): void {
+it('can be found by country', static function (): void {
     $location = Location::factory()->create(['country' => 'Unique Country']);
 
     $foundLocation = Location::where('country', 'Unique Country')->first();
@@ -139,7 +139,7 @@ it('can be found by country', function (): void {
     expect($foundLocation->id)->toBe($location->id);
 });
 
-it('can be found by active status', function (): void {
+it('can be found by active status', static function (): void {
     $activeLocation = Location::factory()->create(['is_active' => true]);
     $inactiveLocation = Location::factory()->create(['is_active' => false]);
 
@@ -152,7 +152,7 @@ it('can be found by active status', function (): void {
     expect($inactiveLocations->first()->id)->toBe($inactiveLocation->id);
 });
 
-it('can be found by coordinates', function (): void {
+it('can be found by coordinates', static function (): void {
     $location = Location::factory()->create([
         'latitude' => 45.4642,
         'longitude' => 9.1900,
@@ -165,14 +165,14 @@ it('can be found by coordinates', function (): void {
     expect($foundLocation->id)->toBe($location->id);
 });
 
-it('has proper timestamps', function (): void {
+it('has proper timestamps', static function (): void {
     $location = Location::factory()->create();
 
     expect($location->created_at)->toBeInstanceOf(Carbon\Carbon::class);
     expect($location->updated_at)->toBeInstanceOf(Carbon\Carbon::class);
 });
 
-it('can be serialized to array', function (): void {
+it('can be serialized to array', static function (): void {
     $location = Location::factory()->create([
         'name' => 'Test Location',
         'city' => 'Test City',
@@ -191,7 +191,7 @@ it('can be serialized to array', function (): void {
     expect($locationArray['is_active'])->toBeTrue();
 });
 
-it('can be restored after soft delete', function (): void {
+it('can be restored after soft delete', static function (): void {
     $location = Location::factory()->create();
     $location->delete();
 
@@ -202,7 +202,7 @@ it('can be restored after soft delete', function (): void {
     expect($location->trashed())->toBeFalse();
 });
 
-it('can be permanently deleted', function (): void {
+it('can be permanently deleted', static function (): void {
     $location = Location::factory()->create();
     $locationId = $location->id;
 
@@ -211,7 +211,7 @@ it('can be permanently deleted', function (): void {
     expect(Location::withTrashed()->find($locationId))->toBeNull();
 });
 
-it('can work with spatial queries', function (): void {
+it('can work with spatial queries', static function (): void {
     $location = Location::factory()->create([
         'latitude' => 45.4642,
         'longitude' => 9.1900,

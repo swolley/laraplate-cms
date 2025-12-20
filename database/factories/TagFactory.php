@@ -7,12 +7,13 @@ namespace Modules\Cms\Database\Factories;
 use Exception;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
+use Modules\Cms\Helpers\HasDynamicContentFactory;
 use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
 
 final class TagFactory extends Factory
 {
-    use HasUniqueFactoryValues;
+    use HasDynamicContentFactory, HasUniqueFactoryValues;
 
     /**
      * The name of the factory's corresponding model.
@@ -46,7 +47,7 @@ final class TagFactory extends Factory
                 $default_locale = config('app.locale');
 
                 try {
-                    $name = $this->uniqueValue(fn () => fake()->words(fake()->numberBetween(1, 3), true), $this->model, 'name', 50);
+                    $name = $this->uniqueValue(static fn () => fake()->words(fake()->numberBetween(1, 3), true), $this->model, 'name', 50);
                 } catch (Exception) {
                     $name = fake()->words(fake()->numberBetween(1, 3), true) . '_' . uniqid();
                 }

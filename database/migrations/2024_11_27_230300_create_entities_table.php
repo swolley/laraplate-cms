@@ -14,7 +14,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('entities', function (Blueprint $table): void {
+        Schema::create('entities', static function (Blueprint $table): void {
             $table->id();
             $table->string('name')->nullable(false)->comment('The name of the entity')->unique('entities_name_UN');
             $table->string('slug')->nullable(false)->comment('The slug of the entity')->unique('entities_slug_UN');

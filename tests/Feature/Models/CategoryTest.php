@@ -9,8 +9,8 @@ use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Field;
-use Modules\Cms\Models\Preset;
 use Modules\Cms\Models\Pivot\Presettable;
+use Modules\Cms\Models\Preset;
 use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
@@ -19,18 +19,18 @@ beforeEach(function (): void {
     // Create Entity, Preset, Presettable, and Field required for Category factory
     $entity = Entity::firstOrCreate(
         ['name' => 'categories'],
-        ['type' => EntityType::CATEGORIES]
+        ['type' => EntityType::CATEGORIES],
     );
 
     $preset = Preset::firstOrCreate(
         ['entity_id' => $entity->id, 'name' => 'default'],
-        ['entity_id' => $entity->id, 'name' => 'default']
+        ['entity_id' => $entity->id, 'name' => 'default'],
     );
 
     // Presettable might be created automatically by triggers, so use firstOrCreate
     Presettable::firstOrCreate(
         ['entity_id' => $entity->id, 'preset_id' => $preset->id],
-        ['entity_id' => $entity->id, 'preset_id' => $preset->id]
+        ['entity_id' => $entity->id, 'preset_id' => $preset->id],
     );
 
     // Create at least one Field for the Preset (required by fillDynamicContents)
@@ -38,7 +38,7 @@ beforeEach(function (): void {
         $field = Field::create([
             'name' => 'description_' . uniqid(),
             'type' => FieldType::TEXT,
-            'options' => new \stdClass(),
+            'options' => new stdClass(),
         ]);
         $preset->fields()->attach($field->id, [
             'default' => null,
@@ -88,7 +88,7 @@ it('belongs to many contents', function (): void {
     expect($this->category->contents->pluck('title')->toArray())->toContain('Article 1', 'Article 2');
 });
 
-it('has recursive relationships for parent-child categories', function (): void {
+it('has recursive relationships for parent-child categories', static function (): void {
     $parentCategory = Category::factory()->create();
     $parentCategory->setTranslation(config('app.locale'), ['name' => 'Technology']);
     $parentCategory->save();
@@ -165,7 +165,7 @@ it('has validations trait', function (): void {
     expect(method_exists($this->category, 'getRules'))->toBeTrue();
 });
 
-it('can be created with specific translation attributes', function (): void {
+it('can be created with specific translation attributes', static function (): void {
     $category = Category::factory()->create();
     $default_locale = config('app.locale');
     $category->setTranslation($default_locale, [
@@ -182,7 +182,7 @@ it('can be created with specific translation attributes', function (): void {
     expect($category->description)->toBe('Science category');
 });
 
-it('can be found by name through translation', function (): void {
+it('can be found by name through translation', static function (): void {
     $category = Category::factory()->create();
     $default_locale = config('app.locale');
     $category->setTranslation($default_locale, [
@@ -191,7 +191,7 @@ it('can be found by name through translation', function (): void {
     ]);
     $category->save();
 
-    $foundCategory = Category::whereHas('translations', function ($q): void {
+    $foundCategory = Category::whereHas('translations', static function ($q): void {
         $q->where('name', 'Unique Category');
     })->first();
 
@@ -199,7 +199,7 @@ it('can be found by name through translation', function (): void {
     expect($foundCategory->name)->toBe('Unique Category');
 });
 
-it('can be found by slug through translation', function (): void {
+it('can be found by slug through translation', static function (): void {
     $category = Category::factory()->create();
     $default_locale = config('app.locale');
     $category->setTranslation($default_locale, [
@@ -208,7 +208,7 @@ it('can be found by slug through translation', function (): void {
     ]);
     $category->save();
 
-    $foundCategory = Category::whereHas('translations', function ($q): void {
+    $foundCategory = Category::whereHas('translations', static function ($q): void {
         $q->where('slug', 'unique-slug');
     })->first();
 
@@ -216,7 +216,7 @@ it('can be found by slug through translation', function (): void {
     expect($foundCategory->slug)->toBe('unique-slug');
 });
 
-it('can be found by active status', function (): void {
+it('can be found by active status', static function (): void {
     $activeCategory = Category::factory()->create(['is_active' => true]);
     $inactiveCategory = Category::factory()->create(['is_active' => false]);
 
@@ -229,14 +229,14 @@ it('can be found by active status', function (): void {
     expect($inactiveCategories->first()->id)->toBe($inactiveCategory->id);
 });
 
-it('has proper timestamps', function (): void {
+it('has proper timestamps', static function (): void {
     $category = Category::factory()->create();
 
-    expect($category->created_at)->toBeInstanceOf(\Carbon\CarbonImmutable::class);
-    expect($category->updated_at)->toBeInstanceOf(\Carbon\CarbonImmutable::class);
+    expect($category->created_at)->toBeInstanceOf(Carbon\CarbonImmutable::class);
+    expect($category->updated_at)->toBeInstanceOf(Carbon\CarbonImmutable::class);
 });
 
-it('can be serialized to array with translations', function (): void {
+it('can be serialized to array with translations', static function (): void {
     $category = Category::factory()->create();
     $default_locale = config('app.locale');
     $category->setTranslation($default_locale, [
@@ -256,7 +256,7 @@ it('can be serialized to array with translations', function (): void {
     expect($categoryArray['slug'])->toBe('test-category');
 });
 
-it('can be restored after soft delete', function (): void {
+it('can be restored after soft delete', static function (): void {
     $category = Category::factory()->create();
     $category->delete();
 
@@ -267,7 +267,7 @@ it('can be restored after soft delete', function (): void {
     expect($category->trashed())->toBeFalse();
 });
 
-it('can be permanently deleted', function (): void {
+it('can be permanently deleted', static function (): void {
     $category = Category::factory()->create();
     $categoryId = $category->id;
 

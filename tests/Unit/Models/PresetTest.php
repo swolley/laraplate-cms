@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Modules\Cms\Models\Preset;
 
-it('preset model has correct structure', function (): void {
+it('preset model has correct structure', static function (): void {
     $reflection = new ReflectionClass(Preset::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -15,7 +15,7 @@ it('preset model has correct structure', function (): void {
     expect($source)->toContain('protected $hidden');
 });
 
-it('preset model uses correct traits', function (): void {
+it('preset model uses correct traits', static function (): void {
     $reflection = new ReflectionClass(Preset::class);
     $traits = $reflection->getTraitNames();
 
@@ -28,7 +28,7 @@ it('preset model uses correct traits', function (): void {
     expect($traits)->toContain('Modules\\Core\\Helpers\\SoftDeletes');
 });
 
-it('preset model has required methods', function (): void {
+it('preset model has required methods', static function (): void {
     $reflection = new ReflectionClass(Preset::class);
 
     expect($reflection->hasMethod('entity'))->toBeTrue();
@@ -37,7 +37,7 @@ it('preset model has required methods', function (): void {
     expect($reflection->hasMethod('toArray'))->toBeTrue();
 });
 
-it('preset model has correct relationships', function (): void {
+it('preset model has correct relationships', static function (): void {
     $reflection = new ReflectionClass(Preset::class);
 
     // Test entity relationship
@@ -49,13 +49,12 @@ it('preset model has correct relationships', function (): void {
     expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
 });
 
-it('preset model has correct method signatures', function (): void {
+it('preset model has correct method signatures', static function (): void {
     $reflection = new ReflectionClass(Preset::class);
 
     // Test getRules method
     $method = $reflection->getMethod('getRules');
     expect($method->getReturnType()->getName())->toBe('array');
-
 
     // Test toArray method
     $method = $reflection->getMethod('toArray');

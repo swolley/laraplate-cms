@@ -14,7 +14,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('presets', function (Blueprint $table): void {
+        Schema::create('presets', static function (Blueprint $table): void {
             $table->id();
             $table->foreignId('entity_id')->nullable(false)->constrained('entities', 'id', 'presets_entity_id_FK')->cascadeOnDelete()->comment('The entity that the preset belongs to');
             $table->string('name')->nullable(false)->comment('The name of the preset');

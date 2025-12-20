@@ -6,12 +6,13 @@ namespace Modules\Cms\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Helpers\HasDynamicContentFactory;
 use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
 
 final class EntityFactory extends Factory
 {
-    use HasUniqueFactoryValues;
+    use HasDynamicContentFactory, HasUniqueFactoryValues;
 
     /**
      * The name of the factory's corresponding model.

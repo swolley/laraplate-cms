@@ -11,8 +11,8 @@ use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Location;
-use Modules\Cms\Models\Preset;
 use Modules\Cms\Models\Pivot\Presettable;
+use Modules\Cms\Models\Preset;
 use Modules\Cms\Models\Tag;
 use Tests\TestCase;
 
@@ -22,17 +22,17 @@ beforeEach(function (): void {
     // Create Entity, Preset, Presettable, and Field required for Content factory
     $entity = Entity::firstOrCreate(
         ['name' => 'contents'],
-        ['type' => EntityType::CONTENTS]
+        ['type' => EntityType::CONTENTS],
     );
 
     $preset = Preset::firstOrCreate(
         ['entity_id' => $entity->id, 'name' => 'default'],
-        ['entity_id' => $entity->id, 'name' => 'default']
+        ['entity_id' => $entity->id, 'name' => 'default'],
     );
 
     Presettable::firstOrCreate(
         ['entity_id' => $entity->id, 'preset_id' => $preset->id],
-        ['entity_id' => $entity->id, 'preset_id' => $preset->id]
+        ['entity_id' => $entity->id, 'preset_id' => $preset->id],
     );
 
     // Create at least one Field for the Preset (required by fillDynamicContents)
@@ -40,7 +40,7 @@ beforeEach(function (): void {
         $field = Field::create([
             'name' => 'description_' . uniqid(),
             'type' => FieldType::TEXT,
-            'options' => new \stdClass(),
+            'options' => new stdClass(),
         ]);
         $preset->fields()->attach($field->id, [
             'default' => null,
@@ -193,7 +193,7 @@ it('has optimistic locking trait', function (): void {
     expect(method_exists($this->content, 'incrementLockVersion'))->toBeTrue();
 });
 
-it('can be created with specific translation attributes', function (): void {
+it('can be created with specific translation attributes', static function (): void {
     $content = Content::factory()->create();
     $default_locale = config('app.locale');
     $content->setTranslation($default_locale, [
@@ -212,7 +212,7 @@ it('can be created with specific translation attributes', function (): void {
     expect($content->excerpt)->toBe('Custom excerpt');
 });
 
-it('can be found by title through translation', function (): void {
+it('can be found by title through translation', static function (): void {
     $content = Content::factory()->create();
     $default_locale = config('app.locale');
     $content->setTranslation($default_locale, [
@@ -222,7 +222,7 @@ it('can be found by title through translation', function (): void {
     $content->save();
 
     // Title is now in translations, so we need to search through the relation
-    $foundContent = Content::whereHas('translations', function ($q): void {
+    $foundContent = Content::whereHas('translations', static function ($q): void {
         $q->where('title', 'Unique Content');
     })->first();
 
@@ -230,7 +230,7 @@ it('can be found by title through translation', function (): void {
     expect($foundContent->title)->toBe('Unique Content');
 });
 
-it('can be found by slug through translation', function (): void {
+it('can be found by slug through translation', static function (): void {
     $content = Content::factory()->create();
     $default_locale = config('app.locale');
     $content->setTranslation($default_locale, [
@@ -240,7 +240,7 @@ it('can be found by slug through translation', function (): void {
     $content->save();
 
     // Slug is now in translations, so we need to search through the relation
-    $foundContent = Content::whereHas('translations', function ($q): void {
+    $foundContent = Content::whereHas('translations', static function ($q): void {
         $q->where('slug', 'unique-slug');
     })->first();
 
@@ -260,11 +260,11 @@ it('has translations trait', function (): void {
 it('has proper timestamps', function (): void {
     $content = Content::factory()->create();
 
-    expect($content->created_at)->toBeInstanceOf(\Carbon\CarbonImmutable::class);
-    expect($content->updated_at)->toBeInstanceOf(\Carbon\CarbonImmutable::class);
+    expect($content->created_at)->toBeInstanceOf(Carbon\CarbonImmutable::class);
+    expect($content->updated_at)->toBeInstanceOf(Carbon\CarbonImmutable::class);
 });
 
-it('can be serialized to array with translations', function (): void {
+it('can be serialized to array with translations', static function (): void {
     $content = Content::factory()->create();
     $default_locale = config('app.locale');
     $content->setTranslation($default_locale, [
@@ -284,7 +284,7 @@ it('can be serialized to array with translations', function (): void {
     expect($contentArray['slug'])->toBe('test-content');
 });
 
-it('can be restored after soft delete', function (): void {
+it('can be restored after soft delete', static function (): void {
     $content = Content::factory()->create();
     $content->delete();
 
@@ -295,7 +295,7 @@ it('can be restored after soft delete', function (): void {
     expect($content->trashed())->toBeFalse();
 });
 
-it('can be permanently deleted', function (): void {
+it('can be permanently deleted', static function (): void {
     $content = Content::factory()->create();
     $contentId = $content->id;
 

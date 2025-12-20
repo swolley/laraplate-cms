@@ -8,7 +8,7 @@ use Tests\TestCase;
 
 uses(TestCase::class);
 
-it('builds filters', function (): void {
+it('builds filters', static function (): void {
     $request = new class extends ListRequest
     {
         public function get(string $key, mixed $default = null): mixed

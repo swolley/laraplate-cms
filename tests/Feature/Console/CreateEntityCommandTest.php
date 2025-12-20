@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
-it('command exists and has correct signature', function (): void {
+it('command exists and has correct signature', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -18,48 +18,48 @@ it('command exists and has correct signature', function (): void {
     expect($source)->toContain('Create new cms entity');
 });
 
-it('command class has correct properties', function (): void {
+it('command class has correct properties', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
 
     expect($reflection->getName())->toBe('Modules\Cms\Console\CreateEntityCommand');
     expect($reflection->isSubclassOf(Modules\Core\Overrides\Command::class))->toBeTrue();
 });
 
-it('command can be instantiated', function (): void {
+it('command can be instantiated', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
 
     expect($reflection->isInstantiable())->toBeTrue();
     expect($reflection->isSubclassOf(Modules\Core\Overrides\Command::class))->toBeTrue();
 });
 
-it('command has correct namespace', function (): void {
+it('command has correct namespace', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
 
     expect($reflection->getNamespaceName())->toBe('Modules\Cms\Console');
     expect($reflection->getShortName())->toBe('CreateEntityCommand');
 });
 
-it('command has handle method', function (): void {
+it('command has handle method', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
 
     expect($reflection->hasMethod('handle'))->toBeTrue();
 });
 
-it('command handle method returns void', function (): void {
+it('command handle method returns void', static function (): void {
     $reflection = new ReflectionMethod(CreateEntityCommand::class, 'handle');
 
     expect($reflection->getReturnType()->getName())->toBe('void');
 });
 
-it('command has optional entity argument', function (): void {
-    $reflection = new \ReflectionClass(CreateEntityCommand::class);
+it('command has optional entity argument', static function (): void {
+    $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
     expect($source)->toContain('entity');
     expect($source)->toContain('InputArgument::OPTIONAL');
 });
 
-it('command has content-model option', function (): void {
+it('command has content-model option', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -67,14 +67,14 @@ it('command has content-model option', function (): void {
     expect($source)->toContain('InputOption');
 });
 
-it('command uses HasCommandUtils trait', function (): void {
+it('command uses HasCommandUtils trait', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $traits = $reflection->getTraitNames();
 
     expect($traits)->toContain('Modules\Core\Helpers\HasCommandUtils');
 });
 
-it('command uses Laravel Prompts', function (): void {
+it('command uses Laravel Prompts', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -84,7 +84,7 @@ it('command uses Laravel Prompts', function (): void {
     expect($source)->toContain('Laravel\Prompts\text');
 });
 
-it('command creates entity with fillable attributes', function (): void {
+it('command creates entity with fillable attributes', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -92,7 +92,7 @@ it('command creates entity with fillable attributes', function (): void {
     expect($source)->toContain('getOperationRules');
 });
 
-it('command handles entity type selection', function (): void {
+it('command handles entity type selection', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -100,15 +100,15 @@ it('command handles entity type selection', function (): void {
     expect($source)->toContain('Choose the type of the entity');
 });
 
-it('command creates standard preset', function (): void {
-    $reflection = new \ReflectionClass(CreateEntityCommand::class);
+it('command creates standard preset', static function (): void {
+    $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
     expect($source)->toContain('standard');
     expect($source)->toContain('Preset');
 });
 
-it('command handles field selection', function (): void {
+it('command handles field selection', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -116,7 +116,7 @@ it('command handles field selection', function (): void {
     expect($source)->toContain('Choose fields for the preset');
 });
 
-it('command handles field requirements', function (): void {
+it('command handles field requirements', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -124,7 +124,7 @@ it('command handles field requirements', function (): void {
     expect($source)->toContain('assignFieldToPreset');
 });
 
-it('command handles default field values', function (): void {
+it('command handles default field values', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -132,7 +132,7 @@ it('command handles default field values', function (): void {
     expect($source)->toContain('Specify a default value');
 });
 
-it('command handles different field types', function (): void {
+it('command handles different field types', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -141,7 +141,7 @@ it('command handles different field types', function (): void {
     expect($source)->toContain('FieldType::CHECKBOX');
 });
 
-it('command handles content model creation', function (): void {
+it('command handles content model creation', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -150,21 +150,21 @@ it('command handles content model creation', function (): void {
     expect($source)->toContain('Create a content model file');
 });
 
-it('command handles slug generation', function (): void {
-    $reflection = new \ReflectionClass(CreateEntityCommand::class);
+it('command handles slug generation', static function (): void {
+    $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
     expect($source)->toContain('Str::slug');
 });
 
-it('command handles validation', function (): void {
+it('command handles validation', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
     expect($source)->toContain('validationCallback');
 });
 
-it('command handles field attachment to preset', function (): void {
+it('command handles field attachment to preset', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -172,7 +172,7 @@ it('command handles field attachment to preset', function (): void {
     expect($source)->toContain('pivotAttributes');
 });
 
-it('command handles default value parsing', function (): void {
+it('command handles default value parsing', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -180,7 +180,7 @@ it('command handles default value parsing', function (): void {
     expect($source)->toContain('preg_match');
 });
 
-it('command handles boolean values', function (): void {
+it('command handles boolean values', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -188,7 +188,7 @@ it('command handles boolean values', function (): void {
     expect($source)->toContain('false');
 });
 
-it('command handles numeric values', function (): void {
+it('command handles numeric values', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -196,7 +196,7 @@ it('command handles numeric values', function (): void {
     expect($source)->toContain('(float)');
 });
 
-it('command handles array values', function (): void {
+it('command handles array values', static function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -204,8 +204,8 @@ it('command handles array values', function (): void {
     expect($source)->toContain('json_decode');
 });
 
-it('command handles null values', function (): void {
-    $reflection = new \ReflectionClass(CreateEntityCommand::class);
+it('command handles null values', static function (): void {
+    $reflection = new ReflectionClass(CreateEntityCommand::class);
     $source = file_get_contents($reflection->getFileName());
 
     expect($source)->toContain('null');

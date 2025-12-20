@@ -116,7 +116,7 @@ final class Entity extends Model
     #[Override]
     protected static function booted(): void
     {
-        self::addGlobalScope('active', function (Builder $builder): void {
+        self::addGlobalScope('active', static function (Builder $builder): void {
             $builder->active();
         });
     }

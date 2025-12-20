@@ -15,12 +15,12 @@ use Modules\Cms\Models\Author;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Tag;
-use Modules\Core\Helpers\HasTranslationsFactory;
+use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
 
 final class ContentFactory extends Factory
 {
-    use HasDynamicContentFactory, HasTranslationsFactory;
+    use HasDynamicContentFactory, HasUniqueFactoryValues;
 
     /**
      * The name of the factory's corresponding model.
@@ -50,6 +50,11 @@ final class ContentFactory extends Factory
     public function configure(): self
     {
         return $this->afterMaking(function (Content &$content): void {
+            // Pre-set required translatable fields before validation
+            $title = fake()->sentence(fake()->numberBetween(3, 8));
+            $content->title = $title;
+            $content->slug = Str::slug($title);
+
             $this->fillDynamicContents($content);
 
             if (array_key_exists('period_to', $content->components) && fake()->boolean()) {
@@ -63,20 +68,19 @@ final class ContentFactory extends Factory
             $content->setForcedApprovalUpdate(fake()->boolean(85));
         })->afterCreating(function (Content $content): void {
             // Create default translation
-            $this->createTranslations($content, function (string $locale) {
-                return [
-                    'title' => fake($locale)->text(fake()->numberBetween(100, 255)),
-                    'slug' => Str::slug(fake($locale)->text(fake()->numberBetween(100, 255))),
-                    'content' => [
-                        'blocks' => array_map(fn (string $paragraph) => [
-                            'type' => 'paragraph',
-                            'data' => [
-                                'text' => $paragraph,
-                            ],
-                        ], fake($locale)->paragraphs(fake()->rand(1, 10))),
-                    ],
-                ];
-            });
+            $default_locale = config('app.locale');
+            $content->setTranslation($default_locale, [
+                'title' => fake($default_locale)->text(fake()->numberBetween(100, 255)),
+                'slug' => Str::slug(fake($default_locale)->text(fake()->numberBetween(100, 255))),
+                'content' => [
+                    'blocks' => array_map(static fn (string $paragraph) => [
+                        'type' => 'paragraph',
+                        'data' => [
+                            'text' => $paragraph,
+                        ],
+                    ], fake($default_locale)->paragraphs(fake()->rand(1, 10))),
+                ],
+            ]);
 
             if ($content->exists && $content->getKey()) {
                 $this->createRelations($content);
@@ -87,12 +91,6 @@ final class ContentFactory extends Factory
                 ]);
             }
         });
-    }
-
-    #[Override]
-    public function newModel(array $attributes = []): Content
-    {
-        return (new Content())->newInstance($attributes);
     }
 
     /**

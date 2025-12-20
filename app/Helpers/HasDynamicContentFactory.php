@@ -98,7 +98,7 @@ trait HasDynamicContentFactory
                         FieldType::PHONE => fake()->boolean() ? fake()->unique()->e164PhoneNumber() : null,
                         FieldType::URL => fake()->boolean() ? fake()->unique()->url() : null,
                         FieldType::EDITOR => (object) [
-                            'blocks' => array_map(fn (string $paragraph) => (object) [
+                            'blocks' => array_map(static fn (string $paragraph) => (object) [
                                 'type' => 'paragraph',
                                 'data' => [
                                     'text' => $paragraph,

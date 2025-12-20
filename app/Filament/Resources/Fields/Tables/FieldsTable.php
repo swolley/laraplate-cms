@@ -19,14 +19,14 @@ final class FieldsTable
     {
         return self::configureTable(
             table: $table,
-            columns: function (Collection $columns): void {
+            columns: static function (Collection $columns): void {
                 $columns->unshift(...[
                     TextColumn::make('name')
                         ->searchable(),
                     TextColumn::make('type')
                         ->searchable(),
                     TextColumn::make('options')
-                        ->formatStateUsing(function (Field $record): string {
+                        ->formatStateUsing(static function (Field $record): string {
                             $options = json_decode((string) $record->options, true);
                             $string = '';
 

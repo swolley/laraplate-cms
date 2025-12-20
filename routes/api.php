@@ -18,12 +18,8 @@ use Modules\Cms\Http\Controllers\ContentsController;
  *
 */
 
-// Route::group(['prefix' => 'locations'], function () {
-//     Route::get('/{value}/contents', [ContentsController::class, 'getContentsByLocation'])->name('locations.contents');
-//     Route::get('/{value}/{entity}', [ContentsController::class, 'getEntityContentsByLocation'])->name('locations.entity');
-// });
-Route::group(['prefix' => '{relation}'], function (): void {
+Route::group(['prefix' => '{relation}'], static function (): void {
     $entities = ['contents', ...Cache::get('entities', collect())->pluck('name')->toArray()];
-    $entities = array_map(fn ($entity) => Str::plural($entity), $entities);
+    $entities = array_map(static fn ($entity) => Str::plural($entity), $entities);
     Route::get('/{value}/{entity}', [ContentsController::class, 'getContentsByRelation'])->name('relation.contents')->whereIn('relation', ['tags', 'categories', 'locations', 'authors'])->whereIn('entity', $entities);
 });

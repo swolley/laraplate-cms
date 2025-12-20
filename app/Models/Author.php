@@ -120,7 +120,7 @@ final class Author extends Model implements IMediable
 
     protected static function booted(): void
     {
-        self::addGlobalScope(fn (Builder $query) => $query->with('user'));
+        self::addGlobalScope(static fn (Builder $query) => $query->with('user'));
     }
 
     protected static function newFactory(): AuthorFactory
