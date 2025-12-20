@@ -84,7 +84,6 @@ trait HasDynamicContents
      *
      * @param  string  $key
      */
-    #[Override]
     public function getAttribute($key): mixed
     {
         // Let Eloquent handle standard attributes, relations, and accessors first
@@ -118,7 +117,6 @@ trait HasDynamicContents
      * @param  string  $key
      * @return $this
      */
-    #[Override]
     public function setAttribute($key, $value)
     {
         if ($this->isDynamicField($key)) {

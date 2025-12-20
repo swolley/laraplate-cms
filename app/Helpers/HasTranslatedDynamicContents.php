@@ -59,7 +59,6 @@ trait HasTranslatedDynamicContents
      *
      * @param  string  $key
      */
-    #[Override]
     public function getAttribute($key): mixed
     {
         // First, check for standard Eloquent attributes, accessors, relations
@@ -108,7 +107,6 @@ trait HasTranslatedDynamicContents
      * @param  string  $key
      * @return $this
      */
-    #[Override]
     public function setAttribute($key, $value)
     {
         // Check if it's a translatable field

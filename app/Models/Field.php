@@ -53,7 +53,6 @@ final class Field extends Model
         'updated_at',
     ];
 
-    #[Override]
     public function getAttribute($key): mixed
     {
         if (property_exists($this, 'pivot') && $this->pivot !== null && isset($this->pivot->{$key})) {
@@ -63,7 +62,6 @@ final class Field extends Model
         return parent::getAttribute($key);
     }
 
-    #[Override]
     public function setAttribute($key, $value): void
     {
         if (property_exists($this, 'pivot') && $this->pivot !== null && array_key_exists($key, $this->pivot->getAttributes())) {
