@@ -20,37 +20,9 @@ abstract class AbstractAnalytics
     protected function getElasticsearchClient(): Client
     {
         $config = config('elastic.client.connections.default');
-
-        $builder = ClientBuilder::create();
-        $builder->setHosts($config['hosts']);
-
-        // Imposta autenticazione se configurata
-        if ($config['username'] !== '' && $config['password'] !== '') {
-            $builder->setBasicAuthentication($config['username'], $config['password']);
-        }
-
-        // Imposta configurazioni di timeout
-        if ($config['timeout'] !== '') {
-            $builder->setRetries($config['retries'] ?? 3);
-        }
-
-        // Configura timeout tramite options
-        $builder->setHttpClientOptions([
-            'timeout' => $config['timeout'] ?? 60,
-            'connect_timeout' => $config['connect_timeout'] ?? 10,
-        ]);
-
-        // Imposta cloud ID se disponibile
-        if ($config['cloud_id'] !== '') {
-            $builder->setElasticCloudId($config['cloud_id']);
-        }
-
-        // Imposta configurazioni SSL
-        if (isset($config['ssl_verification'])) {
-            $builder->setSSLVerification($config['ssl_verification']);
-        }
-
-        return $builder->build();
+        
+        return ClientBuilder::fromConfig($config);
+        
     }
 
     /**
