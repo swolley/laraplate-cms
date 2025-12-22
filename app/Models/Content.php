@@ -357,14 +357,6 @@ final class Content extends Model implements HasMedia, Sortable
         return $this->categories->first()?->getPath();
     }
 
-    public function searchableAs(): string
-    {
-        $defaultEngine = config('search.default', 'typesense');
-        $prefix = config("search.engines.{$defaultEngine}.index_prefix", '');
-
-        return $prefix . $this->getTable() . '_v2';
-    }
-
     #[Override]
     public function toArray(): array
     {
