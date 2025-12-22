@@ -7,7 +7,6 @@ namespace Modules\Cms\Database\Factories;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Helpers\HasDynamicContentFactory;
@@ -70,26 +69,10 @@ final class ContentFactory extends Factory
             // Create default translation
             $default_locale = config('app.locale');
             $content->setTranslation($default_locale, [
-                'title' => fake($default_locale)->text(fake()->numberBetween(100, 255)),
-                'slug' => Str::slug(fake($default_locale)->text(fake()->numberBetween(100, 255))),
-                'content' => [
-                    'blocks' => array_map(static fn (string $paragraph) => [
-                        'type' => 'paragraph',
-                        'data' => [
-                            'text' => $paragraph,
-                        ],
-                    ], fake($default_locale)->paragraphs(fake()->rand(1, 10))),
-                ],
+                'title' => $content->title,
+                'slug' => $content->slug,
+                'components' => $content->components ?? [],
             ]);
-
-            if ($content->exists && $content->getKey()) {
-                $this->createRelations($content);
-            } else {
-                Log::warning('Content model not ready for relations', [
-                    'content_id' => $content->getKey(),
-                    'exists' => $content->exists,
-                ]);
-            }
         });
     }
 
