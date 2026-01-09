@@ -21,7 +21,6 @@ use Override;
 
 /**
  * @property-read object $options
- *
  * @mixin IdeHelperField
  */
 #[ObservedBy(FieldObserver::class)]
@@ -120,6 +119,7 @@ final class Field extends Model
         return array_merge($this->activationCasts(), [
             'options' => ObjectCast::class,
             'type' => FieldType::class,
+            'is_translatable' => 'boolean',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
         ]);

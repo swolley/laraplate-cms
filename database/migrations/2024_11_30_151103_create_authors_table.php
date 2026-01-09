@@ -19,6 +19,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->nullable()->comment('The user that the author belongs to');
             $table->foreignId('entity_id')->nullable(false)->constrained('entities', 'id', 'authors_entity_id_FK')->cascadeOnDelete()->comment('The entity that the author belongs to');
             $table->foreignId('presettable_id')->nullable(false)->constrained('presettables', 'id', 'authors_presettable_id_FK')->cascadeOnDelete()->comment('The entity preset that the author belongs to');
+            $table->json('shared_components')->nullable()->comment('The shared dynamic components of the author');
             $table->string('name')->comment('The name of the author');
             MigrateUtils::timestamps(
                 $table,

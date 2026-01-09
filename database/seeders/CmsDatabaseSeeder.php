@@ -58,7 +58,7 @@ final class CmsDatabaseSeeder extends Seeder
         DB::transaction(function (): void {
             foreach (['kicker', 'subtitle'] as $field) {
                 if (! $this->fields->has($field)) {
-                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::TEXT, 'options' => (object) ['max_length' => 255]]));
+                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::TEXT, 'options' => (object) ['max_length' => 255], 'is_translatable' => true]));
                     $this->command->line("    - {$field} <fg=green>created</>");
                 } else {
                     $this->command->line("    - {$field} already exists");
@@ -67,7 +67,7 @@ final class CmsDatabaseSeeder extends Seeder
 
             foreach (['short_content'] as $field) {
                 if (! $this->fields->has($field)) {
-                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::TEXTAREA, 'options' => (object) ['max_length' => 65535]]));
+                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::TEXTAREA, 'options' => (object) ['max_length' => 65535], 'is_translatable' => true]));
                     $this->command->line("    - {$field} <fg=green>created</>");
                 } else {
                     $this->command->line("    - {$field} already exists");
@@ -76,7 +76,7 @@ final class CmsDatabaseSeeder extends Seeder
 
             foreach (['content'] as $field) {
                 if (! $this->fields->has($field)) {
-                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::EDITOR, 'options' => (object) []]));
+                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::EDITOR, 'options' => (object) [], 'is_translatable' => true]));
                     $this->command->line("    - {$field} <fg=green>created</>");
                 } else {
                     $this->command->line("    - {$field} already exists");
@@ -85,7 +85,7 @@ final class CmsDatabaseSeeder extends Seeder
 
             foreach (['period_from', 'period_to'] as $field) {
                 if (! $this->fields->has($field)) {
-                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::DATETIME, 'options' => (object) ['format' => 'Y-m-d H:i:s']]));
+                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::DATETIME, 'options' => (object) ['format' => 'Y-m-d H:i:s'], 'is_translatable' => false]));
                     $this->command->line("    - {$field} <fg=green>created</>");
                 } else {
                     $this->command->line("    - {$field} already exists");
@@ -95,7 +95,7 @@ final class CmsDatabaseSeeder extends Seeder
             $field = 'public_email';
 
             if (! $this->fields->has($field)) {
-                $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::EMAIL, 'options' => (object) []]));
+                $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::EMAIL, 'options' => (object) [], 'is_translatable' => false]));
                 $this->command->line("    - {$field} <fg=green>created</>");
             } else {
                 $this->command->line("    - {$field} already exists");
@@ -104,7 +104,7 @@ final class CmsDatabaseSeeder extends Seeder
             $field = 'phone';
 
             if (! $this->fields->has($field)) {
-                $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::PHONE, 'options' => (object) []]));
+                $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::PHONE, 'options' => (object) [], 'is_translatable' => false]));
                 $this->command->line("    - {$field} <fg=green>created</>");
             } else {
                 $this->command->line("    - {$field} already exists");
@@ -112,7 +112,7 @@ final class CmsDatabaseSeeder extends Seeder
 
             foreach (['website', 'linkedin', 'twitter', 'facebook', 'instagram'] as $field) {
                 if (! $this->fields->has($field)) {
-                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::URL, 'options' => (object) []]));
+                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::URL, 'options' => (object) [], 'is_translatable' => false]));
                     $this->command->line("    - {$field} <fg=green>created</>");
                 } else {
                     $this->command->line("    - {$field} already exists");

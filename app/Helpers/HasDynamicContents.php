@@ -141,8 +141,16 @@ trait HasDynamicContents
             $this->hidden[] = 'components';
         }
 
+        if (! in_array('shared_components', $this->hidden, true)) {
+            $this->hidden[] = 'shared_components';
+        }
+
         if (! in_array('components', $this->fillable, true)) {
             $this->fillable[] = 'components';
+        }
+
+        if (! in_array('shared_components', $this->fillable, true)) {
+            $this->fillable[] = 'shared_components';
         }
 
         if (! in_array('entity_id', $this->fillable, true)) {
@@ -155,6 +163,10 @@ trait HasDynamicContents
 
         if (! isset($this->attributes['components'])) {
             $this->attributes['components'] = '{}';
+        }
+
+        if (! isset($this->attributes['shared_components'])) {
+            $this->attributes['shared_components'] = '{}';
         }
 
         if (! in_array('type', $this->appends, true)) {
@@ -369,7 +381,12 @@ trait HasDynamicContents
             ? json_decode((string) $this->attributes['components'], true)
             : [];
 
-        return $this->mergeComponentsValues($components);
+        // Merge with shared_components if available (for models with translations)
+        $shared_components = isset($this->attributes['shared_components'])
+            ? json_decode((string) $this->attributes['shared_components'], true)
+            : [];
+
+        return $this->mergeComponentsValues(array_merge($components, $shared_components));
     }
 
     protected function setComponentsAttribute(array $components): void
@@ -395,6 +412,7 @@ trait HasDynamicContents
     {
         return [
             'components' => 'json',
+            'shared_components' => 'json',
             'entity_id' => 'integer',
             'presettable_id' => 'integer',
         ];
@@ -402,10 +420,24 @@ trait HasDynamicContents
 
     /**
      * Merge components with default values from fields.
+     *
+     * @param  array<string, mixed>  $components
+     * @param  bool|null  $only_translatable  If true, only include translatable fields. If null, include all fields.
+     * @return array<string, mixed>
      */
-    protected function mergeComponentsValues(array $components): array
+    protected function mergeComponentsValues(array $components, ?bool $only_translatable = null): array
     {
         return $this->fields()
+            ->filter(function (Field $field) use ($only_translatable): bool {
+                if ($only_translatable === null) {
+                    return true;
+                }
+
+                // Check if field is translatable
+                $is_translatable = $this->isFieldTranslatable($field->name);
+
+                return $only_translatable ? ($is_translatable === true) : ($is_translatable !== true);
+            })
             ->mapWithKeys(function (Field $field) use ($components): array {
                 $value = data_get($components, $field->name, $field->pivot->default);
 
@@ -427,7 +459,41 @@ trait HasDynamicContents
 
     protected function setComponentAttribute(string $key, $value): void
     {
-        $this->setComponentsAttribute([$key => $value]);
+        // Check if field is translatable (only works if HasTranslatedDynamicContents is used)
+        $is_translatable = $this->isFieldTranslatable($key);
+
+        if ($is_translatable === null) {
+            // No translation support, use standard components
+            $this->setComponentsAttribute([$key => $value]);
+
+            return;
+        }
+
+        if ($is_translatable) {
+            // Translatable field: will be handled by HasTranslatedDynamicContents
+            $this->setComponentsAttribute([$key => $value]);
+
+            return;
+        }
+
+        // Non-translatable field: store in shared_components
+        $shared_components = isset($this->attributes['shared_components'])
+            ? json_decode((string) $this->attributes['shared_components'], true)
+            : [];
+        $shared_components[$key] = $value;
+        $this->attributes['shared_components'] = json_encode($shared_components);
+    }
+
+    /**
+     * Check if a field is translatable.
+     * Returns null if translation support is not available.
+     *
+     * @return bool|null
+     */
+    protected function isFieldTranslatable(string $field): ?bool
+    {
+        // This method will be overridden by HasTranslatedDynamicContents
+        return null;
     }
 
     /**

@@ -87,9 +87,20 @@ trait HasTranslatedDynamicContents
             return $value;
         }
 
-        // Check if it's a dynamic field (from preset, stored in components)
+        // Check if it's a dynamic field (from preset, stored in components or shared_components)
         if ($this->isDynamicField($key)) {
-            return data_get($this->getComponentsAttribute(), $key);
+            // Check if field is translatable
+            if ($this->isFieldTranslatable($key)) {
+                // Translatable field: get from translation's components
+                return data_get($this->getComponentsAttribute(), $key);
+            }
+
+            // Non-translatable field: get from shared_components
+            $shared_components = isset($this->attributes['shared_components'])
+                ? json_decode((string) $this->attributes['shared_components'], true)
+                : [];
+
+            return data_get($shared_components, $key);
         }
 
         // Default Eloquent behavior (relations, etc.)
@@ -127,7 +138,20 @@ trait HasTranslatedDynamicContents
 
         // Check if it's a dynamic field
         if ($this->isDynamicField($key)) {
-            $this->setComponentAttribute($key, $value);
+            // Check if field is translatable
+            if ($this->isFieldTranslatable($key)) {
+                // Translatable field: store in translation's components
+                $components = $this->getTranslatableFieldValue('components') ?? [];
+                $components[$key] = $value;
+                $this->setComponentsAttribute($components);
+            } else {
+                // Non-translatable field: store in shared_components
+                $shared_components = isset($this->attributes['shared_components'])
+                    ? json_decode((string) $this->attributes['shared_components'], true)
+                    : [];
+                $shared_components[$key] = $value;
+                $this->attributes['shared_components'] = json_encode($shared_components);
+            }
 
             return $this;
         }
@@ -211,15 +235,24 @@ trait HasTranslatedDynamicContents
      *
      * This is the accessor for $model->components when components is translatable.
      * It fetches the raw value from translations and merges with field defaults.
+     * Only includes translatable fields; non-translatable fields are in shared_components.
      *
      * @param  mixed  $value  Raw value (unused, we fetch from translations)
      * @return array<string, mixed>
      */
     protected function getComponentsAttribute($value = null): array
     {
-        $raw_components = $this->getTranslatableFieldValue('components');
+        $raw_components = $this->getTranslatableFieldValue('components') ?? [];
 
-        return $this->mergeComponentsValues($raw_components ?? []);
+        // Filter to only include translatable fields
+        $translatable_components = [];
+        foreach ($raw_components as $field_name => $field_value) {
+            if ($this->isFieldTranslatable($field_name)) {
+                $translatable_components[$field_name] = $field_value;
+            }
+        }
+
+        return $this->mergeComponentsValues($translatable_components, true);
     }
 
     /**
@@ -241,7 +274,27 @@ trait HasTranslatedDynamicContents
     }
 
     /**
-     * Set a single dynamic field value within components.
+     * Override isFieldTranslatable to check field model.
+     *
+     * @return bool|null
+     */
+    protected function isFieldTranslatable(string $field): ?bool
+    {
+        if (! $this->preset) {
+            return null;
+        }
+
+        $field_model = $this->preset->fields()->where('name', $field)->first();
+
+        if (! $field_model) {
+            return null;
+        }
+
+        return $field_model->is_translatable ?? false;
+    }
+
+    /**
+     * Set a single dynamic field value within components or shared_components.
      *
      * Used when setting individual fields like $model->public_email = 'test@example.com'
      *
@@ -250,8 +303,19 @@ trait HasTranslatedDynamicContents
      */
     protected function setComponentAttribute(string $key, mixed $value): void
     {
-        $components = $this->getTranslatableFieldValue('components') ?? [];
-        $components[$key] = $value;
-        $this->setComponentsAttribute($components);
+        // Check if field is translatable
+        if ($this->isFieldTranslatable($key)) {
+            // Translatable field: store in translation's components
+            $components = $this->getTranslatableFieldValue('components') ?? [];
+            $components[$key] = $value;
+            $this->setComponentsAttribute($components);
+        } else {
+            // Non-translatable field: store in shared_components
+            $shared_components = isset($this->attributes['shared_components'])
+                ? json_decode((string) $this->attributes['shared_components'], true)
+                : [];
+            $shared_components[$key] = $value;
+            $this->attributes['shared_components'] = json_encode($shared_components);
+        }
     }
 }
