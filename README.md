@@ -127,7 +127,7 @@ The Cms Module includes built-in features such as:
 -   Content versioning and history
 -   Authors and signatures management
 -   Export Templates management in blade format
--   AI integration for content generation
+-   AI integration for content generation (provided by AI module when enabled)
 -   Geocoding services integration
 -   Video processing and thumbnail generation
 -   Responsive image generation
@@ -234,7 +234,7 @@ This section tracks all pending tasks and issues that need to be addressed in th
 
 ### Notes
 
-- Most TODO items are related to AI integration and content optimization
-- The main focus is on implementing proper embedding extraction for dynamic contents
-- Should coordinate with Core Module's vector search implementation
-- Consider implementing automated content analysis and tagging features
+- AI integration is now handled by the AI module
+- Embedding extraction for dynamic contents is automatically handled when AI module is enabled
+- Core Module's vector search works seamlessly with AI module's embeddings
+- Automated content analysis and tagging features can be added to the AI module
