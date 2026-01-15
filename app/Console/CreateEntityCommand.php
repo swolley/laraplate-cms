@@ -34,7 +34,7 @@ final class CreateEntityCommand extends Command
     /**
      * The console command description.
      */
-    protected $description = 'Create new cms entity <fg=blue>(✎ Modules\Cms)</fg=blue>';
+    protected $description = 'Create new cms entity <fg=cyan>(📰 Modules\Cms)</fg=cyan>';
 
     /**
      * Execute the console command.

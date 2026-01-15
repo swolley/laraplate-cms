@@ -123,6 +123,14 @@ final class Tag extends Model implements Sortable
         return self::query()->groupBy('type')->pluck('type');
     }
 
+    /**
+     * Determine if model should be sorted when creating.
+     */
+    public function shouldSortWhenCreating(): bool
+    {
+        return true;
+    }
+
     public function getRules(): array
     {
         $rules = $this->getRulesTrait();
