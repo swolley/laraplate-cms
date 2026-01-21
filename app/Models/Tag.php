@@ -169,7 +169,7 @@ final class Tag extends Model implements Sortable
         $translation = $this->getRelationValue('translation');
 
         if ($translation) {
-            foreach ($this->getTranslatableFields() as $field) {
+            foreach ($this::getTranslatableFields() as $field) {
                 if (isset($translation->{$field})) {
                     $array[$field] = $translation->{$field};
                 }

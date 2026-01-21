@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Cms\Models\Author;
+use Modules\Core\Services\Translation\Definitions\ITranslated;
 
 /**
  * @mixin IdeHelperAuthorTranslation
  */
-final class AuthorTranslation extends Model
+final class AuthorTranslation extends Model implements ITranslated
 {
     use HasFactory;
 

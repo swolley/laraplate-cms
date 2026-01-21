@@ -197,7 +197,7 @@ trait HasTranslatedDynamicContents
 
         // Remove translatable fields from fillable and attributes
         // They belong in the translations table
-        foreach ($this->getTranslatableFields() as $field) {
+        foreach ($this::getTranslatableFields() as $field) {
             $fillable_key = array_search($field, $this->fillable, true);
 
             if ($fillable_key !== false) {
@@ -215,7 +215,7 @@ trait HasTranslatedDynamicContents
      */
     public function initializeHasTranslatedDynamicContents(): void
     {
-        foreach ($this->getTranslatableFields() as $field) {
+        foreach ($this::getTranslatableFields() as $field) {
             unset($this->attributes[$field]);
         }
     }
@@ -246,6 +246,7 @@ trait HasTranslatedDynamicContents
 
         // Filter to only include translatable fields
         $translatable_components = [];
+
         foreach ($raw_components as $field_name => $field_value) {
             if ($this->isFieldTranslatable($field_name)) {
                 $translatable_components[$field_name] = $field_value;
@@ -275,8 +276,6 @@ trait HasTranslatedDynamicContents
 
     /**
      * Override isFieldTranslatable to check field model.
-     *
-     * @return bool|null
      */
     protected function isFieldTranslatable(string $field): ?bool
     {

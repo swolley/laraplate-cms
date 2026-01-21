@@ -316,7 +316,7 @@ describe('initializeHasTranslatedDynamicContents', static function (): void {
 describe('Integration with HasTranslations', static function (): void {
     it('components is a translatable field when using HasTranslatedDynamicContents', static function (): void {
         $author = Author::factory()->create();
-        $translatable_fields = $author->getTranslatableFields();
+        $translatable_fields = $author::getTranslatableFields();
 
         expect($translatable_fields)->toContain('components');
     });

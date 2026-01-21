@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Cms\Models\Tag;
+use Modules\Core\Services\Translation\Definitions\ITranslated;
 
 /**
  * @mixin IdeHelperTagTranslation
  */
-final class TagTranslation extends Model
+final class TagTranslation extends Model implements ITranslated
 {
     use HasFactory;
 
