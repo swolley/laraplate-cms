@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Date;
 use Modules\Cms\Helpers\HasSlug;
 use Tests\TestCase;
 
-pest()->extend(TestCase::class);
+uses(TestCase::class);
 
 it('can get slug fields', function (): void {
     $trait = new class
