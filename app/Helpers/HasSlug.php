@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Helpers;
 
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 trait HasSlug
 {
@@ -32,19 +34,29 @@ trait HasSlug
         });
     }
 
-    public static function slugFields(): array
+    /**
+     * Get the placeholders for the slug.
+     *
+     * The placeholders can be a string or a callable that returns a value.
+     * The callable will be called with the model instance.
+     * The string wrapped in curly braces will be replaced with the corresponding model value. This dynamic placeholders can contain a format string after a colon.
+     * The static string will be used as is
+     *
+     * @return array<string|callable(Model):mixed>
+     */
+    public static function slugPlaceholders(): array
     {
-        return ['name'];
+        return ['{name}'];
     }
 
-    public function initializeHasSlug(): void
-    {
-        // Slug is now in translations table, don't add to fillable
-    }
+    // public function initializeHasSlug(): void
+    // {
+    //     // Slug is now in translations table, don't add to fillable
+    // }
 
     public function generateSlug(): string
     {
-        $slugger = config('cms.slugger', \Illuminate\Support\Str::class . '::slug');
+        $slugger = config('cms.slugger', Str::class . '::slug');
         $slug = array_reduce($this->slugValues(), fn ($slug, $value): string => $slug . '-' . ($value ? mb_trim((string) $value) : ''), '');
 
         return call_user_func($slugger, mb_ltrim($slug, '-'));
@@ -52,7 +64,28 @@ trait HasSlug
 
     protected function slugValues(): array
     {
-        return array_map(fn ($name) => $this->{$name}, $this->slugFields());
+        return array_map(function ($placeholder) {
+            if (is_callable($placeholder)) {
+                return static::slugifySlug($placeholder($this));
+            }
+
+            if (str_contains($placeholder, '{')) {
+                $name = str_replace(['{', '}'], '', $placeholder);
+                $format = null;
+
+                if (str_contains($name, ':')) {
+                    [$name, $format] = explode(':', $name);
+                }
+
+                $value = $this->getSlugValue($name, $format);
+
+                if ($value !== null && $value !== '') {
+                    return static::slugifySlug($value);
+                }
+            }
+
+            return $placeholder;
+        }, static::slugPlaceholders());
     }
 
     protected function slug(): Attribute
@@ -72,5 +105,57 @@ trait HasSlug
                 return $this->attributes['slug'] ?? $this->generateSlug();
             },
         );
+    }
+
+    private static function slugifySlug(string $slug): string
+    {
+        return Str::slug((string) $slug, dictionary: ['.' => '']);
+    }
+
+    private static function formatSlugValue(mixed $value, ?string $format = null): ?string
+    {
+        if (is_iterable($value)) {
+            $value = is_array($value) ? array_first($value) : (method_exists($value, 'first') ? $value->first() : null);
+        }
+
+        if (! $value) {
+            return null;
+        }
+
+        $additional_format_parameters = [];
+
+        if (is_string($format)) {
+            $exploded = explode(',', $format);
+            $format = array_shift($exploded);
+            $additional_format_parameters = array_map(function ($param) {
+                $trimmed = mb_trim($param);
+
+                return is_numeric($trimmed) ? (int) $trimmed : $trimmed;
+            }, $exploded);
+            unset($exploded);
+        }
+
+        if (is_string($format) && function_exists($format)) {
+            $value = $format($value, ...$additional_format_parameters);
+            $format = null;
+        } elseif ($value instanceof DateTimeInterface) {
+            $value = $value->format($format ?? 'Y-m-d');
+            $format = null;
+        }
+
+        return sprintf($format ?? '%s', $value);
+    }
+
+    /**
+     * Get the value for the slug.
+     *
+     * @param  string  $name  The name of the attribute.
+     * @param  string  $format  The format string.
+     */
+    private function getSlugValue(string $name, ?string $format = null): ?string
+    {
+        $value = data_get($this, $name);
+
+        return static::formatSlugValue($value, $format);
     }
 }

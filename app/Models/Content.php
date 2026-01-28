@@ -452,10 +452,10 @@ final class Content extends Model implements HasMedia, Sortable
         );
     }
 
-    protected function slugFields(): array
+    protected function slugPlaceholders(): array
     {
         // Use title from translation
-        return [...$this->dynamicSlugFields(), 'title'];
+        return [...array_map(fn (string $field) => '{' . $field . '}', $this->dynamicSlugFields()), '{title}'];
     }
 
     protected function requiresApprovalWhen(array $modifications): bool

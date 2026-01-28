@@ -137,7 +137,7 @@ final class Author extends Model implements IMediable
         ]);
     }
 
-    protected function slugFields(): array
+    protected function slugPlaceholders(): array
     {
         // Use name from translation
         return [...$this->dynamicSlugFields(), 'name'];

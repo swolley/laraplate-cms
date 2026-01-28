@@ -40,6 +40,7 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @mixin \Modules\Cms\Helpers\HasPath
  * @mixin \Modules\Core\Helpers\SortableTrait
  * @mixin \Spatie\EloquentSortable\SortableTrait
+ *
  * @method void setHighestOrderNumber() Set the highest order number
  * @method int getHighestOrderNumber() Get the highest order number
  * @method int getLowestOrderNumber() Get the lowest order number
@@ -48,6 +49,7 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @method bool shouldSortWhenCreating() Check if should sort when creating
  * @method string determineOrderColumnName() Determine the order column name
  * @method \Illuminate\Database\Eloquent\Builder buildSortQuery() Build query for sorting
+ *
  * @mixin IdeHelperCategory
  */
 final class Category extends Model implements IMediable, Sortable
@@ -215,10 +217,10 @@ final class Category extends Model implements IMediable, Sortable
         ]);
     }
 
-    protected function slugFields(): array
+    protected function slugPlaceholders(): array
     {
         // Use name from translation
-        return [...$this->dynamicSlugFields(), 'name'];
+        return [...array_map(fn (string $field) => '{' . $field . '}', $this->dynamicSlugFields()), '{name}'];
     }
 
     protected function requiresApprovalWhen(array $modifications): bool

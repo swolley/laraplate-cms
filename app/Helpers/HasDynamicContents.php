@@ -487,8 +487,6 @@ trait HasDynamicContents
     /**
      * Check if a field is translatable.
      * Returns null if translation support is not available.
-     *
-     * @return bool|null
      */
     protected function isFieldTranslatable(string $field): ?bool
     {

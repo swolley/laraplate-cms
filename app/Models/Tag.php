@@ -226,9 +226,9 @@ final class Tag extends Model implements Sortable
         ];
     }
 
-    protected function slugFields(): array
+    protected function slugPlaceholders(): array
     {
         // Use name from translation
-        return ['name'];
+        return [...array_map(fn (string $field) => '{' . $field . '}', $this->dynamicSlugFields()), '{name}'];
     }
 }
