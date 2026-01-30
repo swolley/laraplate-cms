@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Services;
 
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
 use Modules\Cms\Models\Location;
 use Modules\Cms\Services\Contracts\AbstractGeocodingService;
@@ -40,6 +41,7 @@ final class NominatimService extends AbstractGeocodingService
             $params['country'] = $country;
         }
 
+        /** @var Response $response */
         $response = Http::withHeaders([
             'User-Agent' => config('app.name') . ' Application',
         ])->get(self::BASE_URL . '/search', $params);

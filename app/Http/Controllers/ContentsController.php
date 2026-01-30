@@ -7,12 +7,16 @@ namespace Modules\Cms\Http\Controllers;
 use Modules\Cms\Actions\Contents\GetContentsByRelationAction;
 use Modules\Core\Http\Controllers\CrudController;
 use Modules\Core\Http\Requests\ListRequest;
+use Modules\Core\Services\Crud\CrudService;
 
 final class ContentsController extends CrudController
 {
     public function __construct(
         private readonly GetContentsByRelationAction $getContentsByRelationAction,
-    ) {}
+        CrudService $crudService,
+    ) {
+        parent::__construct($crudService);
+    }
 
     /**
      * @route-comment
