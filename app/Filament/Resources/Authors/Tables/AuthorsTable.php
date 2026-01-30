@@ -10,8 +10,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Support\Collection;
+use Modules\Cms\Filament\Utils\HasTable;
 use Modules\Cms\Models\Author;
-use Modules\Core\Filament\Utils\HasTable;
 
 final class AuthorsTable
 {
