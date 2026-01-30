@@ -13,7 +13,6 @@ use Illuminate\Foundation\Auth\User;
 use Modules\Cms\Database\Factories\AuthorFactory;
 use Modules\Cms\Helpers\HasMultimedia;
 use Modules\Cms\Helpers\HasPath;
-use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Helpers\HasTranslatedDynamicContents;
 use Modules\Cms\Models\Pivot\Authorable;
@@ -32,7 +31,6 @@ final class Author extends Model implements IMediable
     use HasFactory;
     use HasMultimedia;
     use HasPath;
-    use HasSlug;
     use HasTags;
     use HasTranslatedDynamicContents {
         HasTranslatedDynamicContents::getRules as private getRulesTranslatedDynamicContents;

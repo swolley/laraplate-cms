@@ -105,6 +105,7 @@ final class AuthorsTable
                         ->grow(true),
                 ]);
             },
-        );
+        )
+            ->defaultSort('name');
     }
 }

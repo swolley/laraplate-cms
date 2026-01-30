@@ -160,7 +160,7 @@ trait HasTranslatedDynamicContents
         $result = parent::setAttribute($key, $value);
 
         if ($key === 'presettable_id' && $value) {
-            $this->entity_id = $this->presettable?->entity_id;
+            $this->entity_id = $this->getRelationValue('presettable')?->entity_id;
         }
 
         return $result;
@@ -279,11 +279,11 @@ trait HasTranslatedDynamicContents
      */
     protected function isFieldTranslatable(string $field): ?bool
     {
-        if (! $this->preset) {
+        if (! $this->getRelationValue('presettable')) {
             return null;
         }
 
-        $field_model = $this->preset->fields()->where('name', $field)->first();
+        $field_model = $this->getRelationValue('presettable')?->getRelationValue('preset')?->fields()->where('name', $field)->first();
 
         if (! $field_model) {
             return null;

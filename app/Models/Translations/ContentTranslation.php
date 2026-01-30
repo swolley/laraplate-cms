@@ -7,6 +7,7 @@ namespace Modules\Cms\Models\Translations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Models\Content;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 
@@ -16,6 +17,7 @@ use Modules\Core\Services\Translation\Definitions\ITranslated;
 final class ContentTranslation extends Model implements ITranslated
 {
     use HasFactory;
+    use HasSlug;
 
     /**
      * The attributes that are mass assignable.

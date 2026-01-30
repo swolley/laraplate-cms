@@ -46,11 +46,6 @@ final class CategoriesTable
                         ->searchable()
                         ->sortable()
                         ->toggleable(isToggledHiddenByDefault: true),
-                    TextColumn::make('persistence')
-                        ->numeric()
-                        ->alignRight()
-                        ->sortable()
-                        ->toggleable(isToggledHiddenByDefault: true),
                     TextColumn::make('logo')
                         ->toggleable(isToggledHiddenByDefault: true),
                     TextColumn::make('logo_full')

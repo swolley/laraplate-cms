@@ -212,6 +212,21 @@ trait HasDynamicContents
         return $relation;
     }
 
+    #[Override]
+    public function setRelation($relation, $value)
+    {
+        $result = parent::setRelation($relation, $value);
+
+        if ($relation === 'presettable' && $value instanceof Presettable) {
+            $this->presettable_id = $value->preset_id;
+            $this->entity_id = $value->entity_id;
+
+            $this->content = $this->getComponentsAttribute();
+        }
+
+        return $result;
+    }
+
     public function toArray(?array $parsed = null): array
     {
         $content = $parsed ?? (method_exists(parent::class, 'toArray') ? parent::toArray() : $this->attributesToArray());
@@ -282,19 +297,17 @@ trait HasDynamicContents
     public function setDefaultPresettable(): void
     {
         $first_available = static::fetchAvailablePresettables(EntityType::tryFrom($this->getTable()))->firstOrFail();
-        $this->presettable_id = $first_available->id;
-        $this->entity_id = $first_available->entity_id;
         $this->setRelation('presettable', $first_available);
     }
 
     protected static function bootHasDynamicContents(): void
     {
         static::saving(function (Model $model): void {
+            $presettable = $model->getRelationValue('presettable');
+
             /** @var Model&HasDynamicContents $model */
-            if ($model->presettable) {
-                $model->presettable_id = $model->presettable->id;
-                $model->entity_id = $model->presettable->entity_id;
-                $model->setRelation('presettable', $model->presettable);
+            if ($presettable) {
+                $model->setRelation('presettable', $presettable);
             } else {
                 $model->setDefaultPresettable();
             }
@@ -310,14 +323,14 @@ trait HasDynamicContents
     {
         return new Attribute(
             get: function () {
-                $presettable = $this->presettable;
+                $presettable = $this->getRelationValue('presettable');
 
                 if (! $presettable) {
                     $this->setDefaultPresettable();
-                    $presettable = $this->presettable;
+                    $presettable = $this->getRelationValue('presettable');
                 }
 
-                return $presettable?->entity;
+                return $presettable?->getRelationValue('entity');
             },
         );
     }
@@ -330,7 +343,7 @@ trait HasDynamicContents
     protected function preset(): Attribute
     {
         return new Attribute(
-            get: fn () => $this->presettable?->preset,
+            get: fn () => $this->getRelationValue('presettable')?->getRelationValue('preset'),
         );
     }
 
@@ -357,10 +370,10 @@ trait HasDynamicContents
     {
         return new Attribute(
             get: function () {
-                if (! $this->relationLoaded('preset') && $this->presettable_id) {
+                if (! $this->relationLoaded('presettable') && $this->presettable_id) {
                     $this->load('presettable');
 
-                    return $this->entity?->name;
+                    return $this->getRelationValue('presettable')?->getRelationValue('entity')?->name;
                 }
 
                 if ($this->presettable_id) {
@@ -369,7 +382,7 @@ trait HasDynamicContents
 
                 $this->setDefaultPresettable();
 
-                return $this->entity?->name;
+                return $this->getRelationValue('presettable')?->getRelationValue('entity')?->name;
             },
         );
     }

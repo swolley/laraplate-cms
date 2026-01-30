@@ -139,7 +139,7 @@ trait HasTable
         );
     }
 
-    private function hasDynamicContents(Model $model_instance): bool
+    private static function hasDynamicContents(Model $model_instance): bool
     {
         return class_uses_trait($model_instance::class, HasDynamicContents::class);
     }

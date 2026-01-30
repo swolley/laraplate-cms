@@ -21,7 +21,6 @@ return new class extends Migration
             $table->foreignId('presettable_id')->nullable(false)->constrained('presettables', 'id', 'categories_presettable_id_FK')->cascadeOnDelete()->comment('The entity preset that the category belongs to');
             $table->json('shared_components')->nullable()->comment('The shared dynamic components of the category');
             $table->foreignId('parent_id')->nullable(true)->constrained('categories', 'id', 'categories_parent_id_FK')->nullOnDelete()->comment('The parent category');
-            $table->integer('persistence')->nullable(true)->comment('The persistence in days of the content in the category');
             $table->string('logo')->nullable(true)->comment('The logo of the category');
             $table->string('logo_full')->nullable(true)->comment('The full logo of the category');
             $table->boolean('is_active')->default(true)->nullable(false)->index('categories_is_active_IDX')->comment('Whether the category is active');

@@ -30,8 +30,6 @@ final class CategoryForm
                     ->required(),
                 TextInput::make('components')
                     ->required(),
-                TextInput::make('persistence')
-                    ->numeric(),
                 TextInput::make('logo'),
                 TextInput::make('logo_full'),
                 Toggle::make('is_active')

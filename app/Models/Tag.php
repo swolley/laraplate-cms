@@ -13,7 +13,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Modules\Cms\Database\Factories\TagFactory;
 use Modules\Cms\Helpers\HasPath;
-use Modules\Cms\Helpers\HasSlug;
 use Modules\Core\Helpers\HasTranslations;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\SoftDeletes;
@@ -29,12 +28,20 @@ use Spatie\EloquentSortable\Sortable;
  * @mixin \Modules\Cms\Helpers\HasPath
  * @mixin \Modules\Core\Helpers\SortableTrait
  * @mixin IdeHelperTag
+ *
+ * @method void setHighestOrderNumber() Set the highest order number
+ * @method int getHighestOrderNumber() Get the highest order number
+ * @method int getLowestOrderNumber() Get the lowest order number
+ * @method \Illuminate\Database\Eloquent\Builder scopeOrdered(\Illuminate\Database\Eloquent\Builder $query, string $direction = 'asc') Scope to order by order column
+ * @method static void setNewOrder(array|\ArrayAccess $ids, int $startOrder = 1, ?string $primaryKeyColumn = null, ?callable $modifyQuery = null) Set new order for multiple models
+ * @method bool shouldSortWhenCreating() Check if should sort when creating
+ * @method string determineOrderColumnName() Determine the order column name
+ * @method \Illuminate\Database\Eloquent\Builder buildSortQuery() Build query for sorting
  */
 final class Tag extends Model implements Sortable
 {
     use HasFactory;
     use HasPath;
-    use HasSlug;
     use HasTranslations;
     use HasValidations {
         getRules as private getRulesTrait;

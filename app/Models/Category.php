@@ -13,7 +13,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Modules\Cms\Database\Factories\CategoryFactory;
 use Modules\Cms\Helpers\HasMultimedia;
 use Modules\Cms\Helpers\HasPath;
-use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Helpers\HasTranslatedDynamicContents;
 use Modules\Cms\Models\Pivot\Categorizable;
@@ -67,7 +66,6 @@ final class Category extends Model implements IMediable, Sortable
     use HasMultimedia;
     use HasPath;
     use HasRecursiveRelationships;
-    use HasSlug;
     use HasTags;
     use HasTranslatedDynamicContents {
         HasTranslatedDynamicContents::getRules as private getRulesDynamicContents;
@@ -92,7 +90,6 @@ final class Category extends Model implements IMediable, Sortable
         'parent_id',
         'presettable_id',
         'entity_id',
-        'persistence',
         'logo',
         'logo_full',
     ];
@@ -103,7 +100,6 @@ final class Category extends Model implements IMediable, Sortable
         // 'model_type_id',
         'presettable_id',
         'entity_id',
-        'persistence',
         'created_at',
         'updated_at',
         'ancestorsAndSelf',
@@ -210,7 +206,6 @@ final class Category extends Model implements IMediable, Sortable
             'parent_id' => 'integer',
             'model_type_id' => 'integer',
             'order' => 'integer',
-            'persistence' => 'integer',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
             'content' => 'json',

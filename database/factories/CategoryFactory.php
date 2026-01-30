@@ -31,10 +31,7 @@ final class CategoryFactory extends Factory
     {
         $definition = $this->dynamicContentDefinition();
 
-        return $definition + [
-            // name, slug, components are now in translations table
-            'persistence' => fake()->boolean() ? fake()->numberBetween(1, 1000) : null,
-        ];
+        return $definition + [];
     }
 
     #[Override]

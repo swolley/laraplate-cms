@@ -38,11 +38,13 @@ final class ContentsTable
                         ->toggleable(isToggledHiddenByDefault: true),
                     ImageColumn::make('media.images')
                         ->label('Images')
-                        ->state(static function (Content $record) {
-                            $images = collect($record->cover ? [$record->cover?->getUrl('thumb-low')] : []);
-
-                            return $images->merge($record->getMedia('images')->map(static fn (Media $media): string => $media->getUrl('thumb-low')))->unique();
-                        })
+                        ->state(static fn (Content $record) => collect($record->cover ? [$record->cover?->getUrl('thumb-low')] : [])
+                            ->merge(
+                                $record->getMedia('images')
+                                    ->map(static fn (Media $media): string => $media->getUrl('thumb-low')),
+                            )
+                            ->unique(),
+                        )
                         ->stacked()
                         ->limit(3)
                         ->limitedRemainingText()
@@ -51,6 +53,7 @@ final class ContentsTable
                         ->extraImgAttributes(['loading' => 'lazy']),
                 ]);
             },
-        );
+        )
+            ->defaultSort('created_at', 'desc');
     }
 }

@@ -16,7 +16,6 @@ use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Database\Factories\ContentFactory;
 use Modules\Cms\Helpers\HasMultimedia;
 use Modules\Cms\Helpers\HasPath;
-use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Helpers\HasTranslatedDynamicContents;
 use Modules\Cms\Models\Pivot\Authorable;
@@ -59,7 +58,6 @@ final class Content extends Model implements HasMedia, Sortable
     use HasMultimedia;
     use HasOptimisticLocking;
     use HasPath;
-    use HasSlug;
     use HasTags;
     use HasTranslatedDynamicContents {
         HasTranslatedDynamicContents::getRules as private getRulesTranslatedDynamicContents;
