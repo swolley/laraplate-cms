@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Modules\Cms\Models\Media;
 
-it('media model has correct structure', static function (): void {
+it('media model has correct structure', function (): void {
     $reflection = new ReflectionClass(Media::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -15,7 +15,7 @@ it('media model has correct structure', static function (): void {
     expect($source)->toContain('protected $hidden');
 });
 
-it('media model uses correct traits', static function (): void {
+it('media model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Media::class);
     $traits = $reflection->getTraitNames();
 
@@ -23,13 +23,13 @@ it('media model uses correct traits', static function (): void {
     expect($traits)->toContain('Modules\\Core\\Helpers\\SoftDeletes');
 });
 
-it('media model has required methods', static function (): void {
+it('media model has required methods', function (): void {
     $reflection = new ReflectionClass(Media::class);
 
     expect($reflection->hasMethod('toArray'))->toBeTrue();
 });
 
-it('media model has correct method signatures', static function (): void {
+it('media model has correct method signatures', function (): void {
     $reflection = new ReflectionClass(Media::class);
 
     // Test toArray method

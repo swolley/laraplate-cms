@@ -68,8 +68,8 @@ function createTestEntityWithFields(): array
     ];
 }
 
-describe('HasTranslatedDynamicContents', static function (): void {
-    it('removes components from fillable when using HasTranslatedDynamicContents', static function (): void {
+describe('HasTranslatedDynamicContents', function (): void {
+    it('removes components from fillable when using HasTranslatedDynamicContents', function (): void {
         // Create instance using factory to ensure database is ready
         $author = Author::factory()->make();
         $author->initializeHasDynamicContents();
@@ -80,7 +80,7 @@ describe('HasTranslatedDynamicContents', static function (): void {
         expect($author->attributes)->not->toHaveKey('components');
     });
 
-    it('saves components in translations table when using HasTranslatedDynamicContents', static function (): void {
+    it('saves components in translations table when using HasTranslatedDynamicContents', function (): void {
         ['entity' => $entity] = createTestEntityWithFields();
         $author = Author::factory()->create();
         $default_locale = config('app.locale');
@@ -115,7 +115,7 @@ describe('HasTranslatedDynamicContents', static function (): void {
         expect($authorRecord)->not->toHaveProperty('components');
     });
 
-    it('can access dynamic content fields transparently with HasTranslatedDynamicContents', static function (): void {
+    it('can access dynamic content fields transparently with HasTranslatedDynamicContents', function (): void {
         ['entity' => $entity] = createTestEntityWithFields();
         $author = Author::factory()->create();
         $default_locale = config('app.locale');
@@ -138,8 +138,8 @@ describe('HasTranslatedDynamicContents', static function (): void {
     });
 });
 
-describe('mergeComponentsValues', static function (): void {
-    it('ensures ARRAY fields have array default value instead of null', static function (): void {
+describe('mergeComponentsValues', function (): void {
+    it('ensures ARRAY fields have array default value instead of null', function (): void {
         ['entity' => $entity] = createTestEntityWithFields();
         $author = Author::factory()->create();
         $author->entity_id = $entity->id;
@@ -158,7 +158,7 @@ describe('mergeComponentsValues', static function (): void {
         expect($components['array_field'])->toBe([]);
     });
 
-    it('ensures OBJECT fields have object default value instead of null', static function (): void {
+    it('ensures OBJECT fields have object default value instead of null', function (): void {
         ['entity' => $entity] = createTestEntityWithFields();
         $author = Author::factory()->create();
         $author->entity_id = $entity->id;
@@ -176,7 +176,7 @@ describe('mergeComponentsValues', static function (): void {
         expect($components['object_field'])->toBeInstanceOf(stdClass::class);
     });
 
-    it('ensures EDITOR fields have array default value instead of null', static function (): void {
+    it('ensures EDITOR fields have array default value instead of null', function (): void {
         ['entity' => $entity] = createTestEntityWithFields();
         $author = Author::factory()->create();
         $author->entity_id = $entity->id;
@@ -197,8 +197,8 @@ describe('mergeComponentsValues', static function (): void {
     });
 });
 
-describe('Validation', static function (): void {
-    it('validates ARRAY fields correctly', static function (): void {
+describe('Validation', function (): void {
+    it('validates ARRAY fields correctly', function (): void {
         ['entity' => $entity] = createTestEntityWithFields();
         $author = Author::factory()->create();
         $author->entity_id = $entity->id;
@@ -217,7 +217,7 @@ describe('Validation', static function (): void {
         expect(fn () => $author->validateWithRules('create'))->not->toThrow(Exception::class);
     });
 
-    it('validates OBJECT fields correctly by converting to JSON string', static function (): void {
+    it('validates OBJECT fields correctly by converting to JSON string', function (): void {
         ['entity' => $entity] = createTestEntityWithFields();
         $author = Author::factory()->create();
         $author->entity_id = $entity->id;
@@ -236,7 +236,7 @@ describe('Validation', static function (): void {
         expect(fn () => $author->validateWithRules('create'))->not->toThrow(Exception::class);
     });
 
-    it('validates EDITOR fields correctly by converting to JSON string', static function (): void {
+    it('validates EDITOR fields correctly by converting to JSON string', function (): void {
         ['entity' => $entity] = createTestEntityWithFields();
         $author = Author::factory()->create();
         $author->entity_id = $entity->id;
@@ -255,7 +255,7 @@ describe('Validation', static function (): void {
         expect(fn () => $author->validateWithRules('create'))->not->toThrow(Exception::class);
     });
 
-    it('fails validation when ARRAY field is not an array', static function (): void {
+    it('fails validation when ARRAY field is not an array', function (): void {
         ['entity' => $entity] = createTestEntityWithFields();
         $author = Author::factory()->create();
         $author->entity_id = $entity->id;
@@ -275,8 +275,8 @@ describe('Validation', static function (): void {
     });
 });
 
-describe('initializeHasTranslatedDynamicContents', static function (): void {
-    it('removes components from fillable when called', static function (): void {
+describe('initializeHasTranslatedDynamicContents', function (): void {
+    it('removes components from fillable when called', function (): void {
         // Create instance using factory to ensure database is ready
         $author = Author::factory()->make();
 
@@ -299,7 +299,7 @@ describe('initializeHasTranslatedDynamicContents', static function (): void {
         expect($attributes)->not->toHaveKey('components');
     });
 
-    it('removes components from attributes after HasDynamicContents adds it', static function (): void {
+    it('removes components from attributes after HasDynamicContents adds it', function (): void {
         // Create instance using factory to ensure database is ready
         $author = Author::factory()->make();
 
@@ -313,15 +313,15 @@ describe('initializeHasTranslatedDynamicContents', static function (): void {
     });
 });
 
-describe('Integration with HasTranslations', static function (): void {
-    it('components is a translatable field when using HasTranslatedDynamicContents', static function (): void {
+describe('Integration with HasTranslations', function (): void {
+    it('components is a translatable field when using HasTranslatedDynamicContents', function (): void {
         $author = Author::factory()->create();
         $translatable_fields = $author::getTranslatableFields();
 
         expect($translatable_fields)->toContain('components');
     });
 
-    it('can set components for different locales', static function (): void {
+    it('can set components for different locales', function (): void {
         ['entity' => $entity] = createTestEntityWithFields();
         $author = Author::factory()->create();
         $author->entity_id = $entity->id;

@@ -193,7 +193,7 @@ it('has optimistic locking trait', function (): void {
     expect(method_exists($this->content, 'incrementLockVersion'))->toBeTrue();
 });
 
-it('can be created with specific translation attributes', static function (): void {
+it('can be created with specific translation attributes', function (): void {
     $content = Content::factory()->create();
     $default_locale = config('app.locale');
     $content->setTranslation($default_locale, [
@@ -212,7 +212,7 @@ it('can be created with specific translation attributes', static function (): vo
     expect($content->excerpt)->toBe('Custom excerpt');
 });
 
-it('can be found by title through translation', static function (): void {
+it('can be found by title through translation', function (): void {
     $content = Content::factory()->create();
     $default_locale = config('app.locale');
     $content->setTranslation($default_locale, [
@@ -230,7 +230,7 @@ it('can be found by title through translation', static function (): void {
     expect($foundContent->title)->toBe('Unique Content');
 });
 
-it('can be found by slug through translation', static function (): void {
+it('can be found by slug through translation', function (): void {
     $content = Content::factory()->create();
     $default_locale = config('app.locale');
     $content->setTranslation($default_locale, [
@@ -264,7 +264,7 @@ it('has proper timestamps', function (): void {
     expect($content->updated_at)->toBeInstanceOf(Carbon\CarbonImmutable::class);
 });
 
-it('can be serialized to array with translations', static function (): void {
+it('can be serialized to array with translations', function (): void {
     $content = Content::factory()->create();
     $default_locale = config('app.locale');
     $content->setTranslation($default_locale, [
@@ -284,7 +284,7 @@ it('can be serialized to array with translations', static function (): void {
     expect($contentArray['slug'])->toBe('test-content');
 });
 
-it('can be restored after soft delete', static function (): void {
+it('can be restored after soft delete', function (): void {
     $content = Content::factory()->create();
     $content->delete();
 
@@ -295,7 +295,7 @@ it('can be restored after soft delete', static function (): void {
     expect($content->trashed())->toBeFalse();
 });
 
-it('can be permanently deleted', static function (): void {
+it('can be permanently deleted', function (): void {
     $content = Content::factory()->create();
     $contentId = $content->id;
 

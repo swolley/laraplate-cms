@@ -10,7 +10,7 @@ use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Location;
 use Modules\Cms\Models\Tag;
 
-test('content creation workflow structure', static function (): void {
+test('content creation workflow structure', function (): void {
     // 1. Test Content model structure
     $reflection = new ReflectionClass(Content::class);
     expect($reflection->hasMethod('entity'))->toBeTrue();
@@ -35,7 +35,7 @@ test('content creation workflow structure', static function (): void {
     expect($source)->toContain('public function toSearchableArray()');
 });
 
-test('entity and field management workflow structure', static function (): void {
+test('entity and field management workflow structure', function (): void {
     // 1. Test Entity model structure
     $reflection = new ReflectionClass(Entity::class);
     expect($reflection->hasMethod('presets'))->toBeTrue();
@@ -62,7 +62,7 @@ test('entity and field management workflow structure', static function (): void 
     expect($source)->toContain('belongsToMany');
 });
 
-test('location and geocoding workflow structure', static function (): void {
+test('location and geocoding workflow structure', function (): void {
     // 1. Test Location model structure
     $reflection = new ReflectionClass(Location::class);
     expect($reflection->hasMethod('contents'))->toBeTrue();
@@ -91,7 +91,7 @@ test('location and geocoding workflow structure', static function (): void {
     expect($reflection->hasMethod('url'))->toBeTrue();
 });
 
-test('content categorization workflow structure', static function (): void {
+test('content categorization workflow structure', function (): void {
     // 1. Test Category model structure
     $reflection = new ReflectionClass(Category::class);
     expect($reflection->hasMethod('contents'))->toBeTrue();
@@ -124,7 +124,7 @@ test('content categorization workflow structure', static function (): void {
     expect($source)->toContain('public function getPath()');
 });
 
-test('content publishing workflow structure', static function (): void {
+test('content publishing workflow structure', function (): void {
     // 1. Test Content model publishing methods
     $reflection = new ReflectionClass(Content::class);
     $source = file_get_contents($reflection->getFileName());
@@ -154,7 +154,7 @@ test('content publishing workflow structure', static function (): void {
     expect($source)->toContain('HasValidity');
 });
 
-test('content database seeder workflow structure', static function (): void {
+test('content database seeder workflow structure', function (): void {
     // 1. Test CMS seeder structure
     $reflection = new ReflectionClass(Modules\Cms\Database\Seeders\CmsDatabaseSeeder::class);
     expect($reflection->hasMethod('run'))->toBeTrue();
@@ -165,7 +165,7 @@ test('content database seeder workflow structure', static function (): void {
     expect($source)->toContain('Entity::class');
 });
 
-test('content migration workflow structure', static function (): void {
+test('content migration workflow structure', function (): void {
     // 1. Test migration files exist
     $migrationFiles = glob('/srv/http/laraplate/Modules/Cms/database/migrations/*.php');
     expect($migrationFiles)->not->toBeEmpty();
@@ -179,7 +179,7 @@ test('content migration workflow structure', static function (): void {
     }
 });
 
-test('content filament resources workflow structure', static function (): void {
+test('content filament resources workflow structure', function (): void {
     // 1. Test ContentResource structure
     $reflection = new ReflectionClass(Modules\Cms\Filament\Resources\Contents\ContentResource::class);
     expect($reflection->hasMethod('form'))->toBeTrue();

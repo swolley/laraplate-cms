@@ -18,7 +18,7 @@ it('can be created with factory', function (): void {
     expect($this->tag->id)->not->toBeNull();
 });
 
-it('has translatable attributes', static function (): void {
+it('has translatable attributes', function (): void {
     $tag = Tag::factory()->create();
 
     // Set translation for default locale
@@ -33,7 +33,7 @@ it('has translatable attributes', static function (): void {
     expect($tag->slug)->toBe('laravel');
 });
 
-it('has hidden attributes', static function (): void {
+it('has hidden attributes', function (): void {
     $tag = Tag::factory()->create();
     $tagArray = $tag->toArray();
 
@@ -80,7 +80,7 @@ it('has translations trait', function (): void {
     expect(method_exists($this->tag, 'getTranslatableFields'))->toBeTrue();
 });
 
-it('can find or create tags', static function (): void {
+it('can find or create tags', function (): void {
     $tag = Tag::findOrCreateFromString('Laravel');
 
     expect($tag)->toBeInstanceOf(Tag::class);
@@ -91,14 +91,14 @@ it('can find or create tags', static function (): void {
     expect($sameTag->id)->toBe($tag->id);
 });
 
-it('can find or create multiple tags', static function (): void {
+it('can find or create multiple tags', function (): void {
     $tags = Tag::findOrCreate(['Laravel', 'PHP', 'Web Development']);
 
     expect($tags)->toHaveCount(3);
     expect($tags->pluck('name')->toArray())->toContain('Laravel', 'PHP', 'Web Development');
 });
 
-it('can be created with specific translation attributes', static function (): void {
+it('can be created with specific translation attributes', function (): void {
     $tag = Tag::factory()->create(['type' => 'programming', 'order_column' => 2]);
     $default_locale = config('app.locale');
     $tag->setTranslation($default_locale, [
@@ -113,7 +113,7 @@ it('can be created with specific translation attributes', static function (): vo
     expect($tag->order_column)->toBe(2);
 });
 
-it('can be found by name through translation', static function (): void {
+it('can be found by name through translation', function (): void {
     $tag = Tag::factory()->create();
     $default_locale = config('app.locale');
     $tag->setTranslation($default_locale, [
@@ -130,7 +130,7 @@ it('can be found by name through translation', static function (): void {
     expect($foundTag->name)->toBe('Unique Tag');
 });
 
-it('can be found by slug through translation', static function (): void {
+it('can be found by slug through translation', function (): void {
     $tag = Tag::factory()->create();
     $default_locale = config('app.locale');
     $tag->setTranslation($default_locale, [
@@ -147,7 +147,7 @@ it('can be found by slug through translation', static function (): void {
     expect($foundTag->slug)->toBe('unique-slug');
 });
 
-it('can be found by type', static function (): void {
+it('can be found by type', function (): void {
     $tag = Tag::factory()->create(['type' => 'technology']);
 
     $foundTag = Tag::where('type', 'technology')->first();
@@ -155,14 +155,14 @@ it('can be found by type', static function (): void {
     expect($foundTag->id)->toBe($tag->id);
 });
 
-it('has proper timestamps', static function (): void {
+it('has proper timestamps', function (): void {
     $tag = Tag::factory()->create();
 
     expect($tag->created_at)->toBeInstanceOf(Carbon\CarbonImmutable::class);
     expect($tag->updated_at)->toBeInstanceOf(Carbon\CarbonImmutable::class);
 });
 
-it('can be serialized to array with translations', static function (): void {
+it('can be serialized to array with translations', function (): void {
     $tag = Tag::factory()->create(['type' => 'test']);
     $default_locale = config('app.locale');
     $tag->setTranslation($default_locale, [
@@ -182,7 +182,7 @@ it('can be serialized to array with translations', static function (): void {
     expect($tagArray['type'])->toBe('test');
 });
 
-it('can be restored after soft delete', static function (): void {
+it('can be restored after soft delete', function (): void {
     $tag = Tag::factory()->create();
     $tag->delete();
 
@@ -193,7 +193,7 @@ it('can be restored after soft delete', static function (): void {
     expect($tag->trashed())->toBeFalse();
 });
 
-it('can be permanently deleted', static function (): void {
+it('can be permanently deleted', function (): void {
     $tag = Tag::factory()->create();
     $tagId = $tag->id;
 
@@ -202,7 +202,7 @@ it('can be permanently deleted', static function (): void {
     expect(Tag::withTrashed()->find($tagId))->toBeNull();
 });
 
-it('can be sorted by order column', static function (): void {
+it('can be sorted by order column', function (): void {
     $tag1 = Tag::factory()->create(['order_column' => 2]);
     $tag2 = Tag::factory()->create(['order_column' => 1]);
     $tag3 = Tag::factory()->create(['order_column' => 3]);
@@ -213,7 +213,7 @@ it('can be sorted by order column', static function (): void {
     expect($sortedTags->last()->id)->toBe($tag3->id);
 });
 
-it('can be moved in order', static function (): void {
+it('can be moved in order', function (): void {
     $tag1 = Tag::factory()->create(['order_column' => 1]);
     $tag2 = Tag::factory()->create(['order_column' => 2]);
     $tag3 = Tag::factory()->create(['order_column' => 3]);

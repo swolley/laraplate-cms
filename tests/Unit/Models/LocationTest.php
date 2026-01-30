@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Modules\Cms\Models\Location;
 
-it('location model has correct structure', static function (): void {
+it('location model has correct structure', function (): void {
     $reflection = new ReflectionClass(Location::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -15,7 +15,7 @@ it('location model has correct structure', static function (): void {
     expect($source)->toContain('protected $hidden');
 });
 
-it('location model uses correct traits', static function (): void {
+it('location model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Location::class);
     $traits = $reflection->getTraitNames();
 
@@ -29,7 +29,7 @@ it('location model uses correct traits', static function (): void {
     expect($traits)->toContain('Modules\\Core\\Helpers\\SoftDeletes');
 });
 
-it('location model has required methods', static function (): void {
+it('location model has required methods', function (): void {
     $reflection = new ReflectionClass(Location::class);
 
     expect($reflection->hasMethod('contents'))->toBeTrue();
@@ -38,7 +38,7 @@ it('location model has required methods', static function (): void {
     expect($reflection->hasMethod('toArray'))->toBeTrue();
 });
 
-it('location model has correct relationships', static function (): void {
+it('location model has correct relationships', function (): void {
     $reflection = new ReflectionClass(Location::class);
 
     // Test contents relationship
@@ -46,7 +46,7 @@ it('location model has correct relationships', static function (): void {
     expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
 });
 
-it('location model has correct method signatures', static function (): void {
+it('location model has correct method signatures', function (): void {
     $reflection = new ReflectionClass(Location::class);
 
     // Test getRules method

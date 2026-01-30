@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Modules\Cms\Models\Entity;
 
-it('entity model has correct structure', static function (): void {
+it('entity model has correct structure', function (): void {
     $reflection = new ReflectionClass(Entity::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -15,7 +15,7 @@ it('entity model has correct structure', static function (): void {
     expect($source)->toContain('protected $hidden');
 });
 
-it('entity model uses correct traits', static function (): void {
+it('entity model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Entity::class);
     $traits = $reflection->getTraitNames();
 
@@ -28,7 +28,7 @@ it('entity model uses correct traits', static function (): void {
     expect($traits)->toContain('Modules\\Core\\Locking\\Traits\\HasLocks');
 });
 
-it('entity model has required methods', static function (): void {
+it('entity model has required methods', function (): void {
     $reflection = new ReflectionClass(Entity::class);
 
     expect($reflection->hasMethod('presets'))->toBeTrue();
@@ -38,7 +38,7 @@ it('entity model has required methods', static function (): void {
     expect($reflection->hasMethod('toArray'))->toBeTrue();
 });
 
-it('entity model has correct relationships', static function (): void {
+it('entity model has correct relationships', function (): void {
     $reflection = new ReflectionClass(Entity::class);
 
     // Test presets relationship
@@ -50,7 +50,7 @@ it('entity model has correct relationships', static function (): void {
     expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\HasManyThrough');
 });
 
-it('entity model has correct method signatures', static function (): void {
+it('entity model has correct method signatures', function (): void {
     $reflection = new ReflectionClass(Entity::class);
 
     // Test getRules method
@@ -67,7 +67,7 @@ it('entity model has correct method signatures', static function (): void {
         expect($returnType->allowsNull())->toBeTrue();
     } elseif ($returnType instanceof ReflectionUnionType) {
         $types = $returnType->getTypes();
-        $typeNames = array_map(static fn ($t) => $t->getName(), $types);
+        $typeNames = array_map(fn ($t) => $t->getName(), $types);
         expect($typeNames)->toContain('string');
     }
 

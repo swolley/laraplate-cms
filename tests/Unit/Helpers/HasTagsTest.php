@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Modules\Cms\Helpers\HasTags;
 
-it('trait can be used', static function (): void {
+it('trait can be used', function (): void {
     $trait = new class
     {
         use HasTags;
@@ -15,7 +15,7 @@ it('trait can be used', static function (): void {
     expect(method_exists($trait, 'syncTags'))->toBeTrue();
 });
 
-it('trait has required methods', static function (): void {
+it('trait has required methods', function (): void {
     $trait = new class
     {
         use HasTags;
@@ -26,7 +26,7 @@ it('trait has required methods', static function (): void {
     expect(method_exists($trait, 'syncTags'))->toBeTrue();
 });
 
-it('trait methods are callable', static function (): void {
+it('trait methods are callable', function (): void {
     $trait = new class
     {
         use HasTags;
@@ -37,7 +37,7 @@ it('trait methods are callable', static function (): void {
     expect(fn () => $trait->syncTags([]))->not->toThrow(Throwable::class);
 });
 
-it('trait can be used in different classes', static function (): void {
+it('trait can be used in different classes', function (): void {
     $class1 = new class
     {
         use HasTags;
@@ -52,7 +52,7 @@ it('trait can be used in different classes', static function (): void {
     expect(method_exists($class2, 'attachTags'))->toBeTrue();
 });
 
-it('trait is properly namespaced', static function (): void {
+it('trait is properly namespaced', function (): void {
     $trait = new class
     {
         use HasTags;
@@ -63,7 +63,7 @@ it('trait is properly namespaced', static function (): void {
     expect(method_exists($trait, 'syncTags'))->toBeTrue();
 });
 
-it('trait can be extended', static function (): void {
+it('trait can be extended', function (): void {
     $baseClass = new class
     {
         use HasTags;
@@ -84,7 +84,7 @@ it('trait can be extended', static function (): void {
     expect(method_exists($extendedClass, 'customMethod'))->toBeTrue();
 });
 
-it('trait has proper structure', static function (): void {
+it('trait has proper structure', function (): void {
     $trait = new class
     {
         use HasTags;
@@ -95,7 +95,7 @@ it('trait has proper structure', static function (): void {
     expect(method_exists($trait, 'syncTags'))->toBeTrue();
 });
 
-it('trait methods are accessible', static function (): void {
+it('trait methods are accessible', function (): void {
     $trait = new class
     {
         use HasTags;
@@ -106,7 +106,7 @@ it('trait methods are accessible', static function (): void {
     expect(method_exists($trait, 'syncTags'))->toBeTrue();
 });
 
-it('trait can be used in different scenarios', static function (): void {
+it('trait can be used in different scenarios', function (): void {
     $scenario1 = new class
     {
         use HasTags;

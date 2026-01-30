@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Modules\Cms\Models\Tag;
 
-it('tag model has correct structure', static function (): void {
+it('tag model has correct structure', function (): void {
     $reflection = new ReflectionClass(Tag::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -15,7 +15,7 @@ it('tag model has correct structure', static function (): void {
     expect($source)->toContain('protected $hidden');
 });
 
-it('tag model uses correct traits', static function (): void {
+it('tag model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Tag::class);
     $traits = $reflection->getTraitNames();
 
@@ -28,7 +28,7 @@ it('tag model uses correct traits', static function (): void {
     expect($traits)->toContain('Modules\\Core\\Helpers\\SortableTrait');
 });
 
-it('tag model has required methods', static function (): void {
+it('tag model has required methods', function (): void {
     $reflection = new ReflectionClass(Tag::class);
 
     expect($reflection->hasMethod('getRules'))->toBeTrue();
@@ -36,7 +36,7 @@ it('tag model has required methods', static function (): void {
     expect($reflection->hasMethod('toArray'))->toBeTrue();
 });
 
-it('tag model has correct method signatures', static function (): void {
+it('tag model has correct method signatures', function (): void {
     $reflection = new ReflectionClass(Tag::class);
 
     // Test getRules method

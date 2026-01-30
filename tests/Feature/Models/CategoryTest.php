@@ -88,7 +88,7 @@ it('belongs to many contents', function (): void {
     expect($this->category->contents->pluck('title')->toArray())->toContain('Article 1', 'Article 2');
 });
 
-it('has recursive relationships for parent-child categories', static function (): void {
+it('has recursive relationships for parent-child categories', function (): void {
     $parentCategory = Category::factory()->create();
     $parentCategory->setTranslation(config('app.locale'), ['name' => 'Technology']);
     $parentCategory->save();
@@ -165,7 +165,7 @@ it('has validations trait', function (): void {
     expect(method_exists($this->category, 'getRules'))->toBeTrue();
 });
 
-it('can be created with specific translation attributes', static function (): void {
+it('can be created with specific translation attributes', function (): void {
     $category = Category::factory()->create();
     $default_locale = config('app.locale');
     $category->setTranslation($default_locale, [
@@ -182,7 +182,7 @@ it('can be created with specific translation attributes', static function (): vo
     expect($category->description)->toBe('Science category');
 });
 
-it('can be found by name through translation', static function (): void {
+it('can be found by name through translation', function (): void {
     $category = Category::factory()->create();
     $default_locale = config('app.locale');
     $category->setTranslation($default_locale, [
@@ -199,7 +199,7 @@ it('can be found by name through translation', static function (): void {
     expect($foundCategory->name)->toBe('Unique Category');
 });
 
-it('can be found by slug through translation', static function (): void {
+it('can be found by slug through translation', function (): void {
     $category = Category::factory()->create();
     $default_locale = config('app.locale');
     $category->setTranslation($default_locale, [
@@ -216,7 +216,7 @@ it('can be found by slug through translation', static function (): void {
     expect($foundCategory->slug)->toBe('unique-slug');
 });
 
-it('can be found by active status', static function (): void {
+it('can be found by active status', function (): void {
     $activeCategory = Category::factory()->create(['is_active' => true]);
     $inactiveCategory = Category::factory()->create(['is_active' => false]);
 
@@ -229,14 +229,14 @@ it('can be found by active status', static function (): void {
     expect($inactiveCategories->first()->id)->toBe($inactiveCategory->id);
 });
 
-it('has proper timestamps', static function (): void {
+it('has proper timestamps', function (): void {
     $category = Category::factory()->create();
 
     expect($category->created_at)->toBeInstanceOf(Carbon\CarbonImmutable::class);
     expect($category->updated_at)->toBeInstanceOf(Carbon\CarbonImmutable::class);
 });
 
-it('can be serialized to array with translations', static function (): void {
+it('can be serialized to array with translations', function (): void {
     $category = Category::factory()->create();
     $default_locale = config('app.locale');
     $category->setTranslation($default_locale, [
@@ -256,7 +256,7 @@ it('can be serialized to array with translations', static function (): void {
     expect($categoryArray['slug'])->toBe('test-category');
 });
 
-it('can be restored after soft delete', static function (): void {
+it('can be restored after soft delete', function (): void {
     $category = Category::factory()->create();
     $category->delete();
 
@@ -267,7 +267,7 @@ it('can be restored after soft delete', static function (): void {
     expect($category->trashed())->toBeFalse();
 });
 
-it('can be permanently deleted', static function (): void {
+it('can be permanently deleted', function (): void {
     $category = Category::factory()->create();
     $categoryId = $category->id;
 

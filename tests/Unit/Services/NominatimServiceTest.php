@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Modules\Cms\Services\NominatimService;
 
-it('has proper class structure', static function (): void {
+it('has proper class structure', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     expect($reflection->isFinal())->toBeTrue();
@@ -13,7 +13,7 @@ it('has proper class structure', static function (): void {
     expect($reflection->hasMethod('url'))->toBeTrue();
 });
 
-it('has getInstance method as static', static function (): void {
+it('has getInstance method as static', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
     $method = $reflection->getMethod('getInstance');
 
@@ -21,14 +21,14 @@ it('has getInstance method as static', static function (): void {
     expect($method->isPublic())->toBeTrue();
 });
 
-it('has private constructor for singleton', static function (): void {
+it('has private constructor for singleton', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
     $constructor = $reflection->getConstructor();
 
     expect($constructor->isPrivate())->toBeTrue();
 });
 
-it('has search method with correct signature', static function (): void {
+it('has search method with correct signature', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
     $method = $reflection->getMethod('search');
 
@@ -36,7 +36,7 @@ it('has search method with correct signature', static function (): void {
     expect($method->getNumberOfParameters())->toBeGreaterThanOrEqual(1);
 });
 
-it('has url method with correct signature', static function (): void {
+it('has url method with correct signature', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
     $method = $reflection->getMethod('url');
 
@@ -44,7 +44,7 @@ it('has url method with correct signature', static function (): void {
     expect($method->getNumberOfParameters())->toBe(1);
 });
 
-it('has proper method visibility', static function (): void {
+it('has proper method visibility', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     $searchMethod = $reflection->getMethod('search');
@@ -56,7 +56,7 @@ it('has proper method visibility', static function (): void {
     expect($getInstanceMethod->isPublic())->toBeTrue();
 });
 
-it('has consistent method signatures', static function (): void {
+it('has consistent method signatures', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     $searchMethod = $reflection->getMethod('search');
@@ -66,14 +66,14 @@ it('has consistent method signatures', static function (): void {
     expect($urlMethod->getNumberOfParameters())->toBe(1);
 });
 
-it('has proper class hierarchy', static function (): void {
+it('has proper class hierarchy', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     expect($reflection->isFinal())->toBeTrue();
     expect($reflection->getName())->toBe(NominatimService::class);
 });
 
-it('has required public methods', static function (): void {
+it('has required public methods', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     $publicMethods = $reflection->getMethods(ReflectionMethod::IS_PUBLIC);
@@ -84,19 +84,19 @@ it('has required public methods', static function (): void {
     expect($methodNames)->toContain('getInstance');
 });
 
-it('has proper class finality', static function (): void {
+it('has proper class finality', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     expect($reflection->isFinal())->toBeTrue();
 });
 
-it('has proper namespace', static function (): void {
+it('has proper namespace', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     expect($reflection->getName())->toBe('Modules\Cms\Services\NominatimService');
 });
 
-it('has proper method accessibility', static function (): void {
+it('has proper method accessibility', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     $searchMethod = $reflection->getMethod('search');
@@ -108,7 +108,7 @@ it('has proper method accessibility', static function (): void {
     expect($getInstanceMethod->isPublic())->toBeTrue();
 });
 
-it('has proper class structure for geocoding', static function (): void {
+it('has proper class structure for geocoding', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     expect($reflection->isFinal())->toBeTrue();
@@ -116,7 +116,7 @@ it('has proper class structure for geocoding', static function (): void {
     expect($reflection->hasMethod('url'))->toBeTrue();
 });
 
-it('has proper method parameter types', static function (): void {
+it('has proper method parameter types', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     $searchMethod = $reflection->getMethod('search');
@@ -126,7 +126,7 @@ it('has proper method parameter types', static function (): void {
     expect($urlMethod->getNumberOfParameters())->toBe(1);
 });
 
-it('has proper class structure for singleton pattern', static function (): void {
+it('has proper class structure for singleton pattern', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     expect($reflection->isFinal())->toBeTrue();
@@ -136,7 +136,7 @@ it('has proper class structure for singleton pattern', static function (): void 
     expect($constructor->isPrivate())->toBeTrue();
 });
 
-it('has proper method return types', static function (): void {
+it('has proper method return types', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     $searchMethod = $reflection->getMethod('search');
@@ -146,7 +146,7 @@ it('has proper method return types', static function (): void {
     expect($urlMethod->getReturnType())->not->toBeNull();
 });
 
-it('has proper class structure for service pattern', static function (): void {
+it('has proper class structure for service pattern', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     expect($reflection->isFinal())->toBeTrue();
@@ -154,7 +154,7 @@ it('has proper class structure for service pattern', static function (): void {
     expect($reflection->hasMethod('url'))->toBeTrue();
 });
 
-it('has proper method signatures for geocoding', static function (): void {
+it('has proper method signatures for geocoding', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     $searchMethod = $reflection->getMethod('search');
@@ -164,7 +164,7 @@ it('has proper method signatures for geocoding', static function (): void {
     expect($urlMethod->getNumberOfParameters())->toBe(1);
 });
 
-it('has proper class structure for API integration', static function (): void {
+it('has proper class structure for API integration', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     expect($reflection->isFinal())->toBeTrue();
@@ -172,7 +172,7 @@ it('has proper class structure for API integration', static function (): void {
     expect($reflection->hasMethod('url'))->toBeTrue();
 });
 
-it('has proper method structure for geocoding operations', static function (): void {
+it('has proper method structure for geocoding operations', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     $searchMethod = $reflection->getMethod('search');
@@ -182,7 +182,7 @@ it('has proper method structure for geocoding operations', static function (): v
     expect($urlMethod->isPublic())->toBeTrue();
 });
 
-it('has proper class structure for singleton service', static function (): void {
+it('has proper class structure for singleton service', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     expect($reflection->isFinal())->toBeTrue();
@@ -192,7 +192,7 @@ it('has proper class structure for singleton service', static function (): void 
     expect($constructor->isPrivate())->toBeTrue();
 });
 
-it('has proper method structure for API calls', static function (): void {
+it('has proper method structure for API calls', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     $searchMethod = $reflection->getMethod('search');

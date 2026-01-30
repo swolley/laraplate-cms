@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Modules\Cms\Models\Category;
 
-it('category model has correct structure', static function (): void {
+it('category model has correct structure', function (): void {
     $reflection = new ReflectionClass(Category::class);
     $source = file_get_contents($reflection->getFileName());
 
@@ -15,7 +15,7 @@ it('category model has correct structure', static function (): void {
     expect($source)->toContain('protected $hidden');
 });
 
-it('category model uses correct traits', static function (): void {
+it('category model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Category::class);
     $traits = $reflection->getTraitNames();
 
@@ -36,7 +36,7 @@ it('category model uses correct traits', static function (): void {
     expect($traits)->toContain('Modules\\Core\\Locking\\Traits\\HasLocks');
 });
 
-it('category model has required methods', static function (): void {
+it('category model has required methods', function (): void {
     $reflection = new ReflectionClass(Category::class);
 
     expect($reflection->hasMethod('contents'))->toBeTrue();
@@ -46,7 +46,7 @@ it('category model has required methods', static function (): void {
     expect($reflection->hasMethod('toArray'))->toBeTrue();
 });
 
-it('category model has correct relationships', static function (): void {
+it('category model has correct relationships', function (): void {
     $reflection = new ReflectionClass(Category::class);
 
     // Test contents relationship
@@ -54,7 +54,7 @@ it('category model has correct relationships', static function (): void {
     expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
 });
 
-it('category model has correct method signatures', static function (): void {
+it('category model has correct method signatures', function (): void {
     $reflection = new ReflectionClass(Category::class);
 
     // Test getRules method
