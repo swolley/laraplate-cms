@@ -15,7 +15,7 @@
     }
   ],
   "license": "MIT",
-  "type": "library",
+  "type": "laravel-module",
   "require": {
     "php": ">=8.5",
     "ext-gd": "*",
