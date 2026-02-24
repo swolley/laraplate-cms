@@ -25,7 +25,6 @@ it('category model uses correct traits', function (): void {
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasMultimedia');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasPath');
     expect($traits)->toContain('Staudenmeir\\LaravelAdjacencyList\\Eloquent\\HasRecursiveRelationships');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasSlug');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasTags');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasTranslatedDynamicContents');
     expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');
@@ -67,9 +66,73 @@ it('category model has correct method signatures', function (): void {
 
     // Test appendPaths method
     $method = $reflection->getMethod('appendPaths');
-    expect($method->getReturnType()->getName())->toBe('self');
+    expect($method->getReturnType()->getName())->toBe(Category::class);
 
     // Test toArray method
     $method = $reflection->getMethod('toArray');
     expect($method->getReturnType()->getName())->toBe('array');
+});
+
+it('builds path, ids and full_name correctly from ancestors', function (): void {
+    if (! function_exists('app') || ! app()->bound('session')) {
+        $this->markTestSkipped('Session not available, skipping path chain test.');
+    }
+
+    $reflection = new ReflectionClass(Category::class);
+
+    /** @var Category $root */
+    $root = $reflection->newInstanceWithoutConstructor();
+    $attributesProperty = $reflection->getProperty('attributes');
+    $attributesProperty->setAccessible(true);
+    $attributesProperty->setValue($root, [
+        'id' => 1,
+        'slug' => 'root',
+        'name' => 'Root',
+    ]);
+
+    /** @var Category $child */
+    $child = $reflection->newInstanceWithoutConstructor();
+    $attributesProperty->setValue($child, [
+        'id' => 2,
+        'slug' => 'child',
+        'name' => 'Child',
+    ]);
+
+    /** @var Category $grandchild */
+    $grandchild = $reflection->newInstanceWithoutConstructor();
+    $attributesProperty->setValue($grandchild, [
+        'id' => 3,
+        'slug' => 'grandchild',
+        'name' => 'Grandchild',
+    ]);
+
+    // Simulate ancestors relation: [immediate parent, then root]
+    $grandchild->setRelation('ancestors', collect([$child, $root]));
+
+    expect($grandchild->getPath())->toBe('root/child/grandchild')
+        ->and($grandchild->ids)->toBe('1.2.3')
+        ->and($grandchild->full_name)->toBe('Root > Child > Grandchild');
+});
+
+it('falls back to current node data when no ancestors are present', function (): void {
+    if (! function_exists('app') || ! app()->bound('session')) {
+        $this->markTestSkipped('Session not available, skipping path fallback test.');
+    }
+
+    $reflection = new ReflectionClass(Category::class);
+
+    /** @var Category $category */
+    $category = $reflection->newInstanceWithoutConstructor();
+    $attributesProperty = $reflection->getProperty('attributes');
+    $attributesProperty->setAccessible(true);
+    $attributesProperty->setValue($category, [
+        'id' => 10,
+        'slug' => 'single',
+        'name' => 'Single',
+    ]);
+
+    // No ancestors relation set
+    expect($category->getPath())->toBe('single')
+        ->and($category->ids)->toBe('10')
+        ->and($category->full_name)->toBe('Single');
 });

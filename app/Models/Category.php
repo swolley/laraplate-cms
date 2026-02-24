@@ -153,8 +153,8 @@ final class Category extends Model implements IMediable, Sortable
     #[Override]
     public function getPath(): string
     {
-        // Use slug from translation
-        return $this->ancestors->pluck('slug')->reverse()->merge([$this->slug])->join('/');
+        // Use slug from translation and build a stable ancestor chain
+        return $this->buildAncestorChain('slug', '/');
     }
 
     public function appendPaths(): self
@@ -170,6 +170,20 @@ final class Category extends Model implements IMediable, Sortable
         $parsed = parent::toArray() ?? $this->attributesToArray();
 
         return array_merge($parsed, $this->translatedDynamicContentsToArray(), $this->approvalsToArray($parsed));
+    }
+
+    /**
+     * Eager-load ancestors (and their translations) for path-related accessors.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeWithAncestorsForPath(Builder $query): Builder
+    {
+        return $query->with([
+            'ancestors',
+            'ancestors.translations',
+        ]);
     }
 
     #[Override]
@@ -226,14 +240,14 @@ final class Category extends Model implements IMediable, Sortable
     protected function ids(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->ancestors->pluck('id')->reverse()->merge([$this->id])->join('.'),
+            get: fn (): string => $this->buildAncestorChain('id', '.'),
         );
     }
 
     protected function fullName(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->ancestors->pluck('name')->reverse()->merge([$this->name])->join(' > '),
+            get: fn (): string => $this->buildAncestorChain('name', ' > '),
         );
     }
 
@@ -242,5 +256,36 @@ final class Category extends Model implements IMediable, Sortable
         return Attribute::make(
             get: fn () => $this->name,
         );
+    }
+
+    /**
+     * Build a concatenated chain from ancestors plus the current model.
+     */
+    private function buildAncestorChain(string $field, string $separator): string
+    {
+        $ancestors = $this->ancestors;
+
+        if (! $ancestors instanceof \Illuminate\Support\Collection) {
+            $ancestors = collect();
+        }
+
+        /** @var \Illuminate\Support\Collection<int, mixed> $segments */
+        $segments = $ancestors
+            ->pluck($field)
+            ->filter(static fn ($value): bool => $value !== null && $value !== '')
+            ->reverse()
+            ->values();
+
+        $current = $this->{$field} ?? null;
+
+        if ($current !== null && $current !== '') {
+            $segments->push($current);
+        }
+
+        if ($segments->isEmpty()) {
+            return (string) ($current ?? '');
+        }
+
+        return $segments->join($separator);
     }
 }
