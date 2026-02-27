@@ -139,9 +139,10 @@ final class DynamicContentsService
         $this->presettables_cache = Cache::memo()->rememberForever(
             $cache_key,
             static fn (): Collection => Presettable::query()
-                ->withoutGlobalScopes()
                 ->join('presets', 'presettables.preset_id', '=', 'presets.id')
                 ->join('entities', 'presets.entity_id', '=', 'entities.id')
+                ->whereNull('presettables.deleted_at')
+                ->whereNull('presets.deleted_at')
                 ->addSelect('presettables.*', DB::raw('CASE WHEN presets.is_default THEN 1 ELSE 0 END + CASE WHEN entities.is_default THEN 1 ELSE 0 END as order_score'))
                 ->orderBy('order_score', 'desc')
                 ->get(),

@@ -218,10 +218,8 @@ trait HasDynamicContents
         $result = parent::setRelation($relation, $value);
 
         if ($relation === 'presettable' && $value instanceof Presettable) {
-            $this->presettable_id = $value->preset_id;
+            $this->presettable_id = $value->id;
             $this->entity_id = $value->entity_id;
-
-            $this->content = $this->getComponentsAttribute();
         }
 
         return $result;
@@ -410,13 +408,8 @@ trait HasDynamicContents
 
     protected function dynamicSlugFields(): array
     {
-        if (! $this->preset) {
-            return [];
-        }
-
-        return $this->preset->fields()
-            ->select(['name', 'is_slug'])
-            ->where('is_slug', true)
+        return $this->fields()
+            ->filter(fn (Field $field): bool => (bool) $field->is_slug)
             ->pluck('name')
             ->toArray();
     }
@@ -508,12 +501,13 @@ trait HasDynamicContents
     }
 
     /**
-     * The fields that belong to the content.
+     * The fields that belong to the content, read from the presettable's
+     * frozen snapshot so that content structure is preserved over time.
      *
-     * @return Collection<Field>
+     * @return Collection<int, Field>
      */
     private function fields(): Collection
     {
-        return $this->preset?->fields ?? new Collection();
+        return $this->getRelationValue('presettable')?->getFieldsFromSnapshot() ?? new Collection();
     }
 }

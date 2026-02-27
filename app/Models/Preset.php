@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Modules\Cms\Models\Pivot\Fieldable;
 use Modules\Cms\Models\Pivot\Presettable;
+use Modules\Cms\Services\PresetVersioningService;
 use Modules\Core\Cache\HasCache;
 use Modules\Core\Helpers\HasActivation;
 use Modules\Core\Helpers\HasApprovals;
@@ -83,6 +84,29 @@ final class Preset extends Model
         return $this->belongsToMany(Field::class, 'fieldables')->using(Fieldable::class)->withTimestamps()->withPivot(['id', 'order_column', 'is_required', 'default']);
     }
 
+    /**
+     * Create a new presettable version with the current fields snapshot.
+     * Call this after modifying the fields relationship (attach/detach/sync)
+     * since BelongsToMany bulk operations don't fire pivot model events.
+     */
+    public function createFieldsVersion(): Presettable
+    {
+        return app(PresetVersioningService::class)->createVersion($this);
+    }
+
+    /**
+     * Get the current active presettable for this preset.
+     */
+    public function activePresettable(): ?Presettable
+    {
+        return Presettable::query()
+            ->where('preset_id', $this->id)
+            ->where('entity_id', $this->entity_id)
+            ->whereNull('deleted_at')
+            ->latest('version')
+            ->first();
+    }
+
     public function getRules(): array
     {
         $rules = $this->getRulesTrait();
@@ -99,6 +123,28 @@ final class Preset extends Model
         ]);
 
         return $rules;
+    }
+
+    /**
+     * Migrate all contents to the latest presettable version.
+     * This reassigns every content's presettable_id to the current active version.
+     */
+    public function migrateContentsToLastVersion(): void
+    {
+        $active = $this->activePresettable();
+
+        if (! $active) {
+            return;
+        }
+
+        Content::query()
+            ->whereIn('presettable_id', function ($query): void {
+                $query->select('id')
+                    ->from('presettables')
+                    ->where('preset_id', $this->id)
+                    ->where('entity_id', $this->entity_id);
+            })
+            ->update(['presettable_id' => $active->id]);
     }
 
     protected function casts(): array

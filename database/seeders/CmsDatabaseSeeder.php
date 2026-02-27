@@ -56,7 +56,7 @@ final class CmsDatabaseSeeder extends Seeder
         $this->fields = Field::query()->withoutGlobalScopes()->get()->keyBy('name');
 
         DB::transaction(function (): void {
-            foreach (['kicker', 'subtitle'] as $field) {
+            foreach (['subtitle'] as $field) {
                 if (! $this->fields->has($field)) {
                     $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::TEXT, 'options' => (object) ['max_length' => 255], 'is_translatable' => true]));
                     $this->command->line("    - {$field} <fg=green>created</>");
@@ -132,14 +132,7 @@ final class CmsDatabaseSeeder extends Seeder
 
             $entities = [
                 [
-                    'name' => 'article',
-                    'type' => EntityType::CONTENTS,
-                    'preset' => 'standard',
-                    'required_fields' => ['content'],
-                    'optional_fields' => ['kicker', 'subtitle', 'short_content'],
-                ],
-                [
-                    'name' => 'multimedia',
+                    'name' => 'post',
                     'type' => EntityType::CONTENTS,
                     'preset' => 'standard',
                     'required_fields' => ['content'],
@@ -151,13 +144,6 @@ final class CmsDatabaseSeeder extends Seeder
                     'preset' => 'standard',
                     'required_fields' => ['content', 'period_from'],
                     'optional_fields' => ['subtitle', 'short_content', 'period_to'],
-                ],
-                [
-                    'name' => 'survey',
-                    'type' => EntityType::CONTENTS,
-                    'preset' => 'standard',
-                    'required_fields' => ['content'],
-                    'optional_fields' => ['subtitle', 'short_content'],
                 ],
                 [
                     'name' => 'author',

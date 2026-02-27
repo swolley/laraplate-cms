@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models\Pivot;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Modules\Cms\Observers\FieldableObserver;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SortableTrait;
 use Spatie\EloquentSortable\Sortable;
@@ -15,6 +17,7 @@ use Spatie\EloquentSortable\Sortable;
 /**
  * @mixin IdeHelperFieldable
  */
+#[ObservedBy(FieldableObserver::class)]
 final class Fieldable extends Pivot implements Sortable
 {
     use HasFactory;
