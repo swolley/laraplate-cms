@@ -20,9 +20,8 @@ abstract class AbstractAnalytics
     protected function getElasticsearchClient(): Client
     {
         $config = config('elastic.client.connections.default');
-        
+
         return ClientBuilder::fromConfig($config);
-        
     }
 
     /**

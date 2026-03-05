@@ -146,8 +146,8 @@ final class CmsDatabaseSeeder extends Seeder
                     'optional_fields' => ['subtitle', 'short_content', 'period_to'],
                 ],
                 [
-                    'name' => 'author',
-                    'type' => EntityType::AUTHORS,
+                    'name' => 'contributor',
+                    'type' => EntityType::CONTRIBUTORS,
                     'preset' => 'standard',
                     'required_fields' => ['content'],
                     'optional_fields' => ['public_email', 'phone', 'website', 'linkedin', 'twitter', 'facebook', 'instagram'],

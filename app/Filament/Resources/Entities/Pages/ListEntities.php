@@ -12,11 +12,13 @@ use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Filament\Resources\Entities\EntityResource;
 use Modules\Cms\Filament\Utils\HasRecords;
 use Modules\Cms\Models\Entity;
+use Override;
 
 final class ListEntities extends ListRecords
 {
     use HasRecords;
 
+    #[Override]
     protected static string $resource = EntityResource::class;
 
     public function getTabs(): array

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Authors\Tables;
+namespace Modules\Cms\Filament\Resources\Contributors\Tables;
 
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
@@ -11,9 +11,9 @@ use Filament\Tables\Table;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Support\Collection;
 use Modules\Cms\Filament\Utils\HasTable;
-use Modules\Cms\Models\Author;
+use Modules\Cms\Models\Contributor;
 
-final class AuthorsTable
+final class ContributorsTable
 {
     use HasTable;
 
@@ -28,12 +28,12 @@ final class AuthorsTable
                         ->trueIcon('heroicon-o-user')
                         ->falseIcon('heroicon-o-pencil')
                         ->falseColor('gray')
-                        ->state(static fn (Author $record): bool => $record->user?->id !== null)
+                        ->state(static fn (Contributor $record): bool => $record->user?->id !== null)
                         ->alignCenter()
                         ->tooltip(
-                            static fn (Author $record): string => $record->user !== null
+                            static fn (Contributor $record): string => $record->user !== null
                                 ? sprintf('User (#%d: %s)', $record->user->id, $record->user->name)
-                                : 'Author',
+                                : 'Contributor',
                         )
                         ->toggleable(isToggledHiddenByDefault: true)
                         ->grow(false)
@@ -43,7 +43,7 @@ final class AuthorsTable
                         ->circular()
                         ->toggleable(isToggledHiddenByDefault: false)
                         ->grow(false)
-                        ->defaultImageUrl(static function (Author $record): UrlGenerator|string {
+                        ->defaultImageUrl(static function (Contributor $record): UrlGenerator|string {
                             $hash = abs(crc32($record->name));
 
                             $hue = $hash % 360;

@@ -167,7 +167,7 @@ return new class extends Migration
                 DB::statement("ALTER TABLE {$table} SET LOGGED");
 
                 // 7. Update all tables that reference contents
-                $reference_tables = ['categorizables', 'authorables', 'relatables', 'locatables'];
+                $reference_tables = ['categorizables', 'contributables', 'relatables', 'locatables'];
 
                 // Create a primary key on id only (PostgreSQL 12+ supports this for partitioned tables)
                 DB::statement("ALTER TABLE {$table} ADD PRIMARY KEY (id)");
@@ -460,7 +460,7 @@ return new class extends Migration
                 DB::statement('CREATE UNIQUE INDEX content_entity_UN ON contents (id, entity_id)');
 
                 // 6. Aggiorna tutte le tabelle che fanno riferimento a contents
-                $reference_tables = ['categorizables', 'authorables', 'relatables', 'locatables'];
+                $reference_tables = ['categorizables', 'contributables', 'relatables', 'locatables'];
                 foreach ($reference_tables as $table) {
                     DB::statement("ALTER TABLE {$table} DROP CONSTRAINT IF EXISTS {$table}_content_id_fk");
                     DB::statement("ALTER TABLE {$table} ADD CONSTRAINT {$table}_content_id_fk FOREIGN KEY (content_id) REFERENCES contents(id) ON DELETE CASCADE");

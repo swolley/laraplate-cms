@@ -17,16 +17,21 @@ use Modules\Cms\Filament\Resources\Entities\Pages\ListEntities;
 use Modules\Cms\Filament\Resources\Entities\Schemas\EntityForm;
 use Modules\Cms\Filament\Resources\Entities\Tables\EntitiesTable;
 use Modules\Cms\Models\Entity;
+use Override;
 use UnitEnum;
 
 final class EntityResource extends Resource
 {
+    #[Override]
     protected static ?string $model = Entity::class;
 
+    #[Override]
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedListBullet;
 
+    #[Override]
     protected static string|UnitEnum|null $navigationGroup = 'Cms';
 
+    #[Override]
     protected static ?int $navigationSort = 4;
 
     public static function getSlug(?Panel $panel = null): string

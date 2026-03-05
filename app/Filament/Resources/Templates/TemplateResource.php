@@ -16,16 +16,21 @@ use Modules\Cms\Filament\Resources\Templates\Pages\ListTemplates;
 use Modules\Cms\Filament\Resources\Templates\Schemas\TemplateForm;
 use Modules\Cms\Filament\Resources\Templates\Tables\TemplatesTable;
 use Modules\Cms\Models\Template;
+use Override;
 use UnitEnum;
 
 final class TemplateResource extends Resource
 {
+    #[Override]
     protected static ?string $model = Template::class;
 
+    #[Override]
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCodeBracket;
 
+    #[Override]
     protected static string|UnitEnum|null $navigationGroup = 'Cms';
 
+    #[Override]
     protected static ?int $navigationSort = 9;
 
     public static function getSlug(?Panel $panel = null): string

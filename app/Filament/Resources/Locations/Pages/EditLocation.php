@@ -9,9 +9,11 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 use Modules\Cms\Filament\Resources\Locations\LocationResource;
+use Override;
 
 final class EditLocation extends EditRecord
 {
+    #[Override]
     protected static string $resource = LocationResource::class;
 
     protected function getHeaderActions(): array

@@ -29,14 +29,14 @@ final class ContentAnalytics extends AbstractAnalytics
     }
 
     /**
-     * Get author performance metrics.
+     * Get contributor performance metrics.
      */
-    public function getAuthorMetrics(array $filters = []): array
+    public function getContributorMetrics(array $filters = []): array
     {
         return Cache::remember(
-            $this->getCacheKey('author_metrics', $filters),
+            $this->getCacheKey('contributor_metrics', $filters),
             self::$cache_duration,
-            fn (): array => $this->getTermBasedMetrics($this->model, 'authors_id', $filters),
+            fn (): array => $this->getTermBasedMetrics($this->model, 'contributors_id', $filters),
         );
     }
 

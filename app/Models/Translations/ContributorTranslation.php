@@ -8,13 +8,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Cms\Helpers\HasSlug;
-use Modules\Cms\Models\Author;
+use Modules\Cms\Models\Contributor;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
+use Override;
 
 /**
- * @mixin IdeHelperAuthorTranslation
+ * @mixin IdeHelperContributorTranslation
  */
-final class AuthorTranslation extends Model implements ITranslated
+final class ContributorTranslation extends Model implements ITranslated
 {
     use HasFactory;
     use HasSlug;
@@ -22,26 +23,28 @@ final class AuthorTranslation extends Model implements ITranslated
     /**
      * The attributes that are mass assignable.
      */
+    #[Override]
     protected $fillable = [
-        'author_id',
+        'contributor_id',
         'locale',
         'slug',
         'components',
     ];
 
+    #[Override]
     protected $hidden = [
         'created_at',
         'updated_at',
     ];
 
     /**
-     * The author that belongs to the translation.
+     * The contributor that belongs to the translation.
      *
-     * @return BelongsTo<Author>
+     * @return BelongsTo<Contributor>
      */
-    public function author(): BelongsTo
+    public function contributor(): BelongsTo
     {
-        return $this->belongsTo(Author::class);
+        return $this->belongsTo(Contributor::class);
     }
 
     protected function casts(): array

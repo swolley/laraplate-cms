@@ -19,16 +19,21 @@ use Modules\Cms\Filament\Resources\Categories\Pages\ListCategories;
 use Modules\Cms\Filament\Resources\Categories\Schemas\CategoryForm;
 use Modules\Cms\Filament\Resources\Categories\Tables\CategoriesTable;
 use Modules\Cms\Models\Category;
+use Override;
 use UnitEnum;
 
 final class CategoryResource extends Resource
 {
+    #[Override]
     protected static ?string $model = Category::class;
 
+    #[Override]
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFolder;
 
+    #[Override]
     protected static string|UnitEnum|null $navigationGroup = 'Cms';
 
+    #[Override]
     protected static ?int $navigationSort = 3;
 
     public static function getSlug(?Panel $panel = null): string

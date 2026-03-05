@@ -19,16 +19,21 @@ use Modules\Cms\Filament\Resources\Contents\Pages\ListContents;
 use Modules\Cms\Filament\Resources\Contents\Schemas\ContentForm;
 use Modules\Cms\Filament\Resources\Contents\Tables\ContentsTable;
 use Modules\Cms\Models\Content;
+use Override;
 use UnitEnum;
 
 final class ContentResource extends Resource
 {
+    #[Override]
     protected static ?string $model = Content::class;
 
+    #[Override]
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPencil;
 
+    #[Override]
     protected static string|UnitEnum|null $navigationGroup = 'Cms';
 
+    #[Override]
     protected static ?int $navigationSort = 2;
 
     public static function getSlug(?Panel $panel = null): string

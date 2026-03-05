@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Models\Author;
+use Modules\Cms\Models\Contributor;
 
-it('author model has correct structure', function (): void {
-    $reflection = new ReflectionClass(Author::class);
+it('contributor model has correct structure', function (): void {
+    $reflection = new ReflectionClass(Contributor::class);
     $source = file_get_contents($reflection->getFileName());
 
     // Test fillable attributes
@@ -15,13 +15,12 @@ it('author model has correct structure', function (): void {
     expect($source)->toContain('protected $hidden');
 });
 
-it('author model uses correct traits', function (): void {
-    $reflection = new ReflectionClass(Author::class);
+it('contributor model uses correct traits', function (): void {
+    $reflection = new ReflectionClass(Contributor::class);
     $traits = $reflection->getTraitNames();
 
     expect($traits)->toContain('Illuminate\\Database\\Eloquent\\Factories\\HasFactory');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasPath');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasSlug');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasTags');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasMultimedia');
     expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');
@@ -29,8 +28,8 @@ it('author model uses correct traits', function (): void {
     expect($traits)->toContain('Modules\\Core\\Helpers\\SoftDeletes');
 });
 
-it('author model has required methods', function (): void {
-    $reflection = new ReflectionClass(Author::class);
+it('contributor model has required methods', function (): void {
+    $reflection = new ReflectionClass(Contributor::class);
 
     expect($reflection->hasMethod('contents'))->toBeTrue();
     expect($reflection->hasMethod('getRules'))->toBeTrue();
@@ -38,16 +37,16 @@ it('author model has required methods', function (): void {
     expect($reflection->hasMethod('toArray'))->toBeTrue();
 });
 
-it('author model has correct relationships', function (): void {
-    $reflection = new ReflectionClass(Author::class);
+it('contributor model has correct relationships', function (): void {
+    $reflection = new ReflectionClass(Contributor::class);
 
     // Test contents relationship
     $method = $reflection->getMethod('contents');
     expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
 });
 
-it('author model has correct method signatures', function (): void {
-    $reflection = new ReflectionClass(Author::class);
+it('contributor model has correct method signatures', function (): void {
+    $reflection = new ReflectionClass(Contributor::class);
 
     // Test getRules method
     $method = $reflection->getMethod('getRules');

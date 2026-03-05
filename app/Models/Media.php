@@ -7,6 +7,7 @@ namespace Modules\Cms\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Carbon;
 use Modules\Core\Helpers\SoftDeletes;
+use Override;
 use Spatie\MediaLibrary\MediaCollections\Models\Media as BaseMedia;
 
 /**
@@ -17,6 +18,7 @@ final class Media extends BaseMedia
     use HasFactory;
     use SoftDeletes;
 
+    #[Override]
     protected $appends = [
         'expires_at',
     ];

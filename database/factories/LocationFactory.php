@@ -6,6 +6,7 @@ namespace Modules\Cms\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
+use MatanYadaev\EloquentSpatial\Objects\Point;
 use Modules\Cms\Helpers\HasDynamicContentFactory;
 use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
@@ -35,8 +36,7 @@ final class LocationFactory extends Factory
             'province' => fake()->state(),
             'country' => fake()->country(),
             'postcode' => fake()->postcode(),
-            'latitude' => fake()->latitude(),
-            'longitude' => fake()->longitude(),
+            'geolocation' => new Point(fake()->latitude(), fake()->longitude()),
         ];
     }
 }

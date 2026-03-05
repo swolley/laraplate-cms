@@ -6,8 +6,10 @@ namespace Modules\Cms\Filament\Resources\Presets\Pages;
 
 use Filament\Resources\Pages\CreateRecord;
 use Modules\Cms\Filament\Resources\Presets\PresetResource;
+use Override;
 
 final class CreatePreset extends CreateRecord
 {
+    #[Override]
     protected static string $resource = PresetResource::class;
 }

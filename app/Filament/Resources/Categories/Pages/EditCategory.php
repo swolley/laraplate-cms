@@ -9,9 +9,11 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 use Modules\Cms\Filament\Resources\Categories\CategoryResource;
+use Override;
 
 final class EditCategory extends EditRecord
 {
+    #[Override]
     protected static string $resource = CategoryResource::class;
 
     protected function getHeaderActions(): array

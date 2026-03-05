@@ -20,6 +20,7 @@ final class EventServiceProvider extends ServiceProvider
      *
      * @var array<string, array<int, string>>
      */
+    #[Override]
     protected $listen = [];
 
     /**
@@ -27,6 +28,7 @@ final class EventServiceProvider extends ServiceProvider
      *
      * @var bool
      */
+    #[Override]
     protected static $shouldDiscoverEvents = true;
 
     #[Override]

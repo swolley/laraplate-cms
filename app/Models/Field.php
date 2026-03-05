@@ -41,12 +41,14 @@ final class Field extends Model
     /**
      * The attributes that are mass assignable.
      */
+    #[Override]
     protected $fillable = [
         'name',
         'type',
         'options',
     ];
 
+    #[Override]
     protected $hidden = [
         'created_at',
         'updated_at',

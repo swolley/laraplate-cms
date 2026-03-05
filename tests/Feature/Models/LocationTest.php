@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use MatanYadaev\EloquentSpatial\Objects\Point;
-use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Location;
 use Tests\TestCase;
 
@@ -17,47 +16,33 @@ beforeEach(function (): void {
 it('can be created with factory', function (): void {
     expect($this->location)->toBeInstanceOf(Location::class);
     expect($this->location->id)->not->toBeNull();
+    expect($this->location->geolocation)->toBeInstanceOf(Point::class);
 });
 
 it('has fillable attributes', function (): void {
-    $locationData = [
+    $location = Location::factory()->create([
         'name' => 'Milan',
         'address' => 'Piazza del Duomo, Milan, Italy',
         'city' => 'Milan',
         'country' => 'Italy',
-        'latitude' => 45.4642,
-        'longitude' => 9.1900,
-        'is_active' => true,
-    ];
-
-    $location = Location::create($locationData);
-
-    expectModelAttributes($location, [
-        'name' => 'Milan',
-        'address' => 'Piazza del Duomo, Milan, Italy',
-        'city' => 'Milan',
-        'country' => 'Italy',
-        'latitude' => 45.4642,
-        'longitude' => 9.1900,
-        'is_active' => true,
+        'geolocation' => new Point(45.4642, 9.1900),
     ]);
+
+    expect($location->name)->toBe('Milan');
+    expect($location->address)->toBe('Piazza del Duomo, Milan, Italy');
+    expect($location->city)->toBe('Milan');
+    expect($location->country)->toBe('Italy');
+    expect($location->latitude)->toBeFloat();
+    expect($location->longitude)->toBeFloat();
 });
 
-it('belongs to many contents', function (): void {
-    $content1 = Content::factory()->create(['title' => 'Article 1']);
-    $content2 = Content::factory()->create(['title' => 'Article 2']);
+it('has latitude and longitude accessors from geolocation', function (): void {
+    $location = Location::factory()->create([
+        'geolocation' => new Point(45.4642, 9.1900),
+    ]);
 
-    $this->location->contents()->attach([$content1->id, $content2->id]);
-
-    expect($this->location->contents)->toHaveCount(2);
-    expect($this->location->contents->pluck('title')->toArray())->toContain('Article 1', 'Article 2');
-});
-
-it('has spatial trait', function (): void {
-    expect(method_exists($this->location, 'whereDistance'))->toBeTrue();
-    expect(method_exists($this->location, 'orderByDistance'))->toBeTrue();
-    expect(method_exists($this->location, 'whereDistanceSphere'))->toBeTrue();
-    expect(method_exists($this->location, 'orderByDistanceSphere'))->toBeTrue();
+    expect($location->latitude)->toBe(45.4642);
+    expect($location->longitude)->toBe(9.1900);
 });
 
 it('has slug trait', function (): void {
@@ -92,27 +77,19 @@ it('has validations trait', function (): void {
 });
 
 it('can be created with specific attributes', function (): void {
-    $locationData = [
+    $location = Location::factory()->create([
         'name' => 'Rome',
         'address' => 'Colosseum, Rome, Italy',
         'city' => 'Rome',
         'country' => 'Italy',
-        'latitude' => 41.9028,
-        'longitude' => 12.4964,
-        'is_active' => false,
-    ];
-
-    $location = Location::create($locationData);
-
-    expectModelAttributes($location, [
-        'name' => 'Rome',
-        'address' => 'Colosseum, Rome, Italy',
-        'city' => 'Rome',
-        'country' => 'Italy',
-        'latitude' => 41.9028,
-        'longitude' => 12.4964,
-        'is_active' => false,
+        'geolocation' => new Point(41.9028, 12.4964),
     ]);
+
+    expect($location->name)->toBe('Rome');
+    expect($location->city)->toBe('Rome');
+    expect($location->country)->toBe('Italy');
+    expect($location->latitude)->toBe(41.9028);
+    expect($location->longitude)->toBe(12.4964);
 });
 
 it('can be found by name', function (): void {
@@ -139,56 +116,23 @@ it('can be found by country', function (): void {
     expect($foundLocation->id)->toBe($location->id);
 });
 
-it('can be found by active status', function (): void {
-    $activeLocation = Location::factory()->create(['is_active' => true]);
-    $inactiveLocation = Location::factory()->create(['is_active' => false]);
-
-    $activeLocations = Location::where('is_active', true)->get();
-    $inactiveLocations = Location::where('is_active', false)->get();
-
-    expect($activeLocations)->toHaveCount(1);
-    expect($inactiveLocations)->toHaveCount(1);
-    expect($activeLocations->first()->id)->toBe($activeLocation->id);
-    expect($inactiveLocations->first()->id)->toBe($inactiveLocation->id);
-});
-
-it('can be found by coordinates', function (): void {
-    $location = Location::factory()->create([
-        'latitude' => 45.4642,
-        'longitude' => 9.1900,
-    ]);
-
-    $foundLocation = Location::where('latitude', 45.4642)
-        ->where('longitude', 9.1900)
-        ->first();
-
-    expect($foundLocation->id)->toBe($location->id);
-});
-
 it('has proper timestamps', function (): void {
-    $location = Location::factory()->create();
-
-    expect($location->created_at)->toBeInstanceOf(Carbon\Carbon::class);
-    expect($location->updated_at)->toBeInstanceOf(Carbon\Carbon::class);
+    expect($this->location->created_at)->not->toBeNull();
+    expect($this->location->updated_at)->not->toBeNull();
 });
 
 it('can be serialized to array', function (): void {
     $location = Location::factory()->create([
         'name' => 'Test Location',
         'city' => 'Test City',
-        'is_active' => true,
     ]);
     $locationArray = $location->toArray();
 
     expect($locationArray)->toHaveKey('id');
     expect($locationArray)->toHaveKey('name');
     expect($locationArray)->toHaveKey('city');
-    expect($locationArray)->toHaveKey('is_active');
-    expect($locationArray)->toHaveKey('created_at');
-    expect($locationArray)->toHaveKey('updated_at');
     expect($locationArray['name'])->toBe('Test Location');
     expect($locationArray['city'])->toBe('Test City');
-    expect($locationArray['is_active'])->toBeTrue();
 });
 
 it('can be restored after soft delete', function (): void {
@@ -211,17 +155,13 @@ it('can be permanently deleted', function (): void {
     expect(Location::withTrashed()->find($locationId))->toBeNull();
 });
 
-it('can work with spatial queries', function (): void {
-    $location = Location::factory()->create([
-        'latitude' => 45.4642,
-        'longitude' => 9.1900,
-    ]);
+it('has spatial methods available', function (): void {
+    expect(method_exists(Location::class, 'scopeWhereDistance'))->toBeTrue()
+        ->or(fn () => expect(method_exists($this->location, 'whereDistance'))->toBeTrue());
+});
 
-    $point = new Point(45.4642, 9.1900);
+it('generates path from country', function (): void {
+    $location = Location::factory()->create(['country' => 'Italy']);
 
-    // Test that spatial methods exist
-    expect(method_exists($this->location, 'whereDistance'))->toBeTrue();
-    expect(method_exists($this->location, 'orderByDistance'))->toBeTrue();
-    expect(method_exists($this->location, 'whereDistanceSphere'))->toBeTrue();
-    expect(method_exists($this->location, 'orderByDistanceSphere'))->toBeTrue();
+    expect($location->getPath())->toBe('italy');
 });

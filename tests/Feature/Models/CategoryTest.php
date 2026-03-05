@@ -3,49 +3,14 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
-use Modules\Cms\Models\Entity;
-use Modules\Cms\Models\Field;
-use Modules\Cms\Models\Pivot\Presettable;
-use Modules\Cms\Models\Preset;
 use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    // Create Entity, Preset, Presettable, and Field required for Category factory
-    $entity = Entity::firstOrCreate(
-        ['name' => 'categories'],
-        ['type' => EntityType::CATEGORIES],
-    );
-
-    $preset = Preset::firstOrCreate(
-        ['entity_id' => $entity->id, 'name' => 'default'],
-        ['entity_id' => $entity->id, 'name' => 'default'],
-    );
-
-    // Presettable might be created automatically by triggers, so use firstOrCreate
-    Presettable::firstOrCreate(
-        ['entity_id' => $entity->id, 'preset_id' => $preset->id],
-        ['entity_id' => $entity->id, 'preset_id' => $preset->id],
-    );
-
-    // Create at least one Field for the Preset (required by fillDynamicContents)
-    if ($preset->fields()->count() === 0) {
-        $field = Field::create([
-            'name' => 'description_' . uniqid(),
-            'type' => FieldType::TEXT,
-            'options' => new stdClass(),
-        ]);
-        $preset->fields()->attach($field->id, [
-            'default' => null,
-            'is_required' => false,
-        ]);
-    }
-
+    setupCmsEntities();
     $this->category = Category::factory()->create();
 });
 

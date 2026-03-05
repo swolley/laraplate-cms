@@ -19,16 +19,21 @@ use Modules\Cms\Filament\Resources\Presets\Pages\ListPresets;
 use Modules\Cms\Filament\Resources\Presets\Schemas\PresetForm;
 use Modules\Cms\Filament\Resources\Presets\Tables\PresetsTable;
 use Modules\Cms\Models\Preset;
+use Override;
 use UnitEnum;
 
 final class PresetResource extends Resource
 {
+    #[Override]
     protected static ?string $model = Preset::class;
 
+    #[Override]
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleGroup;
 
+    #[Override]
     protected static string|UnitEnum|null $navigationGroup = 'Cms';
 
+    #[Override]
     protected static ?int $navigationSort = 5;
 
     public static function getSlug(?Panel $panel = null): string

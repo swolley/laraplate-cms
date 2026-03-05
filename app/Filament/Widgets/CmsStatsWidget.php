@@ -6,17 +6,19 @@ namespace Modules\Cms\Filament\Widgets;
 
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Modules\Cms\Models\Author;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
+use Modules\Cms\Models\Contributor;
 use Modules\Cms\Models\Location;
 use Modules\Cms\Models\Tag;
+use Override;
 
 final class CmsStatsWidget extends BaseWidget
 {
+    #[Override]
     protected ?string $pollingInterval = null;
 
-    public function getColumns(): int|array|null
+    public function getColumns(): array
     {
         return [
             'md' => 2,
@@ -34,8 +36,8 @@ final class CmsStatsWidget extends BaseWidget
             //     ->description('Content categories')
             //     ->descriptionIcon('heroicon-o-folder')
             //     ->color('success'),
-            Stat::make('Authors', Author::query()->count())
-                ->description('Total authors')
+            Stat::make('Contributors', Contributor::query()->count())
+                ->description('Total contributors')
                 ->descriptionIcon('heroicon-o-users')
                 ->color('info'),
             // Stat::make('Locations', Location::query()->count())

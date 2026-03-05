@@ -39,7 +39,6 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @mixin \Modules\Cms\Helpers\HasPath
  * @mixin \Modules\Core\Helpers\SortableTrait
  * @mixin \Spatie\EloquentSortable\SortableTrait
- *
  * @method void setHighestOrderNumber() Set the highest order number
  * @method int getHighestOrderNumber() Get the highest order number
  * @method int getLowestOrderNumber() Get the lowest order number
@@ -48,7 +47,6 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @method bool shouldSortWhenCreating() Check if should sort when creating
  * @method string determineOrderColumnName() Determine the order column name
  * @method \Illuminate\Database\Eloquent\Builder buildSortQuery() Build query for sorting
- *
  * @mixin IdeHelperCategory
  */
 final class Category extends Model implements IMediable, Sortable
@@ -86,6 +84,7 @@ final class Category extends Model implements IMediable, Sortable
     /**
      * The attributes that are mass assignable.
      */
+    #[Override]
     protected $fillable = [
         'parent_id',
         'presettable_id',
@@ -94,6 +93,7 @@ final class Category extends Model implements IMediable, Sortable
         'logo_full',
     ];
 
+    #[Override]
     protected $hidden = [
         'entity',
         'parent_id',
@@ -172,20 +172,6 @@ final class Category extends Model implements IMediable, Sortable
         return array_merge($parsed, $this->translatedDynamicContentsToArray(), $this->approvalsToArray($parsed));
     }
 
-    /**
-     * Eager-load ancestors (and their translations) for path-related accessors.
-     *
-     * @param  Builder<static>  $query
-     * @return Builder<static>
-     */
-    public function scopeWithAncestorsForPath(Builder $query): Builder
-    {
-        return $query->with([
-            'ancestors',
-            'ancestors.translations',
-        ]);
-    }
-
     #[Override]
     protected static function booted(): void
     {
@@ -202,6 +188,21 @@ final class Category extends Model implements IMediable, Sortable
     protected static function newFactory(): CategoryFactory
     {
         return CategoryFactory::new();
+    }
+
+    /**
+     * Eager-load ancestors (and their translations) for path-related accessors.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function withAncestorsForPath(Builder $query): Builder
+    {
+        return $query->with([
+            'ancestors',
+            'ancestors.translations',
+        ]);
     }
 
     #[Scope]
@@ -229,7 +230,7 @@ final class Category extends Model implements IMediable, Sortable
     protected function slugPlaceholders(): array
     {
         // Use name from translation
-        return [...array_map(fn (string $field) => '{' . $field . '}', $this->dynamicSlugFields()), '{name}'];
+        return [...array_map(fn (string $field): string => '{' . $field . '}', $this->dynamicSlugFields()), '{name}'];
     }
 
     protected function requiresApprovalWhen(array $modifications): bool

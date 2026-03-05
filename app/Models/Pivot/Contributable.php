@@ -6,15 +6,17 @@ namespace Modules\Cms\Models\Pivot;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Override;
 
 /**
- * @mixin IdeHelperAuthorable
+ * @mixin IdeHelperContributable
  */
-final class Authorable extends Pivot
+final class Contributable extends Pivot
 {
     use HasFactory;
 
-    protected $table = 'authorables';
+    #[Override]
+    protected $table = 'contributables';
 
     protected function casts(): array
     {

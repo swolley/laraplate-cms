@@ -19,16 +19,21 @@ use Modules\Cms\Filament\Resources\Locations\Pages\ListLocations;
 use Modules\Cms\Filament\Resources\Locations\Schemas\LocationForm;
 use Modules\Cms\Filament\Resources\Locations\Tables\LocationsTable;
 use Modules\Cms\Models\Location;
+use Override;
 use UnitEnum;
 
 final class LocationResource extends Resource
 {
+    #[Override]
     protected static ?string $model = Location::class;
 
+    #[Override]
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMapPin;
 
+    #[Override]
     protected static string|UnitEnum|null $navigationGroup = 'Cms';
 
+    #[Override]
     protected static ?int $navigationSort = 7;
 
     public static function getSlug(?Panel $panel = null): string

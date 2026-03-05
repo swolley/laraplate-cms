@@ -11,7 +11,7 @@
         "pages",
         "categories",
         "tags",
-        "authors"
+        "contributors"
     ],
     "priority": 999,
     "providers": [

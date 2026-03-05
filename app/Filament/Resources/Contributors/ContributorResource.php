@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Authors;
+namespace Modules\Cms\Filament\Resources\Contributors;
 
 use BackedEnum;
 // use Filament\Resources\Resource;
@@ -13,37 +13,42 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Modules\Cms\Filament\Resources\Authors\Pages\CreateAuthor;
-use Modules\Cms\Filament\Resources\Authors\Pages\EditAuthor;
-use Modules\Cms\Filament\Resources\Authors\Pages\ListAuthors;
-use Modules\Cms\Filament\Resources\Authors\Schemas\AuthorForm;
-use Modules\Cms\Filament\Resources\Authors\Tables\AuthorsTable;
-use Modules\Cms\Models\Author;
+use Modules\Cms\Filament\Resources\Contributors\Pages\CreateContributor;
+use Modules\Cms\Filament\Resources\Contributors\Pages\EditContributor;
+use Modules\Cms\Filament\Resources\Contributors\Pages\ListContributors;
+use Modules\Cms\Filament\Resources\Contributors\Schemas\ContributorForm;
+use Modules\Cms\Filament\Resources\Contributors\Tables\ContributorsTable;
+use Modules\Cms\Models\Contributor;
+use Override;
 use UnitEnum;
 
-final class AuthorResource extends Resource
+final class ContributorResource extends Resource
 {
-    protected static ?string $model = Author::class;
+    #[Override]
+    protected static ?string $model = Contributor::class;
 
+    #[Override]
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
+    #[Override]
     protected static string|UnitEnum|null $navigationGroup = 'Cms';
 
+    #[Override]
     protected static ?int $navigationSort = 1;
 
     public static function getSlug(?Panel $panel = null): string
     {
-        return 'cms/authors';
+        return 'cms/contributors';
     }
 
     public static function form(Schema $schema): Schema
     {
-        return AuthorForm::configure($schema);
+        return ContributorForm::configure($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return AuthorsTable::configure($table);
+        return ContributorsTable::configure($table);
     }
 
     public static function getRelations(): array
@@ -56,9 +61,9 @@ final class AuthorResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListAuthors::route('/'),
-            'create' => CreateAuthor::route('/create'),
-            'edit' => EditAuthor::route('/{record}/edit'),
+            'index' => ListContributors::route('/'),
+            'create' => CreateContributor::route('/create'),
+            'edit' => EditContributor::route('/{record}/edit'),
         ];
     }
 

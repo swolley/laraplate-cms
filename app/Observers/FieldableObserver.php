@@ -8,7 +8,7 @@ use Modules\Cms\Models\Pivot\Fieldable;
 use Modules\Cms\Models\Preset;
 use Modules\Cms\Services\PresetVersioningService;
 
-final class FieldableObserver
+final readonly class FieldableObserver
 {
     public function __construct(private PresetVersioningService $versioning) {}
 
@@ -24,7 +24,7 @@ final class FieldableObserver
 
     private function createVersionForPreset(Fieldable $fieldable): void
     {
-        $preset = Preset::find($fieldable->preset_id);
+        $preset = Preset::query()->find($fieldable->preset_id);
 
         if (! $preset) {
             return;

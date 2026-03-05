@@ -10,9 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Helpers\HasDynamicContentFactory;
-use Modules\Cms\Models\Author;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
+use Modules\Cms\Models\Contributor;
 use Modules\Cms\Models\Tag;
 use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
@@ -88,13 +88,13 @@ final class ContentFactory extends Factory
                 return;
             }
 
-            if ($content->doesntHave('authors')) {
-                $authors = Author::inRandomOrder()->limit(fake()->numberBetween(1, 3))->get();
+            if ($content->doesntHave('contributors')) {
+                $contributors = Contributor::inRandomOrder()->limit(fake()->numberBetween(1, 3))->get();
 
-                if ($authors->isNotEmpty()) {
-                    $content->authors()->syncWithoutDetaching($authors->pluck('id')->toArray());
+                if ($contributors->isNotEmpty()) {
+                    $content->contributors()->syncWithoutDetaching($contributors->pluck('id')->toArray());
                 } else {
-                    $content->authors()->sync($authors->pluck('id')->toArray());
+                    $content->contributors()->sync($contributors->pluck('id')->toArray());
                 }
             }
 

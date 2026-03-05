@@ -12,29 +12,34 @@ use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Preset;
 use Modules\Core\Helpers\SoftDeletes;
+use Override;
 
 /**
  * @property int $version
  * @property array<int, array{field_id: int, name: string, type: string, options: mixed, is_translatable: bool, is_slug: bool, pivot: array{is_required: bool, order_column: int, default: mixed}}> $fields_snapshot
- *
  * @mixin IdeHelperPresettable
  */
 final class Presettable extends Pivot
 {
     use HasFactory, SoftDeletes;
 
+    #[Override]
     public $incrementing = true;
 
+    #[Override]
     public $timestamps = false;
 
+    #[Override]
     protected $table = 'presettables';
 
+    #[Override]
     protected $fillable = [
         'preset_id',
         'entity_id',
         'fields_snapshot',
     ];
 
+    #[Override]
     protected $with = [
         'preset',
         'entity',

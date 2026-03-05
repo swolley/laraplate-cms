@@ -6,6 +6,7 @@ namespace Modules\Cms\Models\Pivot;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Override;
 
 /**
  * @mixin IdeHelperRelatable
@@ -14,6 +15,7 @@ final class Relatable extends Pivot
 {
     use HasFactory;
 
+    #[Override]
     protected $table = 'relatables';
 
     protected function casts(): array

@@ -2,59 +2,80 @@
 
 declare(strict_types=1);
 
-/*
-|--------------------------------------------------------------------------
-| Test Case
-|--------------------------------------------------------------------------
-|
-| The closure you provide to your test functions is always bound to a specific PHPUnit test
-| case class. By default, that class is "PHPUnit\Framework\TestCase". Of course, you may
-| need to change it using the "pest()" function to bind a different classes or traits.
-|
-*/
-
-pest()->extend(Tests\TestCase::class)
-    ->in('Feature')
-    ->in('Unit');
-
-/*
-|--------------------------------------------------------------------------
-| Expectations
-|--------------------------------------------------------------------------
-|
-| When you're writing tests, you often need to check that values meet certain conditions. The
-| "expect()" function gives you access to a set of "expectations" methods that you can use
-| to assert different things. Of course, you may extend the Expectation API at any time.
-|
-*/
+use MatanYadaev\EloquentSpatial\Objects\Point;
+use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Casts\FieldType;
+use Modules\Cms\Models\Entity;
+use Modules\Cms\Models\Field;
+use Modules\Cms\Models\Pivot\Presettable;
+use Modules\Cms\Models\Preset;
 
 /*
 |--------------------------------------------------------------------------
 | Functions
 |--------------------------------------------------------------------------
-|
-| While Pest is very powerful out-of-the-box, you may have some testing code specific to your
-| project that you don't want to repeat in every file. Here you can also expose helpers as
-| global functions to help you to reduce the number of lines of code in your test files.
-|
 */
+
+/**
+ * Setup required Entity, Preset, Presettable and Field records for CMS factories.
+ *
+ * @param  list<EntityType>  $entityTypes
+ */
+function setupCmsEntities(array $entityTypes = [EntityType::CONTENTS, EntityType::CONTRIBUTORS, EntityType::CATEGORIES]): void
+{
+    foreach ($entityTypes as $entityType) {
+        $name = match ($entityType) {
+            EntityType::CONTENTS => 'contents',
+            EntityType::CONTRIBUTORS => 'contributors',
+            default => mb_strtolower($entityType->value),
+        };
+
+        $entity = Entity::firstOrCreate(
+            ['name' => $name],
+            ['type' => $entityType],
+        );
+
+        $preset = Preset::firstOrCreate(
+            ['entity_id' => $entity->id, 'name' => 'default'],
+            ['entity_id' => $entity->id, 'name' => 'default'],
+        );
+
+        Presettable::firstOrCreate(
+            ['entity_id' => $entity->id, 'preset_id' => $preset->id],
+            ['entity_id' => $entity->id, 'preset_id' => $preset->id],
+        );
+
+        if ($preset->fields()->count() === 0) {
+            $field = Field::create([
+                'name' => 'description_' . uniqid(),
+                'type' => FieldType::TEXT,
+                'options' => new stdClass(),
+            ]);
+            $preset->fields()->attach($field->id, [
+                'default' => null,
+                'is_required' => false,
+            ]);
+        }
+    }
+}
 
 /**
  * Create a test content with all required relationships.
  */
 function createTestContent(array $attributes = []): Modules\Cms\Models\Content
 {
+    setupCmsEntities([EntityType::CONTENTS, EntityType::CONTRIBUTORS]);
+
     $content = Modules\Cms\Models\Content::factory()->create($attributes);
 
-    // Create related entities if not provided
     if (! isset($attributes['category_id'])) {
         $category = Modules\Cms\Models\Category::factory()->create();
         $content->categories()->attach($category);
     }
 
-    if (! isset($attributes['author_id'])) {
-        $author = Modules\Cms\Models\Author::factory()->create();
-        $content->authors()->attach($author);
+    if (! isset($attributes['contributor_id'])) {
+        $contributor = Modules\Cms\Models\Contributor::factory()->create();
+        $content->contributors()->attach($contributor);
     }
 
     return $content;
@@ -65,11 +86,15 @@ function createTestContent(array $attributes = []): Modules\Cms\Models\Content
  */
 function createTestLocation(array $attributes = []): Modules\Cms\Models\Location
 {
-    return Modules\Cms\Models\Location::factory()->create(array_merge([
-        'latitude' => 45.4642,
-        'longitude' => 9.1900,
+    $defaults = [
         'address' => 'Milan, Italy',
-    ], $attributes));
+    ];
+
+    if (! isset($attributes['geolocation']) && ! isset($attributes['latitude'])) {
+        $defaults['geolocation'] = new Point(45.4642, 9.1900);
+    }
+
+    return Modules\Cms\Models\Location::factory()->create(array_merge($defaults, $attributes));
 }
 
 /**

@@ -9,20 +9,20 @@ use Illuminate\Database\Eloquent\Model;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Helpers\HasDynamicContentFactory;
 use Modules\Cms\Helpers\HasDynamicContents;
-use Modules\Cms\Models\Author;
+use Modules\Cms\Models\Contributor;
 use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
 
-final class AuthorFactory extends Factory
+final class ContributorFactory extends Factory
 {
     use HasDynamicContentFactory, HasUniqueFactoryValues;
 
     /**
      * The name of the factory's corresponding model.
      */
-    protected $model = Author::class;
+    protected $model = Contributor::class;
 
-    protected EntityType $entityType = EntityType::AUTHORS;
+    protected EntityType $entityType = EntityType::CONTRIBUTORS;
 
     /**
      * Define the model's default state.
@@ -46,7 +46,7 @@ final class AuthorFactory extends Factory
     public function configure(): self
     {
         /** @param Model&HasDynamicContents $model */
-        return $this->afterMaking(function (Author $model): void {
+        return $this->afterMaking(function (Contributor $model): void {
             $this->fillDynamicContents($model, [
                 'public_email' => fake()->boolean() ? fake()->unique()->email() : ($model->user ? $model->user->email : null),
             ]);

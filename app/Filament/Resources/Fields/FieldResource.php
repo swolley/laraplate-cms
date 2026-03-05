@@ -19,16 +19,21 @@ use Modules\Cms\Filament\Resources\Fields\Pages\ListFields;
 use Modules\Cms\Filament\Resources\Fields\Schemas\FieldForm;
 use Modules\Cms\Filament\Resources\Fields\Tables\FieldsTable;
 use Modules\Cms\Models\Field;
+use Override;
 use UnitEnum;
 
 final class FieldResource extends Resource
 {
+    #[Override]
     protected static ?string $model = Field::class;
 
+    #[Override]
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
+    #[Override]
     protected static string|UnitEnum|null $navigationGroup = 'Cms';
 
+    #[Override]
     protected static ?int $navigationSort = 6;
 
     public static function getSlug(?Panel $panel = null): string

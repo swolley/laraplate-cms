@@ -125,22 +125,20 @@ The Cms Module includes built-in features such as:
 -   Media library management with advanced image processing
 -   Models tagging and categorization
 -   Content versioning and history
--   Authors and signatures management
--   Export Templates management in blade format
+-   Contributors management
+-   Templates management in blade format
 -   AI integration for content generation (provided by AI module when enabled)
 -   Geocoding services integration
 -   Video processing and thumbnail generation
 -   Responsive image generation
 -   Image optimization and compression
 -   Media file organization and sorting
--   Parent-child content relationships
 -   Content approval workflows
 -   Multi-language content support
 -   SEO-friendly URL generation
 -   Content scheduling and publishing
 -   Media file conversions and transformations
 -   Lazy loading for improved performance
--   Vapor uploads support for cloud deployments
 
 ## Scripts
 

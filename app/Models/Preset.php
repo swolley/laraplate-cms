@@ -18,6 +18,7 @@ use Modules\Core\Helpers\HasApprovals;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
+use Override;
 
 /**
  * @mixin IdeHelperPreset
@@ -39,12 +40,14 @@ final class Preset extends Model
     /**
      * The attributes that are mass assignable.
      */
+    #[Override]
     protected $fillable = [
         'entity_id',
         'name',
         'template_id',
     ];
 
+    #[Override]
     protected $hidden = [
         'entity_id',
         'template_id',
@@ -91,7 +94,7 @@ final class Preset extends Model
      */
     public function createFieldsVersion(): Presettable
     {
-        return app(PresetVersioningService::class)->createVersion($this);
+        return resolve(PresetVersioningService::class)->createVersion($this);
     }
 
     /**
@@ -133,7 +136,7 @@ final class Preset extends Model
     {
         $active = $this->activePresettable();
 
-        if (! $active) {
+        if (! $active instanceof Presettable) {
             return;
         }
 

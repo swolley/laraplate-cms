@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\Cms\Models\Author;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
+use Modules\Cms\Models\Contributor;
 use Modules\Core\Models\User;
 use Tests\TestCase;
 
@@ -16,11 +16,11 @@ beforeEach(function (): void {
     $this->actingAs($this->user);
 
     $this->category = Category::factory()->create(['name' => 'Test Category']);
-    $this->author = Author::factory()->create(['name' => 'Test Author']);
+    $this->contributor = Contributor::factory()->create(['name' => 'Test Contributor']);
     $this->content = Content::factory()->create([
         'title' => 'Test Content',
         'category_id' => $this->category->id,
-        'author_id' => $this->author->id,
+        'contributor_id' => $this->contributor->id,
     ]);
 });
 
@@ -35,7 +35,7 @@ test('get contents by relation returns contents for category', function (): void
         ->assertJsonStructure([
             'data' => [
                 '*' => [
-                    'id', 'title', 'content', 'category_id', 'author_id',
+                    'id', 'title', 'content', 'category_id', 'contributor_id',
                 ],
             ],
         ]);
@@ -61,10 +61,10 @@ test('get contents by relation filters by category', function (): void {
     expect($data[0]['id'])->toBe($this->content->id);
 });
 
-test('get contents by relation filters by author', function (): void {
+test('get contents by relation filters by contributor', function (): void {
     $response = $this->getJson(route('cms.api.relation.contents', [
-        'relation' => 'authors',
-        'value' => $this->author->id,
+        'relation' => 'contributors',
+        'value' => $this->contributor->id,
         'entity' => 'contents',
     ]));
 
@@ -221,7 +221,7 @@ test('get contents by relation returns correct content structure', function (): 
                     'title',
                     'content',
                     'category_id',
-                    'author_id',
+                    'contributor_id',
                     'created_at',
                     'updated_at',
                 ],
@@ -231,8 +231,8 @@ test('get contents by relation returns correct content structure', function (): 
 
 test('get contents by relation handles multiple relations', function (): void {
     $response = $this->getJson(route('cms.api.relation.contents', [
-        'relation' => 'authors',
-        'value' => $this->author->id,
+        'relation' => 'contributors',
+        'value' => $this->contributor->id,
         'entity' => 'contents',
     ]));
 
@@ -240,7 +240,7 @@ test('get contents by relation handles multiple relations', function (): void {
 
     $data = $response->json('data');
     expect($data)->toHaveCount(1);
-    expect($data[0]['author_id'])->toBe($this->author->id);
+    expect($data[0]['contributor_id'])->toBe($this->contributor->id);
 });
 
 test('get contents by relation works with different entity types', function (): void {

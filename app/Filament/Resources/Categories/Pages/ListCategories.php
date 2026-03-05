@@ -9,11 +9,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Modules\Cms\Filament\Resources\Categories\CategoryResource;
 use Modules\Cms\Filament\Utils\HasRecords;
 use Modules\Cms\Models\Category;
+use Override;
 
 final class ListCategories extends ListRecords
 {
     use HasRecords;
 
+    #[Override]
     protected static string $resource = CategoryResource::class;
 
     protected function getTableQuery(): Builder

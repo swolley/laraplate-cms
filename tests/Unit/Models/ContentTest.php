@@ -36,7 +36,7 @@ it('content model uses correct traits', function (): void {
 it('content model has required methods', function (): void {
     $reflection = new ReflectionClass(Content::class);
 
-    expect($reflection->hasMethod('authors'))->toBeTrue();
+    expect($reflection->hasMethod('contributors'))->toBeTrue();
     expect($reflection->hasMethod('categories'))->toBeTrue();
     expect($reflection->hasMethod('tags'))->toBeTrue();
     expect($reflection->hasMethod('locations'))->toBeTrue();
@@ -52,8 +52,8 @@ it('content model has required methods', function (): void {
 it('content model has correct relationships', function (): void {
     $reflection = new ReflectionClass(Content::class);
 
-    // Test authors relationship
-    $method = $reflection->getMethod('authors');
+    // Test contributors relationship
+    $method = $reflection->getMethod('contributors');
     expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
 
     // Test categories relationship

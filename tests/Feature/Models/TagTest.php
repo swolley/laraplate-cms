@@ -10,6 +10,7 @@ use Tests\TestCase;
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
+    setupCmsEntities();
     $this->tag = Tag::factory()->create();
 });
 
@@ -43,9 +44,12 @@ it('has hidden attributes', function (): void {
 });
 
 it('belongs to many contents', function (): void {
-    // Skip this test as Content factory requires Entity/Preset/Presettable setup
-    // This will be fixed when we fix ContentTest
-    $this->markTestSkipped('Content factory requires Entity/Preset/Presettable setup');
+    $content1 = Content::factory()->create();
+    $content2 = Content::factory()->create();
+
+    $this->tag->contents()->attach([$content1->id, $content2->id]);
+
+    expect($this->tag->contents)->toHaveCount(2);
 });
 
 it('has slug trait', function (): void {

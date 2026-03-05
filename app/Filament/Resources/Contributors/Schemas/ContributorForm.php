@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Authors\Schemas;
+namespace Modules\Cms\Filament\Resources\Contributors\Schemas;
 
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
-final class AuthorForm
+final class ContributorForm
 {
     public static function configure(Schema $schema): Schema
     {

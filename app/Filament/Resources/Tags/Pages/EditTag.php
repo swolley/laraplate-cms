@@ -9,9 +9,11 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 use Modules\Cms\Filament\Resources\Tags\TagResource;
+use Override;
 
 final class EditTag extends EditRecord
 {
+    #[Override]
     protected static string $resource = TagResource::class;
 
     protected function getHeaderActions(): array

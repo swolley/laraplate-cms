@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Models\Category;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
+use Override;
 
 /**
  * @mixin IdeHelperCategoryTranslation
@@ -22,6 +23,7 @@ final class CategoryTranslation extends Model implements ITranslated
     /**
      * The attributes that are mass assignable.
      */
+    #[Override]
     protected $fillable = [
         'category_id',
         'locale',
@@ -30,6 +32,7 @@ final class CategoryTranslation extends Model implements ITranslated
         'components',
     ];
 
+    #[Override]
     protected $hidden = [
         'created_at',
         'updated_at',

@@ -6,16 +6,16 @@ namespace Modules\Cms\Database\Seeders;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Artisan;
-use Modules\Cms\Models\Author;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
+use Modules\Cms\Models\Contributor;
 use Modules\Cms\Models\Location;
 use Modules\Cms\Models\Tag;
 use Modules\Core\Helpers\BatchSeeder;
 
 final class DevCmsDatabaseSeeder extends BatchSeeder
 {
-    private const TARGET_COUNT_AUTHORS = 15000;
+    private const TARGET_COUNT_CONTRIBUTORS = 15000;
 
     private const TARGET_COUNT_CATEGORIES = 500;
 
@@ -40,9 +40,9 @@ final class DevCmsDatabaseSeeder extends BatchSeeder
         Artisan::call('cache:clear');
     }
 
-    private function seedAuthors(): void
+    private function seedContributors(): void
     {
-        $this->createInParallelBatches(Author::class, self::TARGET_COUNT_AUTHORS);
+        $this->createInParallelBatches(Contributor::class, self::TARGET_COUNT_CONTRIBUTORS);
     }
 
     private function seedCategories(): void

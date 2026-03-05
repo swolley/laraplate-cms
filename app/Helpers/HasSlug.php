@@ -50,7 +50,7 @@ trait HasSlug
 
     protected function slugValues(): array
     {
-        return array_map(function ($placeholder) {
+        return array_map(function (callable|string $placeholder): string {
             if (is_callable($placeholder)) {
                 return static::slugifySlug($placeholder($this));
             }
@@ -83,7 +83,7 @@ trait HasSlug
 
     private static function slugifySlug(string $slug): string
     {
-        return Str::slug((string) $slug, dictionary: ['.' => '']);
+        return Str::slug($slug, dictionary: ['.' => '']);
     }
 
     private static function formatSlugValue(mixed $value, ?string $format = null): ?string
@@ -101,7 +101,7 @@ trait HasSlug
         if (is_string($format)) {
             $exploded = explode(',', $format);
             $format = array_shift($exploded);
-            $additional_format_parameters = array_map(function ($param) {
+            $additional_format_parameters = array_map(function (string $param): int|string {
                 $trimmed = mb_trim($param);
 
                 return is_numeric($trimmed) ? (int) $trimmed : $trimmed;

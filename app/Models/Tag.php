@@ -27,8 +27,6 @@ use Spatie\EloquentSortable\Sortable;
  * @mixin \Modules\Cms\Helpers\HasSlug
  * @mixin \Modules\Cms\Helpers\HasPath
  * @mixin \Modules\Core\Helpers\SortableTrait
- * @mixin IdeHelperTag
- *
  * @method void setHighestOrderNumber() Set the highest order number
  * @method int getHighestOrderNumber() Get the highest order number
  * @method int getLowestOrderNumber() Get the lowest order number
@@ -37,6 +35,7 @@ use Spatie\EloquentSortable\Sortable;
  * @method bool shouldSortWhenCreating() Check if should sort when creating
  * @method string determineOrderColumnName() Determine the order column name
  * @method \Illuminate\Database\Eloquent\Builder buildSortQuery() Build query for sorting
+ * @mixin IdeHelperTag
  */
 final class Tag extends Model implements Sortable
 {
@@ -52,12 +51,14 @@ final class Tag extends Model implements Sortable
     /**
      * The attributes that are mass assignable.
      */
+    #[Override]
     protected $fillable = [
         // name, slug are now in translations table
         'type',
         'order_column',
     ];
 
+    #[Override]
     protected $hidden = [
         'order_column',
         'created_at',
@@ -236,6 +237,6 @@ final class Tag extends Model implements Sortable
     protected function slugPlaceholders(): array
     {
         // Use name from translation
-        return [...array_map(fn (string $field) => '{' . $field . '}', $this->dynamicSlugFields()), '{name}'];
+        return [...array_map(fn (string $field): string => '{' . $field . '}', $this->dynamicSlugFields()), '{name}'];
     }
 }

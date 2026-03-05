@@ -47,11 +47,9 @@ final class PresetsTable
                             $record->migrateContentsToLastVersion();
                         })
                         ->icon(Heroicon::ArrowPath)
-                        ->visible(static function (Preset $record): bool {
-                            return $record->contents()->whereHas('presettable', function (Builder $query) use ($record): void {
-                                $query->where('version', '<', $record->activePresettable()->version);
-                            })->exists();
-                        }),
+                        ->visible(static fn (Preset $record): bool => $record->contents()->whereHas('presettable', function (Builder $query) use ($record): void {
+                            $query->where('version', '<', $record->activePresettable()->version);
+                        })->exists()),
                 );
             },
         );

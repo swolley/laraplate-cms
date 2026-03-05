@@ -29,11 +29,13 @@ final class CreateEntityCommand extends Command
     /**
      * The name and signature of the console command.
      */
+    #[Override]
     protected $signature = 'model:create-entity {entity?}';
 
     /**
      * The console command description.
      */
+    #[Override]
     protected $description = 'Create new cms entity <fg=cyan>(📰 Modules\Cms)</fg=cyan>';
 
     /**

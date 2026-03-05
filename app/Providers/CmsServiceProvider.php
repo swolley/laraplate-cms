@@ -14,8 +14,10 @@ use Override;
  */
 final class CmsServiceProvider extends ModuleServiceProvider
 {
+    #[Override]
     protected string $name = 'Cms';
 
+    #[Override]
     protected string $nameLower = 'cms';
 
     /**

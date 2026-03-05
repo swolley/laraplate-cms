@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Models\Tag;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
+use Override;
 
 /**
  * @mixin IdeHelperTagTranslation
@@ -22,6 +23,7 @@ final class TagTranslation extends Model implements ITranslated
     /**
      * The attributes that are mass assignable.
      */
+    #[Override]
     protected $fillable = [
         'tag_id',
         'locale',
@@ -29,6 +31,7 @@ final class TagTranslation extends Model implements ITranslated
         'slug',
     ];
 
+    #[Override]
     protected $hidden = [
         'created_at',
         'updated_at',

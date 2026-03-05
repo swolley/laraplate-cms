@@ -12,11 +12,13 @@ use Modules\Cms\Filament\Resources\Presets\PresetResource;
 use Modules\Cms\Filament\Utils\HasRecords;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Preset;
+use Override;
 
 final class ListPresets extends ListRecords
 {
     use HasRecords;
 
+    #[Override]
     protected static string $resource = PresetResource::class;
 
     public function getTabs(): array

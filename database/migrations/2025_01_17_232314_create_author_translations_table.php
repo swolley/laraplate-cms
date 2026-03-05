@@ -14,16 +14,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('author_translations', static function (Blueprint $table): void {
+        Schema::create('contributor_translations', static function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('author_id')->nullable(false)->constrained('authors', 'id', 'author_translations_author_id_FK')->cascadeOnDelete()->comment('The author that the translation belongs to');
-            $table->string('locale', 10)->nullable(false)->index('author_translations_locale_IDX')->comment('The locale of the translation');
+            $table->foreignId('contributor_id')->nullable(false)->constrained('contributors', 'id', 'contributor_translations_contributor_id_FK')->cascadeOnDelete()->comment('The contributor that the translation belongs to');
+            $table->string('locale', 10)->nullable(false)->index('contributor_translations_locale_IDX')->comment('The locale of the translation');
             $table->string('slug')->nullable();
-            $table->json('components')->nullable(false)->comment('The translated author components');
+            $table->json('components')->nullable(false)->comment('The translated contributor components');
             MigrateUtils::timestamps($table);
 
-            $table->index(['slug', 'locale'], 'author_translations_slug_locale_IDX');
-            $table->unique(['author_id', 'locale'], 'author_translations_author_locale_UN');
+            $table->index(['slug', 'locale'], 'contributor_translations_slug_locale_IDX');
+            $table->unique(['contributor_id', 'locale'], 'contributor_translations_contributor_locale_UN');
         });
     }
 
@@ -32,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('author_translations');
+        Schema::dropIfExists('contributor_translations');
     }
 };

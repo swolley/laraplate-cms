@@ -10,12 +10,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User;
-use Modules\Cms\Database\Factories\AuthorFactory;
+use Modules\Cms\Database\Factories\ContributorFactory;
 use Modules\Cms\Helpers\HasMultimedia;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Helpers\HasTranslatedDynamicContents;
-use Modules\Cms\Models\Pivot\Authorable;
+use Modules\Cms\Models\Pivot\Contributable;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
@@ -23,9 +23,9 @@ use Override;
 use Spatie\MediaLibrary\HasMedia as IMediable;
 
 /**
- * @mixin IdeHelperAuthor
+ * @mixin IdeHelperContributor
  */
-final class Author extends Model implements IMediable
+final class Contributor extends Model implements IMediable
 {
     // region Traits
     use HasFactory;
@@ -43,10 +43,12 @@ final class Author extends Model implements IMediable
     use SoftDeletes;
     // endregion
 
+    #[Override]
     protected $fillable = [
         'name',
     ];
 
+    #[Override]
     protected $hidden = [
         'user_id',
         'user',
@@ -65,16 +67,15 @@ final class Author extends Model implements IMediable
     }
 
     /**
-     * The contents that belong to the author.
+     * The contents that belong to the contributor.
      *
      * @return BelongsToMany<Content>
      */
     public function contents(): BelongsToMany
     {
-        return $this->belongsToMany(Content::class, 'authorables')->using(Authorable::class)->withTimestamps();
+        return $this->belongsToMany(Content::class, 'contributables')->using(Contributable::class)->withTimestamps();
     }
 
-    // Save method to handle user creation/updating
     #[Override]
     public function save(array $options = []): bool
     {
@@ -96,10 +97,10 @@ final class Author extends Model implements IMediable
         $fields = $this->getRulesTranslatedDynamicContents();
         $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], $fields);
         $rules['create'] = array_merge($rules['create'], [
-            'name' => ['required', 'string', 'max:255', 'unique:authors,name'],
+            'name' => ['required', 'string', 'max:255', 'unique:contributors,name'],
         ]);
         $rules['update'] = array_merge($rules['update'], [
-            'name' => ['sometimes', 'string', 'max:255', 'unique:authors,name,' . $this->id],
+            'name' => ['sometimes', 'string', 'max:255', 'unique:contributors,name,' . $this->id],
         ]);
 
         return $rules;
@@ -121,9 +122,9 @@ final class Author extends Model implements IMediable
         self::addGlobalScope(static fn (Builder $query) => $query->with('user'));
     }
 
-    protected static function newFactory(): AuthorFactory
+    protected static function newFactory(): ContributorFactory
     {
-        return AuthorFactory::new();
+        return ContributorFactory::new();
     }
 
     protected function casts(): array
@@ -137,7 +138,6 @@ final class Author extends Model implements IMediable
 
     protected function slugPlaceholders(): array
     {
-        // Use name from translation
         return [...$this->dynamicSlugFields(), 'name'];
     }
 

@@ -54,6 +54,7 @@ final class Location extends Model
     /**
      * The attributes that are mass assignable.
      */
+    #[Override]
     protected $fillable = [
         'name',
         'address',
@@ -66,6 +67,7 @@ final class Location extends Model
         'slug',
     ];
 
+    #[Override]
     protected $hidden = [
         'created_at',
         'updated_at',
@@ -144,7 +146,9 @@ final class Location extends Model
      */
     public function contents(): BelongsToMany
     {
-        return $this->belongsToMany(Content::class);
+        return $this->belongsToMany(Content::class, 'locatables')
+            ->using(Pivot\Locatable::class)
+            ->withTimestamps();
     }
 
     protected static function newFactory(): LocationFactory

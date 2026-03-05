@@ -19,16 +19,21 @@ use Modules\Cms\Filament\Resources\Tags\Pages\ListTags;
 use Modules\Cms\Filament\Resources\Tags\Schemas\TagForm;
 use Modules\Cms\Filament\Resources\Tags\Tables\TagsTable;
 use Modules\Cms\Models\Tag;
+use Override;
 use UnitEnum;
 
 final class TagResource extends Resource
 {
+    #[Override]
     protected static ?string $model = Tag::class;
 
+    #[Override]
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
+    #[Override]
     protected static string|UnitEnum|null $navigationGroup = 'Cms';
 
+    #[Override]
     protected static ?int $navigationSort = 8;
 
     public static function getSlug(?Panel $panel = null): string

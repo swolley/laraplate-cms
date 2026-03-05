@@ -22,7 +22,7 @@ it('location model uses correct traits', function (): void {
     expect($traits)->toContain('Illuminate\\Database\\Eloquent\\Factories\\HasFactory');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasPath');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasSlug');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasSpatial');
+    expect($traits)->toContain('MatanYadaev\\EloquentSpatial\\Traits\\HasSpatial');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasTags');
     expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');
     expect($traits)->toContain('Modules\\Core\\Search\\Traits\\Searchable');

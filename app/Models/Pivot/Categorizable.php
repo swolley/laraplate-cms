@@ -6,6 +6,7 @@ namespace Modules\Cms\Models\Pivot;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Override;
 
 /**
  * @mixin IdeHelperCategorizable
@@ -14,12 +15,16 @@ final class Categorizable extends Pivot
 {
     use HasFactory;
 
+    #[Override]
     public $incrementing = false;
 
+    #[Override]
     protected $table = 'categorizables';
 
+    #[Override]
     protected $primaryKey = ['content_id', 'category_id'];
 
+    #[Override]
     protected $keyType = 'array';
 
     protected function casts(): array

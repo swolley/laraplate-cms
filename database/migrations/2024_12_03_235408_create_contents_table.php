@@ -51,13 +51,13 @@ return new class extends Migration
                 ->cascadeOnDelete();
         });
 
-        Schema::create('authorables', static function (Blueprint $table): void {
+        Schema::create('contributables', static function (Blueprint $table): void {
             // $table->id();
-            $table->foreignId('content_id')->nullable(false)->constrained('contents', 'id', 'authorables_content_id_FK')->cascadeOnDelete()->comment('The content that the authorable belongs to');
-            $table->foreignId('author_id')->nullable(false)->constrained('authors', 'id', 'authorables_author_id_FK')->cascadeOnDelete()->comment('The author that the authorable belongs to');
+            $table->foreignId('content_id')->nullable(false)->constrained('contents', 'id', 'contributables_content_id_FK')->cascadeOnDelete()->comment('The content that the contributable belongs to');
+            $table->foreignId('contributor_id')->nullable(false)->constrained('contributors', 'id', 'contributables_contributor_id_FK')->cascadeOnDelete()->comment('The contributor that the contributable belongs to');
             MigrateUtils::timestamps($table);
 
-            $table->primary(['content_id', 'author_id']);
+            $table->primary(['content_id', 'contributor_id']);
         });
 
         Schema::create('relatables', static function (Blueprint $table): void {
@@ -85,7 +85,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('relatables');
-        Schema::dropIfExists('authorables');
+        Schema::dropIfExists('contributables');
         Schema::dropIfExists('categorizables');
         Schema::dropIfExists('locatables');
         Schema::dropIfExists('contents');

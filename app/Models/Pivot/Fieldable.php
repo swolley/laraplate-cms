@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 use Modules\Cms\Observers\FieldableObserver;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SortableTrait;
+use Override;
 use Spatie\EloquentSortable\Sortable;
 
 /**
@@ -24,15 +25,19 @@ final class Fieldable extends Pivot implements Sortable
     use HasVersions;
     use SortableTrait;
 
+    #[Override]
     public $incrementing = true;
 
+    #[Override]
     protected $table = 'fieldables';
 
+    #[Override]
     protected $attributes = [
         'is_required' => false,
         'order_column' => 0,
     ];
 
+    #[Override]
     protected $hidden = [
         'created_at',
         'updated_at',

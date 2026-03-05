@@ -18,8 +18,8 @@ use Modules\Cms\Helpers\HasMultimedia;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Helpers\HasTranslatedDynamicContents;
-use Modules\Cms\Models\Pivot\Authorable;
 use Modules\Cms\Models\Pivot\Categorizable;
+use Modules\Cms\Models\Pivot\Contributable;
 use Modules\Cms\Models\Pivot\Locatable;
 use Modules\Cms\Models\Pivot\Relatable;
 use Modules\Cms\Observers\ContentObserver;
@@ -81,6 +81,7 @@ final class Content extends Model implements HasMedia, Sortable
 
     public static array $childTypes = [];
 
+    #[Override]
     protected $hidden = [
         'created_at',
         'updated_at',
@@ -151,13 +152,13 @@ final class Content extends Model implements HasMedia, Sortable
     }
 
     /**
-     * The authors that belong to the content.
+     * The contributors that belong to the content.
      *
-     * @return BelongsToMany<Author>
+     * @return BelongsToMany<Contributor>
      */
-    public function authors(): BelongsToMany
+    public function contributors(): BelongsToMany
     {
-        return $this->belongsToMany(Author::class, 'authorables')->using(Authorable::class)->withTimestamps();
+        return $this->belongsToMany(Contributor::class, 'contributables')->using(Contributable::class)->withTimestamps();
     }
 
     /**
@@ -178,13 +179,13 @@ final class Content extends Model implements HasMedia, Sortable
 
     public function toSearchableArray(): array
     {
-        // TODO: transform splitted values into objects? (authors, categories, tags, locations)
+        // TODO: transform splitted values into objects? (contributors, categories, tags, locations)
         $document = $this->toSearchableArrayTrait();
         // $document['entity'] = $this->entity->name;
         // $document['entity_id'] = $this->entity->id;
         $document['preset'] = $this->preset->name;
         // $document['preset_id'] = $this->preset->id;
-        $document['authors'] = $this->authors->map(fn ($author) => $author->only(['id', 'name', 'slug', 'path']))->values()->all();
+        $document['contributors'] = $this->contributors->map(fn ($contributor) => $contributor->only(['id', 'name', 'slug', 'path']))->values()->all();
         $document['categories'] = $this->categories->map(fn ($category) => $category->only(['id', 'name', 'slug', 'path']))->values()->all();
         $document['tags'] = $this->tags->map(fn ($tag) => $tag->only(['id', 'name', 'slug', 'path']))->values()->all();
         $document['locations'] = $this->locations->map(fn ($location) => $location->only([
@@ -239,7 +240,7 @@ final class Content extends Model implements HasMedia, Sortable
         $schema = $this->getSchemaDefinition();
         $schema->addField(new FieldDefinition('entity', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
         $schema->addField(new FieldDefinition('preset', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
-        $schema->addField(new FieldDefinition('authors', FieldType::ARRAY, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE], [
+        $schema->addField(new FieldDefinition('contributors', FieldType::ARRAY, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE], [
             'properties' => [
                 'name' => FieldType::TEXT,
                 'id' => FieldType::INTEGER,
@@ -453,7 +454,7 @@ final class Content extends Model implements HasMedia, Sortable
     protected function slugPlaceholders(): array
     {
         // Use title from translation
-        return [...array_map(fn (string $field) => '{' . $field . '}', $this->dynamicSlugFields()), '{title}'];
+        return [...array_map(fn (string $field): string => '{' . $field . '}', $this->dynamicSlugFields()), '{title}'];
     }
 
     protected function requiresApprovalWhen(array $modifications): bool

@@ -243,7 +243,7 @@ it('trait can handle array and object values', function (): void {
 
         public array $categories = [];
 
-        public array $authors = ['test', 'authors'];
+        public array $contributors = ['test', 'contributors'];
 
         public function __construct()
         {
@@ -263,7 +263,7 @@ it('trait can handle array and object values', function (): void {
 
         public static function slugPlaceholders(): array
         {
-            return ['{tags.0}', '{categories.*.name}', '{authors}'];
+            return ['{tags.0}', '{categories.*.name}', '{contributors}'];
         }
     };
 

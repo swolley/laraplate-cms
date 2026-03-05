@@ -3,51 +3,17 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Casts\FieldType;
-use Modules\Cms\Models\Author;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
-use Modules\Cms\Models\Entity;
-use Modules\Cms\Models\Field;
+use Modules\Cms\Models\Contributor;
 use Modules\Cms\Models\Location;
-use Modules\Cms\Models\Pivot\Presettable;
-use Modules\Cms\Models\Preset;
 use Modules\Cms\Models\Tag;
 use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    // Create Entity, Preset, Presettable, and Field required for Content factory
-    $entity = Entity::firstOrCreate(
-        ['name' => 'contents'],
-        ['type' => EntityType::CONTENTS],
-    );
-
-    $preset = Preset::firstOrCreate(
-        ['entity_id' => $entity->id, 'name' => 'default'],
-        ['entity_id' => $entity->id, 'name' => 'default'],
-    );
-
-    Presettable::firstOrCreate(
-        ['entity_id' => $entity->id, 'preset_id' => $preset->id],
-        ['entity_id' => $entity->id, 'preset_id' => $preset->id],
-    );
-
-    // Create at least one Field for the Preset (required by fillDynamicContents)
-    if ($preset->fields()->count() === 0) {
-        $field = Field::create([
-            'name' => 'description_' . uniqid(),
-            'type' => FieldType::TEXT,
-            'options' => new stdClass(),
-        ]);
-        $preset->fields()->attach($field->id, [
-            'default' => null,
-            'is_required' => false,
-        ]);
-    }
-
+    setupCmsEntities();
     $this->content = Content::factory()->create();
 });
 
@@ -87,14 +53,14 @@ it('belongs to many categories', function (): void {
     expect($this->content->categories->pluck('name')->toArray())->toContain('Technology', 'Science');
 });
 
-it('belongs to many authors', function (): void {
-    $author1 = Author::factory()->create(['name' => 'John Doe']);
-    $author2 = Author::factory()->create(['name' => 'Jane Smith']);
+it('belongs to many contributors', function (): void {
+    $contributor1 = Contributor::factory()->create(['name' => 'John Doe']);
+    $contributor2 = Contributor::factory()->create(['name' => 'Jane Smith']);
 
-    $this->content->authors()->attach([$author1->id, $author2->id]);
+    $this->content->contributors()->attach([$contributor1->id, $contributor2->id]);
 
-    expect($this->content->authors)->toHaveCount(2);
-    expect($this->content->authors->pluck('name')->toArray())->toContain('John Doe', 'Jane Smith');
+    expect($this->content->contributors)->toHaveCount(2);
+    expect($this->content->contributors->pluck('name')->toArray())->toContain('John Doe', 'Jane Smith');
 });
 
 it('belongs to many tags', function (): void {

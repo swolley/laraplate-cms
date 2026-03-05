@@ -59,6 +59,6 @@ final class PresetVersioningService
                     'default' => $field->pivot->default,
                 ],
             ])
-            ->toArray();
+            ->all();
     }
 }

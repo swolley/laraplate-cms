@@ -8,11 +8,13 @@ use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\Cms\Filament\Resources\Contents\ContentResource;
 use Modules\Cms\Filament\Utils\HasRecords;
+use Override;
 
 final class ListContents extends ListRecords
 {
     use HasRecords;
 
+    #[Override]
     protected static string $resource = ContentResource::class;
 
     /**

@@ -7,7 +7,7 @@ namespace Modules\Cms\Casts;
 enum EntityType: string
 {
     case CONTENTS = 'contents';
-    case AUTHORS = 'authors';
+    case CONTRIBUTORS = 'contributors';
     case CATEGORIES = 'categories';
 
     /**
