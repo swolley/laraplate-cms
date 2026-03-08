@@ -6,6 +6,7 @@ namespace Modules\Cms\Filament\Resources\Entities\Pages;
 
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Tables\Grouping\Group;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Modules\Cms\Casts\EntityType;
@@ -50,10 +51,16 @@ final class ListEntities extends ListRecords
                 continue;
             }
 
-            $tabs[$type->value] = Tab::make(ucfirst($type->value))
+            $label = ucfirst($type->value);
+
+            $tabs[$type->value] = Tab::make($label)
                 ->badge($totals)
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('type', $type));
         }
+
+        $this->groups[] = Group::make('type')
+            ->label('Type')
+            ->getTitleFromRecordUsing(fn (Entity $record): string => ucfirst($record->type->value));
 
         return $tabs;
     }

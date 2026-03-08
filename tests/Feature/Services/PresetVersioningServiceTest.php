@@ -12,7 +12,7 @@ use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Cms\Models\Preset;
 use Modules\Cms\Services\DynamicContentsService;
 use Modules\Cms\Services\PresetVersioningService;
-use Tests\TestCase;
+use Modules\Cms\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 

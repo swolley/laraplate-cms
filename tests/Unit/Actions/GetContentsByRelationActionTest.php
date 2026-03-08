@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use Modules\Cms\Actions\Contents\GetContentsByRelationAction;
+use Modules\Cms\Tests\TestCase;
 use Modules\Core\Http\Requests\ListRequest;
-use Tests\TestCase;
 
 uses(TestCase::class);
 

@@ -6,13 +6,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Contributor;
-use Modules\Core\Models\User;
-use Tests\TestCase;
+use Modules\Cms\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    $this->user = User::factory()->create();
+    $this->user = user_class()::factory()->create();
     $this->actingAs($this->user);
 
     $this->category = Category::factory()->create(['name' => 'Test Category']);

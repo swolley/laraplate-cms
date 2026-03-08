@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Tag;
-use Tests\TestCase;
+use Modules\Cms\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 

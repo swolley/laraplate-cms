@@ -8,7 +8,7 @@ use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Contributor;
 use Modules\Cms\Models\Location;
 use Modules\Cms\Models\Tag;
-use Tests\TestCase;
+use Modules\Cms\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 

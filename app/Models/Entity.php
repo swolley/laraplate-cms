@@ -73,7 +73,12 @@ final class Entity extends Model
      */
     public function contents(): HasManyThrough
     {
-        return $this->hasManyThrough(Content::class, Presettable::class);
+        return $this->hasManyThrough(
+            Content::class,
+            Presettable::class,
+            'entity_id',      // foreign key on presettables pointing to entities
+            'presettable_id', // foreign key on contents pointing to presettables
+        );
     }
 
     /**
@@ -83,7 +88,12 @@ final class Entity extends Model
      */
     public function categories(): HasManyThrough
     {
-        return $this->hasManyThrough(Category::class, Presettable::class);
+        return $this->hasManyThrough(
+            Category::class,
+            Presettable::class,
+            'entity_id',      // foreign key on presettables pointing to entities
+            'presettable_id', // foreign key on categories pointing to presettables
+        );
     }
 
     public function getRules(): array

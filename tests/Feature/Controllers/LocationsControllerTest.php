@@ -5,15 +5,13 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
-use Modules\Core\Models\User;
-use Tests\TestCase;
+use Modules\Cms\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
     /** @var TestCase $this */
-    /** @var User $user */
-    $user = User::factory()->create();
+    $user = user_class()::factory()->create();
     $this->actingAs($user);
 });
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Cms\Filament\Utils;
 
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
@@ -69,6 +70,10 @@ trait HasRecords
                 ->badge($totals)
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('entity_id', $entity->id));
         }
+
+        $this->groups[] = Group::make('preset_id')
+            ->label('Preset')
+            ->getTitleFromRecordUsing(fn (Model $record): string => ucfirst($record->preset->name));
 
         return $tabs;
     }

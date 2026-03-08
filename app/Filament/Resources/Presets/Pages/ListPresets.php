@@ -6,6 +6,7 @@ namespace Modules\Cms\Filament\Resources\Presets\Pages;
 
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Modules\Cms\Filament\Resources\Presets\PresetResource;
@@ -23,7 +24,7 @@ final class ListPresets extends ListRecords
 
     public function getTabs(): array
     {
-        $entities = Entity::query()->all()->keyBy('id');
+        $entities = Entity::query()->get()->keyBy('id');
 
         // $cache_key = 'filament_cms_presets_tabs_' . Preset::class;
 
@@ -52,11 +53,15 @@ final class ListPresets extends ListRecords
                 continue;
             }
 
-            $entity_name = $entities[$entity_id]->name;
-            $tabs[$entity_name] = Tab::make($entity_name)
+            $entity_name = ucfirst($entities[$entity_id]->name);
+            $tabs[(string) $entity_id] = Tab::make($entity_name)
                 ->badge($totals)
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('entity_id', $entity_id));
         }
+
+        $this->groups[] = Group::make('entity_id')
+            ->label('Entity')
+            ->getTitleFromRecordUsing(fn (Preset $record): string => ucfirst($record->entity->name));
 
         return $tabs;
     }

@@ -9,7 +9,7 @@ use Modules\Cms\Models\Contributor;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Cms\Models\Preset;
-use Tests\TestCase;
+use Modules\Cms\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 

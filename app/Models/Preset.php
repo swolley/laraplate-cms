@@ -76,7 +76,12 @@ final class Preset extends Model
      */
     public function contents(): HasManyThrough
     {
-        return $this->hasManyThrough(Content::class, Presettable::class);
+        return $this->hasManyThrough(
+            Content::class,
+            Presettable::class,
+            'preset_id',      // foreign key on presettables pointing to presets
+            'presettable_id', // foreign key on contents pointing to presettables
+        );
     }
 
     /**

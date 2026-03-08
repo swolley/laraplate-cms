@@ -9,7 +9,7 @@ use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Models\Contributor;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Field;
-use Tests\TestCase;
+use Modules\Cms\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
