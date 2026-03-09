@@ -3,6 +3,15 @@
 declare(strict_types=1);
 
 use MatanYadaev\EloquentSpatial\Objects\Point;
+
+if (! function_exists('user_class')) {
+    /** @return class-string<\Illuminate\Contracts\Auth\Authenticatable> */
+    function user_class(): string
+    {
+        return \Modules\Cms\Tests\Support\User::class;
+    }
+}
+
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Models\Entity;
