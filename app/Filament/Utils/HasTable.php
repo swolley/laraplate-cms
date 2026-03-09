@@ -33,9 +33,9 @@ trait HasTable
 
         if ($model && self::hasDynamicContents($model_instance)) {
             $table->groups([
-                Group::make('entity.name')
+                Group::make('presettable.entity.name')
                     ->label('Entity'),
-                Group::make('preset.name')
+                Group::make('presettable.preset.name')
                     ->label('Preset'),
             ]);
         }
@@ -62,11 +62,11 @@ trait HasTable
     ): void {
         if (self::hasDynamicContents($model_instance)) {
             $table->pushColumns([
-                TextColumn::make('entity.name')
+                TextColumn::make('presettable.entity.name')
                     ->searchable()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('preset.name')
+                TextColumn::make('presettable.preset.name')
                     ->searchable()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

@@ -8,7 +8,7 @@ use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Contracts\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Cache;
+// use Illuminate\Support\Facades\Cache;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Filament\Resources\Entities\EntityResource;
 use Modules\Cms\Filament\Utils\HasRecords;
