@@ -83,7 +83,6 @@ it('builds path, ids and full_name correctly from ancestors', function (): void 
     /** @var Category $root */
     $root = $reflection->newInstanceWithoutConstructor();
     $attributesProperty = $reflection->getProperty('attributes');
-    $attributesProperty->setAccessible(true);
     $attributesProperty->setValue($root, [
         'id' => 1,
         'slug' => 'root',
@@ -124,7 +123,6 @@ it('falls back to current node data when no ancestors are present', function ():
     /** @var Category $category */
     $category = $reflection->newInstanceWithoutConstructor();
     $attributesProperty = $reflection->getProperty('attributes');
-    $attributesProperty->setAccessible(true);
     $attributesProperty->setValue($category, [
         'id' => 10,
         'slug' => 'single',
