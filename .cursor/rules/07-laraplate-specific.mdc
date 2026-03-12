@@ -1,0 +1,116 @@
+---
+description: Laraplate/Cms module-specific architecture and conventions
+globs: ["**/Modules/Cms/**", "**/module.json", "**/module.php"]
+alwaysApply: false
+---
+
+# Laraplate Cms – Module Specific Rules
+
+Questo file definisce le regole **specifiche per il modulo Cms** all'interno di Laraplate.
+Non descrive l'intera applicazione, ma si concentra su:
+- quale ruolo ha il Cms nel sistema
+- come il Cms si appoggia al Core
+- come organizzare correttamente la logica di content management.
+
+Per le linee guida generali di Laravel, moduli, Filament, testing, CI/CD, ecc. fare riferimento a:
+- `laravel-boost.mdc`
+- `01-php-laravel-standards.mdc`
+- `02-architecture-patterns.mdc`
+- `03-performance-optimization.mdc`
+- `04-error-handling-security.mdc`
+- `05-testing-development.mdc`.
+
+## Ruolo del modulo Cms
+
+- **Dominio editoriale**: il modulo Cms gestisce contenuti, tassonomie e media.
+- **Costruito sopra il Core**: riutilizza servizi, modelli e convenzioni del modulo Core (auth, ruoli, impostazioni, dynamic entities, locking, search, ecc.).
+- **Estendibile ma non infrastrutturale**: il Cms può essere esteso da altri moduli di dominio (es. blog, e-commerce) ma non deve ridefinire funzionalità framework-like già presenti nel Core.
+
+### Cosa vive nel Cms
+
+- Modelli e logica per:
+  - contenuti e loro varianti (es. `Content`, `Template`, `Category`, `Tag`, traduzioni, ecc.),
+  - tassonomie, categorie, tag e relazioni tra entità editoriali,
+  - template e schemi di contenuto,
+  - geocoding e metadati legati ai contenuti.
+- Servizi e helper specifici del dominio Cms:
+  - naming e gestione file media,
+  - gestione campi dinamici e loro validazione a livello di dominio,
+  - logica di pubblicazione, versioni/bozze dei contenuti, scheduling (se presente).
+- Integrazione con Filament:
+  - risorse, tabelle, form, pagine per la gestione di contenuti, categorie, template, media, ecc.
+
+### Cosa **non** dovrebbe vivere nel Cms
+
+- Funzionalità infrastrutturali generiche (auth base, ruoli, impostazioni globali, locking, search engine astratti): devono stare nel Core.
+- Logica di dominio non editoriale (es. ordini, fatture, utenti finali di un'app verticale).
+- Funzionalità AI generiche (embeddings, chat, documentazione) che vivono nel modulo AI.
+
+## Relazione tra Cms e Core
+
+- Il Cms **dipende** dal Core per:
+  - autenticazione/autorizzazione e permessi,
+  - impostazioni globali e configurazioni,
+  - dynamic entities e CRUD generici,
+  - servizi di ricerca astratti, locking, versioning infrastrutturale.
+- Il Cms **estende** il Core:
+  - definendo entità editoriali concrete (contenuti, categorie, tag, media),
+  - configurando dynamic entities editoriali usando le API del Core,
+  - usando i servizi di search del Core per implementare ricerche sui contenuti.
+
+Non deve esserci dipendenza inversa (Core → Cms).
+
+## Struttura modulare e file critici del Cms
+
+Nel modulo Cms la struttura tipica (semplificata) è:
+
+```
+Modules/Cms/
+├── app/
+│   ├── Console/
+│   ├── Filament/
+│   ├── Helpers/
+│   ├── Http/
+│   ├── Models/
+│   ├── Providers/
+│   └── ...
+├── config/
+├── database/
+├── resources/
+├── routes/
+└── module.json
+```
+
+- I provider del Cms registrano:
+  - route e binding specifici per la gestione dei contenuti,
+  - risorse Filament e servizi dedicati al dominio Cms.
+- I modelli del Cms:
+  - rappresentano entità editoriali (contenuti, categorie, tag, template, media, ecc.),
+  - possono usare trait, servizi e contratti del Core (es. per locking, versioning, search).
+
+## Testing nel modulo Cms
+
+- I test del Cms verificano:
+  - flussi di gestione contenuti (creazione, modifica, pubblicazione, cancellazione, permessi),
+  - comportamento di Filament resources collegate al dominio Cms,
+  - integrazione con le funzionalità del Core (dynamic entities, search, locking, ecc.).
+- Posizione:
+  - usare `Modules/Cms/tests` con struttura chiara `Unit/` e `Feature/`,
+  - preferire test di feature per i flussi editoriali principali.
+
+Per linee guida comuni su testing e tooling fare sempre riferimento a:
+- `05-testing-development.mdc`
+- `laravel-boost.mdc`.
+
+## Riferimenti incrociati
+
+- Per tutto ciò che riguarda:
+  - qualità del codice, static analysis, CI/CD → vedi `laravel-boost.mdc`;
+  - standard PHP/Laravel (tipi, naming, stile) → vedi `01-php-laravel-standards.mdc`;
+  - pattern architetturali e servizi → vedi `02-architecture-patterns.mdc`;
+  - performance, caching, code optimization → vedi `03-performance-optimization.mdc`;
+  - error handling, logging, security → vedi `04-error-handling-security.mdc`;
+  - strategia di testing → vedi `05-testing-development.mdc`.
+
+Questo file deve restare focalizzato sul **ruolo del Cms** e sulla sua relazione con il Core e con gli altri moduli: se una regola è generale per l'intera app, deve vivere nelle regole di root o negli altri file `.mdc` condivisi.
+
