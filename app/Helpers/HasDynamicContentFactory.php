@@ -83,7 +83,7 @@ trait HasDynamicContentFactory
 
         throw_unless(isset($this->entityType), RuntimeException::class, 'Entity type not set for model: ' . $model_name);
 
-        $model->components = $model->presettable->preset->fields->mapWithKeys(function (Field $field) use ($forcedValues): array {
+        $components_array = $model->presettable->preset->fields->mapWithKeys(function (Field $field) use ($forcedValues): array {
             $value = $field->pivot->default;
 
             if ($field->pivot->is_required || fake()->boolean()) {
@@ -97,6 +97,7 @@ trait HasDynamicContentFactory
                         FieldType::EMAIL => fake()->unique()->email(),
                         FieldType::PHONE => fake()->boolean() ? fake()->unique()->e164PhoneNumber() : null,
                         FieldType::URL => fake()->boolean() ? fake()->unique()->url() : null,
+                        FieldType::DATETIME => fake()->dateTime()->format('Y-m-d H:i:s'),
                         FieldType::EDITOR => (object) [
                             'blocks' => array_map(static fn (string $paragraph) => (object) [
                                 'type' => 'paragraph',
@@ -113,6 +114,14 @@ trait HasDynamicContentFactory
 
             return [$field->name => $value];
         })->toArray();
+
+        $model->components = $components_array;
+
+        foreach ($model->presettable->preset->fields as $field) {
+            if (! ($field->is_translatable ?? false)) {
+                $model->{$field->name} = $components_array[$field->name] ?? $field->pivot->default;
+            }
+        }
 
         if (class_uses_trait($model, HasSlug::class) && $model->getRawOriginal('slug') === null) {
             $model->slug = $model->generateSlug();

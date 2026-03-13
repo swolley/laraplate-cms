@@ -6,6 +6,7 @@ namespace Modules\Cms\Database\Seeders;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Artisan;
+use Laravel\Scout\ModelObserver;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Contributor;
@@ -29,13 +30,21 @@ final class DevCmsDatabaseSeeder extends BatchSeeder
     {
         Artisan::call('module:seed', ['module' => 'Cms', '--force' => $this->command->option('force')], outputBuffer: $this->command->getOutput());
 
-        Model::unguarded(function (): void {
-            $this->seedAuthors();
-            $this->seedCategories();
-            $this->seedLocations();
-            $this->seedTags();
-            $this->seedContents();
-        });
+        ModelObserver::disableSyncingFor(Content::class);
+        ModelObserver::disableSyncingFor(Location::class);
+
+        try {
+            Model::unguarded(function (): void {
+                $this->seedContributors();
+                $this->seedCategories();
+                $this->seedLocations();
+                $this->seedTags();
+                $this->seedContents();
+            });
+        } finally {
+            ModelObserver::enableSyncingFor(Content::class);
+            ModelObserver::enableSyncingFor(Location::class);
+        }
 
         Artisan::call('cache:clear');
     }
