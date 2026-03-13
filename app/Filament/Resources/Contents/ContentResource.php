@@ -48,7 +48,14 @@ final class ContentResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return ContentsTable::configure($table);
+        return ContentsTable::configure($table)
+            ->modifyQueryUsing(
+                fn ($query) => $query->with([
+                    'presettable.entity',
+                    'presettable.preset',
+                    'media',
+                ]),
+            );
     }
 
     public static function getRelations(): array

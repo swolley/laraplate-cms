@@ -48,7 +48,14 @@ final class CategoryResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return CategoriesTable::configure($table);
+        return CategoriesTable::configure($table)
+            ->modifyQueryUsing(
+                fn ($query) => $query->with([
+                    'presettable.entity',
+                    'presettable.preset',
+                    'ancestors',
+                ]),
+            );
     }
 
     public static function getRelations(): array
