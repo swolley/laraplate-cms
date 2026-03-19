@@ -66,7 +66,7 @@ final class CreateEntityCommand extends Command
                     continue;
                 }
 
-                $entity->{$attribute} = text(ucfirst($attribute), '', $attribute === 'slug' ? Str::slug($entity->name) : '', true, fn (string $value) => $this->validationCallback($attribute, $value, $validations));
+                $entity->{$attribute} = text(ucfirst($attribute), '', $attribute === 'slug' ? Str::slug($entity->name) : '', true, fn (string $value): ?string => $this->validationCallback($attribute, $value, $validations));
             }
 
             $entity->save();

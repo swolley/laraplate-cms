@@ -27,6 +27,7 @@ use Spatie\EloquentSortable\Sortable;
  * @mixin \Modules\Cms\Helpers\HasSlug
  * @mixin \Modules\Cms\Helpers\HasPath
  * @mixin \Modules\Core\Helpers\SortableTrait
+ *
  * @method void setHighestOrderNumber() Set the highest order number
  * @method int getHighestOrderNumber() Get the highest order number
  * @method int getLowestOrderNumber() Get the lowest order number
@@ -35,6 +36,7 @@ use Spatie\EloquentSortable\Sortable;
  * @method bool shouldSortWhenCreating() Check if should sort when creating
  * @method string determineOrderColumnName() Determine the order column name
  * @method \Illuminate\Database\Eloquent\Builder buildSortQuery() Build query for sorting
+ *
  * @mixin IdeHelperTag
  */
 final class Tag extends Model implements Sortable
@@ -69,7 +71,7 @@ final class Tag extends Model implements Sortable
         string|array|ArrayAccess $values,
         ?string $type = null,
     ): Collection|self {
-        $tags = collect($values)->map(function ($value) use ($type) {
+        $tags = collect($values)->map(function (self|string $value) use ($type): self {
             if ($value instanceof self) {
                 return $value;
             }
@@ -85,11 +87,11 @@ final class Tag extends Model implements Sortable
         return self::query()->withType($type)->get();
     }
 
-    public static function findFromString(string $name, ?string $type = null)
+    public static function findFromString(string $name, ?string $type = null): ?self
     {
         return self::query()
             ->where('type', $type)
-            ->where(function ($query) use ($name): void {
+            ->where(function (Builder $query) use ($name): void {
                 $query->where('name', $name)
                     ->orWhere('slug', $name);
             })
@@ -107,7 +109,7 @@ final class Tag extends Model implements Sortable
             ->get();
     }
 
-    public static function findOrCreateFromString(string $name, ?string $type = null)
+    public static function findOrCreateFromString(string $name, ?string $type = null): self
     {
         $tag = self::findFromString($name, $type);
 
@@ -217,7 +219,7 @@ final class Tag extends Model implements Sortable
      * @param  Builder<static>  $query
      */
     #[Scope]
-    protected function containing(Builder $query, string $name, $locale = null): void
+    protected function containing(Builder $query, string $name, ?string $locale = null): void
     {
         // if (is_null($locale)) {
         //     $locale = static::getLocale();

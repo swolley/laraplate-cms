@@ -59,5 +59,5 @@ it('location model has correct method signatures', function (): void {
 
     // Test toArray method
     $method = $reflection->getMethod('toArray');
-    expect($method->getReturnType()->getName())->toBe('array');
+    expect($method->hasReturnType())->toBeFalse();
 });

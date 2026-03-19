@@ -2,13 +2,56 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/helpers.php';
+
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
+$test_stubs = [
+    'Modules\\Core\\Helpers\\HasCommandUtils' => __DIR__ . '/Stubs/Core/Helpers/HasCommandUtils.php',
+    'Modules\\Core\\Helpers\\HasActivation' => __DIR__ . '/Stubs/Core/Helpers/HasActivation.php',
+    'Modules\\Core\\Helpers\\HasApprovals' => __DIR__ . '/Stubs/Core/Helpers/HasApprovals.php',
+    'Modules\\Core\\Helpers\\HasValidations' => __DIR__ . '/Stubs/Core/Helpers/HasValidations.php',
+    'Modules\\Core\\Helpers\\HasValidity' => __DIR__ . '/Stubs/Core/Helpers/HasValidity.php',
+    'Modules\\Core\\Helpers\\HasVersions' => __DIR__ . '/Stubs/Core/Helpers/HasVersions.php',
+    'Modules\\Core\\Helpers\\HasTranslations' => __DIR__ . '/Stubs/Core/Helpers/HasTranslations.php',
+    'Modules\\Core\\Helpers\\SoftDeletes' => __DIR__ . '/Stubs/Core/Helpers/SoftDeletes.php',
+    'Modules\\Core\\Helpers\\SortableTrait' => __DIR__ . '/Stubs/Core/Helpers/SortableTrait.php',
+    'Modules\\Core\\Helpers\\LocaleContext' => __DIR__ . '/Stubs/Core/Helpers/LocaleContext.php',
+    'Modules\\Core\\Helpers\\ResponseBuilder' => __DIR__ . '/Stubs/Core/Helpers/ResponseBuilder.php',
+    'Modules\\Core\\Helpers\\MigrateUtils' => __DIR__ . '/Stubs/Core/Helpers/MigrateUtils.php',
+    'Modules\\Core\\Helpers\\HasUniqueFactoryValues' => __DIR__ . '/Stubs/Core/Helpers/HasUniqueFactoryValues.php',
+    'Modules\\Core\\Casts\\FilterOperator' => __DIR__ . '/Stubs/Core/Casts/FilterOperator.php',
+    'Modules\\Core\\Casts\\WhereClause' => __DIR__ . '/Stubs/Core/Casts/WhereClause.php',
+    'Modules\\Core\\Cache\\HasCache' => __DIR__ . '/Stubs/Core/Cache/HasCache.php',
+    'Modules\\Core\\Locking\\HasOptimisticLocking' => __DIR__ . '/Stubs/Core/Locking/HasOptimisticLocking.php',
+    'Modules\\Core\\Locking\\Traits\\HasLocks' => __DIR__ . '/Stubs/Core/Locking/Traits/HasLocks.php',
+    'Modules\\Core\\Overrides\\Command' => __DIR__ . '/Stubs/Core/Overrides/Command.php',
+    'Modules\\Core\\Overrides\\ModuleServiceProvider' => __DIR__ . '/Stubs/Core/Overrides/ModuleServiceProvider.php',
+    'Modules\\Core\\Http\\Requests\\ListRequest' => __DIR__ . '/Stubs/Core/Http/Requests/ListRequest.php',
+    'Modules\\Core\\Services\\Translation\\Definitions\\ITranslated' => __DIR__ . '/Stubs/Core/Services/Translation/Definitions/ITranslated.php',
+    'Modules\\Core\\Search\\Traits\\Searchable' => __DIR__ . '/Stubs/Core/Search/Traits/Searchable.php',
+    'Modules\\Core\\Search\\Schema\\SchemaDefinition' => __DIR__ . '/Stubs/Core/Search/Schema/SchemaDefinition.php',
+    'Modules\\Core\\Search\\Schema\\FieldDefinition' => __DIR__ . '/Stubs/Core/Search/Schema/FieldDefinition.php',
+    'Modules\\Core\\Search\\Schema\\FieldType' => __DIR__ . '/Stubs/Core/Search/Schema/FieldType.php',
+    'Modules\\Core\\Search\\Schema\\IndexType' => __DIR__ . '/Stubs/Core/Search/Schema/IndexType.php',
+    'MatanYadaev\\EloquentSpatial\\Objects\\Point' => __DIR__ . '/Stubs/Spatial/Objects/Point.php',
+    'MatanYadaev\\EloquentSpatial\\Objects\\Polygon' => __DIR__ . '/Stubs/Spatial/Objects/Polygon.php',
+    'MatanYadaev\\EloquentSpatial\\Traits\\HasSpatial' => __DIR__ . '/Stubs/Spatial/Traits/HasSpatial.php',
+];
+
+foreach ($test_stubs as $class_name => $stub_path) {
+    if (class_exists($class_name) || trait_exists($class_name) || interface_exists($class_name)) {
+        continue;
+    }
+
+    require_once $stub_path;
+}
+
 if (! function_exists('user_class')) {
-    /** @return class-string<\Illuminate\Contracts\Auth\Authenticatable> */
+    /** @return class-string<Illuminate\Contracts\Auth\Authenticatable> */
     function user_class(): string
     {
-        return \Modules\Cms\Tests\Support\User::class;
+        return Modules\Cms\Tests\Support\User::class;
     }
 }
 

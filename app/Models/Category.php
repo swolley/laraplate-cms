@@ -275,7 +275,7 @@ final class Category extends Model implements IMediable, Sortable
         /** @var \Illuminate\Support\Collection<int, mixed> $segments */
         $segments = $ancestors
             ->pluck($field)
-            ->filter(static fn ($value): bool => $value !== null && $value !== '')
+            ->filter(static fn (mixed $value): bool => $value !== null && $value !== '')
             ->reverse()
             ->values();
 

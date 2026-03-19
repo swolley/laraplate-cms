@@ -50,7 +50,7 @@ final class CategoryResource extends Resource
     {
         return CategoriesTable::configure($table)
             ->modifyQueryUsing(
-                fn ($query) => $query->with([
+                fn (Builder $query): Builder => $query->with([
                     'presettable.entity',
                     'presettable.preset',
                     'ancestors',

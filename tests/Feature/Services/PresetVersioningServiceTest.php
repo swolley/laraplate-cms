@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Models\Content;
@@ -15,6 +16,12 @@ use Modules\Cms\Services\PresetVersioningService;
 use Modules\Cms\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
+
+beforeEach(function (): void {
+    if (! Schema::hasColumns('contents', ['components', 'shared_components'])) {
+        $this->markTestSkipped('Preset versioning integration requires full Core runtime.');
+    }
+});
 
 /**
  * Create an entity + preset with fields and a versioned presettable.

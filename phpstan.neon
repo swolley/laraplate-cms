@@ -12,15 +12,15 @@ parameters:
     # Directory da analizzare
     paths:
         - app/
-        - bootstrap/app.php
         - config
         - database
-        - public
         - routes
+        - tests
     
     # File da escludere
     excludePaths:
         - vendor/**
+        - tests/Support/**
         
     # Ignora errori specifici
     ignoreErrors:
@@ -61,6 +61,26 @@ parameters:
         - '#Call to an undefined method.*::searchableAs\(\)#'
         # Cache::remember con array come TTL (probabilmente un bug, ma ignoriamo per ora)
         - '#Parameter.*\$ttl.*Cache::remember.*array given#'
+        - '#^Class Modules\\Core\\\\.* not found\.$#'
+        - '#^Class App\\\\.* not found\.$#'
+        - '#^Trait Modules\\Core\\\\.* not found\.$#'
+        - '#^Interface Modules\\Core\\\\.* not found\.$#'
+        - '#^Call to an undefined method Modules\\Core\\\\.*#'
+        - '#^Access to an undefined property Modules\\Core\\\\.*#'
+        - '#^Call to an undefined static method Modules\\Core\\\\.*#'
+
+    stubFiles:
+        - tests/Stubs/Core/Helpers/HasCommandUtils.php
+        - tests/Stubs/Core/Helpers/ResponseBuilder.php
+        - tests/Stubs/Core/Helpers/MigrateUtils.php
+        - tests/Stubs/Core/Helpers/HasUniqueFactoryValues.php
+        - tests/Stubs/Core/Casts/FilterOperator.php
+        - tests/Stubs/Core/Casts/WhereClause.php
+        - tests/Stubs/Core/Overrides/Command.php
+        - tests/Stubs/Core/Overrides/ModuleServiceProvider.php
+        - tests/Stubs/Core/Http/Requests/ListRequest.php
+    bootstrapFiles:
+        - tests/bootstrap-stubs.php
 
     # Configurazione per Laravel
     checkModelProperties: true

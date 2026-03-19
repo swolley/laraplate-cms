@@ -53,7 +53,7 @@ final class ListPresets extends ListRecords
                 continue;
             }
 
-            $entity_name = ucfirst($entities[$entity_id]->name);
+            $entity_name = ucfirst((string) $entities[$entity_id]->name);
             $tabs[(string) $entity_id] = Tab::make($entity_name)
                 ->badge($totals)
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('entity_id', $entity_id));
@@ -61,7 +61,7 @@ final class ListPresets extends ListRecords
 
         $this->groups[] = Group::make('entity_id')
             ->label('Entity')
-            ->getTitleFromRecordUsing(fn (Preset $record): string => ucfirst($record->entity->name));
+            ->getTitleFromRecordUsing(fn (Preset $record): string => ucfirst((string) $record->entity->name));
 
         return $tabs;
     }

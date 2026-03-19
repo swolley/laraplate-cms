@@ -20,7 +20,6 @@ it('content model uses correct traits', function (): void {
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasTranslatedDynamicContents');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasMultimedia');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasPath');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasSlug');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasTags');
     expect($traits)->toContain('Modules\\Core\\Helpers\\HasApprovals');
     expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');

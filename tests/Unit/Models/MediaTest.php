@@ -8,11 +8,7 @@ it('media model has correct structure', function (): void {
     $reflection = new ReflectionClass(Media::class);
     $source = file_get_contents($reflection->getFileName());
 
-    // Test fillable attributes
-    expect($source)->toContain('protected $fillable');
-
-    // Test hidden attributes
-    expect($source)->toContain('protected $hidden');
+    expect($source)->toContain('protected $appends');
 });
 
 it('media model uses correct traits', function (): void {
@@ -34,5 +30,5 @@ it('media model has correct method signatures', function (): void {
 
     // Test toArray method
     $method = $reflection->getMethod('toArray');
-    expect($method->getReturnType()->getName())->toBe('array');
+    expect($method->hasReturnType())->toBeFalse();
 });

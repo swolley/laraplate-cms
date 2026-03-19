@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Models\Contributor;
@@ -14,6 +15,10 @@ use Modules\Cms\Tests\TestCase;
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
+    if (! Schema::hasColumns('contributors', ['components', 'shared_components'])) {
+        $this->markTestSkipped('Dynamic contents integration requires full Core runtime.');
+    }
+
     setupCmsEntities();
 });
 

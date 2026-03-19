@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Actions\Locations;
 
+use Modules\Cms\Models\Location;
 use Modules\Cms\Services\Contracts\IGeocodingService;
 
 final readonly class GeocodeLocationAction
@@ -12,7 +13,7 @@ final readonly class GeocodeLocationAction
         private IGeocodingService $geocodingService,
     ) {}
 
-    public function __invoke(?string $query, ?string $city, ?string $province, ?string $country): array
+    public function __invoke(?string $query, ?string $city, ?string $province, ?string $country): array|Location|null
     {
         return $this->geocodingService->search($query, $city, $province, $country);
     }

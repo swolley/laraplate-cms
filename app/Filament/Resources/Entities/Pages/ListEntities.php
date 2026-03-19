@@ -60,7 +60,7 @@ final class ListEntities extends ListRecords
 
         $this->groups[] = Group::make('type')
             ->label('Type')
-            ->getTitleFromRecordUsing(fn (Entity $record): string => ucfirst($record->type->value));
+            ->getTitleFromRecordUsing(fn (Entity $record): string => ucfirst((string) $record->type->value));
 
         return $tabs;
     }

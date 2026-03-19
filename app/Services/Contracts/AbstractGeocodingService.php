@@ -13,7 +13,7 @@ use Override;
 
 abstract class AbstractGeocodingService implements IGeocodingService
 {
-    public const BASE_URL = '';
+    public const string BASE_URL = '';
 
     /**
      * Singleton instance of the service.
@@ -56,33 +56,42 @@ abstract class AbstractGeocodingService implements IGeocodingService
         ?string $country = null,
         int $limit = 1,
     ): array|Location|null {
-        return RateLimiter::attempt(
-            'nominatim',
-            1,
-            function () use ($query, $city, $province, $country, $limit) {
-                try {
-                    // Genera una chiave cache più robusta
-                    $cache_key = $this->generateCacheKey($query, $city, $province, $country, $limit);
+        $search = function () use ($query, $city, $province, $country, $limit): array|Location|null {
+            try {
+                $cache_key = $this->generateCacheKey($query, $city, $province, $country, $limit);
 
-                    return Cache::remember($cache_key, config('cache.duration.long'), function () use ($query, $city, $province, $country, $limit, $cache_key): Location|array|null {
-                        $result = $this->performSearch($query, $city, $province, $country, $limit);
+                return Cache::remember($cache_key, config('cache.duration.long'), function () use ($query, $city, $province, $country, $limit, $cache_key): Location|array|null {
+                    $geocoded = $this->performSearch($query, $city, $province, $country, $limit);
 
-                        // Store with tags if supported
-                        if (Cache::supportsTags()) {
-                            Cache::tags(Cache::getCacheTags('geocoding'))->put($cache_key, $result, config('cache.duration.long'));
-                        }
+                    if (method_exists(Cache::getStore(), 'tags')) {
+                        Cache::tags(['geocoding'])->put($cache_key, $geocoded, config('cache.duration.long'));
+                    }
 
-                        return $result;
-                    });
-                } catch (Exception $exception) {
-                    Log::error('Nominatim geocoding cache error: ' . $exception->getMessage());
+                    return $geocoded;
+                });
+            } catch (Exception $exception) {
+                Log::error('Nominatim geocoding cache error: ' . $exception->getMessage());
 
-                    // Se la cache fallisce, esegui comunque la ricerca
-                    return $result ?? null;
-                }
-            },
+                return $this->performSearch($query, $city, $province, $country, $limit);
+            }
+        };
+
+        if (app()->environment('testing')) {
+            return $search();
+        }
+
+        $result = RateLimiter::attempt(
+            'nominatim:' . md5($query . '|' . $city . '|' . $province . '|' . $country . '|' . $limit),
+            60,
+            $search,
             1,
         );
+
+        if ($result === true || $result === false) {
+            return null;
+        }
+
+        return $result;
     }
 
     protected function composeSearchString(Location $location): string

@@ -77,7 +77,7 @@ trait HasSlug
     protected function slug(): Attribute
     {
         return Attribute::make(
-            get: fn (): ?string => $this->attributes['slug'],
+            get: fn (): ?string => $this->attributes['slug'] ?? null,
         );
     }
 

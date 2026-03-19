@@ -73,7 +73,7 @@ trait HasRecords
 
         $this->groups[] = Group::make('preset_id')
             ->label('Preset')
-            ->getTitleFromRecordUsing(fn (Model $record): string => ucfirst($record->preset->name));
+            ->getTitleFromRecordUsing(fn (Model $record): string => ucfirst((string) $record->preset->name));
 
         return $tabs;
     }

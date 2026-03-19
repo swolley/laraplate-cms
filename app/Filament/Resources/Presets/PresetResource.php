@@ -49,7 +49,7 @@ final class PresetResource extends Resource
     public static function table(Table $table): Table
     {
         return PresetsTable::configure($table)
-            ->modifyQueryUsing(fn ($query) => $query->with(['entity', 'template']));
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['entity', 'template']));
     }
 
     public static function getRelations(): array

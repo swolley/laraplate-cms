@@ -89,7 +89,10 @@ final class Content extends Model implements HasMedia, Sortable
         'withoutObjectCaching',
     ];
 
-    protected $embed = ['title', 'textual_only'];
+    /**
+     * @var list<string>
+     */
+    protected array $embed = ['title', 'textual_only'];
 
     private array $sortable = [
         'order_column_name' => 'order_column',
@@ -171,7 +174,7 @@ final class Content extends Model implements HasMedia, Sortable
         $relation = $this->belongsToMany(self::class, 'relatables')->using(Relatable::class)->withTimestamps();
 
         if ($withInverse === true) {
-            $relation->orWhere(fn ($query) => $query->where('related_content_id', $this->id));
+            $relation->orWhere(fn (Builder $query) => $query->where('related_content_id', $this->id));
         }
 
         return $relation;
@@ -185,10 +188,10 @@ final class Content extends Model implements HasMedia, Sortable
         // $document['entity_id'] = $this->entity->id;
         $document['preset'] = $this->preset->name;
         // $document['preset_id'] = $this->preset->id;
-        $document['contributors'] = $this->contributors->map(fn ($contributor) => $contributor->only(['id', 'name', 'slug', 'path']))->values()->all();
-        $document['categories'] = $this->categories->map(fn ($category) => $category->only(['id', 'name', 'slug', 'path']))->values()->all();
-        $document['tags'] = $this->tags->map(fn ($tag) => $tag->only(['id', 'name', 'slug', 'path']))->values()->all();
-        $document['locations'] = $this->locations->map(fn ($location) => $location->only([
+        $document['contributors'] = $this->contributors->map(fn (Contributor $contributor) => $contributor->only(['id', 'name', 'slug', 'path']))->values()->all();
+        $document['categories'] = $this->categories->map(fn (Category $category) => $category->only(['id', 'name', 'slug', 'path']))->values()->all();
+        $document['tags'] = $this->tags->map(fn (Tag $tag) => $tag->only(['id', 'name', 'slug', 'path']))->values()->all();
+        $document['locations'] = $this->locations->map(fn (Location $location) => $location->only([
             'id',
             'name',
             'slug',

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Modules\Cms\Models\Pivot\Fieldable;
 use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Cms\Services\PresetVersioningService;
@@ -146,7 +147,7 @@ final class Preset extends Model
         }
 
         Content::query()
-            ->whereIn('presettable_id', function ($query): void {
+            ->whereIn('presettable_id', function (QueryBuilder $query): void {
                 $query->select('id')
                     ->from('presettables')
                     ->where('preset_id', $this->id)

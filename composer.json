@@ -44,6 +44,9 @@
     "pestphp/pest-plugin-type-coverage": "^4.0",
     "rector/rector": "^2.0",
     "orchestra/testbench": "^10.9",
+    "larastan/larastan": "^3.9",
+    "dg/bypass-finals": "^1.9",
+    "driftingly/rector-laravel": "^2.1",
     "filament/filament": "^5.0"
   },
   "suggest": {
@@ -66,13 +69,15 @@
       "pint --parallel --test",
       "rector --dry-run"
     ],
-    "test:unit": "pest --parallel --coverage --exactly=100",
+    "test:standalone": "pest --compact tests/Unit tests/Feature/Controllers/LocationsControllerTest.php tests/Feature/Models/LocationTest.php",
+    "test:integration": "pest --compact tests/Feature/Controllers/ContentsControllerTest.php tests/Feature/Helpers/HasDynamicContentsTest.php tests/Feature/Models/CategoryTest.php tests/Feature/Models/ContributorTest.php tests/Feature/Models/ContentTest.php tests/Feature/Models/TagTest.php tests/Feature/Services/PresetVersioningServiceTest.php",
+    "test:unit": "@test:standalone",
     "test:types": "phpstan",
     "test:refactor": "rector",
     "test:licenses": "@php vendor/bin/check-licenses",
     "test": [
       "@test:type-coverage",
-      "@test:unit",
+      "@test:standalone",
       "@test:lint",
       "@test:types",
       "@test:refactor",

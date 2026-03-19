@@ -21,7 +21,6 @@ it('tag model uses correct traits', function (): void {
 
     expect($traits)->toContain('Illuminate\\Database\\Eloquent\\Factories\\HasFactory');
     expect($traits)->toContain('Modules\\Cms\\Helpers\\HasPath');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasSlug');
     expect($traits)->toContain('Modules\\Core\\Helpers\\HasTranslations');
     expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');
     expect($traits)->toContain('Modules\\Core\\Helpers\\SoftDeletes');

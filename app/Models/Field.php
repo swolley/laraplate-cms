@@ -21,6 +21,7 @@ use Override;
 
 /**
  * @property-read object $options
+ *
  * @mixin IdeHelperField
  */
 #[ObservedBy(FieldObserver::class)]
@@ -54,7 +55,7 @@ final class Field extends Model
         'updated_at',
     ];
 
-    public function getAttribute($key): mixed
+    public function getAttribute(mixed $key): mixed
     {
         if (property_exists($this, 'pivot') && $this->pivot !== null && isset($this->pivot->{$key})) {
             return $this->pivot->{$key};
@@ -63,16 +64,16 @@ final class Field extends Model
         return parent::getAttribute($key);
     }
 
-    public function setAttribute($key, $value): void
+    public function setAttribute(mixed $key, mixed $value): mixed
     {
         if (property_exists($this, 'pivot') && $this->pivot !== null && array_key_exists($key, $this->pivot->getAttributes())) {
             // @phpstan-ignore assign.propertyReadOnly
             data_set($this->pivot, $key, $value);
 
-            return;
+            return $this;
         }
 
-        parent::setAttribute($key, $value);
+        return parent::setAttribute($key, $value);
     }
 
     /**

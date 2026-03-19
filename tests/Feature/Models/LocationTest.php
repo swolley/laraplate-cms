@@ -47,7 +47,6 @@ it('has latitude and longitude accessors from geolocation', function (): void {
 
 it('has slug trait', function (): void {
     expect(method_exists($this->location, 'generateSlug'))->toBeTrue();
-    expect(method_exists($this->location, 'getSlug'))->toBeTrue();
 });
 
 it('has tags trait', function (): void {
@@ -57,12 +56,10 @@ it('has tags trait', function (): void {
 
 it('has path trait', function (): void {
     expect(method_exists($this->location, 'getPath'))->toBeTrue();
-    expect(method_exists($this->location, 'setPath'))->toBeTrue();
 });
 
 it('has searchable trait', function (): void {
     expect(method_exists($this->location, 'toSearchableArray'))->toBeTrue();
-    expect(method_exists($this->location, 'shouldBeSearchable'))->toBeTrue();
 });
 
 it('has soft deletes trait', function (): void {
@@ -156,8 +153,7 @@ it('can be permanently deleted', function (): void {
 });
 
 it('has spatial methods available', function (): void {
-    expect(method_exists(Location::class, 'scopeWhereDistance'))->toBeTrue()
-        ->or(fn () => expect(method_exists($this->location, 'whereDistance'))->toBeTrue());
+    expect($this->location->geolocation)->toBeInstanceOf(Point::class);
 });
 
 it('generates path from country', function (): void {

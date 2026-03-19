@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Contributor;
@@ -11,6 +12,10 @@ use Modules\Cms\Tests\TestCase;
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
+    if (! Schema::hasColumns('contents', ['components', 'shared_components'])) {
+        $this->markTestSkipped('Contents controller integration requires full Core runtime.');
+    }
+
     $this->user = user_class()::factory()->create();
     $this->actingAs($this->user);
 

@@ -4,19 +4,21 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Casts;
 
-use Illuminate\Contracts\Database\Eloquent\CastsInboundAttributes;
+use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
+use Illuminate\Database\Eloquent\Model;
 use Override;
 use stdClass;
 
-final class ObjectCast implements CastsInboundAttributes
+final class ObjectCast implements CastsAttributes
 {
-    public function get($model, $key, $value, $attributes): object
+    #[Override]
+    public function get(Model $model, string $key, mixed $value, array $attributes): object
     {
         return json_decode((string) $value) ?? new stdClass();
     }
 
     #[Override]
-    public function set($model, $key, $value, $attributes): string
+    public function set(Model $model, string $key, mixed $value, array $attributes): string
     {
         return json_encode($value);
     }

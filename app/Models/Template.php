@@ -6,6 +6,7 @@ namespace Modules\Cms\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Validation\Rule;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasVersions;
@@ -45,7 +46,7 @@ final class Template extends Model
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('templates')->where(function ($query): void {
+                Rule::unique('templates')->where(function (QueryBuilder $query): void {
                     $query->where('deleted_at', null);
                 }),
             ],
@@ -55,7 +56,7 @@ final class Template extends Model
                 'sometimes',
                 'string',
                 'max:255',
-                Rule::unique('templates')->where(function ($query): void {
+                Rule::unique('templates')->where(function (QueryBuilder $query): void {
                     $query->where('deleted_at', null);
                 })->ignore($this->id, 'id'),
             ],

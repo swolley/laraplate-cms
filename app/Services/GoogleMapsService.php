@@ -12,7 +12,7 @@ use Override;
 
 final class GoogleMapsService extends AbstractGeocodingService
 {
-    public const BASE_URL = 'https://maps.googleapis.com/maps/api/geocode';
+    public const string BASE_URL = 'https://maps.googleapis.com/maps/api/geocode';
 
     private readonly string $api_key;
 

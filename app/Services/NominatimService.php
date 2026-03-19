@@ -12,7 +12,7 @@ use Override;
 
 final class NominatimService extends AbstractGeocodingService
 {
-    public const BASE_URL = 'https://nominatim.openstreetmap.org';
+    public const string BASE_URL = 'https://nominatim.openstreetmap.org';
 
     #[Override]
     protected function performSearch(
@@ -82,6 +82,7 @@ final class NominatimService extends AbstractGeocodingService
         $address = $result['address'];
 
         return new Location()->fill([
+            'name' => $address['city'] ?? $address['town'] ?? $address['village'] ?? $address['road'] ?? 'location',
             'address' => $address['road'] ? $address['road'] . ($address['house_number'] ? ' ' . $address['house_number'] : '') : null,
             'city' => $address['city'] ?? $address['town'] ?? $address['village'] ?? null,
             'province' => $address['state'] ?? null,
