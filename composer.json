@@ -109,8 +109,12 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Modules\\Cms\\Tests\\": "tests/"
-    }
+      "Modules\\Cms\\Tests\\Unit\\": "tests/Unit",
+      "Modules\\Cms\\Tests\\Feature\\": "tests/Feature"
+    },
+    "classmap": [
+      "tests/TestCase.php"
+    ]
   },
   "config": {
     "allow-plugins": {
