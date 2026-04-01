@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### 🧪 Testing
+
+- Harden Cms standalone suite and split integration flow
+
 ## [1.15.0] - 2025-09-27
 
 ### ⚙️ Miscellaneous Tasks
