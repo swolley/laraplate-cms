@@ -77,7 +77,7 @@ it('has required public methods', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
     $publicMethods = $reflection->getMethods(ReflectionMethod::IS_PUBLIC);
-    $methodNames = array_map(static fn ($method) => $method->getName(), $publicMethods);
+    $methodNames = array_map(static fn (ReflectionMethod $method): string => $method->getName(), $publicMethods);
 
     expect($methodNames)->toContain('search');
     expect($methodNames)->toContain('url');
@@ -93,7 +93,7 @@ it('has proper class finality', function (): void {
 it('has proper namespace', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
-    expect($reflection->getName())->toBe('Modules\Cms\Services\NominatimService');
+    expect($reflection->getName())->toBe(NominatimService::class);
 });
 
 it('has proper method accessibility', function (): void {

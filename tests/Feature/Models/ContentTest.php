@@ -196,7 +196,7 @@ it('can be found by title through translation', function (): void {
     $content->save();
 
     // Title is now in translations, so we need to search through the relation
-    $foundContent = Content::whereHas('translations', static function ($q): void {
+    $foundContent = Content::query()->whereHas('translations', static function ($q): void {
         $q->where('title', 'Unique Content');
     })->first();
 
@@ -214,7 +214,7 @@ it('can be found by slug through translation', function (): void {
     $content->save();
 
     // Slug is now in translations, so we need to search through the relation
-    $foundContent = Content::whereHas('translations', static function ($q): void {
+    $foundContent = Content::query()->whereHas('translations', static function ($q): void {
         $q->where('slug', 'unique-slug');
     })->first();
 

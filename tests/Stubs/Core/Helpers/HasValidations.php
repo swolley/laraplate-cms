@@ -8,6 +8,8 @@ trait HasValidations
 {
     public const DEFAULT_RULE = 'default';
 
+    public function setSkipValidation(bool $skip = true): void {}
+
     public function getRules(): array
     {
         return [

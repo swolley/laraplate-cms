@@ -68,13 +68,13 @@ abstract class TestCase extends TestbenchTestCase
      */
     protected function defineEnvironment($app): void
     {
-        $app['config']->set('database.default', 'sqlite');
-        $app['config']->set('database.connections.sqlite', [
+        $app->make(\Illuminate\Contracts\Config\Repository::class)->set('database.default', 'sqlite');
+        $app->make(\Illuminate\Contracts\Config\Repository::class)->set('database.connections.sqlite', [
             'driver' => 'sqlite',
             'database' => ':memory:',
             'prefix' => '',
         ]);
-        $app['config']->set('app.key', 'base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=');
-        $app['config']->set('app.cipher', 'AES-256-CBC');
+        $app->make(\Illuminate\Contracts\Config\Repository::class)->set('app.key', 'base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=');
+        $app->make(\Illuminate\Contracts\Config\Repository::class)->set('app.cipher', 'AES-256-CBC');
     }
 }

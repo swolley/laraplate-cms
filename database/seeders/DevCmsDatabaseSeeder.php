@@ -16,15 +16,15 @@ use Modules\Core\Helpers\BatchSeeder;
 
 final class DevCmsDatabaseSeeder extends BatchSeeder
 {
-    private const TARGET_COUNT_CONTRIBUTORS = 15000;
+    private const int TARGET_COUNT_CONTRIBUTORS = 15000;
 
-    private const TARGET_COUNT_CATEGORIES = 500;
+    private const int TARGET_COUNT_CATEGORIES = 500;
 
-    private const TARGET_COUNT_LOCATIONS = 10000;
+    private const int TARGET_COUNT_LOCATIONS = 10000;
 
-    private const TARGET_COUNT_TAGS = 10000;
+    private const int TARGET_COUNT_TAGS = 10000;
 
-    private const TARGET_COUNT_CONTENTS = 500000;
+    private const int TARGET_COUNT_CONTENTS = 500000;
 
     protected function execute(): void
     {
@@ -82,7 +82,7 @@ final class DevCmsDatabaseSeeder extends BatchSeeder
         $this->command->info('Creating pivot relations...');
 
         // Get all contents and create relations in batches
-        Content::chunk(1000, static function ($contents): void {
+        Content::query()->chunk(1000, static function ($contents): void {
             foreach ($contents as $content) {
                 Content::factory()->createRelations($content);
             }

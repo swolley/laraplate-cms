@@ -6,16 +6,22 @@ namespace Modules\Core\Helpers;
 
 use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * Mirrors {@see SortableTrait} for standalone CMS tests.
+ * Must expose a public scopeOrdered() to satisfy {@see \Spatie\EloquentSortable\Sortable}.
+ */
 trait SortableTrait
 {
-    public static function setNewOrder($ids, int $startOrder = 1): void {}
+    use \Spatie\EloquentSortable\SortableTrait {
+        scopeOrdered as private scopeOrderedTrait;
+    }
 
-    public function scopeOrdered(Builder $query): void {}
-
-    public function setHighestOrderNumber(): void {}
-
-    public function shouldSortWhenCreating(): bool
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeOrdered(Builder $query, string $direction = 'asc'): Builder
     {
-        return false;
+        return $query->orderBy($this->qualifyColumn($this->determineOrderColumnName()), $direction);
     }
 }

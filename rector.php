@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 use Rector\Caching\ValueObject\Storage\FileCacheStorage;
 use Rector\Config\RectorConfig;
+use Rector\DeadCode\Rector\MethodCall\RemoveNullArgOnNullDefaultParamRector;
 use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
+use RectorLaravel\Rector\ClassMethod\MakeModelAttributesAndScopesProtectedRector;
 use RectorLaravel\Set\LaravelSetList;
 use RectorLaravel\Set\LaravelSetProvider;
 
 $modules = array_filter(glob(__DIR__ . '/Modules/*'), 'is_dir');
-$paths = array_merge(
+$candidate_paths = array_merge(
     [
         __DIR__ . '/app',
         __DIR__ . '/bootstrap/app.php',
@@ -21,6 +23,7 @@ $paths = array_merge(
     ],
     array_map(static fn ($module) => "{$module}/app", $modules),
 );
+$paths = array_values(array_filter($candidate_paths, static fn (string $path): bool => file_exists($path)));
 
 return RectorConfig::configure()
     ->withSetProviders(LaravelSetProvider::class)
@@ -44,6 +47,10 @@ return RectorConfig::configure()
     ->withPaths($paths)
     ->withSkip([
         AddOverrideAttributeToOverriddenMethodsRector::class,
+        // Turns where('col', null) into where('col'), which changes query semantics (e.g. soft-delete unique rules).
+        RemoveNullArgOnNullDefaultParamRector::class,
+        // Test doubles: incompatible with several Laravel "code quality" rules (scopes, empty API shims, ctor signatures).
+        __DIR__ . '/tests/Stubs',
         __DIR__ . '/vendor',
         __DIR__ . '/node_modules',
         __DIR__ . '/storage',
@@ -53,6 +60,9 @@ return RectorConfig::configure()
         '**/Model.php',
         // Ignora file con troppe righe che potrebbero causare problemi di analisi
         '**/vendor/**',
+        MakeModelAttributesAndScopesProtectedRector::class => [
+            __DIR__ . '/tests/Stubs/Core/Helpers/SortableTrait.php',
+        ],
     ])
     ->withPreparedSets(
         deadCode: true,

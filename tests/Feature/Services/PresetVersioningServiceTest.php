@@ -30,12 +30,12 @@ beforeEach(function (): void {
  */
 function createPresetWithFields(int $field_count = 2): array
 {
-    $entity = Entity::create([
+    $entity = Entity::query()->create([
         'name' => 'test_entity_' . uniqid(),
         'type' => EntityType::CONTENTS,
     ]);
 
-    $preset = Preset::create([
+    $preset = Preset::query()->create([
         'entity_id' => $entity->id,
         'name' => 'test_preset_' . uniqid(),
     ]);
@@ -43,7 +43,7 @@ function createPresetWithFields(int $field_count = 2): array
     $fields = [];
 
     for ($i = 0; $i < $field_count; $i++) {
-        $field = Field::create([
+        $field = Field::query()->create([
             'name' => 'field_' . uniqid(),
             'type' => FieldType::TEXT,
             'options' => new stdClass(),
@@ -60,12 +60,12 @@ function createPresetWithFields(int $field_count = 2): array
                 'order_column' => $index,
                 'default' => null,
             ],
-        ])->toArray(),
+        ])->all(),
     );
 
     $presettable = $preset->createFieldsVersion();
 
-    return compact('entity', 'preset', 'fields', 'presettable');
+    return ['entity' => $entity, 'preset' => $preset, 'fields' => $fields, 'presettable' => $presettable];
 }
 
 describe('PresetVersioningService', function (): void {
@@ -101,7 +101,7 @@ describe('PresetVersioningService', function (): void {
             ->orderBy('version')
             ->first();
 
-        $service = app(PresetVersioningService::class);
+        $service = resolve(PresetVersioningService::class);
         $v2 = $service->createVersion($preset);
 
         expect($v1->version)->toBeLessThan($v2->version);
@@ -111,7 +111,7 @@ describe('PresetVersioningService', function (): void {
     it('soft-deletes previous active version when creating new one', function (): void {
         ['preset' => $preset, 'presettable' => $v1] = createPresetWithFields();
 
-        $service = app(PresetVersioningService::class);
+        $service = resolve(PresetVersioningService::class);
         $v2 = $service->createVersion($preset);
 
         $v1->refresh();
@@ -125,7 +125,7 @@ describe('PresetVersioningService', function (): void {
 
         $original_snapshot = $v1->fields_snapshot;
 
-        $new_field = Field::create([
+        $new_field = Field::query()->create([
             'name' => 'new_field_' . uniqid(),
             'type' => FieldType::NUMBER,
             'options' => new stdClass(),
@@ -188,7 +188,7 @@ describe('Content uses presettable snapshot', function (): void {
             'presettable_id' => $v1->id,
         ]));
 
-        $new_field = Field::create([
+        $new_field = Field::query()->create([
             'name' => 'extra_field_' . uniqid(),
             'type' => FieldType::TEXT,
             'options' => new stdClass(),
@@ -212,7 +212,7 @@ describe('Content uses presettable snapshot', function (): void {
 
         DynamicContentsService::reset();
 
-        $new_field = Field::create([
+        $new_field = Field::query()->create([
             'name' => 'added_field_' . uniqid(),
             'type' => FieldType::TEXT,
             'options' => new stdClass(),
@@ -255,7 +255,7 @@ describe('DynamicContentsService with versioning', function (): void {
     it('excludes soft-deleted presettable versions', function (): void {
         ['entity' => $entity, 'preset' => $preset] = createPresetWithFields();
 
-        $service = app(PresetVersioningService::class);
+        $service = resolve(PresetVersioningService::class);
         $service->createVersion($preset);
 
         DynamicContentsService::reset();
@@ -271,12 +271,12 @@ describe('DynamicContentsService with versioning', function (): void {
 
 describe('Presettable model', function (): void {
     it('is created automatically when a preset is created', function (): void {
-        $entity = Entity::create([
+        $entity = Entity::query()->create([
             'name' => 'auto_entity_' . uniqid(),
             'type' => EntityType::CONTENTS,
         ]);
 
-        $preset = Preset::create([
+        $preset = Preset::query()->create([
             'entity_id' => $entity->id,
             'name' => 'auto_preset_' . uniqid(),
         ]);
@@ -294,7 +294,7 @@ describe('Presettable model', function (): void {
     it('allows loading soft-deleted presettable through withTrashed relation', function (): void {
         ['preset' => $preset, 'presettable' => $v1] = createPresetWithFields();
 
-        $service = app(PresetVersioningService::class);
+        $service = resolve(PresetVersioningService::class);
         $service->createVersion($preset);
 
         $v1->refresh();
@@ -306,12 +306,12 @@ describe('Presettable model', function (): void {
     });
 
     it('returns empty collection for empty snapshot', function (): void {
-        $entity = Entity::create([
+        $entity = Entity::query()->create([
             'name' => 'empty_entity_' . uniqid(),
             'type' => EntityType::CONTENTS,
         ]);
 
-        $preset = Preset::create([
+        $preset = Preset::query()->create([
             'entity_id' => $entity->id,
             'name' => 'empty_preset_' . uniqid(),
         ]);

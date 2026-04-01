@@ -13,12 +13,19 @@ use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
 /**
- * @mixin IdeHelperContentTranslation
+ * @property int|string $id
+ * @property string $locale
+ * @property string $title
+ * @property string $slug
+ * @property array<string, mixed>|null $components
  */
 final class ContentTranslation extends Model implements ITranslated
 {
     use HasFactory;
     use HasSlug;
+
+    #[Override]
+    protected $table = 'contents_translations';
 
     /**
      * The attributes that are mass assignable.

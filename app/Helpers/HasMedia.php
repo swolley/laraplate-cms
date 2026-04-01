@@ -57,7 +57,7 @@ trait HasMedia
 
         $this
             ->getMedia($collectionName)
-            ->reject(fn (Media $media) => $excludedMedia->where($media->getKeyName(), $media->getKey())->count())
+            ->reject(fn (Media $media): bool => $excludedMedia->where($media->getKeyName(), $media->getKey())->isNotEmpty())
             ->each(static fn (Media $media) => $media->forceDelete());
 
         if ($this->mediaIsPreloaded()) {

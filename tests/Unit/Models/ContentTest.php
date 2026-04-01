@@ -16,20 +16,20 @@ it('content model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Content::class);
     $traits = $reflection->getTraitNames();
 
-    expect($traits)->toContain('Illuminate\\Database\\Eloquent\\Factories\\HasFactory');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasTranslatedDynamicContents');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasMultimedia');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasPath');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasTags');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasApprovals');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidity');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasVersions');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\SoftDeletes');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\SortableTrait');
-    expect($traits)->toContain('Modules\\Core\\Locking\\HasOptimisticLocking');
-    expect($traits)->toContain('Modules\\Core\\Locking\\Traits\\HasLocks');
-    expect($traits)->toContain('Modules\\Core\\Search\\Traits\\Searchable');
+    expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasTranslatedDynamicContents::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasMultimedia::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasPath::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasTags::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasApprovals::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasValidity::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasVersions::class);
+    expect($traits)->toContain(Modules\Core\Helpers\SoftDeletes::class);
+    expect($traits)->toContain(Modules\Core\Helpers\SortableTrait::class);
+    expect($traits)->toContain(Modules\Core\Locking\HasOptimisticLocking::class);
+    expect($traits)->toContain(Modules\Core\Locking\Traits\HasLocks::class);
+    expect($traits)->toContain(Modules\Core\Search\Traits\Searchable::class);
 });
 
 it('content model has required methods', function (): void {
@@ -53,19 +53,19 @@ it('content model has correct relationships', function (): void {
 
     // Test contributors relationship
     $method = $reflection->getMethod('contributors');
-    expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
+    expect($method->getReturnType()->getName())->toBe(Illuminate\Database\Eloquent\Relations\BelongsToMany::class);
 
     // Test categories relationship
     $method = $reflection->getMethod('categories');
-    expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
+    expect($method->getReturnType()->getName())->toBe(Illuminate\Database\Eloquent\Relations\BelongsToMany::class);
 
     // Test locations relationship
     $method = $reflection->getMethod('locations');
-    expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
+    expect($method->getReturnType()->getName())->toBe(Illuminate\Database\Eloquent\Relations\BelongsToMany::class);
 
     // Test related relationship
     $method = $reflection->getMethod('related');
-    expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
+    expect($method->getReturnType()->getName())->toBe(Illuminate\Database\Eloquent\Relations\BelongsToMany::class);
 });
 
 it('content model has correct method signatures', function (): void {
@@ -99,6 +99,6 @@ it('content model has correct method signatures', function (): void {
 it('content model implements correct interfaces', function (): void {
     $reflection = new ReflectionClass(Content::class);
 
-    expect($reflection->implementsInterface('Spatie\\MediaLibrary\\HasMedia'))->toBeTrue();
-    expect($reflection->implementsInterface('Spatie\\EloquentSortable\\Sortable'))->toBeTrue();
+    expect($reflection->implementsInterface(Spatie\MediaLibrary\HasMedia::class))->toBeTrue();
+    expect($reflection->implementsInterface(Spatie\EloquentSortable\Sortable::class))->toBeTrue();
 });

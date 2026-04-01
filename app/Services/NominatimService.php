@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Services;
 
-use Illuminate\Http\Response;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Modules\Cms\Models\Location;
 use Modules\Cms\Services\Contracts\AbstractGeocodingService;

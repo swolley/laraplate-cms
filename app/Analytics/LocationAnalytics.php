@@ -9,7 +9,12 @@ use Modules\Cms\Models\Location;
 
 final class LocationAnalytics extends AbstractAnalytics
 {
-    private static array $cache_duration = [3555, 3600];
+    /**
+     * Inclusive min/max TTL in seconds (jitter to reduce cache stampedes).
+     *
+     * @var array{0: positive-int, 1: positive-int}
+     */
+    private static array $cache_ttl_range_seconds = [3555, 3600];
 
     public function __construct(private readonly Location $model) {}
 
@@ -20,7 +25,7 @@ final class LocationAnalytics extends AbstractAnalytics
     {
         return Cache::remember(
             $this->getCacheKey('location_clusters', $filters),
-            self::$cache_duration,
+            $this->cacheTtlSeconds(),
             fn (): array => $this->getGeoBasedMetrics($this->model, 'geocode', $filters),
         );
     }
@@ -32,7 +37,7 @@ final class LocationAnalytics extends AbstractAnalytics
     {
         return Cache::remember(
             $this->getCacheKey('content_distribution', $filters),
-            self::$cache_duration,
+            $this->cacheTtlSeconds(),
             function () {
                 $client = $this->model->getElasticsearchClient();
 
@@ -79,7 +84,7 @@ final class LocationAnalytics extends AbstractAnalytics
     {
         return Cache::remember(
             $this->getCacheKey('zone_metrics', $filters),
-            self::$cache_duration,
+            $this->cacheTtlSeconds(),
             fn (): array => $this->getTermBasedMetrics($this->model, 'zone', $filters),
         );
     }
@@ -91,7 +96,7 @@ final class LocationAnalytics extends AbstractAnalytics
     {
         return Cache::remember(
             $this->getCacheKey('city_metrics', $filters),
-            self::$cache_duration,
+            $this->cacheTtlSeconds(),
             fn (): array => $this->getTermBasedMetrics($this->model, 'city', $filters),
         );
     }
@@ -113,5 +118,10 @@ final class LocationAnalytics extends AbstractAnalytics
             $metric,
             md5(json_encode($filters)),
         );
+    }
+
+    private function cacheTtlSeconds(): int
+    {
+        return random_int(self::$cache_ttl_range_seconds[0], self::$cache_ttl_range_seconds[1]);
     }
 }

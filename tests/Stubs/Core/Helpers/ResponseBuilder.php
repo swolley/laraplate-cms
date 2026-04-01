@@ -7,6 +7,9 @@ namespace Modules\Core\Helpers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Stub matching {@see ResponseBuilder} constructor signature for controllers under test.
+ */
 final class ResponseBuilder
 {
     private mixed $data = null;

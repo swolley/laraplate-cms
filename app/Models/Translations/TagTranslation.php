@@ -12,13 +12,13 @@ use Modules\Cms\Models\Tag;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
-/**
- * @mixin IdeHelperTagTranslation
- */
 final class TagTranslation extends Model implements ITranslated
 {
     use HasFactory;
     use HasSlug;
+
+    #[Override]
+    protected $table = 'tags_translations';
 
     /**
      * The attributes that are mass assignable.

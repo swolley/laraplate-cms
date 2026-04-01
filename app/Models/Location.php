@@ -12,10 +12,12 @@ use Illuminate\Support\Str;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use MatanYadaev\EloquentSpatial\Objects\Polygon;
 use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
+use Modules\Cms\Contracts\Taggable;
 use Modules\Cms\Database\Factories\LocationFactory;
 use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Helpers\HasTags;
+use Modules\Cms\Models\Pivot\Locatable;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Search\Schema\FieldDefinition;
@@ -34,10 +36,8 @@ use Override;
  * @method static whereContains(Polygon $polygon)
  * @method static whereNotContains(Polygon $polygon)
  * @method static whereEquals(Point $point)
- *
- * @mixin IdeHelperLocation
  */
-final class Location extends Model
+final class Location extends Model implements Taggable
 {
     use HasFactory;
     use HasPath;
@@ -49,6 +49,7 @@ final class Location extends Model
     }
     use Searchable {
         toSearchableArray as private toSearchableArrayTrait;
+        getSearchMapping as private getSearchMappingTrait;
     }
     use SoftDeletes;
 
@@ -73,8 +74,6 @@ final class Location extends Model
         'created_at',
         'updated_at',
     ];
-
-    private array $textOnlyFields = ['name', 'address', 'city', 'province', 'country', 'postcode', 'zone'];
 
     /**
      * Typesense mapping to avoid empty schema errors.
@@ -135,7 +134,7 @@ final class Location extends Model
     // }
 
     #[Override]
-    public function getPath(): ?string
+    public function getPath(): string
     {
         return Str::slug($this->country);
     }
@@ -143,12 +142,12 @@ final class Location extends Model
     /**
      * The contents that belong to the location.
      *
-     * @return BelongsToMany<Content>
+     * @return BelongsToMany<Content, Location, Locatable, 'pivot'>
      */
     public function contents(): BelongsToMany
     {
         return $this->belongsToMany(Content::class, 'locatables')
-            ->using(Pivot\Locatable::class)
+            ->using(Locatable::class)
             ->withTimestamps();
     }
 
@@ -178,13 +177,15 @@ final class Location extends Model
 
     protected function setLatitudeAttribute(float $value): void
     {
-        $longitude = $this->geolocation?->longitude ?? 0.0;
+        $current = $this->geolocation;
+        $longitude = $current instanceof Point ? $current->longitude : 0.0;
         $this->geolocation = new Point($value, $longitude);
     }
 
     protected function setLongitudeAttribute(float $value): void
     {
-        $latitude = $this->geolocation?->latitude ?? 0.0;
+        $current = $this->geolocation;
+        $latitude = $current instanceof Point ? $current->latitude : 0.0;
         $this->geolocation = new Point($latitude, $value);
     }
 }

@@ -9,6 +9,7 @@ use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
 
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Cms\Casts\EntityType;
@@ -48,7 +49,7 @@ final class CreateEntityCommand extends Command
             $fillables = $entity->getFillable();
             $validations = $entity->getOperationRules('create');
 
-            /** @var Collection<int, Field> $all_fields */
+            /** @var EloquentCollection<int, Field> $all_fields */
             $all_fields = Field::query()->get()->keyBy('id');
 
             if ($this->argument('entity')) {
@@ -61,7 +62,8 @@ final class CreateEntityCommand extends Command
                 }
 
                 if ($attribute === 'type') {
-                    $entity->type = select('Choose the type of the entity', EntityType::values(), required: true);
+                    $selected_type = select('Choose the type of the entity', EntityType::values(), required: true);
+                    $entity->type = EntityType::from((string) $selected_type);
 
                     continue;
                 }
@@ -108,7 +110,7 @@ final class CreateEntityCommand extends Command
     protected function getOptions(): array
     {
         return [
-            ['content-model', null, InputOption::VALUE_NONE, 'Create a content model file for this entity.', false],
+            ['content-model', '', InputOption::VALUE_NONE, 'Create a content model file for this entity.', false],
         ];
     }
 
@@ -119,7 +121,7 @@ final class CreateEntityCommand extends Command
             'is_required' => $is_required,
             'default' => $this->getDefaultFieldValue($field, $is_required),
         ];
-        $preset->fields()->attach($field['id'], $pivotAttributes);
+        $preset->fields()->attach($field->id, $pivotAttributes);
     }
 
     private function getDefaultFieldValue(Field $field, bool $is_required): mixed
@@ -127,10 +129,10 @@ final class CreateEntityCommand extends Command
         $default = text(
             sprintf("Specify a default value for '%s'", $field->name),
             required: $is_required,
-            validate: match ($field->type) {
-                FieldType::SELECT && isset($field->options->multiple) && $field->options->multiple => '[]',
-                FieldType::SWITCH => $is_required ? 'true' : 'false',
-                FieldType::CHECKBOX => '[]',
+            validate: match (true) {
+                $field->type === FieldType::SELECT && isset($field->options->multiple) && $field->options->multiple => '[]',
+                $field->type === FieldType::SWITCH => $is_required ? 'true' : 'false',
+                $field->type === FieldType::CHECKBOX => '[]',
                 default => 'null',
             },
             hint: "Type 'null' to set the default value to null",

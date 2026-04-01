@@ -2,6 +2,16 @@
 
 declare(strict_types=1);
 
+if (! function_exists('user_class')) {
+    /**
+     * @return class-string<Illuminate\Contracts\Auth\Authenticatable&Illuminate\Database\Eloquent\Model>
+     */
+    function user_class(): string
+    {
+        return Modules\Cms\Tests\Support\User::class;
+    }
+}
+
 if (! function_exists('class_uses_trait')) {
     function class_uses_trait(object|string $class, string $trait): bool
     {

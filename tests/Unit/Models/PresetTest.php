@@ -19,13 +19,13 @@ it('preset model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Preset::class);
     $traits = $reflection->getTraitNames();
 
-    expect($traits)->toContain('Illuminate\\Database\\Eloquent\\Factories\\HasFactory');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasActivation');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasApprovals');
-    expect($traits)->toContain('Modules\\Core\\Cache\\HasCache');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasVersions');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\SoftDeletes');
+    expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasActivation::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasApprovals::class);
+    expect($traits)->toContain(Modules\Core\Cache\HasCache::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasVersions::class);
+    expect($traits)->toContain(Modules\Core\Helpers\SoftDeletes::class);
 });
 
 it('preset model has required methods', function (): void {
@@ -42,11 +42,11 @@ it('preset model has correct relationships', function (): void {
 
     // Test entity relationship
     $method = $reflection->getMethod('entity');
-    expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsTo');
+    expect($method->getReturnType()->getName())->toBe(Illuminate\Database\Eloquent\Relations\BelongsTo::class);
 
     // Test fields relationship
     $method = $reflection->getMethod('fields');
-    expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
+    expect($method->getReturnType()->getName())->toBe(Illuminate\Database\Eloquent\Relations\BelongsToMany::class);
 });
 
 it('preset model has correct method signatures', function (): void {

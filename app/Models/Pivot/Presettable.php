@@ -17,8 +17,6 @@ use Override;
 /**
  * @property int $version
  * @property array<int, array{field_id: int, name: string, type: string, options: mixed, is_translatable: bool, is_slug: bool, pivot: array{is_required: bool, order_column: int, default: mixed}}> $fields_snapshot
- *
- * @mixin IdeHelperPresettable
  */
 final class Presettable extends Pivot
 {
@@ -80,15 +78,15 @@ final class Presettable extends Pivot
                     'type' => $data['type'],
                     'options' => $data['options'],
                     'is_translatable' => $data['is_translatable'],
-                    'is_slug' => $data['is_slug'] ?? false,
+                    'is_slug' => $data['is_slug'],
                 ]);
                 $field->exists = true;
                 $field->syncOriginal();
 
                 $pivot = new Fieldable();
                 $pivot->forceFill([
-                    'is_required' => $data['pivot']['is_required'] ?? false,
-                    'order_column' => $data['pivot']['order_column'] ?? 0,
+                    'is_required' => $data['pivot']['is_required'],
+                    'order_column' => $data['pivot']['order_column'],
                     'default' => $data['pivot']['default'] ?? null,
                 ]);
                 $pivot->exists = true;

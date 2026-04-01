@@ -19,12 +19,12 @@ it('tag model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Tag::class);
     $traits = $reflection->getTraitNames();
 
-    expect($traits)->toContain('Illuminate\\Database\\Eloquent\\Factories\\HasFactory');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasPath');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasTranslations');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\SoftDeletes');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\SortableTrait');
+    expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasPath::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasTranslations::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
+    expect($traits)->toContain(Modules\Core\Helpers\SoftDeletes::class);
+    expect($traits)->toContain(Modules\Core\Helpers\SortableTrait::class);
 });
 
 it('tag model has required methods', function (): void {

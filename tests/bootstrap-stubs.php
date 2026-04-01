@@ -25,6 +25,7 @@ $stub_files = [
     __DIR__ . '/Stubs/Core/Locking/Traits/HasLocks.php',
     __DIR__ . '/Stubs/Core/Overrides/Command.php',
     __DIR__ . '/Stubs/Core/Overrides/ModuleServiceProvider.php',
+    __DIR__ . '/Stubs/Core/Overrides/RouteServiceProvider.php',
     __DIR__ . '/Stubs/Core/Http/Requests/ListRequest.php',
     __DIR__ . '/Stubs/Core/Services/Translation/Definitions/ITranslated.php',
     __DIR__ . '/Stubs/Core/Search/Traits/Searchable.php',

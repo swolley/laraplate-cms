@@ -164,7 +164,7 @@ it('can be found by name through translation', function (): void {
     ]);
     $category->save();
 
-    $foundCategory = Category::whereHas('translations', static function ($q): void {
+    $foundCategory = Category::query()->whereHas('translations', static function ($q): void {
         $q->where('name', 'Unique Category');
     })->first();
 
@@ -181,7 +181,7 @@ it('can be found by slug through translation', function (): void {
     ]);
     $category->save();
 
-    $foundCategory = Category::whereHas('translations', static function ($q): void {
+    $foundCategory = Category::query()->whereHas('translations', static function ($q): void {
         $q->where('slug', 'unique-slug');
     })->first();
 
@@ -193,8 +193,8 @@ it('can be found by active status', function (): void {
     $activeCategory = Category::factory()->create(['is_active' => true]);
     $inactiveCategory = Category::factory()->create(['is_active' => false]);
 
-    $activeCategories = Category::where('is_active', true)->get();
-    $inactiveCategories = Category::where('is_active', false)->get();
+    $activeCategories = Category::query()->where('is_active', true)->get();
+    $inactiveCategories = Category::query()->where('is_active', false)->get();
 
     expect($activeCategories)->toHaveCount(1);
     expect($inactiveCategories)->toHaveCount(1);

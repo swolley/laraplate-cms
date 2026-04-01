@@ -20,6 +20,9 @@ final class ContributorTranslation extends Model implements ITranslated
     use HasFactory;
     use HasSlug;
 
+    #[Override]
+    protected $table = 'contributors_translations';
+
     /**
      * The attributes that are mass assignable.
      */

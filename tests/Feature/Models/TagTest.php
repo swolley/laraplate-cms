@@ -13,7 +13,7 @@ uses(TestCase::class, RefreshDatabase::class);
 beforeEach(function (): void {
     if (
         ! method_exists(Tag::class, 'determineOrderColumnName')
-        || ! Schema::hasTable('tag_translations')
+        || ! Schema::hasTable('tags_translations')
     ) {
         $this->markTestSkipped('Tag integration features require full Core runtime.');
     }
@@ -134,7 +134,7 @@ it('can be found by name through translation', function (): void {
     ]);
     $tag->save();
 
-    $foundTag = Tag::whereHas('translations', static function ($q): void {
+    $foundTag = Tag::query()->whereHas('translations', static function ($q): void {
         $q->where('name', 'Unique Tag');
     })->first();
 
@@ -151,7 +151,7 @@ it('can be found by slug through translation', function (): void {
     ]);
     $tag->save();
 
-    $foundTag = Tag::whereHas('translations', static function ($q): void {
+    $foundTag = Tag::query()->whereHas('translations', static function ($q): void {
         $q->where('slug', 'unique-slug');
     })->first();
 
@@ -162,7 +162,7 @@ it('can be found by slug through translation', function (): void {
 it('can be found by type', function (): void {
     $tag = Tag::factory()->create(['type' => 'technology']);
 
-    $foundTag = Tag::where('type', 'technology')->first();
+    $foundTag = Tag::query()->where('type', 'technology')->first();
 
     expect($foundTag->id)->toBe($tag->id);
 });

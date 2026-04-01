@@ -12,13 +12,13 @@ use Modules\Cms\Models\Category;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
-/**
- * @mixin IdeHelperCategoryTranslation
- */
 final class CategoryTranslation extends Model implements ITranslated
 {
     use HasFactory;
     use HasSlug;
+
+    #[Override]
+    protected $table = 'categories_translations';
 
     /**
      * The attributes that are mass assignable.

@@ -13,4 +13,5 @@ enum FieldType: string
     case DATE = 'date';
     case BOOLEAN = 'boolean';
     case VECTOR = 'vector';
+    case GEOCODE = 'geocode';
 }

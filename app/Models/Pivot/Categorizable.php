@@ -8,9 +8,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Override;
 
-/**
- * @mixin IdeHelperCategorizable
- */
 final class Categorizable extends Pivot
 {
     use HasFactory;

@@ -24,7 +24,6 @@ trait HasDynamicContentFactory
 
     public function dynamicContentDefinition(): array
     {
-        /** @var class-string<Model&HasDynamicContents> $model_name */
         $model_name = $this->modelName();
 
         throw_unless(isset($this->entityType), RuntimeException::class, 'Entity type not set for model: ' . $model_name . ' factory class');
@@ -32,15 +31,15 @@ trait HasDynamicContentFactory
         $presettable = $model_name::fetchAvailablePresettables($this->entityType)->random();
 
         return [
-            'entity_id' => $presettable?->entity_id,
-            'presettable_id' => $presettable?->id,
+            'entity_id' => $presettable->entity_id,
+            'presettable_id' => $presettable->id,
         ];
     }
 
     /**
      * Create pivot relations for a content model.
      *
-     * @param  Model&HasDynamicContents|Collection<Model&HasDynamicContents>  $content
+     * @param  Model|Collection<int,Model>  $content
      */
     public function createDynamicContentRelations(Model|Collection $content, ?callable $callback = null): void
     {
@@ -69,7 +68,6 @@ trait HasDynamicContentFactory
     }
 
     /**
-     * @param  Model&HasDynamicContents  $model
      * @param  array<string,mixed>  $forcedValues
      */
     private function fillDynamicContents(Model $model, array $forcedValues = []): void
@@ -78,7 +76,6 @@ trait HasDynamicContentFactory
 
         $model->load('presettable');
 
-        /** @var class-string<Model&HasDynamicContents> $model_name */
         $model_name = $this->modelName();
 
         throw_unless(isset($this->entityType), RuntimeException::class, 'Entity type not set for model: ' . $model_name);
@@ -123,7 +120,11 @@ trait HasDynamicContentFactory
             }
         }
 
-        if (class_uses_trait($model, HasSlug::class) && $model->getRawOriginal('slug') === null) {
+        if (
+            class_uses_trait($model, HasSlug::class)
+            && $model->getRawOriginal('slug') === null
+            && method_exists($model, 'generateSlug')
+        ) {
             $model->slug = $model->generateSlug();
         }
     }

@@ -32,7 +32,7 @@ return new class extends Migration
             $table->unique(['id', 'entity_id'], 'content_entity_UN');
         });
 
-        // Fulltext indexes for title are now in content_translations table
+        // Fulltext indexes for title are now in contents_translations table
 
         Schema::create('categorizables', static function (Blueprint $table): void {
             // $table->id();

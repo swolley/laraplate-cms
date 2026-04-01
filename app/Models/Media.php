@@ -10,9 +10,6 @@ use Modules\Core\Helpers\SoftDeletes;
 use Override;
 use Spatie\MediaLibrary\MediaCollections\Models\Media as BaseMedia;
 
-/**
- * @mixin IdeHelperMedia
- */
 final class Media extends BaseMedia
 {
     use HasFactory;

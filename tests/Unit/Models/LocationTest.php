@@ -19,14 +19,14 @@ it('location model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Location::class);
     $traits = $reflection->getTraitNames();
 
-    expect($traits)->toContain('Illuminate\\Database\\Eloquent\\Factories\\HasFactory');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasPath');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasSlug');
-    expect($traits)->toContain('MatanYadaev\\EloquentSpatial\\Traits\\HasSpatial');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasTags');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');
-    expect($traits)->toContain('Modules\\Core\\Search\\Traits\\Searchable');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\SoftDeletes');
+    expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasPath::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasSlug::class);
+    expect($traits)->toContain(MatanYadaev\EloquentSpatial\Traits\HasSpatial::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasTags::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
+    expect($traits)->toContain(Modules\Core\Search\Traits\Searchable::class);
+    expect($traits)->toContain(Modules\Core\Helpers\SoftDeletes::class);
 });
 
 it('location model has required methods', function (): void {
@@ -43,7 +43,7 @@ it('location model has correct relationships', function (): void {
 
     // Test contents relationship
     $method = $reflection->getMethod('contents');
-    expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
+    expect($method->getReturnType()->getName())->toBe(Illuminate\Database\Eloquent\Relations\BelongsToMany::class);
 });
 
 it('location model has correct method signatures', function (): void {

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Database\Factories;
 
+use function user_class;
+
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Cms\Casts\EntityType;
@@ -13,6 +15,9 @@ use Modules\Cms\Models\Contributor;
 use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
 
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Cms\Models\Contributor>
+ */
 final class ContributorFactory extends Factory
 {
     use HasDynamicContentFactory, HasUniqueFactoryValues;
@@ -20,6 +25,7 @@ final class ContributorFactory extends Factory
     /**
      * The name of the factory's corresponding model.
      */
+    #[Override]
     protected $model = Contributor::class;
 
     protected EntityType $entityType = EntityType::CONTRIBUTORS;
@@ -31,7 +37,7 @@ final class ContributorFactory extends Factory
     public function definition(): array
     {
         $definition = $this->dynamicContentDefinition();
-        $user = fake()->boolean() ? user_class()::inRandomOrder()->first() : null;
+        $user = fake()->boolean() ? user_class()::query()->inRandomOrder()->first() : null;
 
         $baseName = $user ? $user->name : (fake()->boolean() ? fake()->name() : fake()->userName());
         $name = $baseName . '-' . fake()->unique()->numerify('########');

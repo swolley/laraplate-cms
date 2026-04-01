@@ -32,9 +32,9 @@ it('trait methods are callable', function (): void {
         use HasTags;
     };
 
-    expect(fn () => $trait->attachTags([]))->not->toThrow(Throwable::class);
-    expect(fn () => $trait->detachTags([]))->not->toThrow(Throwable::class);
-    expect(fn () => $trait->syncTags([]))->not->toThrow(Throwable::class);
+    expect(fn (): object => $trait->attachTags([]))->not->toThrow(Throwable::class);
+    expect(fn (): object => $trait->detachTags([]))->not->toThrow(Throwable::class);
+    expect(fn (): object => $trait->syncTags([]))->not->toThrow(Throwable::class);
 });
 
 it('trait can be used in different classes', function (): void {

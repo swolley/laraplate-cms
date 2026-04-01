@@ -24,9 +24,9 @@ beforeEach(function (): void {
 
     foreach ([EntityType::CONTRIBUTORS, EntityType::CONTENTS] as $entityType) {
         $name = mb_strtolower($entityType->value);
-        $entity = Entity::firstOrCreate(['name' => $name], ['type' => $entityType]);
-        $preset = Preset::firstOrCreate(['entity_id' => $entity->id, 'name' => 'default']);
-        Presettable::firstOrCreate(['entity_id' => $entity->id, 'preset_id' => $preset->id]);
+        $entity = Entity::query()->firstOrCreate(['name' => $name], ['type' => $entityType]);
+        $preset = Preset::query()->firstOrCreate(['entity_id' => $entity->id, 'name' => 'default']);
+        Presettable::query()->firstOrCreate(['entity_id' => $entity->id, 'preset_id' => $preset->id]);
     }
 
     $this->contributor = Contributor::factory()->create();
@@ -42,7 +42,7 @@ it('has fillable attributes', function (): void {
         'name' => 'John Doe',
     ];
 
-    $contributor = Contributor::create($contributorData);
+    $contributor = Contributor::query()->create($contributorData);
 
     expect($contributor->name)->toBe('John Doe');
 });
@@ -103,7 +103,7 @@ it('can be created with specific attributes', function (): void {
         'name' => 'Jane Smith',
     ];
 
-    $contributor = Contributor::create($contributorData);
+    $contributor = Contributor::query()->create($contributorData);
 
     expect($contributor->name)->toBe('Jane Smith');
 });
@@ -111,7 +111,7 @@ it('can be created with specific attributes', function (): void {
 it('can be found by name', function (): void {
     $contributor = Contributor::factory()->create(['name' => 'Unique Contributor']);
 
-    $foundContributor = Contributor::where('name', 'Unique Contributor')->first();
+    $foundContributor = Contributor::query()->where('name', 'Unique Contributor')->first();
 
     expect($foundContributor->id)->toBe($contributor->id);
 });

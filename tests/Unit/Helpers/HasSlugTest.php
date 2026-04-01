@@ -70,6 +70,7 @@ it('trait methods are accessible', function (): void {
     $trait = new class extends Model
     {
         use HasSlug;
+        use Illuminate\Database\Eloquent\Factories\HasFactory;
 
         protected $table = 'test_table';
     };
@@ -125,6 +126,7 @@ it('trait can handle model accessors', function (): void {
     $trait = new class extends Model
     {
         use HasSlug;
+        use Illuminate\Database\Eloquent\Factories\HasFactory;
 
         public static function slugPlaceholders(): array
         {

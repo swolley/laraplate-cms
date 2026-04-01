@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\MorphPivot;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
+use Modules\Cms\Contracts\Taggable;
 use Modules\Cms\Models\Tag;
 
 trait HasTags
@@ -21,6 +22,10 @@ trait HasTags
     public static function bootHasTags(): void
     {
         static::created(function (Model $taggableModel): void {
+            if (! $taggableModel instanceof Taggable) {
+                return;
+            }
+
             if (count($taggableModel->queuedTags) === 0) {
                 return;
             }
@@ -31,9 +36,13 @@ trait HasTags
         });
 
         static::deleted(function (Model $deletedModel): void {
+            if (! $deletedModel instanceof Taggable) {
+                return;
+            }
+
             $tags = $deletedModel->tags()->get();
 
-            $deletedModel->detachTags($tags);
+            $deletedModel->detachTags($tags->all());
         });
     }
 
@@ -111,7 +120,7 @@ trait HasTags
     }
 
     /**
-     * @return MorphToMany<Tag>
+     * @return MorphToMany<Tag,Model,MorphPivot,'pivot'>
      */
     public function tags(): MorphToMany
     {
@@ -191,7 +200,7 @@ trait HasTags
             $values = [$values];
         }
 
-        return collect($values)->map(function ($value) use ($type) {
+        return collect($values)->map(function ($value) use ($type): ?\Modules\Cms\Models\Tag {
             if ($value instanceof Tag) {
                 throw_if(isset($type) && $value->type !== $type, InvalidArgumentException::class, sprintf('Type was set to %s but tag is of type %s', $type, $value->type));
 

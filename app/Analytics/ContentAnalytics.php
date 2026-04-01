@@ -10,9 +10,11 @@ use Modules\Cms\Models\Content;
 final class ContentAnalytics extends AbstractAnalytics
 {
     /**
-     * @var int[]
+     * Inclusive min/max TTL in seconds (jitter to reduce cache stampedes).
+     *
+     * @var array{0: positive-int, 1: positive-int}
      */
-    private static array $cache_duration = [555, 600];
+    private static array $cache_ttl_range_seconds = [555, 600];
 
     public function __construct(private readonly Content $model) {}
 
@@ -23,7 +25,7 @@ final class ContentAnalytics extends AbstractAnalytics
     {
         return Cache::remember(
             $this->getCacheKey('publication_trends', $filters),
-            self::$cache_duration,
+            $this->cacheTtlSeconds(),
             fn (): array => $this->getTimeBasedMetrics($this->model, 'created_at', 'day', $filters),
         );
     }
@@ -35,7 +37,7 @@ final class ContentAnalytics extends AbstractAnalytics
     {
         return Cache::remember(
             $this->getCacheKey('contributor_metrics', $filters),
-            self::$cache_duration,
+            $this->cacheTtlSeconds(),
             fn (): array => $this->getTermBasedMetrics($this->model, 'contributors_id', $filters),
         );
     }
@@ -47,7 +49,7 @@ final class ContentAnalytics extends AbstractAnalytics
     {
         return Cache::remember(
             $this->getCacheKey('category_distribution', $filters),
-            self::$cache_duration,
+            $this->cacheTtlSeconds(),
             fn (): array => $this->getTermBasedMetrics($this->model, 'categories_id', $filters),
         );
     }
@@ -59,7 +61,7 @@ final class ContentAnalytics extends AbstractAnalytics
     {
         return Cache::remember(
             $this->getCacheKey('tag_metrics', $filters),
-            self::$cache_duration,
+            $this->cacheTtlSeconds(),
             fn (): array => $this->getTermBasedMetrics($this->model, 'tags_id', $filters),
         );
     }
@@ -71,7 +73,7 @@ final class ContentAnalytics extends AbstractAnalytics
     {
         return Cache::remember(
             $this->getCacheKey('geographic_distribution', $filters),
-            self::$cache_duration,
+            $this->cacheTtlSeconds(),
             fn (): array => $this->getGeoBasedMetrics($this->model, 'location.geocode', $filters),
         );
     }
@@ -83,16 +85,15 @@ final class ContentAnalytics extends AbstractAnalytics
     {
         return Cache::remember(
             $this->getCacheKey('quality_metrics', $filters),
-            self::$cache_duration,
-            fn (): array
-                // $client = $this->model->getElasticsearchClient();
-                // Qui possiamo implementare metriche di qualità più complesse
-                // Per esempio:
-                // - Lunghezza del contenuto
-                // - Presenza di media
-                // - Completezza dei metadati
-                // - Score basati su embedding
-                => [],
+            $this->cacheTtlSeconds(),
+            // $client = $this->model->getElasticsearchClient();
+            // Qui possiamo implementare metriche di qualità più complesse
+            // Per esempio:
+            // - Lunghezza del contenuto
+            // - Presenza di media
+            // - Completezza dei metadati
+            // - Score basati su embedding
+            fn (): array => [],
         );
     }
 
@@ -113,5 +114,10 @@ final class ContentAnalytics extends AbstractAnalytics
             $metric,
             md5(json_encode($filters)),
         );
+    }
+
+    private function cacheTtlSeconds(): int
+    {
+        return random_int(self::$cache_ttl_range_seconds[0], self::$cache_ttl_range_seconds[1]);
     }
 }

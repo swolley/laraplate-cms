@@ -19,13 +19,13 @@ it('entity model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Entity::class);
     $traits = $reflection->getTraitNames();
 
-    expect($traits)->toContain('Illuminate\\Database\\Eloquent\\Factories\\HasFactory');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasActivation');
-    expect($traits)->toContain('Modules\\Core\\Cache\\HasCache');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasPath');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasSlug');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');
-    expect($traits)->toContain('Modules\\Core\\Locking\\Traits\\HasLocks');
+    expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasActivation::class);
+    expect($traits)->toContain(Modules\Core\Cache\HasCache::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasPath::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasSlug::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
+    expect($traits)->toContain(Modules\Core\Locking\Traits\HasLocks::class);
 });
 
 it('entity model has required methods', function (): void {
@@ -43,11 +43,11 @@ it('entity model has correct relationships', function (): void {
 
     // Test presets relationship
     $method = $reflection->getMethod('presets');
-    expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\HasMany');
+    expect($method->getReturnType()->getName())->toBe(Illuminate\Database\Eloquent\Relations\HasMany::class);
 
     // Test contents relationship
     $method = $reflection->getMethod('contents');
-    expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\HasManyThrough');
+    expect($method->getReturnType()->getName())->toBe(Illuminate\Database\Eloquent\Relations\HasManyThrough::class);
 });
 
 it('entity model has correct method signatures', function (): void {
@@ -67,7 +67,7 @@ it('entity model has correct method signatures', function (): void {
         expect($returnType->allowsNull())->toBeTrue();
     } elseif ($returnType instanceof ReflectionUnionType) {
         $types = $returnType->getTypes();
-        $typeNames = array_map(fn ($t) => $t->getName(), $types);
+        $typeNames = array_map(fn (\ReflectionIntersectionType|ReflectionNamedType $t) => $t->getName(), $types);
         expect($typeNames)->toContain('string');
     }
 

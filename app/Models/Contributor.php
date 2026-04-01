@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User;
+use Modules\Cms\Contracts\Taggable;
 use Modules\Cms\Database\Factories\ContributorFactory;
 use Modules\Cms\Helpers\HasMultimedia;
 use Modules\Cms\Helpers\HasPath;
@@ -22,10 +23,7 @@ use Modules\Core\Helpers\SoftDeletes;
 use Override;
 use Spatie\MediaLibrary\HasMedia as IMediable;
 
-/**
- * @mixin IdeHelperContributor
- */
-final class Contributor extends Model implements IMediable
+final class Contributor extends Model implements IMediable, Taggable
 {
     // region Traits
     use HasFactory;
@@ -59,6 +57,14 @@ final class Contributor extends Model implements IMediable
     private ?User $tempUser = null;
 
     /**
+     * Hold a not-yet-persisted user to attach on first save (e.g. create user and contributor in one flow).
+     */
+    public function setTempUser(?User $user): void
+    {
+        $this->tempUser = $user;
+    }
+
+    /**
      * @return BelongsTo<User>
      */
     public function user(): BelongsTo
@@ -69,7 +75,7 @@ final class Contributor extends Model implements IMediable
     /**
      * The contents that belong to the contributor.
      *
-     * @return BelongsToMany<Content>
+     * @return BelongsToMany<Content,Contributor,Contributable,'pivot'>
      */
     public function contents(): BelongsToMany
     {
@@ -108,7 +114,9 @@ final class Contributor extends Model implements IMediable
 
     public function getPathPrefix(): string
     {
-        return $this->entity?->slug ?? '';
+        $entity = $this->entity;
+
+        return $entity !== null ? $entity->slug : '';
     }
 
     #[Override]

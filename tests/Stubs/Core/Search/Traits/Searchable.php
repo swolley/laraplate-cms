@@ -8,6 +8,8 @@ use Modules\Core\Search\Schema\SchemaDefinition;
 
 trait Searchable
 {
+    public static string $indexedAtField = '_indexed_at';
+
     public static function withoutSyncingToSearch(callable $callback): mixed
     {
         return $callback();
@@ -18,7 +20,7 @@ trait Searchable
         return [];
     }
 
-    public function getSearchMapping(SchemaDefinition $schema): array
+    public function getSearchMapping(?SchemaDefinition $schema = null): array
     {
         return [];
     }

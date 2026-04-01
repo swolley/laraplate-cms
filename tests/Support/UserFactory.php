@@ -6,12 +6,14 @@ namespace Modules\Cms\Tests\Support;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
+use Override;
 
 /**
  * @extends Factory<User>
  */
 final class UserFactory extends Factory
 {
+    #[Override]
     protected $model = User::class;
 
     /**

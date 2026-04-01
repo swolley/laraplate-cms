@@ -279,11 +279,14 @@ trait HasTranslatedDynamicContents
      */
     protected function isFieldTranslatable(string $field): ?bool
     {
-        if (! $this->getRelationValue('presettable')) {
+        $presettable = $this->getRelationValue('presettable');
+
+        if (! $presettable) {
             return null;
         }
 
-        $field_model = $this->getRelationValue('presettable')?->getRelationValue('preset')?->fields()->where('name', $field)->first();
+        $preset = $presettable->getRelationValue('preset');
+        $field_model = $preset?->fields()->where('name', $field)->first();
 
         if (! $field_model) {
             return null;

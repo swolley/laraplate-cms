@@ -15,9 +15,6 @@ use Modules\Core\Helpers\SortableTrait;
 use Override;
 use Spatie\EloquentSortable\Sortable;
 
-/**
- * @mixin IdeHelperFieldable
- */
 #[ObservedBy(FieldableObserver::class)]
 final class Fieldable extends Pivot implements Sortable
 {

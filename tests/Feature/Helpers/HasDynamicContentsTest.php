@@ -27,40 +27,40 @@ beforeEach(function (): void {
  */
 function createTestEntityWithFields(): array
 {
-    $entity = Entity::create([
+    $entity = Entity::query()->create([
         'name' => 'test_entity_' . uniqid(),
         'type' => EntityType::CONTENTS,
     ]);
 
-    $preset = Modules\Cms\Models\Preset::create([
+    $preset = Modules\Cms\Models\Preset::query()->create([
         'entity_id' => $entity->id,
         'name' => 'default',
     ]);
 
-    Modules\Cms\Models\Pivot\Presettable::create([
+    Modules\Cms\Models\Pivot\Presettable::query()->create([
         'entity_id' => $entity->id,
         'preset_id' => $preset->id,
     ]);
 
-    $textField = Field::create([
+    $textField = Field::query()->create([
         'name' => 'text_field_' . uniqid(),
         'type' => FieldType::TEXT,
         'options' => new stdClass(),
     ]);
 
-    $arrayField = Field::create([
+    $arrayField = Field::query()->create([
         'name' => 'array_field_' . uniqid(),
         'type' => FieldType::ARRAY,
         'options' => new stdClass(),
     ]);
 
-    $objectField = Field::create([
+    $objectField = Field::query()->create([
         'name' => 'object_field_' . uniqid(),
         'type' => FieldType::OBJECT,
         'options' => new stdClass(),
     ]);
 
-    $editorField = Field::create([
+    $editorField = Field::query()->create([
         'name' => 'editor_field_' . uniqid(),
         'type' => FieldType::EDITOR,
         'options' => new stdClass(),
@@ -117,13 +117,13 @@ describe('HasTranslatedDynamicContents', function (): void {
         $contributor->save();
 
         // Verify components are saved in translations table, not in contributors table
-        $translation = DB::table('contributor_translations')
+        $translation = DB::table('contributors_translations')
             ->where('contributor_id', $contributor->id)
             ->where('locale', $default_locale)
             ->first();
 
         expect($translation)->not->toBeNull();
-        expect(json_decode($translation->components, true))->toBeArray();
+        expect(json_decode((string) $translation->components, true))->toBeArray();
 
         // Verify components are NOT in contributors table
         $contributorRecord = DB::table('contributors')->where('id', $contributor->id)->first();

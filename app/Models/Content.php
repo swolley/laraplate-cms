@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Contracts\Taggable;
 use Modules\Cms\Database\Factories\ContentFactory;
 use Modules\Cms\Helpers\HasMultimedia;
 use Modules\Cms\Helpers\HasPath;
@@ -41,10 +42,10 @@ use Spatie\EloquentSortable\Sortable;
 use Spatie\MediaLibrary\HasMedia;
 
 /**
- * @mixin IdeHelperContent
+ * @property int|string $id
  */
 #[ObservedBy(ContentObserver::class)]
-final class Content extends Model implements HasMedia, Sortable
+final class Content extends Model implements HasMedia, Sortable, Taggable
 {
     // region Traits
     use HasApprovals {
@@ -92,8 +93,11 @@ final class Content extends Model implements HasMedia, Sortable
     /**
      * @var list<string>
      */
-    protected array $embed = ['title', 'textual_only'];
+    private array $embed = ['title', 'textual_only'];
 
+    /**
+     * @var array<string, mixed>
+     */
     private array $sortable = [
         'order_column_name' => 'order_column',
         'sort_when_creating' => true,
@@ -107,11 +111,17 @@ final class Content extends Model implements HasMedia, Sortable
             $entity_id = self::fetchAvailableEntities(EntityType::CONTENTS)->firstWhere('id', $entity)?->id;
         } elseif (is_string($entity)) {
             $entity_id = self::fetchAvailableEntities(EntityType::CONTENTS)->firstWhere('slug', $entity)?->id;
-        } elseif (is_object($entity) && array_key_exists($entity->id, self::getChildTypes())) {
-            $entity_id = $entity->id;
+        } else {
+            $entity_id = array_key_exists($entity->id, self::$childTypes) ? $entity->id : null;
         }
 
-        throw_if(in_array($entity_id, ['', '0', 0, null], true) || $entity->type !== EntityType::CONTENTS, InvalidArgumentException::class, 'Invalid entity: ' . $entity);
+        if (in_array($entity_id, ['', '0', 0, null], true)) {
+            throw new InvalidArgumentException('Invalid entity: ' . json_encode($entity));
+        }
+
+        if ($entity instanceof Entity && $entity->type !== EntityType::CONTENTS) {
+            throw new InvalidArgumentException('Invalid entity type for content: ' . $entity->type->value);
+        }
 
         $presettable = self::fetchAvailablePresettables(EntityType::CONTENTS)->firstWhere('entity_id', $entity_id);
 
@@ -134,7 +144,7 @@ final class Content extends Model implements HasMedia, Sortable
     /**
      * The folders that belong to the content.
      *
-     * @return BelongsToMany<Category>
+     * @return BelongsToMany<Category, $this, Categorizable, 'pivot'>
      */
     public function categories(): BelongsToMany
     {
@@ -144,7 +154,7 @@ final class Content extends Model implements HasMedia, Sortable
     /**
      * The locations that belong to the content.
      *
-     * @return BelongsToMany<Location>
+     * @return BelongsToMany<Location, $this, Locatable, 'pivot'>
      */
     public function locations(): BelongsToMany
     {
@@ -157,7 +167,7 @@ final class Content extends Model implements HasMedia, Sortable
     /**
      * The contributors that belong to the content.
      *
-     * @return BelongsToMany<Contributor>
+     * @return BelongsToMany<Contributor, $this, Contributable, 'pivot'>
      */
     public function contributors(): BelongsToMany
     {
@@ -167,7 +177,7 @@ final class Content extends Model implements HasMedia, Sortable
     /**
      * The related contents that belong to the content.
      *
-     * @return BelongsToMany<Content>
+     * @return BelongsToMany<Content, $this, Relatable, 'pivot'>
      */
     public function related(?bool $withInverse = false): BelongsToMany
     {
@@ -350,7 +360,9 @@ final class Content extends Model implements HasMedia, Sortable
 
     public function getPathPrefix(): string
     {
-        return $this->entity?->slug ?? '';
+        $entity = $this->entity;
+
+        return $entity !== null ? $entity->slug : '';
     }
 
     #[Override]
@@ -362,7 +374,7 @@ final class Content extends Model implements HasMedia, Sortable
     #[Override]
     public function toArray(): array
     {
-        $parsed = parent::toArray() ?? $this->attributesToArray();
+        $parsed = parent::toArray();
 
         return array_merge($parsed, $this->translatedDynamicContentsToArray(), $this->approvalsToArray($parsed));
     }
@@ -401,31 +413,18 @@ final class Content extends Model implements HasMedia, Sortable
     protected static function booted(): void
     {
         self::addGlobalScope('global_filters', static function (Builder $query): void {
-            /** @var Builder<static> $query */
+            /** @var Builder<Content> $query */
             $query->valid();
         });
         self::addGlobalScope('global_ordered', static function (Builder $query): void {
-            /** @var Builder<static> $query */
+            /** @var Builder<Content> $query */
             $query->ordered();
         });
     }
 
     protected static function newFactory(): ContentFactory
     {
-        $factory = ContentFactory::new();
-
-        // if ensure that the factory is created for the correct derived entity
-        if (self::class !== self::class) {
-            $factory->state(static fn (): array => [
-                'entity_id' => Entity::query()
-                    ->where('name', Str::lower(class_basename(self::class)))
-                    ->where('type', EntityType::CONTENTS)
-                    ->firstOrFail()
-                    ->id,
-            ]);
-        }
-
-        return $factory;
+        return ContentFactory::new();
     }
 
     /**
@@ -441,7 +440,7 @@ final class Content extends Model implements HasMedia, Sortable
 
                 // If we got components from translation, merge with defaults using HasDynamicContents
                 if ($raw_components !== null) {
-                    return $this->mergeComponentsValues($raw_components ?? []);
+                    return $this->mergeComponentsValues($raw_components);
                 }
 
                 // Fallback: if no translation, merge empty array with defaults

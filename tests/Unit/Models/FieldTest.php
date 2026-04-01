@@ -19,11 +19,11 @@ it('field model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Field::class);
     $traits = $reflection->getTraitNames();
 
-    expect($traits)->toContain('Illuminate\\Database\\Eloquent\\Factories\\HasFactory');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasActivation');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasVersions');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\SoftDeletes');
+    expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasActivation::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasVersions::class);
+    expect($traits)->toContain(Modules\Core\Helpers\SoftDeletes::class);
 });
 
 it('field model has required methods', function (): void {
@@ -39,7 +39,7 @@ it('field model has correct relationships', function (): void {
 
     // Test presets relationship
     $method = $reflection->getMethod('presets');
-    expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
+    expect($method->getReturnType()->getName())->toBe(Illuminate\Database\Eloquent\Relations\BelongsToMany::class);
 });
 
 it('field model has correct method signatures', function (): void {

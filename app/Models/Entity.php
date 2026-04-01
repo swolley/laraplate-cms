@@ -21,7 +21,10 @@ use Modules\Core\Locking\Traits\HasLocks;
 use Override;
 
 /**
- * @mixin IdeHelperEntity
+ * @property int|string $id
+ * @property string $name
+ * @property string $slug
+ * @property EntityType $type
  */
 final class Entity extends Model
 {

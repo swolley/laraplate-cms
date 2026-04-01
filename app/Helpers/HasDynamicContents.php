@@ -47,7 +47,7 @@ trait HasDynamicContents
     /**
      * Fetch available entities for a given type.
      *
-     * @return Collection<Entity>
+     * @return Collection<int, Entity>
      */
     public static function fetchAvailableEntities(EntityType $type): Collection
     {
@@ -57,7 +57,7 @@ trait HasDynamicContents
     /**
      * Fetch available presets for a given entity type.
      *
-     * @return Collection<Preset>
+     * @return Collection<int, Preset>
      */
     public static function fetchAvailablePresets(EntityType $type): Collection
     {
@@ -67,7 +67,7 @@ trait HasDynamicContents
     /**
      * Fetch available presettables for a given entity type.
      *
-     * @return Collection<Presettable>
+     * @return Collection<int, Presettable>
      */
     public static function fetchAvailablePresettables(EntityType $type): Collection
     {
@@ -201,11 +201,10 @@ trait HasDynamicContents
     /**
      * Convenience relation to avoid multiple column foreign key references.
      *
-     * @return BelongsTo<Presettable>
+     * @return BelongsTo<Presettable,TModel>
      */
     public function presettable(): BelongsTo
     {
-        /** @var BelongsTo<Presettable> $relation */
         $relation = $this->belongsTo(Presettable::class);
         $relation->withTrashed();
 
@@ -227,7 +226,8 @@ trait HasDynamicContents
 
     public function toArray(?array $parsed = null): array
     {
-        $content = $parsed ?? (method_exists(parent::class, 'toArray') ? parent::toArray() : $this->attributesToArray());
+        // $content = $parsed ?? (method_exists(parent::class, 'toArray') ? parent::toArray() : $this->attributesToArray());
+        $content = $parsed ?? parent::toArray();
 
         if (isset($content['components'])) {
             $components = $content['components'];
@@ -303,10 +303,13 @@ trait HasDynamicContents
         static::saving(function (Model $model): void {
             $presettable = $model->getRelationValue('presettable');
 
-            /** @var Model&HasDynamicContents $model */
+            if (! in_array(HasDynamicContents::class, class_uses_recursive($model), true)) {
+                return;
+            }
+
             if ($presettable) {
                 $model->setRelation('presettable', $presettable);
-            } else {
+            } elseif (method_exists($model, 'setDefaultPresettable')) {
                 $model->setDefaultPresettable();
             }
         });
@@ -314,8 +317,6 @@ trait HasDynamicContents
 
     /**
      * The entity that belongs to the content.
-     *
-     * @return Attribute<Entity|null>
      */
     protected function entity(): Attribute
     {
@@ -335,8 +336,6 @@ trait HasDynamicContents
 
     /**
      * The preset that belongs to the content.
-     *
-     * @return Attribute<Preset|null>
      */
     protected function preset(): Attribute
     {

@@ -19,7 +19,7 @@ it('command exists and has correct signature', function (): void {
 it('command class has correct properties', function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
 
-    expect($reflection->getName())->toBe('Modules\Cms\Console\CreateEntityCommand');
+    expect($reflection->getName())->toBe(CreateEntityCommand::class);
     expect($reflection->isSubclassOf(Modules\Core\Overrides\Command::class))->toBeTrue();
 });
 
@@ -69,7 +69,7 @@ it('command uses HasCommandUtils trait', function (): void {
     $reflection = new ReflectionClass(CreateEntityCommand::class);
     $traits = $reflection->getTraitNames();
 
-    expect($traits)->toContain('Modules\Core\Helpers\HasCommandUtils');
+    expect($traits)->toContain(Modules\Core\Helpers\HasCommandUtils::class);
 });
 
 it('command uses Laravel Prompts', function (): void {

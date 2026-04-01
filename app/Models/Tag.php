@@ -20,25 +20,6 @@ use Modules\Core\Helpers\SortableTrait;
 use Override;
 use Spatie\EloquentSortable\Sortable;
 
-/**
- * @mixin \Modules\Core\Helpers\HasTranslations
- * @mixin \Modules\Core\Helpers\HasValidations
- * @mixin \Modules\Core\Helpers\SoftDeletes
- * @mixin \Modules\Cms\Helpers\HasSlug
- * @mixin \Modules\Cms\Helpers\HasPath
- * @mixin \Modules\Core\Helpers\SortableTrait
- *
- * @method void setHighestOrderNumber() Set the highest order number
- * @method int getHighestOrderNumber() Get the highest order number
- * @method int getLowestOrderNumber() Get the lowest order number
- * @method \Illuminate\Database\Eloquent\Builder scopeOrdered(\Illuminate\Database\Eloquent\Builder $query, string $direction = 'asc') Scope to order by order column
- * @method static void setNewOrder(array|\ArrayAccess $ids, int $startOrder = 1, ?string $primaryKeyColumn = null, ?callable $modifyQuery = null) Set new order for multiple models
- * @method bool shouldSortWhenCreating() Check if should sort when creating
- * @method string determineOrderColumnName() Determine the order column name
- * @method \Illuminate\Database\Eloquent\Builder buildSortQuery() Build query for sorting
- *
- * @mixin IdeHelperTag
- */
 final class Tag extends Model implements Sortable
 {
     use HasFactory;
@@ -113,7 +94,7 @@ final class Tag extends Model implements Sortable
     {
         $tag = self::findFromString($name, $type);
 
-        if (! $tag) {
+        if (! $tag instanceof self) {
             $tag = self::query()->create([
                 'type' => $type,
             ]);
@@ -239,6 +220,7 @@ final class Tag extends Model implements Sortable
     protected function slugPlaceholders(): array
     {
         // Use name from translation
+        // @phpstan-ignore method.notFound
         return [...array_map(fn (string $field): string => '{' . $field . '}', $this->dynamicSlugFields()), '{name}'];
     }
 }

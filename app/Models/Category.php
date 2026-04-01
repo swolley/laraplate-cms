@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
-use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -29,28 +29,6 @@ use Spatie\EloquentSortable\Sortable;
 use Spatie\MediaLibrary\HasMedia as IMediable;
 use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 
-/**
- * @mixin \Modules\Core\Helpers\HasTranslations
- * @mixin \Modules\Cms\Helpers\HasDynamicContents
- * @mixin \Modules\Cms\Helpers\HasTranslatedDynamicContents
- * @mixin \Modules\Core\Helpers\HasValidations
- * @mixin \Modules\Core\Helpers\SoftDeletes
- * @mixin \Modules\Cms\Helpers\HasSlug
- * @mixin \Modules\Cms\Helpers\HasPath
- * @mixin \Modules\Core\Helpers\SortableTrait
- * @mixin \Spatie\EloquentSortable\SortableTrait
- *
- * @method void setHighestOrderNumber() Set the highest order number
- * @method int getHighestOrderNumber() Get the highest order number
- * @method int getLowestOrderNumber() Get the lowest order number
- * @method \Illuminate\Database\Eloquent\Builder scopeOrdered(\Illuminate\Database\Eloquent\Builder $query, string $direction = 'asc') Scope to order by order column
- * @method static void setNewOrder(array|\ArrayAccess $ids, int $startOrder = 1, ?string $primaryKeyColumn = null, ?callable $modifyQuery = null) Set new order for multiple models
- * @method bool shouldSortWhenCreating() Check if should sort when creating
- * @method string determineOrderColumnName() Determine the order column name
- * @method \Illuminate\Database\Eloquent\Builder buildSortQuery() Build query for sorting
- *
- * @mixin IdeHelperCategory
- */
 final class Category extends Model implements IMediable, Sortable
 {
     // region Traits
@@ -115,7 +93,7 @@ final class Category extends Model implements IMediable, Sortable
     /**
      * The contents that belong to the category.
      *
-     * @return BelongsToMany<Content>
+     * @return BelongsToMany<Content,Category,Categorizable,'pivot'>
      */
     public function contents(): BelongsToMany
     {
@@ -169,7 +147,8 @@ final class Category extends Model implements IMediable, Sortable
     #[Override]
     public function toArray(): array
     {
-        $parsed = parent::toArray() ?? $this->attributesToArray();
+        // $parsed = parent::toArray() ?? $this->attributesToArray();
+        $parsed = parent::toArray();
 
         return array_merge($parsed, $this->translatedDynamicContentsToArray(), $this->approvalsToArray($parsed));
     }
@@ -178,11 +157,9 @@ final class Category extends Model implements IMediable, Sortable
     protected static function booted(): void
     {
         self::addGlobalScope('global_filters', static function (Builder $query): void {
-            /** @var Builder<static> $query */
             $query->active()->valid();
         });
         self::addGlobalScope('global_ordered', static function (Builder $query): void {
-            /** @var Builder<static> $query */
             $query->ordered();
         });
     }
@@ -210,10 +187,15 @@ final class Category extends Model implements IMediable, Sortable
     #[Scope]
     protected function ordered(Builder $query): Builder
     {
-        // In global scope, $this is not available, so use $query->getModel() to get instance
         $model = $query->getModel();
+
+        if (! $model instanceof self) {
+            return $query;
+        }
+
         $orderColumn = $model->qualifyColumn($model->determineOrderColumnName());
 
+        // @phpstan-ignore method.notFound
         return $query->orderBy($orderColumn, 'asc')->validityOrdered();
     }
 

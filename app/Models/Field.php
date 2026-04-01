@@ -21,8 +21,6 @@ use Override;
 
 /**
  * @property-read object $options
- *
- * @mixin IdeHelperField
  */
 #[ObservedBy(FieldObserver::class)]
 final class Field extends Model
@@ -77,7 +75,7 @@ final class Field extends Model
     }
 
     /**
-     * @return BelongsToMany<Preset>
+     * @return BelongsToMany<Preset,Field,Fieldable,'pivot'>
      */
     public function presets(): BelongsToMany
     {

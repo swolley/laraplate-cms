@@ -19,13 +19,13 @@ it('contributor model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Contributor::class);
     $traits = $reflection->getTraitNames();
 
-    expect($traits)->toContain('Illuminate\\Database\\Eloquent\\Factories\\HasFactory');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasPath');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasTags');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasMultimedia');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasVersions');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\SoftDeletes');
+    expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasPath::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasTags::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasMultimedia::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasVersions::class);
+    expect($traits)->toContain(Modules\Core\Helpers\SoftDeletes::class);
 });
 
 it('contributor model has required methods', function (): void {
@@ -42,7 +42,7 @@ it('contributor model has correct relationships', function (): void {
 
     // Test contents relationship
     $method = $reflection->getMethod('contents');
-    expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
+    expect($method->getReturnType()->getName())->toBe(Illuminate\Database\Eloquent\Relations\BelongsToMany::class);
 });
 
 it('contributor model has correct method signatures', function (): void {

@@ -19,20 +19,20 @@ it('category model uses correct traits', function (): void {
     $reflection = new ReflectionClass(Category::class);
     $traits = $reflection->getTraitNames();
 
-    expect($traits)->toContain('Illuminate\\Database\\Eloquent\\Factories\\HasFactory');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasActivation');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasApprovals');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasMultimedia');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasPath');
-    expect($traits)->toContain('Staudenmeir\\LaravelAdjacencyList\\Eloquent\\HasRecursiveRelationships');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasTags');
-    expect($traits)->toContain('Modules\\Cms\\Helpers\\HasTranslatedDynamicContents');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidations');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasValidity');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\HasVersions');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\SoftDeletes');
-    expect($traits)->toContain('Modules\\Core\\Helpers\\SortableTrait');
-    expect($traits)->toContain('Modules\\Core\\Locking\\Traits\\HasLocks');
+    expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasActivation::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasApprovals::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasMultimedia::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasPath::class);
+    expect($traits)->toContain(Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasTags::class);
+    expect($traits)->toContain(Modules\Cms\Helpers\HasTranslatedDynamicContents::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasValidity::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasVersions::class);
+    expect($traits)->toContain(Modules\Core\Helpers\SoftDeletes::class);
+    expect($traits)->toContain(Modules\Core\Helpers\SortableTrait::class);
+    expect($traits)->toContain(Modules\Core\Locking\Traits\HasLocks::class);
 });
 
 it('category model has required methods', function (): void {
@@ -50,7 +50,7 @@ it('category model has correct relationships', function (): void {
 
     // Test contents relationship
     $method = $reflection->getMethod('contents');
-    expect($method->getReturnType()->getName())->toBe('Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany');
+    expect($method->getReturnType()->getName())->toBe(Illuminate\Database\Eloquent\Relations\BelongsToMany::class);
 });
 
 it('category model has correct method signatures', function (): void {

@@ -6,17 +6,20 @@ namespace Modules\Cms\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Helpers\HasDynamicContentFactory;
 use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
 
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Cms\Models\Entity>
+ */
 final class EntityFactory extends Factory
 {
-    use HasDynamicContentFactory, HasUniqueFactoryValues;
+    use HasUniqueFactoryValues;
 
     /**
      * The name of the factory's corresponding model.
      */
+    #[Override]
     protected $model = \Modules\Cms\Models\Entity::class;
 
     /**

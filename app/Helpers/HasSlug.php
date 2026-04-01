@@ -14,6 +14,10 @@ trait HasSlug
     public static function bootHasSlug(): void
     {
         static::saving(function (Model $model): void {
+            if (! $model instanceof static) {
+                return;
+            }
+
             if (! isset($model->attributes['slug']) && ! $model->isDirty('slug')) {
                 $model->slug = $model->generateSlug();
             }
@@ -43,7 +47,7 @@ trait HasSlug
     public function generateSlug(): string
     {
         $slugger = config('cms.slugger', Str::class . '::slug');
-        $slug = array_reduce($this->slugValues(), fn ($slug, $value): string => $slug . '-' . ($value ? mb_trim((string) $value) : ''), '');
+        $slug = array_reduce($this->slugValues(), static fn (string $slug, mixed $value): string => $slug . '-' . ($value ? mb_trim((string) $value) : ''), '');
 
         return call_user_func($slugger, mb_ltrim($slug, '-'));
     }

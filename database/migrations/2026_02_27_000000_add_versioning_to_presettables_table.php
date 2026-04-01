@@ -80,7 +80,7 @@ return new class extends Migration
                         'default' => json_decode((string) $row->default, true),
                     ],
                 ])
-                ->toArray();
+                ->all();
 
             DB::table('presettables')
                 ->where('id', $presettable->id)

@@ -20,7 +20,7 @@ return new class extends Migration
             $contents = DB::table('contents')->whereNotNull('title')->get();
 
             foreach ($contents as $content) {
-                DB::table('content_translations')->insert([
+                DB::table('contents_translations')->insert([
                     'content_id' => $content->id,
                     'locale' => $default_locale,
                     'title' => $content->title,
@@ -37,7 +37,7 @@ return new class extends Migration
             $categories = DB::table('categories')->whereNotNull('name')->get();
 
             foreach ($categories as $category) {
-                DB::table('category_translations')->insert([
+                DB::table('categories_translations')->insert([
                     'category_id' => $category->id,
                     'locale' => $default_locale,
                     'name' => $category->name,
@@ -54,7 +54,7 @@ return new class extends Migration
             $tags = DB::table('tags')->whereNotNull('name')->get();
 
             foreach ($tags as $tag) {
-                DB::table('tag_translations')->insert([
+                DB::table('tags_translations')->insert([
                     'tag_id' => $tag->id,
                     'locale' => $default_locale,
                     'name' => $tag->name,

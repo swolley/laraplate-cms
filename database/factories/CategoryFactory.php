@@ -4,59 +4,58 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Helpers\HasDynamicContentFactory;
 use Modules\Cms\Models\Category;
-use Modules\Core\Helpers\HasUniqueFactoryValues;
+use Modules\Core\Overrides\Factory;
 use Override;
 
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Cms\Models\Category>
+ */
 final class CategoryFactory extends Factory
 {
-    use HasDynamicContentFactory, HasUniqueFactoryValues;
-
     /**
      * The name of the factory's corresponding model.
      */
+    #[Override]
     protected $model = Category::class;
 
     protected EntityType $entityType = EntityType::CATEGORIES;
 
-    /**
-     * Define the model's default state.
-     */
     #[Override]
-    public function definition(): array
+    protected function definitionsArray(): array
     {
-        $definition = $this->dynamicContentDefinition();
-
-        return $definition + [];
+        return [];
     }
 
     #[Override]
-    public function configure(): self
+    protected function beforeFactoryMaking(Model $model): void
     {
-        return $this->afterMaking(function (Category $category): void {
-            // Ensure translatable fields are set before first save
-            $name = fake()->unique()->words(fake()->numberBetween(1, 3), true) . fake()->numberBetween(1, 1000);
-            $category->name = $name;
-            $category->slug = Str::slug($name);
+        if (! $model instanceof Category) {
+            return;
+        }
 
-            $this->fillDynamicContents($category);
+        // Ensure translatable fields are set before first save.
+        $name = fake()->unique()->words(fake()->numberBetween(1, 3), true) . fake()->numberBetween(1, 1000);
+        $model->name = $name;
+        $model->slug = Str::slug($name);
+        $parent = fake()->boolean(70) ? Category::query()->inRandomOrder()->first() : null;
+        $model->parent_id = $parent?->id;
+    }
 
-            $category->setForcedApprovalUpdate(fake()->boolean(90));
+    #[Override]
+    protected function translatedFieldsArray(Model $model): array
+    {
+        if (! $model instanceof Category) {
+            return [];
+        }
 
-            $parent = fake()->boolean(70) ? Category::inRandomOrder()->first() : null;
-            $category->parent_id = $parent?->id;
-        })->afterCreating(function (Category $category): void {
-            // Create default translation
-            $default_locale = config('app.locale');
-            $category->setTranslation($default_locale, [
-                'name' => $category->name,
-                'slug' => $category->slug,
-                'components' => $category->components ?? [],
-            ]);
-        });
+        return [
+            'name' => $model->name,
+            'slug' => $model->slug,
+            'components' => $model->components ?? [],
+        ];
     }
 }

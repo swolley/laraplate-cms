@@ -33,7 +33,7 @@ return new class extends Migration
                 hasValidity: true,
             );
 
-            // Unique constraints for name and slug are now in category_translations table (per locale)
+            // Unique constraints for name and slug are now in categories_translations table (per locale)
             $table->unique(['id', 'parent_id'], 'category_parent_UN');
             $table->unique(['id', 'entity_id'], 'category_entity_UN');
         });

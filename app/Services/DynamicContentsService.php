@@ -26,16 +26,22 @@ final class DynamicContentsService
 
     /**
      * In-memory cache for entities (all types).
+     *
+     * @var Collection<int,Entity>|null
      */
     private ?Collection $entities_cache = null;
 
     /**
      * In-memory cache for presets (all types).
+     *
+     * @var Collection<int,Preset>|null
      */
     private ?Collection $presets_cache = null;
 
     /**
      * In-memory cache for presettables (all types).
+     *
+     * @var Collection<int,Presettable>|null
      */
     private ?Collection $presettables_cache = null;
 

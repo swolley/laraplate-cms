@@ -12,9 +12,6 @@ use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasVersions;
 use Override;
 
-/**
- * @mixin IdeHelperTemplate
- */
 final class Template extends Model
 {
     use HasFactory;
@@ -47,7 +44,7 @@ final class Template extends Model
                 'string',
                 'max:255',
                 Rule::unique('templates')->where(function (QueryBuilder $query): void {
-                    $query->where('deleted_at', null);
+                    $query->whereNull('deleted_at');
                 }),
             ],
         ]);
@@ -57,7 +54,7 @@ final class Template extends Model
                 'string',
                 'max:255',
                 Rule::unique('templates')->where(function (QueryBuilder $query): void {
-                    $query->where('deleted_at', null);
+                    $query->whereNull('deleted_at');
                 })->ignore($this->id, 'id'),
             ],
         ]);

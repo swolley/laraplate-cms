@@ -22,7 +22,10 @@ use Modules\Core\Helpers\SoftDeletes;
 use Override;
 
 /**
- * @mixin IdeHelperPreset
+ * @property int|string $id
+ * @property string $name
+ * @property int|string|null $entity_id
+ * @property int|string|null $template_id
  */
 final class Preset extends Model
 {
@@ -86,7 +89,7 @@ final class Preset extends Model
     }
 
     /**
-     * @return BelongsToMany<Field>
+     * @return BelongsToMany<Field,Preset,Fieldable,'pivot'>
      */
     public function fields(): BelongsToMany
     {
