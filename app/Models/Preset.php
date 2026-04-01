@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Models\Pivot\Fieldable;
 use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Cms\Services\PresetVersioningService;
@@ -157,6 +160,21 @@ final class Preset extends Model
                     ->where('entity_id', $this->entity_id);
             })
             ->update(['presettable_id' => $active->id]);
+    }
+
+    /**
+     * Active presets whose related entity is active and matches the given CMS table type (e.g. contents).
+     *
+     * @param  Builder<static>  $query
+     */
+    #[Scope]
+    protected function forActiveEntityOfType(Builder $query, EntityType $entity_type): void
+    {
+        $query->where($query->qualifyColumn(self::activationColumn()), true)
+            ->whereHas('entity', function (Builder $entity_query) use ($entity_type): void {
+                $entity_query->where($entity_query->qualifyColumn(Entity::activationColumn()), true)
+                    ->where($entity_query->qualifyColumn('type'), $entity_type);
+            });
     }
 
     protected function casts(): array

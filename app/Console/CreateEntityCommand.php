@@ -129,13 +129,15 @@ final class CreateEntityCommand extends Command
         $default = text(
             sprintf("Specify a default value for '%s'", $field->name),
             required: $is_required,
-            validate: match (true) {
-                $field->type === FieldType::SELECT && isset($field->options->multiple) && $field->options->multiple => '[]',
-                $field->type === FieldType::SWITCH => $is_required ? 'true' : 'false',
-                $field->type === FieldType::CHECKBOX => '[]',
-                default => 'null',
+            validate: null,
+            hint: match (true) {
+                $field->type === FieldType::SELECT && isset($field->options->multiple) && $field->options->multiple => 'Use [] for an empty selection; numbers, booleans, or JSON arrays as needed.',
+                $field->type === FieldType::SWITCH => $is_required
+                    ? 'Enter true or false (required).'
+                    : 'Enter true or false.',
+                $field->type === FieldType::CHECKBOX => 'Use [] for an empty list; JSON array syntax otherwise.',
+                default => "Type 'null' to set the default value to null.",
             },
-            hint: "Type 'null' to set the default value to null",
         );
 
         if ($default === 'null') {

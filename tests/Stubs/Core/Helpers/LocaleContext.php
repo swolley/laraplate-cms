@@ -6,6 +6,16 @@ namespace Modules\Core\Helpers;
 
 final class LocaleContext
 {
+    public static function get(): string
+    {
+        return (string) config('app.locale', 'en');
+    }
+
+    public static function isFallbackEnabled(): bool
+    {
+        return true;
+    }
+
     /**
      * @return list<string>
      */

@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Tag;
+use Modules\Cms\Models\Translations\TagTranslation;
 use Modules\Cms\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
@@ -19,12 +22,13 @@ beforeEach(function (): void {
     }
 
     setupCmsEntities();
-    $this->tag = Tag::factory()->create();
 });
 
 it('can be created with factory', function (): void {
-    expect($this->tag)->toBeInstanceOf(Tag::class);
-    expect($this->tag->id)->not->toBeNull();
+    $tag = Tag::factory()->create();
+
+    expect($tag)->toBeInstanceOf(Tag::class);
+    expect($tag->id)->not->toBeNull();
 });
 
 it('has translatable attributes', function (): void {
@@ -52,44 +56,63 @@ it('has hidden attributes', function (): void {
 });
 
 it('belongs to many contents', function (): void {
+    $tag = Tag::factory()->create();
     $content1 = Content::factory()->create();
     $content2 = Content::factory()->create();
 
-    $this->tag->contents()->attach([$content1->id, $content2->id]);
+    $tag->contents()->attach([$content1->id, $content2->id]);
 
-    expect($this->tag->contents)->toHaveCount(2);
+    expect($tag->contents)->toHaveCount(2);
 });
 
 it('has slug trait', function (): void {
-    expect(method_exists($this->tag, 'generateSlug'))->toBeTrue();
+    expect(method_exists(TagTranslation::class, 'generateSlug'))->toBeTrue();
 });
 
 it('has path trait', function (): void {
-    expect(method_exists($this->tag, 'getPath'))->toBeTrue();
+    expect(method_exists(Tag::class, 'getPath'))->toBeTrue();
 });
 
 it('has sortable trait', function (): void {
-    expect(method_exists($this->tag, 'moveOrder'))->toBeTrue();
+    expect(method_exists(Tag::class, 'moveToEnd'))->toBeTrue();
 });
 
 it('has soft deletes trait', function (): void {
-    $this->tag->delete();
+    $tag = Tag::factory()->create();
+    $tag->delete();
 
-    expect($this->tag->trashed())->toBeTrue();
-    expect(Tag::withTrashed()->find($this->tag->id))->not->toBeNull();
+    expect($tag->trashed())->toBeTrue();
+    expect(Tag::withTrashed()->find($tag->id))->not->toBeNull();
 });
 
 it('has validations trait', function (): void {
-    expect(method_exists($this->tag, 'getRules'))->toBeTrue();
+    expect(method_exists(Tag::class, 'getRules'))->toBeTrue();
 });
 
 it('has translations trait', function (): void {
-    expect(method_exists($this->tag, 'translations'))->toBeTrue();
-    expect(method_exists($this->tag, 'translation'))->toBeTrue();
-    expect(method_exists($this->tag, 'getTranslation'))->toBeTrue();
-    expect(method_exists($this->tag, 'setTranslation'))->toBeTrue();
-    expect(method_exists($this->tag, 'hasTranslation'))->toBeTrue();
-    expect(method_exists($this->tag, 'getTranslatableFields'))->toBeTrue();
+    $tag = Tag::factory()->create();
+
+    expect(method_exists($tag, 'translations'))->toBeTrue();
+    expect(method_exists($tag, 'translation'))->toBeTrue();
+    expect(method_exists($tag, 'getTranslation'))->toBeTrue();
+    expect(method_exists($tag, 'setTranslation'))->toBeTrue();
+    expect(method_exists($tag, 'hasTranslation'))->toBeTrue();
+    expect(method_exists($tag, 'getTranslatableFields'))->toBeTrue();
+});
+
+it('tag translation resolves inverse tag relation', function (): void {
+    $tag = Tag::factory()->create();
+    $locale = config('app.locale');
+    $tag->setTranslation($locale, [
+        'name' => 'Inverse Relation',
+        'slug' => 'inverse-relation',
+    ]);
+    $tag->save();
+
+    $translation = $tag->translations()->first();
+
+    expect($translation)->toBeInstanceOf(TagTranslation::class)
+        ->and($translation->tag->is($tag))->toBeTrue();
 });
 
 it('can find or create tags', function (): void {
@@ -111,7 +134,8 @@ it('can find or create multiple tags', function (): void {
 });
 
 it('can be created with specific translation attributes', function (): void {
-    $tag = Tag::factory()->create(['type' => 'programming', 'order_column' => 2]);
+    $tag = Tag::factory()->create(['type' => 'programming']);
+    $tag->updateQuietly(['order_column' => 2]);
     $default_locale = config('app.locale');
     $tag->setTranslation($default_locale, [
         'name' => 'JavaScript',
@@ -170,8 +194,8 @@ it('can be found by type', function (): void {
 it('has proper timestamps', function (): void {
     $tag = Tag::factory()->create();
 
-    expect($tag->created_at)->toBeInstanceOf(Carbon\CarbonImmutable::class);
-    expect($tag->updated_at)->toBeInstanceOf(Carbon\CarbonImmutable::class);
+    expect($tag->created_at)->toBeInstanceOf(CarbonImmutable::class);
+    expect($tag->updated_at)->toBeInstanceOf(Carbon::class);
 });
 
 it('can be serialized to array with translations', function (): void {
@@ -215,9 +239,12 @@ it('can be permanently deleted', function (): void {
 });
 
 it('can be sorted by order column', function (): void {
-    $tag1 = Tag::factory()->create(['order_column' => 2]);
-    $tag2 = Tag::factory()->create(['order_column' => 1]);
-    $tag3 = Tag::factory()->create(['order_column' => 3]);
+    $tag1 = Tag::factory()->create();
+    $tag2 = Tag::factory()->create();
+    $tag3 = Tag::factory()->create();
+    $tag1->updateQuietly(['order_column' => 2]);
+    $tag2->updateQuietly(['order_column' => 1]);
+    $tag3->updateQuietly(['order_column' => 3]);
 
     $sortedTags = Tag::ordered()->get();
 
@@ -226,13 +253,99 @@ it('can be sorted by order column', function (): void {
 });
 
 it('can be moved in order', function (): void {
-    $tag1 = Tag::factory()->create(['order_column' => 1]);
-    $tag2 = Tag::factory()->create(['order_column' => 2]);
-    $tag3 = Tag::factory()->create(['order_column' => 3]);
+    $tag1 = Tag::factory()->create();
+    $tag2 = Tag::factory()->create();
+    $tag3 = Tag::factory()->create();
+    $tag1->updateQuietly(['order_column' => 1]);
+    $tag2->updateQuietly(['order_column' => 2]);
+    $tag3->updateQuietly(['order_column' => 3]);
 
-    $tag1->moveOrder(3);
+    $tag1->moveToEnd();
 
     expect($tag1->fresh()->order_column)->toBe(3);
     expect($tag2->fresh()->order_column)->toBe(1);
     expect($tag3->fresh()->order_column)->toBe(2);
+});
+
+it('find or create with array returns a collection of tags', function (): void {
+    $tags = Tag::findOrCreate(['Alpha', 'Beta']);
+
+    expect($tags)->toHaveCount(2)
+        ->and($tags->first())->toBeInstanceOf(Tag::class);
+});
+
+it('get with type returns tags for that type', function (): void {
+    Tag::factory()->create(['type' => 'news']);
+
+    $list = Tag::getWithType('news');
+
+    expect($list)->not->toBeEmpty();
+    expect($list->first()->type)->toBe('news');
+});
+
+it('find from string of any type matches translation name', function (): void {
+    $tag = Tag::factory()->create();
+    $locale = config('app.locale');
+    $tag->setTranslation($locale, [
+        'name' => 'GlobUnique',
+        'slug' => 'glob-unique',
+    ]);
+    $tag->save();
+
+    $found = Tag::findFromStringOfAnyType('GlobUnique');
+
+    expect($found->pluck('id')->contains($tag->id))->toBeTrue();
+});
+
+it('get types lists distinct type values', function (): void {
+    Tag::factory()->create(['type' => 'alpha-type']);
+
+    $types = Tag::getTypes();
+
+    expect($types->contains('alpha-type'))->toBeTrue();
+});
+
+it('with type scope restricts by type when argument is not null', function (): void {
+    Tag::factory()->create(['type' => 'scope-me']);
+
+    expect(Tag::query()->withType('scope-me')->count())->toBeGreaterThanOrEqual(1);
+});
+
+it('exposes merged validation rules', function (): void {
+    $tag = Tag::factory()->create();
+    $rules = $tag->getRules();
+
+    expect($rules)->toHaveKey('create')
+        ->and($rules)->toHaveKey('update')
+        ->and($rules['create'])->toHaveKey('translations');
+});
+
+it('slug placeholders include name token', function (): void {
+    $tag = Tag::factory()->create();
+    $method = new ReflectionMethod(Tag::class, 'slugPlaceholders');
+    $method->setAccessible(true);
+
+    expect($method->invoke($tag))->toBe(['{name}']);
+});
+
+it('containing scope matches translation name substring for default locale', function (): void {
+    $locale = config('app.locale');
+    $tag_match = Tag::factory()->create();
+    $tag_match->setTranslation($locale, [
+        'name' => 'Unique Beta String',
+        'slug' => 'unique-beta-string',
+    ]);
+    $tag_match->save();
+
+    $tag_other = Tag::factory()->create();
+    $tag_other->setTranslation($locale, [
+        'name' => 'Other Name',
+        'slug' => 'other-name',
+    ]);
+    $tag_other->save();
+
+    $ids = Tag::query()->containing('beta')->pluck('id')->all();
+
+    expect($ids)->toContain($tag_match->id)
+        ->and($ids)->not->toContain($tag_other->id);
 });

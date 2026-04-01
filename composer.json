@@ -69,15 +69,13 @@
       "pint --parallel --test",
       "rector --dry-run"
     ],
-    "test:standalone": "pest --compact tests/Unit tests/Feature/Controllers/LocationsControllerTest.php tests/Feature/Models/LocationTest.php",
-    "test:integration": "pest --compact tests/Feature/Controllers/ContentsControllerTest.php tests/Feature/Helpers/HasDynamicContentsTest.php tests/Feature/Models/CategoryTest.php tests/Feature/Models/ContributorTest.php tests/Feature/Models/ContentTest.php tests/Feature/Models/TagTest.php tests/Feature/Services/PresetVersioningServiceTest.php",
-    "test:unit": "@test:standalone",
+    "test:unit": "pest --parallel --coverage --exactly=100",
     "test:types": "phpstan",
     "test:refactor": "rector",
     "test:licenses": "@php vendor/bin/check-licenses",
     "test": [
       "@test:type-coverage",
-      "@test:standalone",
+      "@test:unit",
       "@test:lint",
       "@test:types",
       "@test:refactor",

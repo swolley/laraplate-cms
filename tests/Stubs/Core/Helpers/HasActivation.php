@@ -12,6 +12,13 @@ use Illuminate\Database\Eloquent\Builder;
  */
 trait HasActivation
 {
+    protected static string $activation_column = 'is_active';
+
+    public static function activationColumn(): string
+    {
+        return static::$activation_column;
+    }
+
     #[Scope]
     protected function active(Builder $query): Builder
     {
@@ -21,7 +28,7 @@ trait HasActivation
     protected function casts(): array
     {
         return [
-            'is_active' => 'boolean',
+            static::$activation_column => 'boolean',
         ];
     }
 }

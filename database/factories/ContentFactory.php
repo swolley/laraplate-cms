@@ -16,7 +16,7 @@ use Modules\Core\Overrides\Factory;
 use Override;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Cms\Models\Content>
+ * @extends \Modules\Core\Overrides\Factory<\Modules\Cms\Models\Content>
  */
 final class ContentFactory extends Factory
 {

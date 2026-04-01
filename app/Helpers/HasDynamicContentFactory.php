@@ -10,13 +10,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Casts\FieldType;
-use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Field;
+use ReflectionObject;
 use RuntimeException;
 use stdClass;
 
 /**
- * @property EntityType $entityType the name of the default entity type
+ * Factories that use dynamic contents must declare `protected EntityType $entityType`.
  */
 trait HasDynamicContentFactory
 {
@@ -26,9 +26,9 @@ trait HasDynamicContentFactory
     {
         $model_name = $this->modelName();
 
-        throw_unless(isset($this->entityType), RuntimeException::class, 'Entity type not set for model: ' . $model_name . ' factory class');
+        $entity_type = $this->entityTypeForDynamicContent($model_name);
 
-        $presettable = $model_name::fetchAvailablePresettables($this->entityType)->random();
+        $presettable = $model_name::fetchAvailablePresettables($entity_type)->random();
 
         return [
             'entity_id' => $presettable->entity_id,
@@ -68,6 +68,32 @@ trait HasDynamicContentFactory
     }
 
     /**
+     * Concrete factories must define protected EntityType $entityType when using dynamic contents.
+     */
+    private function entityTypeForDynamicContent(string $model_name): EntityType
+    {
+        $reflection = new ReflectionObject($this);
+
+        if (! $reflection->hasProperty('entityType')) {
+            throw new RuntimeException('Entity type not set for model: ' . $model_name . ' factory class');
+        }
+
+        $entity_type_property = $reflection->getProperty('entityType');
+
+        if (! $entity_type_property->isInitialized($this)) {
+            throw new RuntimeException('Entity type not set for model: ' . $model_name . ' factory class');
+        }
+
+        $value = $entity_type_property->getValue($this);
+
+        if (! $value instanceof EntityType) {
+            throw new RuntimeException('Entity type not set for model: ' . $model_name . ' factory class');
+        }
+
+        return $value;
+    }
+
+    /**
      * @param  array<string,mixed>  $forcedValues
      */
     private function fillDynamicContents(Model $model, array $forcedValues = []): void
@@ -78,7 +104,7 @@ trait HasDynamicContentFactory
 
         $model_name = $this->modelName();
 
-        throw_unless(isset($this->entityType), RuntimeException::class, 'Entity type not set for model: ' . $model_name);
+        $this->entityTypeForDynamicContent($model_name);
 
         $components_array = $model->presettable->preset->fields->mapWithKeys(function (Field $field) use ($forcedValues): array {
             $value = $field->pivot->default;

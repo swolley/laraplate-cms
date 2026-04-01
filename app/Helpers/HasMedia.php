@@ -83,7 +83,7 @@ trait HasMedia
             $mediaId = $mediaId->getKey();
         }
 
-        $media = $this->allMedia->find($mediaId);
+        $media = $this->allMedia()->where('id', $mediaId)->first();
 
         throw_unless($media, MediaCannotBeDeleted::doesNotBelongToModel($mediaId, $this));
 

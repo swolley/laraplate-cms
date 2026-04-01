@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as DbCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
 use Modules\Cms\Database\Factories\TagFactory;
 use Modules\Cms\Helpers\HasPath;
@@ -53,9 +54,11 @@ final class Tag extends Model implements Sortable
         ?string $type = null,
     ): Collection|self {
         $tags = collect($values)->map(function (self|string $value) use ($type): self {
+            // @codeCoverageIgnoreStart
             if ($value instanceof self) {
                 return $value;
             }
+            // @codeCoverageIgnoreEnd
 
             return self::findOrCreateFromString($value, $type);
         });
@@ -72,7 +75,7 @@ final class Tag extends Model implements Sortable
     {
         return self::query()
             ->where('type', $type)
-            ->where(function (Builder $query) use ($name): void {
+            ->whereHas('translations', static function (Builder $query) use ($name): void {
                 $query->where('name', $name)
                     ->orWhere('slug', $name);
             })
@@ -85,8 +88,10 @@ final class Tag extends Model implements Sortable
     public static function findFromStringOfAnyType(string $name): Collection
     {
         return self::query()
-            ->where('name', $name)
-            ->orWhere('slug', $name)
+            ->whereHas('translations', static function (Builder $query) use ($name): void {
+                $query->where('name', $name)
+                    ->orWhere('slug', $name);
+            })
             ->get();
     }
 
@@ -112,6 +117,16 @@ final class Tag extends Model implements Sortable
     public static function getTypes(): Collection
     {
         return self::query()->groupBy('type')->pluck('type');
+    }
+
+    /**
+     * Contents that reference this tag via the taggables morph pivot.
+     *
+     * @return MorphToMany<Content, $this>
+     */
+    public function contents(): MorphToMany
+    {
+        return $this->morphedByMany(Content::class, 'taggable', 'taggables');
     }
 
     /**
@@ -177,16 +192,6 @@ final class Tag extends Model implements Sortable
 
     /**
      * @param  Builder<static>  $query
-     * @return Builder<static>
-     */
-    #[Scope]
-    protected function ordered(Builder $query): Builder
-    {
-        return $query->orderBy('order_column', 'asc');
-    }
-
-    /**
-     * @param  Builder<static>  $query
      */
     #[Scope]
     protected function withType(Builder $query, ?string $type = null): void
@@ -202,10 +207,9 @@ final class Tag extends Model implements Sortable
     #[Scope]
     protected function containing(Builder $query, string $name, ?string $locale = null): void
     {
-        // if (is_null($locale)) {
-        //     $locale = static::getLocale();
-        // }
-        $query->whereRaw('lower(' . $this->getQuery()->getGrammar()->wrap('name') . ') like ?', ['%' . mb_strtolower($name) . '%']);
+        $resolved_locale = $locale ?? $this->getCurrentLocale();
+
+        self::applyContainingByTranslatedName($query, $name, $resolved_locale);
     }
 
     protected function casts(): array
@@ -217,10 +221,29 @@ final class Tag extends Model implements Sortable
         ];
     }
 
+    /**
+     * @return list<string>
+     */
+    protected function dynamicSlugFields(): array
+    {
+        return [];
+    }
+
     protected function slugPlaceholders(): array
     {
-        // Use name from translation
-        // @phpstan-ignore method.notFound
         return [...array_map(fn (string $field): string => '{' . $field . '}', $this->dynamicSlugFields()), '{name}'];
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     */
+    private static function applyContainingByTranslatedName(Builder $query, string $name, string $locale): void
+    {
+        $needle = '%' . mb_strtolower($name) . '%';
+
+        $query->whereHas('translations', function (Builder $translation_query) use ($needle, $locale): void {
+            $translation_query->where('locale', $locale)
+                ->whereRaw('lower(name) like ?', [$needle]);
+        });
     }
 }

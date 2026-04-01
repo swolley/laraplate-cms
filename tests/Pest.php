@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/helpers.php';
 
+use Illuminate\Support\Str;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
 $test_stubs = [
+    App\Models\User::class => __DIR__ . '/Stubs/App/Models/User.php',
     Modules\Core\Helpers\HasCommandUtils::class => __DIR__ . '/Stubs/Core/Helpers/HasCommandUtils.php',
     Modules\Core\Helpers\HasActivation::class => __DIR__ . '/Stubs/Core/Helpers/HasActivation.php',
     Modules\Core\Helpers\HasApprovals::class => __DIR__ . '/Stubs/Core/Helpers/HasApprovals.php',
@@ -26,7 +28,10 @@ $test_stubs = [
     Modules\Core\Locking\HasOptimisticLocking::class => __DIR__ . '/Stubs/Core/Locking/HasOptimisticLocking.php',
     Modules\Core\Locking\Traits\HasLocks::class => __DIR__ . '/Stubs/Core/Locking/Traits/HasLocks.php',
     Modules\Core\Overrides\Command::class => __DIR__ . '/Stubs/Core/Overrides/Command.php',
+    Modules\Core\Overrides\Factory::class => __DIR__ . '/Stubs/Core/Overrides/Factory.php',
     Modules\Core\Overrides\ModuleServiceProvider::class => __DIR__ . '/Stubs/Core/Overrides/ModuleServiceProvider.php',
+    Modules\Core\Filament\Utils\HasTable::class => __DIR__ . '/Stubs/Core/Filament/Utils/HasTable.php',
+    Modules\Core\Filament\Utils\HasRecords::class => __DIR__ . '/Stubs/Core/Filament/Utils/HasRecords.php',
     Modules\Core\Http\Requests\ListRequest::class => __DIR__ . '/Stubs/Core/Http/Requests/ListRequest.php',
     Modules\Core\Services\Translation\Definitions\ITranslated::class => __DIR__ . '/Stubs/Core/Services/Translation/Definitions/ITranslated.php',
     Modules\Core\Search\Traits\Searchable::class => __DIR__ . '/Stubs/Core/Search/Traits/Searchable.php',
@@ -91,7 +96,13 @@ function setupCmsEntities(array $entityTypes = [EntityType::CONTENTS, EntityType
             default => mb_strtolower($entityType->value),
         };
 
-        $entity = Entity::query()->firstOrCreate(['name' => $name], ['type' => $entityType]);
+        $entity = Entity::query()->firstOrCreate(
+            ['name' => $name],
+            [
+                'type' => $entityType,
+                'slug' => Str::slug($name),
+            ],
+        );
 
         $preset = Preset::query()->firstOrCreate(['entity_id' => $entity->id, 'name' => 'default'], ['entity_id' => $entity->id, 'name' => 'default']);
 

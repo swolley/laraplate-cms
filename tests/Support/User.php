@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 use Modules\Cms\Tests\Support\Database\Factories\UserFactory;
 use Override;
 
-final class User extends Authenticatable
+class User extends Authenticatable
 {
     use HasFactory;
     use Notifiable;

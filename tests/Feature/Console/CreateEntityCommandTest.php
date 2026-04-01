@@ -2,210 +2,233 @@
 
 declare(strict_types=1);
 
+use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
+use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Console\CreateEntityCommand;
+use Modules\Cms\Models\Entity;
+use Modules\Cms\Models\Field;
+use Modules\Cms\Models\Preset;
 use Modules\Cms\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
-it('command exists and has correct signature', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
+beforeEach(function (): void {
+    if (! Schema::hasTable('fields')) {
+        $this->markTestSkipped('CreateEntityCommand requires fields table.');
+    }
 
-    expect($source)->toContain('model:create-entity');
-    expect($source)->toContain('Create new cms entity');
+    static $command_registered = false;
+
+    if (! $command_registered) {
+        app(ConsoleKernel::class)->registerCommand(app(CreateEntityCommand::class));
+        $command_registered = true;
+    }
 });
 
-it('command class has correct properties', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
+/**
+ * @return list<string>
+ */
+function entityTypeChoiceOptions(): array
+{
+    return EntityType::values();
+}
 
-    expect($reflection->getName())->toBe(CreateEntityCommand::class);
-    expect($reflection->isSubclassOf(Modules\Core\Overrides\Command::class))->toBeTrue();
+it('shows help without prompting', function (): void {
+    $this->artisan('model:create-entity', ['--help' => true])
+        ->assertExitCode(0)
+        ->expectsOutputToContain('model:create-entity');
 });
 
-it('command can be instantiated', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
+it('defines optional entity argument and content-model option', function (): void {
+    $command = app(CreateEntityCommand::class);
 
-    expect($reflection->isInstantiable())->toBeTrue();
-    expect($reflection->isSubclassOf(Modules\Core\Overrides\Command::class))->toBeTrue();
+    $arguments_method = new ReflectionMethod($command, 'getArguments');
+    $arguments_method->setAccessible(true);
+    $options_method = new ReflectionMethod($command, 'getOptions');
+    $options_method->setAccessible(true);
+
+    $arguments = $arguments_method->invoke($command);
+    $options = $options_method->invoke($command);
+
+    expect($arguments)->toHaveCount(1)
+        ->and($arguments[0][0])->toBe('entity')
+        ->and($options)->toHaveCount(1)
+        ->and($options[0][0])->toBe('content-model');
 });
 
-it('command has correct namespace', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
+it('creates entity preset and field pivot when entity name is passed as argument', function (): void {
+    $field = Field::query()->create([
+        'name' => 'cmd_field_' . uniqid(),
+        'type' => FieldType::TEXT,
+        'options' => new stdClass(),
+    ]);
 
-    expect($reflection->getNamespaceName())->toBe('Modules\Cms\Console');
-    expect($reflection->getShortName())->toBe('CreateEntityCommand');
+    $entity_name = 'CmdEntity' . uniqid();
+    $expected_slug = Str::slug($entity_name);
+
+    $this->artisan('model:create-entity', ['entity' => $entity_name])
+        ->expectsQuestion('Slug', $expected_slug)
+        ->expectsChoice('Choose the type of the entity', 'contents', entityTypeChoiceOptions())
+        ->expectsChoice('Choose fields for the preset', [(string) $field->id], [$field->id => $field->name])
+        ->expectsQuestion(sprintf("Do you want '%s' to be required?", $field->name), false)
+        ->expectsQuestion(sprintf("Specify a default value for '%s'", $field->name), 'null')
+        ->assertExitCode(0);
+
+    $entity = Entity::query()->where('name', $entity_name)->first();
+    expect($entity)->not->toBeNull();
+
+    $preset = Preset::query()->where('entity_id', $entity->id)->where('name', 'standard')->first();
+    expect($preset)->not->toBeNull()
+        ->and($preset->fields()->count())->toBe(1);
 });
 
-it('command has handle method', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
+it('prompts for name when the entity argument is omitted', function (): void {
+    $field = Field::query()->create([
+        'name' => 'cmd_field2_' . uniqid(),
+        'type' => FieldType::TEXT,
+        'options' => new stdClass(),
+    ]);
 
-    expect($reflection->hasMethod('handle'))->toBeTrue();
+    $typed_name = 'AcmeOrg' . uniqid();
+
+    $this->artisan('model:create-entity')
+        ->expectsQuestion('Name', $typed_name)
+        ->expectsQuestion('Slug', Str::slug($typed_name))
+        ->expectsChoice('Choose the type of the entity', 'contents', entityTypeChoiceOptions())
+        ->expectsChoice('Choose fields for the preset', [(string) $field->id], [$field->id => $field->name])
+        ->expectsQuestion(sprintf("Do you want '%s' to be required?", $field->name), false)
+        ->expectsQuestion(sprintf("Specify a default value for '%s'", $field->name), 'null')
+        ->assertExitCode(0);
+
+    expect(Entity::query()->where('name', $typed_name)->exists())->toBeTrue();
 });
 
-it('command handle method returns void', function (): void {
-    $reflection = new ReflectionMethod(CreateEntityCommand::class, 'handle');
+it('parses switch default true when the field is required', function (): void {
+    $field = Field::query()->create([
+        'name' => 'cmd_switch_' . uniqid(),
+        'type' => FieldType::SWITCH,
+        'options' => new stdClass(),
+    ]);
 
-    expect($reflection->getReturnType()->getName())->toBe('void');
+    $entity_name = 'EntSwitch' . uniqid();
+
+    $this->artisan('model:create-entity', ['entity' => $entity_name])
+        ->expectsQuestion('Slug', Str::slug($entity_name))
+        ->expectsChoice('Choose the type of the entity', 'contents', entityTypeChoiceOptions())
+        ->expectsChoice('Choose fields for the preset', [(string) $field->id], [$field->id => $field->name])
+        ->expectsQuestion(sprintf("Do you want '%s' to be required?", $field->name), true)
+        ->expectsQuestion(sprintf("Specify a default value for '%s'", $field->name), 'true')
+        ->assertExitCode(0);
 });
 
-it('command has optional entity argument', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
+it('parses switch default false when the field is not required', function (): void {
+    $field = Field::query()->create([
+        'name' => 'cmd_switch2_' . uniqid(),
+        'type' => FieldType::SWITCH,
+        'options' => new stdClass(),
+    ]);
 
-    expect($source)->toContain('entity');
-    expect($source)->toContain('InputArgument::OPTIONAL');
+    $suffix = uniqid();
+
+    $this->artisan('model:create-entity', ['entity' => 'EntSw2' . $suffix])
+        ->expectsQuestion('Slug', Str::slug('EntSw2' . $suffix))
+        ->expectsChoice('Choose the type of the entity', 'contents', entityTypeChoiceOptions())
+        ->expectsChoice('Choose fields for the preset', [(string) $field->id], [$field->id => $field->name])
+        ->expectsQuestion(sprintf("Do you want '%s' to be required?", $field->name), false)
+        ->expectsQuestion(sprintf("Specify a default value for '%s'", $field->name), 'false')
+        ->assertExitCode(0);
 });
 
-it('command has content-model option', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
+it('parses multiselect field default as empty json array', function (): void {
+    $field = Field::query()->create([
+        'name' => 'cmd_msel_' . uniqid(),
+        'type' => FieldType::SELECT,
+        'options' => (object) ['multiple' => true],
+    ]);
 
-    expect($source)->toContain('content-model');
-    expect($source)->toContain('InputOption');
+    $suffix = uniqid();
+
+    $this->artisan('model:create-entity', ['entity' => 'EntMsel' . $suffix])
+        ->expectsQuestion('Slug', Str::slug('EntMsel' . $suffix))
+        ->expectsChoice('Choose the type of the entity', 'contents', entityTypeChoiceOptions())
+        ->expectsChoice('Choose fields for the preset', [(string) $field->id], [$field->id => $field->name])
+        ->expectsQuestion(sprintf("Do you want '%s' to be required?", $field->name), false)
+        ->expectsQuestion(sprintf("Specify a default value for '%s'", $field->name), '[]')
+        ->assertExitCode(0);
 });
 
-it('command uses HasCommandUtils trait', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $traits = $reflection->getTraitNames();
+it('parses checkbox field default as empty json array', function (): void {
+    $field = Field::query()->create([
+        'name' => 'cmd_cb_' . uniqid(),
+        'type' => FieldType::CHECKBOX,
+        'options' => new stdClass(),
+    ]);
 
-    expect($traits)->toContain(Modules\Core\Helpers\HasCommandUtils::class);
+    $suffix = uniqid();
+
+    $this->artisan('model:create-entity', ['entity' => 'EntCb' . $suffix])
+        ->expectsQuestion('Slug', Str::slug('EntCb' . $suffix))
+        ->expectsChoice('Choose the type of the entity', 'contents', entityTypeChoiceOptions())
+        ->expectsChoice('Choose fields for the preset', [(string) $field->id], [$field->id => $field->name])
+        ->expectsQuestion(sprintf("Do you want '%s' to be required?", $field->name), false)
+        ->expectsQuestion(sprintf("Specify a default value for '%s'", $field->name), '[]')
+        ->assertExitCode(0);
 });
 
-it('command uses Laravel Prompts', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
+it('parses integer default from numeric text', function (): void {
+    $field = Field::query()->create([
+        'name' => 'cmd_num_' . uniqid(),
+        'type' => FieldType::NUMBER,
+        'options' => new stdClass(),
+    ]);
 
-    expect($source)->toContain('Laravel\Prompts\confirm');
-    expect($source)->toContain('Laravel\Prompts\multiselect');
-    expect($source)->toContain('Laravel\Prompts\select');
-    expect($source)->toContain('Laravel\Prompts\text');
+    $suffix = uniqid();
+
+    $this->artisan('model:create-entity', ['entity' => 'EntNum' . $suffix])
+        ->expectsQuestion('Slug', Str::slug('EntNum' . $suffix))
+        ->expectsChoice('Choose the type of the entity', 'contents', entityTypeChoiceOptions())
+        ->expectsChoice('Choose fields for the preset', [(string) $field->id], [$field->id => $field->name])
+        ->expectsQuestion(sprintf("Do you want '%s' to be required?", $field->name), false)
+        ->expectsQuestion(sprintf("Specify a default value for '%s'", $field->name), '42')
+        ->assertExitCode(0);
 });
 
-it('command creates entity with fillable attributes', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
+it('parses float default when the value contains a decimal point', function (): void {
+    $field = Field::query()->create([
+        'name' => 'cmd_float_' . uniqid(),
+        'type' => FieldType::NUMBER,
+        'options' => new stdClass(),
+    ]);
 
-    expect($source)->toContain('getFillable');
-    expect($source)->toContain('getOperationRules');
+    $suffix = uniqid();
+
+    $this->artisan('model:create-entity', ['entity' => 'EntFloat' . $suffix])
+        ->expectsQuestion('Slug', Str::slug('EntFloat' . $suffix))
+        ->expectsChoice('Choose the type of the entity', 'contents', entityTypeChoiceOptions())
+        ->expectsChoice('Choose fields for the preset', [(string) $field->id], [$field->id => $field->name])
+        ->expectsQuestion(sprintf("Do you want '%s' to be required?", $field->name), false)
+        ->expectsQuestion(sprintf("Specify a default value for '%s'", $field->name), '3.14')
+        ->assertExitCode(0);
 });
 
-it('command handles entity type selection', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
+it('parses json array default for bracketed input', function (): void {
+    $field = Field::query()->create([
+        'name' => 'cmd_json_' . uniqid(),
+        'type' => FieldType::TEXT,
+        'options' => new stdClass(),
+    ]);
 
-    expect($source)->toContain('EntityType::values');
-    expect($source)->toContain('Choose the type of the entity');
-});
+    $suffix = uniqid();
 
-it('command creates standard preset', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
-
-    expect($source)->toContain('standard');
-    expect($source)->toContain('Preset');
-});
-
-it('command handles field selection', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
-
-    expect($source)->toContain('Field::query()');
-    expect($source)->toContain('Choose fields for the preset');
-});
-
-it('command handles field requirements', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
-
-    expect($source)->toContain('is_required');
-    expect($source)->toContain('assignFieldToPreset');
-});
-
-it('command handles default field values', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
-
-    expect($source)->toContain('getDefaultFieldValue');
-    expect($source)->toContain('Specify a default value');
-});
-
-it('command handles different field types', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
-
-    expect($source)->toContain('FieldType::SELECT');
-    expect($source)->toContain('FieldType::SWITCH');
-    expect($source)->toContain('FieldType::CHECKBOX');
-});
-
-it('command handles content model creation', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
-
-    // The command has content-model option but doesn't implement it yet
-    expect($source)->toContain('content-model');
-    expect($source)->toContain('Create a content model file');
-});
-
-it('command handles slug generation', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
-
-    expect($source)->toContain('Str::slug');
-});
-
-it('command handles validation', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
-
-    expect($source)->toContain('validationCallback');
-});
-
-it('command handles field attachment to preset', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
-
-    expect($source)->toContain('attach(');
-    expect($source)->toContain('pivotAttributes');
-});
-
-it('command handles default value parsing', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
-
-    expect($source)->toContain('json_decode');
-    expect($source)->toContain('preg_match');
-});
-
-it('command handles boolean values', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
-
-    expect($source)->toContain('true');
-    expect($source)->toContain('false');
-});
-
-it('command handles numeric values', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
-
-    expect($source)->toContain('(int)');
-    expect($source)->toContain('(float)');
-});
-
-it('command handles array values', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
-
-    expect($source)->toContain('[]');
-    expect($source)->toContain('json_decode');
-});
-
-it('command handles null values', function (): void {
-    $reflection = new ReflectionClass(CreateEntityCommand::class);
-    $source = file_get_contents($reflection->getFileName());
-
-    expect($source)->toContain('null');
-    expect($source)->toContain('Type \'null\'');
+    $this->artisan('model:create-entity', ['entity' => 'EntJson' . $suffix])
+        ->expectsQuestion('Slug', Str::slug('EntJson' . $suffix))
+        ->expectsChoice('Choose the type of the entity', 'contents', entityTypeChoiceOptions())
+        ->expectsChoice('Choose fields for the preset', [(string) $field->id], [$field->id => $field->name])
+        ->expectsQuestion(sprintf("Do you want '%s' to be required?", $field->name), false)
+        ->expectsQuestion(sprintf("Specify a default value for '%s'", $field->name), '[1]')
+        ->assertExitCode(0);
 });

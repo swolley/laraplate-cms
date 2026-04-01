@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Services\Contracts;
 
+use Closure;
 use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -57,23 +58,14 @@ abstract class AbstractGeocodingService implements IGeocodingService
         int $limit = 1,
     ): array|Location|null {
         $search = function () use ($query, $city, $province, $country, $limit): array|Location|null {
-            try {
-                $cache_key = $this->generateCacheKey($query, $city, $province, $country, $limit);
+            $cache_key = $this->generateCacheKey($query, $city, $province, $country, $limit);
+            $ttl_seconds = (int) config('cache.duration.long');
 
-                return Cache::remember($cache_key, config('cache.duration.long'), function () use ($query, $city, $province, $country, $limit, $cache_key): Location|array|null {
-                    $geocoded = $this->performSearch($query, $city, $province, $country, $limit);
-
-                    if (method_exists(Cache::getStore(), 'tags')) {
-                        Cache::tags(['geocoding'])->put($cache_key, $geocoded, config('cache.duration.long'));
-                    }
-
-                    return $geocoded;
-                });
-            } catch (Exception $exception) {
-                Log::error('Nominatim geocoding cache error: ' . $exception->getMessage());
-
-                return $this->performSearch($query, $city, $province, $country, $limit);
-            }
+            return $this->rememberGeocodingThroughCache(
+                $cache_key,
+                $ttl_seconds,
+                fn (): array|Location|null => $this->performSearch($query, $city, $province, $country, $limit),
+            );
         };
 
         if (app()->environment('testing')) {
@@ -123,6 +115,33 @@ abstract class AbstractGeocodingService implements IGeocodingService
         }
 
         return $search_string;
+    }
+
+    /**
+     * Remember the resolver result in cache; re-run resolver when the cache layer fails.
+     *
+     * @template T
+     *
+     * @param  Closure(): T  $resolver
+     * @return T
+     */
+    protected function rememberGeocodingThroughCache(string $cache_key, int $ttl_seconds, Closure $resolver): mixed
+    {
+        try {
+            return Cache::remember($cache_key, $ttl_seconds, function () use ($cache_key, $ttl_seconds, $resolver): mixed {
+                $value = $resolver();
+
+                if (method_exists(Cache::getStore(), 'tags')) {
+                    Cache::tags(['geocoding'])->put($cache_key, $value, $ttl_seconds);
+                }
+
+                return $value;
+            });
+        } catch (Exception $exception) {
+            Log::error('Nominatim geocoding cache error: ' . $exception->getMessage());
+
+            return $resolver();
+        }
     }
 
     private function generateCacheKey(

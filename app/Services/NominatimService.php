@@ -80,10 +80,12 @@ final class NominatimService extends AbstractGeocodingService
     protected function getAddressDetails(array $result): Location
     {
         $address = $result['address'];
+        $road = $address['road'] ?? null;
+        $house_number = $address['house_number'] ?? null;
 
         return new Location()->fill([
-            'name' => $address['city'] ?? $address['town'] ?? $address['village'] ?? $address['road'] ?? 'location',
-            'address' => $address['road'] ? $address['road'] . ($address['house_number'] ? ' ' . $address['house_number'] : '') : null,
+            'name' => $address['city'] ?? $address['town'] ?? $address['village'] ?? $road ?? 'location',
+            'address' => $road ? $road . ($house_number ? ' ' . $house_number : '') : null,
             'city' => $address['city'] ?? $address['town'] ?? $address['village'] ?? null,
             'province' => $address['state'] ?? null,
             'country' => $address['country'] ?? null,

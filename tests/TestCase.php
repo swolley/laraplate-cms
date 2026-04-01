@@ -76,5 +76,18 @@ abstract class TestCase extends TestbenchTestCase
         ]);
         $app->make(\Illuminate\Contracts\Config\Repository::class)->set('app.key', 'base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=');
         $app->make(\Illuminate\Contracts\Config\Repository::class)->set('app.cipher', 'AES-256-CBC');
+        $app->make(\Illuminate\Contracts\Config\Repository::class)->set('core.filament.tabs_counts_ttl_seconds', 60);
+
+        $config = $app->make(\Illuminate\Contracts\Config\Repository::class);
+        $config->set(
+            'media-library.image_optimizers',
+            $config->get('media-library.image_optimizers', []),
+        );
+        if ($config->get('media-library.file_namer') === null) {
+            $config->set(
+                'media-library.file_namer',
+                \Spatie\MediaLibrary\Support\FileNamer\DefaultFileNamer::class,
+            );
+        }
     }
 }

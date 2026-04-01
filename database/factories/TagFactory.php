@@ -13,7 +13,7 @@ use Modules\Core\Overrides\Factory;
 use Override;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Cms\Models\Tag>
+ * @extends \Modules\Core\Overrides\Factory<\Modules\Cms\Models\Tag>
  */
 final class TagFactory extends Factory
 {

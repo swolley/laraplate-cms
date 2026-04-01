@@ -11,10 +11,26 @@
             <directory suffix="Test.php">./tests/Feature</directory>
         </testsuite>
     </testsuites>
+    <!--
+        Code coverage: exclude declarative Filament Resources/Widgets and thin CmsPlugin entry;
+        app/Filament/Utils stays included (module-specific traits/helpers — cover with tests).
+
+        Subset runs: pest with coverage and exactly=100 on one file still measures line coverage across
+        ALL paths in include below, so the total stays low unless you run the full suite. For a single
+        file use composer test:pest with a path (no global coverage gate), or run composer test:unit
+        when you need exactly 100 percent on the whole module.
+    -->
     <source>
         <include>
             <directory suffix=".php">./app</directory>
         </include>
+        <exclude>
+            <directory>./app/Filament/Resources</directory>
+            <directory>./app/Filament/Widgets</directory>
+            <file>./app/Filament/CmsPlugin.php</file>
+            <directory>./app/Analytics</directory>
+            <directory>./app/Providers</directory>
+        </exclude>
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>

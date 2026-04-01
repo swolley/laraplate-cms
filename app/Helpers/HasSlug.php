@@ -14,9 +14,12 @@ trait HasSlug
     public static function bootHasSlug(): void
     {
         static::saving(function (Model $model): void {
+            // Laravel always dispatches saving with the model instance matching the class that registered the listener.
+            // @codeCoverageIgnoreStart
             if (! $model instanceof static) {
                 return;
             }
+            // @codeCoverageIgnoreEnd
 
             if (! isset($model->attributes['slug']) && ! $model->isDirty('slug')) {
                 $model->slug = $model->generateSlug();

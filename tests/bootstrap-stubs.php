@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/helpers.php';
 
 $stub_files = [
+    __DIR__ . '/Stubs/Core/Overrides/Factory.php',
     __DIR__ . '/Stubs/Core/Helpers/HasCommandUtils.php',
     __DIR__ . '/Stubs/Core/Helpers/HasActivation.php',
     __DIR__ . '/Stubs/Core/Helpers/HasApprovals.php',

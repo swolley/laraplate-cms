@@ -13,7 +13,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Helpers\HasDynamicContents;
-use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Preset;
 use Modules\Core\Filament\Utils\HasTable as CoreHasTable;
 use ReflectionClass;
@@ -106,17 +105,7 @@ trait HasTable
                     SelectFilter::make('preset')
                         ->label('Preset')
                         ->multiple()
-                        ->options(fn () => Preset::query()
-                            ->join('entities', 'presets.entity_id', '=', 'entities.id')
-                            ->where('presets.' . Preset::activationColumn(), true)
-                            ->whereHas('entity', fn (Builder $query) => $query->where([
-                                'entities.' . Entity::activationColumn() => true,
-                                'entities.type' => $entity_type,
-                            ]))
-                            ->orderBy('entities.name')
-                            ->orderBy('presets.name')
-                            ->get(['presets.id', 'presets.name', 'presets.entity_id', 'entities.name'])
-                            ->mapWithKeys(static fn (Preset $preset): array => [$preset->id => $preset->entity->name . ' - ' . $preset->name]))
+                        ->options(fn (): array => self::presetSelectFilterOptions($entity_type))
                         ->query(static fn (Builder $query, array $data): Builder => $query->when(
                             $data['values'],
                             static fn (Builder $query, $values): Builder => $query->whereIn('preset_id', $values),
@@ -142,5 +131,22 @@ trait HasTable
     private static function hasDynamicContents(Model $model_instance): bool
     {
         return class_uses_trait($model_instance::class, HasDynamicContents::class);
+    }
+
+    /**
+     * Preset id => "Entity name - Preset name" for the Filament preset multi-select.
+     *
+     * @return array<int, string>
+     */
+    private static function presetSelectFilterOptions(EntityType $entity_type): array
+    {
+        return Preset::query()
+            ->forActiveEntityOfType($entity_type)
+            ->join('entities', 'presets.entity_id', '=', 'entities.id')
+            ->orderBy('entities.name')
+            ->orderBy('presets.name')
+            ->get(['presets.id', 'presets.name', 'presets.entity_id', 'entities.name'])
+            ->mapWithKeys(static fn (Preset $preset): array => [$preset->id => $preset->entity->name . ' - ' . $preset->name])
+            ->all();
     }
 }
