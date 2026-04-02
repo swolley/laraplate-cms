@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\Cms\Models\Pivot\Fieldable;
 use Modules\Cms\Tests\TestCase;
+use Modules\Core\Models\Pivot\Fieldable;
 
 uses(TestCase::class, RefreshDatabase::class);
 

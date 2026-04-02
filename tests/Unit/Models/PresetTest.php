@@ -3,21 +3,20 @@
 declare(strict_types=1);
 
 use Modules\Cms\Models\Preset;
+use Modules\Core\Models\Preset as CorePreset;
 
 it('preset model has correct structure', function (): void {
     $reflection = new ReflectionClass(Preset::class);
-    $source = file_get_contents($reflection->getFileName());
+    $parent = $reflection->getParentClass();
+    expect($parent)->not->toBeNull();
+    $source = file_get_contents((string) $parent->getFileName());
 
-    // Test fillable attributes
-    expect($source)->toContain('protected $fillable');
-
-    // Test hidden attributes
-    expect($source)->toContain('protected $hidden');
+    expect($source)->toContain('protected $fillable')
+        ->and($source)->toContain('protected $hidden');
 });
 
 it('preset model uses correct traits', function (): void {
-    $reflection = new ReflectionClass(Preset::class);
-    $traits = $reflection->getTraitNames();
+    $traits = array_values(class_uses_recursive(CorePreset::class));
 
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasActivation::class);

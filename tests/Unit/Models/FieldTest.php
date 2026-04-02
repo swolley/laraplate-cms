@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Models\Field;
+use Modules\Core\Models\Field;
 
 it('field model has correct structure', function (): void {
     $reflection = new ReflectionClass(Field::class);

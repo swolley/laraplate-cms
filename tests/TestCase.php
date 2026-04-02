@@ -23,20 +23,20 @@ abstract class TestCase extends TestbenchTestCase
     {
         parent::setUp();
 
-        if (Schema::hasTable('users')) {
-            return;
+        if (! Schema::hasTable('users')) {
+            Schema::create('users', function (Blueprint $table): void {
+                $table->id();
+                $table->string('name');
+                $table->string('email')->unique();
+                $table->string('password');
+                $table->rememberToken();
+                $table->timestamps();
+            });
         }
 
-        Schema::create('users', function (Blueprint $table): void {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->string('password');
-            $table->rememberToken();
-            $table->timestamps();
-        });
-
         if (! Schema::hasTable('entities')) {
+            $this->runOrderedSupportingMigrations();
+
             Artisan::call('migrate', [
                 '--database' => 'sqlite',
                 '--path' => realpath(__DIR__ . '/../database/migrations'),
@@ -45,10 +45,63 @@ abstract class TestCase extends TestbenchTestCase
             ]);
         }
 
+        $this->ensurePresettablesVersioningColumns();
+
         if (! Route::has('cms.locations.geocode')) {
             Route::middleware(['web', 'auth'])
                 ->get('/cms/locations/geocode', [LocationsController::class, 'geocode'])
                 ->name('cms.locations.geocode');
+        }
+    }
+
+    /**
+     * Core entity/preset/field tables required by CMS models; avoid running the full Core migration set in Testbench (permission config, etc.).
+     *
+     * @return void
+     */
+    /**
+     * Align in-memory SQLite with Core preset versioning (fields_snapshot, version) without running trigger-heavy Core migrations.
+     */
+    private function ensurePresettablesVersioningColumns(): void
+    {
+        if (! Schema::hasTable('presettables')) {
+            return;
+        }
+
+        if (Schema::hasColumn('presettables', 'fields_snapshot')) {
+            return;
+        }
+
+        Schema::table('presettables', function (Blueprint $table): void {
+            $table->dropUnique('presettables_preset_UN');
+            $table->unsignedInteger('version')->default(1);
+            $table->json('fields_snapshot')->default('[]');
+            $table->timestamp('created_at')->nullable();
+            $table->unique(['entity_id', 'preset_id', 'version'], 'presettables_version_UN');
+        });
+    }
+
+    private function runOrderedSupportingMigrations(): void
+    {
+        $paths = [
+            realpath(__DIR__ . '/../../Core/database/migrations/2024_11_27_230300_create_entities_table.php'),
+            realpath(__DIR__ . '/../database/migrations/2024_11_27_234217_create_templates_table.php'),
+            realpath(__DIR__ . '/../../Core/database/migrations/2024_11_28_224314_create_presets_table.php'),
+            realpath(__DIR__ . '/../../Core/database/migrations/2024_11_28_225525_create_fields_table.php'),
+            realpath(__DIR__ . '/../../Core/database/migrations/2024_11_28_224400_create_entity_presets_relation_table.php'),
+        ];
+
+        foreach ($paths as $migration_path) {
+            if ($migration_path === false) {
+                continue;
+            }
+
+            Artisan::call('migrate', [
+                '--database' => 'sqlite',
+                '--path' => $migration_path,
+                '--realpath' => true,
+                '--force' => true,
+            ]);
         }
     }
 
@@ -77,6 +130,10 @@ abstract class TestCase extends TestbenchTestCase
         $app->make(\Illuminate\Contracts\Config\Repository::class)->set('app.key', 'base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=');
         $app->make(\Illuminate\Contracts\Config\Repository::class)->set('app.cipher', 'AES-256-CBC');
         $app->make(\Illuminate\Contracts\Config\Repository::class)->set('core.filament.tabs_counts_ttl_seconds', 60);
+        $app->make(\Illuminate\Contracts\Config\Repository::class)->set(
+            'auth.providers.users.model',
+            \Modules\Cms\Tests\Support\User::class,
+        );
 
         $config = $app->make(\Illuminate\Contracts\Config\Repository::class);
         $config->set(

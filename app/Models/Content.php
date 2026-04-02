@@ -22,6 +22,7 @@ use Modules\Cms\Models\Pivot\Contributable;
 use Modules\Cms\Models\Pivot\Locatable;
 use Modules\Cms\Models\Pivot\Relatable;
 use Modules\Cms\Observers\ContentObserver;
+use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Helpers\HasApprovals;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasTranslatedDynamicContents;

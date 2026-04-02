@@ -8,16 +8,13 @@ it('entity model has correct structure', function (): void {
     $reflection = new ReflectionClass(Entity::class);
     $source = file_get_contents($reflection->getFileName());
 
-    // Test fillable attributes
-    expect($source)->toContain('protected $fillable');
-
-    // Test hidden attributes
-    expect($source)->toContain('protected $hidden');
+    expect($reflection->hasProperty('fillable'))->toBeTrue()
+        ->and($reflection->hasProperty('hidden'))->toBeTrue()
+        ->and($source)->toContain('EntityType::class');
 });
 
 it('entity model uses correct traits', function (): void {
-    $reflection = new ReflectionClass(Entity::class);
-    $traits = $reflection->getTraitNames();
+    $traits = array_values(class_uses_recursive(Entity::class));
 
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasActivation::class);

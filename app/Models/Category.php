@@ -14,6 +14,7 @@ use Modules\Cms\Database\Factories\CategoryFactory;
 use Modules\Cms\Helpers\HasMultimedia;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Models\Pivot\Categorizable;
+use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Helpers\HasActivation;
 use Modules\Core\Helpers\HasApprovals;
 use Modules\Core\Helpers\HasPath;

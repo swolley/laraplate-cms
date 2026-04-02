@@ -4,63 +4,22 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Cms\Models\Preset;
-use Modules\Cms\Services\DynamicContentsService;
 use Modules\Cms\Tests\TestCase;
+use Modules\Cms\Tests\Unit\Filament\Utils\CmsHasRecordsEntityHarness;
+use Modules\Cms\Tests\Unit\Filament\Utils\CmsHasRecordsTraitHarness;
 
 uses(TestCase::class, RefreshDatabase::class);
 
-final class FakeContentFilamentResource
-{
-    /**
-     * @return class-string<Content>
-     */
-    public static function getModel(): string
-    {
-        return Content::class;
-    }
-}
-
-final class CmsHasRecordsTraitHarness
-{
-    use Modules\Cms\Filament\Utils\HasRecords;
-
-    /**
-     * @return class-string
-     */
-    public static function getResource(): string
-    {
-        return FakeContentFilamentResource::class;
-    }
-}
-
-final class FakeEntityFilamentResource
-{
-    /**
-     * @return class-string<Entity>
-     */
-    public static function getModel(): string
-    {
-        return Entity::class;
-    }
-}
-
-final class CmsHasRecordsEntityHarness
-{
-    use Modules\Cms\Filament\Utils\HasRecords;
-
-    public static function getResource(): string
-    {
-        return FakeEntityFilamentResource::class;
-    }
-}
-
 beforeEach(function (): void {
-    DynamicContentsService::reset();
+    if (class_exists(Modules\Core\Services\DynamicContentsService::class)) {
+        Modules\Core\Services\DynamicContentsService::reset();
+    }
+
     Cache::flush();
 });
 
@@ -97,7 +56,7 @@ function createSecondContentsEntityWithPreset(): Entity
     $secondary = Entity::query()->create([
         'name' => $secondary_name,
         'type' => EntityType::CONTENTS,
-        'slug' => Illuminate\Support\Str::slug($secondary_name),
+        'slug' => Str::slug($secondary_name),
     ]);
 
     $secondaryPreset = Preset::query()->firstOrCreate(
@@ -127,7 +86,9 @@ it('returns filament tabs with badges when multiple content entities exist and c
 
     $secondaryEntity = createSecondContentsEntityWithPreset();
 
-    DynamicContentsService::reset();
+    if (class_exists(Modules\Core\Services\DynamicContentsService::class)) {
+        Modules\Core\Services\DynamicContentsService::reset();
+    }
 
     $primaryPresettable = Presettable::query()
         ->where('entity_id', Entity::query()->where('name', 'contents')->where('type', EntityType::CONTENTS)->value('id'))

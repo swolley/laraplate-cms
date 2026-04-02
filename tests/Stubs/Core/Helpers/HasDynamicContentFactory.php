@@ -1,0 +1,142 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Core\Helpers;
+
+use Exception;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
+use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Models\Field;
+use Modules\Core\Casts\FieldType;
+use ReflectionObject;
+use RuntimeException;
+use stdClass;
+
+/**
+ * Test stub: real Core trait targets Core models; CMS factories need Cms Field/FieldType and factory {@see EntityType} property.
+ */
+trait HasDynamicContentFactory
+{
+    public function dynamicContentDefinition(): array
+    {
+        $model_name = $this->modelName();
+
+        $entity_type = $this->entityTypeForDynamicContent($model_name);
+
+        $presettable = $model_name::fetchAvailablePresettables($entity_type)->random();
+
+        return [
+            'entity_id' => $presettable->entity_id,
+            'presettable_id' => $presettable->id,
+        ];
+    }
+
+    /**
+     * @param  Model|Collection<int, Model>  $content
+     */
+    public function createDynamicContentRelations(Model|Collection $content, ?callable $callback = null): void
+    {
+        $i = 0;
+
+        try {
+            if (! $callback) {
+                return;
+            }
+
+            if (! $content instanceof Collection) {
+                $content = collect([$content]);
+            }
+
+            for ($i; $i < $content->count(); $i++) {
+                $callback($content[$i]);
+            }
+        } catch (Exception $e) {
+            Log::warning('Failed to attach relations to content: ' . $e->getMessage(), [
+                'model_id' => $content instanceof Model ? $content->getKey() : $content->get($i)->getKey(),
+                'error' => $e->getMessage(),
+            ]);
+
+            throw $e;
+        }
+    }
+
+    private function entityTypeForDynamicContent(string $model_name): EntityType
+    {
+        $reflection = new ReflectionObject($this);
+
+        if (! $reflection->hasProperty('entityType')) {
+            throw new RuntimeException('Entity type not set for model: ' . $model_name . ' factory class');
+        }
+
+        $entity_type_property = $reflection->getProperty('entityType');
+
+        if (! $entity_type_property->isInitialized($this)) {
+            throw new RuntimeException('Entity type not set for model: ' . $model_name . ' factory class');
+        }
+
+        $value = $entity_type_property->getValue($this);
+
+        if (! $value instanceof EntityType) {
+            throw new RuntimeException('Entity type not set for model: ' . $model_name . ' factory class');
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param  array<string, mixed>  $forcedValues
+     */
+    private function fillDynamicContents(Model $model, array $forcedValues = []): void
+    {
+        throw_unless($model->entity_id, RuntimeException::class, 'No entity specified for model: ' . $model::class);
+
+        $model->load('presettable');
+
+        $model_name = $this->modelName();
+
+        $this->entityTypeForDynamicContent($model_name);
+
+        $components_array = $model->presettable->preset->fields->mapWithKeys(function (Field $field) use ($forcedValues): array {
+            $value = $field->pivot->default;
+
+            if ($field->pivot->is_required || fake()->boolean()) {
+                if (isset($forcedValues[$field->name])) {
+                    $value = $forcedValues[$field->name];
+                } else {
+                    $value = match ($field->type) {
+                        FieldType::TEXTAREA => fake()->paragraphs(fake()->numberBetween(1, 3), true),
+                        FieldType::TEXT => fake()->text(fake()->numberBetween(100, 255)),
+                        FieldType::NUMBER => fake()->randomNumber(),
+                        FieldType::EMAIL => fake()->unique()->email(),
+                        FieldType::PHONE => fake()->boolean() ? fake()->unique()->e164PhoneNumber() : null,
+                        FieldType::URL => fake()->boolean() ? fake()->unique()->url() : null,
+                        FieldType::DATETIME => fake()->dateTime()->format('Y-m-d H:i:s'),
+                        FieldType::EDITOR => (object) [
+                            'blocks' => array_map(static fn (string $paragraph) => (object) [
+                                'type' => 'paragraph',
+                                'data' => [
+                                    'text' => $paragraph,
+                                ],
+                            ], fake()->paragraphs(fake()->numberBetween(1, 10))),
+                        ],
+                        FieldType::OBJECT => new stdClass(),
+                        default => $value,
+                    };
+                }
+            }
+
+            return [$field->name => $value];
+        })->toArray();
+
+        $model->components = $components_array;
+
+        foreach ($model->presettable->preset->fields as $field) {
+            if (! ($field->is_translatable ?? false)) {
+                $model->{$field->name} = $components_array[$field->name] ?? $field->pivot->default;
+            }
+        }
+    }
+}

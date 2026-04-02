@@ -11,6 +11,7 @@ use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Cms\Casts\EntityType;
 use Modules\Core\Filament\Utils\HasTable as CoreHasTable;
 use Modules\Core\Helpers\HasDynamicContents;
 use Modules\Core\Models\Preset;

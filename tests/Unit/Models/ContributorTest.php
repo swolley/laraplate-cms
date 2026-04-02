@@ -20,7 +20,7 @@ it('contributor model uses correct traits', function (): void {
     $traits = $reflection->getTraitNames();
 
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
-    expect($traits)->toContain(Modules\Cms\Helpers\HasPath::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasPath::class);
     expect($traits)->toContain(Modules\Cms\Helpers\HasTags::class);
     expect($traits)->toContain(Modules\Cms\Helpers\HasMultimedia::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);

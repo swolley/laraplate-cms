@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Cms\Providers;
 
 use Exception;
-use Modules\Cms\Services\DynamicContentsService;
 use Modules\Core\Overrides\ModuleServiceProvider;
 use Override;
 
@@ -31,7 +30,5 @@ final class CmsServiceProvider extends ModuleServiceProvider
         parent::register();
 
         $this->app->register(GeocodingServiceProvider::class);
-
-        $this->app->singleton(DynamicContentsService::class, DynamicContentsService::getInstance(...));
     }
 }

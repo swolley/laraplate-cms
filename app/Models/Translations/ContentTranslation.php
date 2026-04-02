@@ -7,8 +7,8 @@ namespace Modules\Cms\Models\Translations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Cms\Helpers\HasSlug;
 use Modules\Cms\Models\Content;
+use Modules\Core\Helpers\HasSlug;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 

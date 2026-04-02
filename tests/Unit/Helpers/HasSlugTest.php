@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Date;
-use Modules\Cms\Helpers\HasSlug;
+use Modules\Core\Helpers\HasSlug;
 use Modules\Cms\Tests\TestCase;
 
 uses(TestCase::class);

@@ -10,13 +10,9 @@ use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Entity;
 use Modules\Cms\Tests\TestCase;
+use Modules\Cms\Tests\Unit\Filament\Utils\CmsHasTableTraitHarness;
 
 uses(TestCase::class, RefreshDatabase::class);
-
-final class CmsHasTableTraitHarness
-{
-    use Modules\Cms\Filament\Utils\HasTable;
-}
 
 beforeEach(function (): void {
     setupCmsEntities([EntityType::CONTENTS]);

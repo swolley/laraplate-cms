@@ -15,6 +15,7 @@ use Modules\Cms\Database\Factories\ContributorFactory;
 use Modules\Cms\Helpers\HasMultimedia;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Models\Pivot\Contributable;
+use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasTranslatedDynamicContents;
 use Modules\Core\Helpers\HasValidations;

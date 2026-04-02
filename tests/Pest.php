@@ -9,7 +9,11 @@ use MatanYadaev\EloquentSpatial\Objects\Point;
 
 $test_stubs = [
     App\Models\User::class => __DIR__ . '/Stubs/App/Models/User.php',
+    Modules\Core\Contracts\IDynamicEntityTypable::class => __DIR__ . '/Stubs/Core/Contracts/IDynamicEntityTypable.php',
     Modules\Core\Helpers\HasCommandUtils::class => __DIR__ . '/Stubs/Core/Helpers/HasCommandUtils.php',
+    Modules\Core\Helpers\HasDynamicContentFactory::class => __DIR__ . '/Stubs/Core/Helpers/HasDynamicContentFactory.php',
+    Modules\Core\Helpers\HasPath::class => __DIR__ . '/Stubs/Core/Helpers/HasPath.php',
+    Modules\Core\Helpers\HasSlug::class => __DIR__ . '/Stubs/Core/Helpers/HasSlug.php',
     Modules\Core\Helpers\HasActivation::class => __DIR__ . '/Stubs/Core/Helpers/HasActivation.php',
     Modules\Core\Helpers\HasApprovals::class => __DIR__ . '/Stubs/Core/Helpers/HasApprovals.php',
     Modules\Core\Helpers\HasValidations::class => __DIR__ . '/Stubs/Core/Helpers/HasValidations.php',
@@ -23,6 +27,7 @@ $test_stubs = [
     Modules\Core\Helpers\MigrateUtils::class => __DIR__ . '/Stubs/Core/Helpers/MigrateUtils.php',
     Modules\Core\Helpers\HasUniqueFactoryValues::class => __DIR__ . '/Stubs/Core/Helpers/HasUniqueFactoryValues.php',
     Modules\Core\Casts\FilterOperator::class => __DIR__ . '/Stubs/Core/Casts/FilterOperator.php',
+    Modules\Core\Casts\ObjectCast::class => __DIR__ . '/Stubs/Core/Casts/ObjectCast.php',
     Modules\Core\Casts\WhereClause::class => __DIR__ . '/Stubs/Core/Casts/WhereClause.php',
     Modules\Core\Cache\HasCache::class => __DIR__ . '/Stubs/Core/Cache/HasCache.php',
     Modules\Core\Locking\HasOptimisticLocking::class => __DIR__ . '/Stubs/Core/Locking/HasOptimisticLocking.php',
@@ -39,6 +44,10 @@ $test_stubs = [
     Modules\Core\Search\Schema\FieldDefinition::class => __DIR__ . '/Stubs/Core/Search/Schema/FieldDefinition.php',
     Modules\Core\Search\Schema\FieldType::class => __DIR__ . '/Stubs/Core/Search/Schema/FieldType.php',
     Modules\Core\Search\Schema\IndexType::class => __DIR__ . '/Stubs/Core/Search/Schema/IndexType.php',
+    Modules\Core\Models\Entity::class => __DIR__ . '/Stubs/Core/Models/Entity.php',
+    Modules\Core\Models\Pivot\Presettable::class => __DIR__ . '/Stubs/Core/Models/Pivot/Presettable.php',
+    Modules\Core\Models\Preset::class => __DIR__ . '/Stubs/Core/Models/Preset.php',
+    Modules\Core\Services\DynamicContentsService::class => __DIR__ . '/Stubs/Core/Services/DynamicContentsService.php',
     Modules\Cms\Tests\Support\User::class => __DIR__ . '/Support/User.php',
     Point::class => __DIR__ . '/Stubs/Spatial/Objects/Point.php',
     MatanYadaev\EloquentSpatial\Objects\Polygon::class => __DIR__ . '/Stubs/Spatial/Objects/Polygon.php',
@@ -46,15 +55,8 @@ $test_stubs = [
 ];
 
 foreach ($test_stubs as $class_name => $stub_path) {
-    if (class_exists($class_name)) {
-        continue;
-    }
-
-    if (trait_exists($class_name)) {
-        continue;
-    }
-
-    if (interface_exists($class_name)) {
+    // Never autoload here: CMS vendor may merge Core PSR-4; loading real traits would pull missing packages (e.g. approval).
+    if (class_exists($class_name, false) || trait_exists($class_name, false) || interface_exists($class_name, false)) {
         continue;
     }
 
@@ -70,11 +72,11 @@ if (! function_exists('user_class')) {
 }
 
 use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Models\Entity;
-use Modules\Cms\Models\Field;
 use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Cms\Models\Preset;
+use Modules\Core\Casts\FieldType as CoreFieldType;
+use Modules\Core\Models\Field;
 
 /*
 |--------------------------------------------------------------------------
@@ -111,7 +113,7 @@ function setupCmsEntities(array $entityTypes = [EntityType::CONTENTS, EntityType
         if ($preset->fields()->count() === 0) {
             $field = Field::query()->create([
                 'name' => 'description_' . uniqid(),
-                'type' => FieldType::TEXT,
+                'type' => CoreFieldType::TEXT,
                 'options' => new stdClass(),
             ]);
             $preset->fields()->attach($field->id, [
