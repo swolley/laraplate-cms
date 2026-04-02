@@ -13,10 +13,10 @@ use Illuminate\Foundation\Auth\User;
 use Modules\Cms\Contracts\Taggable;
 use Modules\Cms\Database\Factories\ContributorFactory;
 use Modules\Cms\Helpers\HasMultimedia;
-use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasTags;
-use Modules\Cms\Helpers\HasTranslatedDynamicContents;
 use Modules\Cms\Models\Pivot\Contributable;
+use Modules\Core\Helpers\HasPath;
+use Modules\Core\Helpers\HasTranslatedDynamicContents;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
@@ -55,6 +55,11 @@ final class Contributor extends Model implements IMediable, Taggable
     ];
 
     private ?User $tempUser = null;
+
+    public static function getEntityModelClass(): string
+    {
+        return Entity::class;
+    }
 
     /**
      * Hold a not-yet-persisted user to attach on first save (e.g. create user and contributor in one flow).
@@ -123,6 +128,12 @@ final class Contributor extends Model implements IMediable, Taggable
     public function getPath(): ?string
     {
         return null;
+    }
+
+    #[Override]
+    protected static function getEntityType(): IDynamicEntityTypable
+    {
+        return EntityType::CONTRIBUTORS;
     }
 
     protected static function booted(): void

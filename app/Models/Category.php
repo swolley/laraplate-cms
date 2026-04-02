@@ -12,12 +12,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Modules\Cms\Database\Factories\CategoryFactory;
 use Modules\Cms\Helpers\HasMultimedia;
-use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasTags;
-use Modules\Cms\Helpers\HasTranslatedDynamicContents;
 use Modules\Cms\Models\Pivot\Categorizable;
 use Modules\Core\Helpers\HasActivation;
 use Modules\Core\Helpers\HasApprovals;
+use Modules\Core\Helpers\HasPath;
+use Modules\Core\Helpers\HasTranslatedDynamicContents;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
@@ -90,6 +90,11 @@ final class Category extends Model implements IMediable, Sortable
         'bloodline',
     ];
 
+    public static function getEntityModelClass(): string
+    {
+        return Entity::class;
+    }
+
     /**
      * The contents that belong to the category.
      *
@@ -151,6 +156,12 @@ final class Category extends Model implements IMediable, Sortable
         $parsed = parent::toArray();
 
         return array_merge($parsed, $this->translatedDynamicContentsToArray(), $this->approvalsToArray($parsed));
+    }
+
+    #[Override]
+    protected static function getEntityType(): IDynamicEntityTypable
+    {
+        return EntityType::CATEGORIES;
     }
 
     #[Override]

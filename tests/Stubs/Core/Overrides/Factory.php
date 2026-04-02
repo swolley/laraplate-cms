@@ -6,7 +6,7 @@ namespace Modules\Core\Overrides;
 
 use Illuminate\Database\Eloquent\Factories\Factory as BaseFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Cms\Helpers\HasDynamicContentFactory;
+use Modules\Core\Helpers\HasDynamicContentFactory;
 use Override;
 
 /**

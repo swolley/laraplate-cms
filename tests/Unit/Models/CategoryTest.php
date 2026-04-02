@@ -23,10 +23,10 @@ it('category model uses correct traits', function (): void {
     expect($traits)->toContain(Modules\Core\Helpers\HasActivation::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasApprovals::class);
     expect($traits)->toContain(Modules\Cms\Helpers\HasMultimedia::class);
-    expect($traits)->toContain(Modules\Cms\Helpers\HasPath::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasPath::class);
     expect($traits)->toContain(Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships::class);
     expect($traits)->toContain(Modules\Cms\Helpers\HasTags::class);
-    expect($traits)->toContain(Modules\Cms\Helpers\HasTranslatedDynamicContents::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasTranslatedDynamicContents::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasValidity::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasVersions::class);

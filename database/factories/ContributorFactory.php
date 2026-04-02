@@ -8,10 +8,9 @@ use function user_class;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Helpers\HasDynamicContentFactory;
-use Modules\Cms\Helpers\HasDynamicContents;
 use Modules\Cms\Models\Contributor;
+use Modules\Core\Helpers\HasDynamicContentFactory;
+use Modules\Core\Helpers\HasDynamicContents;
 use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
 
@@ -27,8 +26,6 @@ final class ContributorFactory extends Factory
      */
     #[Override]
     protected $model = Contributor::class;
-
-    protected EntityType $entityType = EntityType::CONTRIBUTORS;
 
     /**
      * Define the model's default state.

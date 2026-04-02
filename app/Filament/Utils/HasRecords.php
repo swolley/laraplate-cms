@@ -9,9 +9,8 @@ use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Helpers\HasDynamicContents;
 use Modules\Core\Filament\Utils\HasRecords as BaseHasRecords;
+use Modules\Core\Helpers\HasDynamicContents;
 use ReflectionClass;
 
 trait HasRecords
@@ -31,7 +30,8 @@ trait HasRecords
         }
 
         $table = new ReflectionClass($model)->newInstanceWithoutConstructor()->getTable();
-        $entities = $model::fetchAvailableEntities(EntityType::tryFrom($table));
+        $entity_type = $model::getEntityType();
+        $entities = $model::fetchAvailableEntities($entity_type::tryFrom($table));
 
         if ($entities->count() < 2) {
             return [];

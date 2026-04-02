@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Casts;
 
-enum EntityType: string
+use Modules\Core\Contracts\IDynamicEntityTypable;
+
+enum EntityType: string implements IDynamicEntityTypable
 {
     case CONTENTS = 'contents';
     case CONTRIBUTORS = 'contributors';
@@ -34,5 +36,10 @@ enum EntityType: string
     public static function validationRule(): string
     {
         return 'in:' . implode(',', self::values());
+    }
+
+    public function toScalar(): string
+    {
+        return $this->value;
     }
 }

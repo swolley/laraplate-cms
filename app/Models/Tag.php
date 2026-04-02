@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
 use Modules\Cms\Database\Factories\TagFactory;
-use Modules\Cms\Helpers\HasPath;
+use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasTranslations;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\SoftDeletes;

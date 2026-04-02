@@ -11,10 +11,9 @@ use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Helpers\HasDynamicContents;
-use Modules\Cms\Models\Preset;
 use Modules\Core\Filament\Utils\HasTable as CoreHasTable;
+use Modules\Core\Helpers\HasDynamicContents;
+use Modules\Core\Models\Preset;
 use ReflectionClass;
 
 trait HasTable
@@ -98,7 +97,8 @@ trait HasTable
         User $user,
     ): void {
         if (self::hasDynamicContents($model_instance)) {
-            $entity_type = EntityType::tryFrom($model_instance->getTable());
+            $entity_type = $model_instance::getEntityType();
+            $entity_type = $entity_type::tryFrom($model_instance->getTable());
 
             if ($entity_type) {
                 $table->pushFilters([

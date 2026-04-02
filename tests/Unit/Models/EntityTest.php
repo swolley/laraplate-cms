@@ -22,8 +22,8 @@ it('entity model uses correct traits', function (): void {
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasActivation::class);
     expect($traits)->toContain(Modules\Core\Cache\HasCache::class);
-    expect($traits)->toContain(Modules\Cms\Helpers\HasPath::class);
-    expect($traits)->toContain(Modules\Cms\Helpers\HasSlug::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasPath::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasSlug::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
     expect($traits)->toContain(Modules\Core\Locking\Traits\HasLocks::class);
 });

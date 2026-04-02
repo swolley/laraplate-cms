@@ -75,13 +75,6 @@ parameters:
             path: app/Models/Pivot/Fieldable.php
         # Composite primary key vs parent string type (Laravel pivot)
         -
-            identifier: property.defaultValue
-            path: app/Models/Pivot/Categorizable.php
-        # getPath() is ?string in HasPath; these models always return null
-        -
-            identifier: return.unusedType
-            path: app/Models/Entity.php
-        -
             identifier: return.unusedType
             path: app/Models/Tag.php
         -
@@ -108,12 +101,6 @@ parameters:
         -
             identifier: return.type
             path: app/Models
-        -
-            identifier: generics.lessTypes
-            path: app/Helpers/HasDynamicContents.php
-        -
-            identifier: return.type
-            path: app/Helpers/HasDynamicContents.php
 
     # Avoid noise when ignore patterns drift after refactors
     reportUnmatchedIgnoredErrors: false

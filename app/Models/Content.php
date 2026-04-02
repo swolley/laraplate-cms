@@ -16,15 +16,15 @@ use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Contracts\Taggable;
 use Modules\Cms\Database\Factories\ContentFactory;
 use Modules\Cms\Helpers\HasMultimedia;
-use Modules\Cms\Helpers\HasPath;
 use Modules\Cms\Helpers\HasTags;
-use Modules\Cms\Helpers\HasTranslatedDynamicContents;
 use Modules\Cms\Models\Pivot\Categorizable;
 use Modules\Cms\Models\Pivot\Contributable;
 use Modules\Cms\Models\Pivot\Locatable;
 use Modules\Cms\Models\Pivot\Relatable;
 use Modules\Cms\Observers\ContentObserver;
 use Modules\Core\Helpers\HasApprovals;
+use Modules\Core\Helpers\HasPath;
+use Modules\Core\Helpers\HasTranslatedDynamicContents;
 use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\HasVersions;
@@ -102,6 +102,11 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         'order_column_name' => 'order_column',
         'sort_when_creating' => true,
     ];
+
+    public static function getEntityModelClass(): string
+    {
+        return Entity::class;
+    }
 
     public static function makeFromEntity(Entity|string|int $entity): static
     {
@@ -408,6 +413,12 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
 
         $this->presettable_id = $presettable->id;
         $this->setRelation('presettable', $presettable);
+    }
+
+    #[Override]
+    protected static function getEntityType(): IDynamicEntityTypable
+    {
+        return EntityType::CONTENTS;
     }
 
     protected static function booted(): void

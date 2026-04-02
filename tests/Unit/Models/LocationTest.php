@@ -20,8 +20,8 @@ it('location model uses correct traits', function (): void {
     $traits = $reflection->getTraitNames();
 
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
-    expect($traits)->toContain(Modules\Cms\Helpers\HasPath::class);
-    expect($traits)->toContain(Modules\Cms\Helpers\HasSlug::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasPath::class);
+    expect($traits)->toContain(Modules\Core\Helpers\HasSlug::class);
     expect($traits)->toContain(MatanYadaev\EloquentSpatial\Traits\HasSpatial::class);
     expect($traits)->toContain(Modules\Cms\Helpers\HasTags::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
