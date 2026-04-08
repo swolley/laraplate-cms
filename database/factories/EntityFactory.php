@@ -6,6 +6,7 @@ namespace Modules\Cms\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Models\Entity;
 use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
 
@@ -20,7 +21,7 @@ final class EntityFactory extends Factory
      * The name of the factory's corresponding model.
      */
     #[Override]
-    protected $model = \Modules\Cms\Models\Entity::class;
+    protected $model = Entity::class;
 
     /**
      * Define the model's default state.

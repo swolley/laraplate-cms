@@ -57,7 +57,7 @@ final class DynamicContentsService
         }
 
         $entity_model = new EntityModel();
-        $cache_key = $entity_model->getCacheKey();
+        $cache_key = EntityModel::getCacheKey();
 
         $this->entities_cache = Cache::memo()->rememberForever(
             $cache_key,

@@ -18,7 +18,7 @@ use Modules\Cms\Filament\Resources\Presets\Pages\EditPreset;
 use Modules\Cms\Filament\Resources\Presets\Pages\ListPresets;
 use Modules\Cms\Filament\Resources\Presets\Schemas\PresetForm;
 use Modules\Cms\Filament\Resources\Presets\Tables\PresetsTable;
-use Modules\Cms\Models\Preset;
+use Modules\Core\Models\Preset;
 use Override;
 use UnitEnum;
 
@@ -49,7 +49,10 @@ final class PresetResource extends Resource
     public static function table(Table $table): Table
     {
         return PresetsTable::configure($table)
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['entity', 'template']));
+            ->modifyQueryUsing(static fn (Builder $query): Builder => $query
+                ->with(['entity', 'template'])
+                ->whereHas('entity', static fn (Builder $query): Builder => $query->whereIn($query->qualifyColumn('type'), EntityType::values())),
+            );
     }
 
     public static function getRelations(): array

@@ -9,12 +9,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Casts\FieldType;
 use Modules\Cms\Models\Entity;
-use Modules\Cms\Models\Field;
-use Modules\Cms\Models\Preset;
 use Modules\Core\Casts\ActionEnum;
+use Modules\Core\Casts\FieldType;
 use Modules\Core\Database\Seeders\CoreDatabaseSeeder;
+use Modules\Core\Models\Field;
+use Modules\Core\Models\Preset;
 use Modules\Core\Models\Role;
 use Modules\Core\Overrides\Seeder;
 

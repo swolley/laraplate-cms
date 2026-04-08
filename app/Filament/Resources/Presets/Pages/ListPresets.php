@@ -8,11 +8,11 @@ use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Cache;
+// use Illuminate\Support\Facades\Cache;
 use Modules\Cms\Filament\Resources\Presets\PresetResource;
 use Modules\Cms\Filament\Utils\HasRecords;
 use Modules\Cms\Models\Entity;
-use Modules\Cms\Models\Preset;
+use Modules\Core\Models\Preset;
 use Override;
 
 final class ListPresets extends ListRecords
@@ -33,7 +33,8 @@ final class ListPresets extends ListRecords
             ->selectRaw('entity_id, count(*) as count')
             ->groupBy('entity_id')
             ->pluck('count', 'entity_id')
-            ->all();
+            ->whereIn('entity_id', $entities->keys())
+            ->get();
 
         $counts = array_merge(['all' => (int) array_sum($counts_by_entity)], $counts_by_entity);
         // });

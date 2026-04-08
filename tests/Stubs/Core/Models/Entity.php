@@ -56,11 +56,11 @@ abstract class Entity extends Model
     ];
 
     /**
-     * @return HasMany<\Modules\Cms\Models\Preset>
+     * @return HasMany<Preset>
      */
     final public function presets(): HasMany
     {
-        return $this->hasMany(\Modules\Cms\Models\Preset::class);
+        return $this->hasMany(Preset::class);
     }
 
     public function getRules(): array

@@ -8,9 +8,9 @@ use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Contributor;
 use Modules\Cms\Models\Entity;
-use Modules\Cms\Models\Pivot\Presettable;
-use Modules\Cms\Models\Preset;
 use Modules\Cms\Tests\TestCase;
+use Modules\Core\Models\Pivot\Presettable;
+use Modules\Core\Models\Preset;
 
 uses(TestCase::class, RefreshDatabase::class);
 

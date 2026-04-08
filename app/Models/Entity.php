@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Modules\Cms\Models;
 
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Query\Builder;
 use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Core\Models\Entity as CoreEntity;
+use Modules\Core\Models\Pivot\Presettable;
 use Override;
 
 final class Entity extends CoreEntity
@@ -51,7 +52,15 @@ final class Entity extends CoreEntity
         );
     }
 
+    /**
+     * @return Builder<static>
+     */
     #[Override]
+    public function newBaseQueryBuilder()
+    {
+        return parent::newBaseQueryBuilder()->whereIn($this->qualifyColumn('type'), EntityType::values());
+    }
+
     protected function casts(): array
     {
         return array_merge(parent::casts(), [

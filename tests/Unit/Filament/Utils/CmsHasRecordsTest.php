@@ -7,11 +7,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Models\Entity;
-use Modules\Cms\Models\Pivot\Presettable;
-use Modules\Cms\Models\Preset;
 use Modules\Cms\Tests\TestCase;
 use Modules\Cms\Tests\Unit\Filament\Utils\CmsHasRecordsEntityHarness;
 use Modules\Cms\Tests\Unit\Filament\Utils\CmsHasRecordsTraitHarness;
+use Modules\Core\Models\Pivot\Presettable;
+use Modules\Core\Models\Preset;
 
 uses(TestCase::class, RefreshDatabase::class);
 

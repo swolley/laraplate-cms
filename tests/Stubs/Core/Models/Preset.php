@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Query\Builder as QueryBuilder;
-use Modules\Cms\Models\Entity as CmsEntity;
+use Modules\Cms\Models\Content;
+use Modules\Cms\Models\Entity;
 use Modules\Cms\Models\Template;
 use Modules\Core\Cache\HasCache;
 use Modules\Core\Contracts\IDynamicEntityTypable;
@@ -27,7 +28,7 @@ use Modules\Core\Services\PresetVersioningService;
 use Override;
 
 /**
- * Test stub: same as Core {@see Preset} but {@see entity()} uses the concrete CMS entity model.
+ * Test stub: same as Core {@see Preset} but {@see Entity()} uses the concrete CMS entity model.
  *
  * @property int|string $id
  * @property string $name
@@ -72,20 +73,20 @@ class Preset extends Model
     }
 
     /**
-     * @return BelongsTo<CmsEntity>
+     * @return BelongsTo<Entity>
      */
     public function entity(): BelongsTo
     {
-        return $this->belongsTo(CmsEntity::class);
+        return $this->belongsTo(Entity::class);
     }
 
     /**
-     * @return HasManyThrough<\Modules\Cms\Models\Content>
+     * @return HasManyThrough<Content>
      */
     public function contents(): HasManyThrough
     {
         return $this->hasManyThrough(
-            \Modules\Cms\Models\Content::class,
+            Content::class,
             Presettable::class,
             'preset_id',
             'presettable_id',
@@ -141,7 +142,7 @@ class Preset extends Model
             return;
         }
 
-        \Modules\Cms\Models\Content::query()
+        Content::query()
             ->whereIn('presettable_id', function (QueryBuilder $query): void {
                 $query->select('id')
                     ->from('presettables')
