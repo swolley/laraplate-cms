@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Cms\Models;
 
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Database\Query\Builder;
 use Modules\Cms\Casts\EntityType;
 use Modules\Core\Models\Entity as CoreEntity;
 use Modules\Core\Models\Pivot\Presettable;
@@ -13,15 +12,6 @@ use Override;
 
 final class Entity extends CoreEntity
 {
-    #[Override]
-    public function getRules(): array
-    {
-        $rules = parent::getRules();
-        $rules[self::DEFAULT_RULE]['type'] = ['required', EntityType::validationRule()];
-
-        return $rules;
-    }
-
     /**
      * The contents that belong to the entity.
      *
@@ -52,19 +42,9 @@ final class Entity extends CoreEntity
         );
     }
 
-    /**
-     * @return Builder<static>
-     */
     #[Override]
-    public function newBaseQueryBuilder()
+    protected static function getEntityTypeEnumClass(): string
     {
-        return parent::newBaseQueryBuilder()->whereIn($this->qualifyColumn('type'), EntityType::values());
-    }
-
-    protected function casts(): array
-    {
-        return array_merge(parent::casts(), [
-            'type' => EntityType::class,
-        ]);
+        return EntityType::class;
     }
 }

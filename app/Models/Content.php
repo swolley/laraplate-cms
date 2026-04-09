@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Modules\Cms\Casts\EntityType;
+use Modules\Cms\Casts\ReadingStatistics;
 use Modules\Cms\Contracts\Taggable;
 use Modules\Cms\Database\Factories\ContentFactory;
 use Modules\Cms\Helpers\HasMultimedia;
@@ -89,6 +90,13 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         'updated_at',
         'withCaching',
         'withoutObjectCaching',
+    ];
+
+    /**
+     * @var list<string>
+     */
+    protected array $appends = [
+        'statistics',
     ];
 
     /**
@@ -474,5 +482,25 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
     protected function requiresApprovalWhen(array $modifications): bool
     {
         return $this->requiresApprovalWhenTrait($modifications) && ($modifications[self::$valid_from_column] ?? $modifications[self::$valid_to_column] ?? false);
+    }
+
+    protected function statistics(): Attribute
+    {
+        return Attribute::make(
+            get: function (): ReadingStatistics {
+                $raw = $this->content;
+                $blocks = match (true) {
+                    is_array($raw) => $raw['blocks'] ?? [],
+                    is_object($raw) => $raw->blocks ?? [],
+                    default => [],
+                };
+
+                if (! is_iterable($blocks)) {
+                    $blocks = [];
+                }
+
+                return ReadingStatistics::fromBlocks($blocks);
+            },
+        );
     }
 }
