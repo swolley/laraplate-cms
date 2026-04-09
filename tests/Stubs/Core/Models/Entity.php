@@ -5,16 +5,8 @@ declare(strict_types=1);
 namespace Modules\Core\Models;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Cms\Database\Factories\EntityFactory as CmsEntityFactory;
-use Modules\Core\Cache\HasCache;
-use Modules\Core\Helpers\HasActivation;
-use Modules\Core\Helpers\HasPath;
-use Modules\Core\Helpers\HasSlug;
-use Modules\Core\Helpers\HasValidations;
-use Modules\Core\Locking\Traits\HasLocks;
+use Modules\Core\Models\Entity as CoreEntity;
 use Override;
 
 /**
@@ -24,45 +16,8 @@ use Override;
  * @property string $name
  * @property string $slug
  */
-abstract class Entity extends Model
+final class Entity extends CoreEntity
 {
-    use HasActivation {
-        HasActivation::casts as private activationCasts;
-    }
-    use HasCache;
-    use HasFactory;
-    use HasLocks;
-    use HasPath;
-    use HasSlug;
-    use HasValidations {
-        getRules as private getRulesTrait;
-    }
-
-    #[Override]
-    final protected $table = 'entities';
-
-    #[Override]
-    final protected $fillable = [
-        'name',
-        'slug',
-        'type',
-    ];
-
-    #[Override]
-    final protected $hidden = [
-        'created_at',
-        'updated_at',
-        'type',
-    ];
-
-    /**
-     * @return HasMany<Preset>
-     */
-    final public function presets(): HasMany
-    {
-        return $this->hasMany(Preset::class);
-    }
-
     public function getRules(): array
     {
         $rules = $this->getRulesTrait();
@@ -81,11 +36,6 @@ abstract class Entity extends Model
     }
 
     #[Override]
-    public function getPath(): ?string
-    {
-        return null;
-    }
-
     protected static function newFactory(): CmsEntityFactory
     {
         return CmsEntityFactory::new();

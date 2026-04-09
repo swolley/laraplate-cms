@@ -35,7 +35,7 @@ use Override;
  * @property int|string|null $entity_id
  * @property int|string|null $template_id
  */
-class Preset extends Model
+abstract class Preset extends Model
 {
     use HasActivation {
         HasActivation::casts as private activationCasts;
@@ -50,14 +50,17 @@ class Preset extends Model
     use SoftDeletes;
 
     #[Override]
-    protected $fillable = [
+    final protected $table = 'presets';
+
+    #[Override]
+    final protected $fillable = [
         'entity_id',
         'name',
         'template_id',
     ];
 
     #[Override]
-    protected $hidden = [
+    final protected $hidden = [
         'entity_id',
         'template_id',
         'created_at',
@@ -67,7 +70,7 @@ class Preset extends Model
     /**
      * @return BelongsTo<Template>
      */
-    public function template(): BelongsTo
+    final public function template(): BelongsTo
     {
         return $this->belongsTo(Template::class);
     }
@@ -94,7 +97,7 @@ class Preset extends Model
     }
 
     /**
-     * @return BelongsToMany<Field, Preset, Fieldable, 'pivot'>
+     * @return BelongsToMany<Field,Preset,Fieldable,'pivot'>
      */
     public function fields(): BelongsToMany
     {
