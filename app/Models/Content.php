@@ -7,8 +7,6 @@ namespace Modules\Cms\Models;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -27,14 +25,13 @@ use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Helpers\HasApprovals;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasTranslatedDynamicContents;
-use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasValidity;
-use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Helpers\SortableTrait;
 use Modules\Core\Locking\HasOptimisticLocking;
 use Modules\Core\Locking\Traits\HasLocks;
+use Modules\Core\Overrides\Model;
 use Modules\Core\Search\Schema\FieldDefinition;
 use Modules\Core\Search\Schema\FieldType;
 use Modules\Core\Search\Schema\IndexType;
@@ -45,6 +42,7 @@ use Spatie\MediaLibrary\HasMedia;
 
 /**
  * @property int|string $id
+ * @mixin IdeHelperContent
  */
 #[ObservedBy(ContentObserver::class)]
 final class Content extends Model implements HasMedia, Sortable, Taggable
@@ -54,9 +52,6 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         HasApprovals::toArray as private approvalsToArray;
         HasApprovals::requiresApprovalWhen as private requiresApprovalWhenTrait;
     }
-
-    /** @use HasFactory<ContentFactory> */
-    use HasFactory;
     use HasLocks;
     use HasMultimedia;
     use HasOptimisticLocking;
@@ -67,11 +62,7 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         HasTranslatedDynamicContents::toArray as private translatedDynamicContentsToArray;
         HasTranslatedDynamicContents::casts as private translatedDynamicContentsCasts;
     }
-    use HasValidations {
-        HasValidations::getRules as private getRulesTrait;
-    }
     use HasValidity;
-    use HasVersions;
     use Searchable {
         Searchable::toSearchableArray as private toSearchableArrayTrait;
         Searchable::getSearchMapping as private getSearchMappingTrait;
@@ -95,7 +86,7 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
     /**
      * @var list<string>
      */
-    protected array $appends = [
+    protected $appends = [
         'statistics',
     ];
 
@@ -343,9 +334,9 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
 
     public function getRules(): array
     {
-        $rules = $this->getRulesTrait();
+        $rules = parent::getRules();
         $fields = $this->getRulesTranslatedDynamicContents();
-        $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], $fields);
+        $rules[Model::DEFAULT_RULE] = array_merge($rules[Model::DEFAULT_RULE], $fields);
         $rules['create'] = array_merge($rules['create'], [
             // 'title' => 'required|string|max:255', // Validated in translation
             // 'slug' => 'sometimes|nullable|string|max:255', // Validated in translation

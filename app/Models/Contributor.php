@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Modules\Cms\Models;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User;
+use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Contracts\Taggable;
 use Modules\Cms\Database\Factories\ContributorFactory;
 use Modules\Cms\Helpers\HasMultimedia;
@@ -18,16 +17,17 @@ use Modules\Cms\Models\Pivot\Contributable;
 use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasTranslatedDynamicContents;
-use Modules\Core\Helpers\HasValidations;
-use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
+use Modules\Core\Overrides\Model;
 use Override;
 use Spatie\MediaLibrary\HasMedia as IMediable;
 
+/**
+ * @mixin IdeHelperContributor
+ */
 final class Contributor extends Model implements IMediable, Taggable
 {
     // region Traits
-    use HasFactory;
     use HasMultimedia;
     use HasPath;
     use HasTags;
@@ -35,10 +35,6 @@ final class Contributor extends Model implements IMediable, Taggable
         HasTranslatedDynamicContents::getRules as private getRulesTranslatedDynamicContents;
         HasTranslatedDynamicContents::casts as private translatedDynamicContentsCasts;
     }
-    use HasValidations {
-        HasValidations::getRules as private getRulesTrait;
-    }
-    use HasVersions;
     use SoftDeletes;
     // endregion
 
@@ -105,9 +101,9 @@ final class Contributor extends Model implements IMediable, Taggable
 
     public function getRules(): array
     {
-        $rules = $this->getRulesTrait();
+        $rules = parent::getRules();
         $fields = $this->getRulesTranslatedDynamicContents();
-        $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], $fields);
+        $rules[Model::DEFAULT_RULE] = array_merge($rules[Model::DEFAULT_RULE], $fields);
         $rules['create'] = array_merge($rules['create'], [
             'name' => ['required', 'string', 'max:255', 'unique:contributors,name'],
         ]);

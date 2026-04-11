@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Override;
 
+/**
+ * @mixin IdeHelperLocatable
+ */
 final class Locatable extends Pivot
 {
     use HasFactory;

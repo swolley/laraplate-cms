@@ -4,11 +4,18 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\DB;
+use Modules\Cms\Casts\EntityType;
+use Modules\Core\Models\Pivot\Presettable;
 use Modules\Core\Models\Preset as CorePreset;
 use Override;
 
 /**
  * CMS preset model; behaviour lives in Core — this class exists for the CMS namespace and Filament resources.
+ *
+ * @mixin IdeHelperPreset
  */
 final class Preset extends CorePreset
 {
@@ -40,11 +47,15 @@ final class Preset extends CorePreset
     #[Override]
     public function newBaseQueryBuilder()
     {
-        return parent::newBaseQueryBuilder()->has('entity');
+        return parent::newBaseQueryBuilder()->whereExists(function (Builder $query): void {
+            $query->select(DB::raw('1'))
+                ->from('entities')
+                ->whereIn('entities.type', EntityType::values());
+        });
     }
 
     #[Override]
-    protected function getRelatedContentModelClass(): string
+    protected static function getRelatedContentModelClass(): string
     {
         return Content::class;
     }

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -18,8 +16,8 @@ use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Models\Pivot\Locatable;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasSlug;
-use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\SoftDeletes;
+use Modules\Core\Overrides\Model;
 use Modules\Core\Search\Schema\FieldDefinition;
 use Modules\Core\Search\Schema\FieldType;
 use Modules\Core\Search\Schema\IndexType;
@@ -36,17 +34,14 @@ use Override;
  * @method static whereContains(Polygon $polygon)
  * @method static whereNotContains(Polygon $polygon)
  * @method static whereEquals(Point $point)
+ * @mixin IdeHelperLocation
  */
 final class Location extends Model implements Taggable
 {
-    use HasFactory;
     use HasPath;
     use HasSlug;
     use HasSpatial;
     use HasTags;
-    use HasValidations {
-        getRules as private getRulesTrait;
-    }
     use Searchable {
         toSearchableArray as private toSearchableArrayTrait;
         getSearchMapping as private getSearchMappingTrait;
@@ -111,8 +106,8 @@ final class Location extends Model implements Taggable
 
     public function getRules(): array
     {
-        $rules = $this->getRulesTrait();
-        // $rules[self::DEFAULT_RULE] = array_merge($rules[self::DEFAULT_RULE], [
+        $rules = parent::getRules();
+        // $rules[Model::DEFAULT_RULE] = array_merge($rules[Model::DEFAULT_RULE], [
         //     'latitude' => ['sometimes', 'numeric', 'min:-90', 'max:90'],
         //     'longitude' => ['sometimes', 'numeric', 'min:-180', 'max:180'],
         // ]);

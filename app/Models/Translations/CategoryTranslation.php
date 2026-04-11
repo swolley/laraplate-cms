@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models\Translations;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Core\Helpers\HasSlug;
 use Modules\Cms\Models\Category;
+use Modules\Core\Helpers\HasSlug;
+use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
+/**
+ * @mixin IdeHelperCategoryTranslation
+ */
 final class CategoryTranslation extends Model implements ITranslated
 {
-    use HasFactory;
     use HasSlug;
 
     #[Override]

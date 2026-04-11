@@ -7,9 +7,8 @@ namespace Modules\Cms\Models;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Modules\Cms\Casts\EntityType;
 use Modules\Cms\Database\Factories\CategoryFactory;
 use Modules\Cms\Helpers\HasMultimedia;
 use Modules\Cms\Helpers\HasTags;
@@ -19,17 +18,19 @@ use Modules\Core\Helpers\HasActivation;
 use Modules\Core\Helpers\HasApprovals;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasTranslatedDynamicContents;
-use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\HasValidity;
-use Modules\Core\Helpers\HasVersions;
 use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Helpers\SortableTrait;
 use Modules\Core\Locking\Traits\HasLocks;
+use Modules\Core\Overrides\Model;
 use Override;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\MediaLibrary\HasMedia as IMediable;
 use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 
+/**
+ * @mixin IdeHelperCategory
+ */
 final class Category extends Model implements IMediable, Sortable
 {
     // region Traits
@@ -40,7 +41,6 @@ final class Category extends Model implements IMediable, Sortable
         HasApprovals::toArray as private approvalsToArray;
         HasApprovals::requiresApprovalWhen as private requiresApprovalWhenTrait;
     }
-    use HasFactory;
     use HasLocks;
     use HasMultimedia;
     use HasPath;
@@ -51,11 +51,7 @@ final class Category extends Model implements IMediable, Sortable
         HasTranslatedDynamicContents::toArray as private translatedDynamicContentsToArray;
         HasTranslatedDynamicContents::casts as private translatedDynamicContentsCasts;
     }
-    use HasValidations {
-        HasValidations::getRules as private getRulesTrait;
-    }
     use HasValidity;
-    use HasVersions;
     use SoftDeletes;
     use SortableTrait {
         SortableTrait::scopeOrdered as private scopePriorityOrdered;
@@ -108,9 +104,9 @@ final class Category extends Model implements IMediable, Sortable
 
     public function getRules(): array
     {
-        $rules = $this->getRulesTrait();
+        $rules = parent::getRules();
         $dynamic_fields = $this->getRulesDynamicContents();
-        $default_rule = self::DEFAULT_RULE;
+        $default_rule = Model::DEFAULT_RULE;
         $rules[$default_rule] = array_merge($rules[$default_rule], $dynamic_fields, [
             'parent_id' => 'sometimes|nullable|exists:categories,id',
         ]);

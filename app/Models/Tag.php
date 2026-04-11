@@ -8,27 +8,24 @@ use ArrayAccess;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as DbCollection;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
 use Modules\Cms\Database\Factories\TagFactory;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasTranslations;
-use Modules\Core\Helpers\HasValidations;
 use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Helpers\SortableTrait;
+use Modules\Core\Overrides\Model;
 use Override;
 use Spatie\EloquentSortable\Sortable;
 
+/**
+ * @mixin IdeHelperTag
+ */
 final class Tag extends Model implements Sortable
 {
-    use HasFactory;
     use HasPath;
     use HasTranslations;
-    use HasValidations {
-        getRules as private getRulesTrait;
-    }
     use SoftDeletes;
     use SortableTrait;
 
@@ -139,7 +136,7 @@ final class Tag extends Model implements Sortable
 
     public function getRules(): array
     {
-        $rules = $this->getRulesTrait();
+        $rules = parent::getRules();
         $rules['create'] = array_merge($rules['create'], [
             // 'name' => 'required|string|max:255', // Validated in translation
             // 'slug' => 'sometimes|nullable|string|max:255', // Validated in translation

@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Cms\Models\Translations;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Cms\Models\Content;
 use Modules\Core\Helpers\HasSlug;
+use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
@@ -18,10 +17,10 @@ use Override;
  * @property string $title
  * @property string $slug
  * @property array<string, mixed>|null $components
+ * @mixin IdeHelperContentTranslation
  */
 final class ContentTranslation extends Model implements ITranslated
 {
-    use HasFactory;
     use HasSlug;
 
     #[Override]
