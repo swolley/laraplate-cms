@@ -22,7 +22,12 @@ return new class extends Migration
             $table->string('title')->nullable(false)->comment('The translated title of the content');
             $table->string('slug')->nullable(false)->index('contents_translations_slug_IDX')->comment('The translated slug of the content');
             $table->json('components')->nullable(false)->comment('The translated content components');
-            MigrateUtils::timestamps($table);
+
+            MigrateUtils::timestamps(
+                $table,
+                hasCreateUpdate: true,
+                hasSoftDelete: true,
+            );
 
             $table->unique(['content_id', 'locale'], 'contents_translations_content_locale_UN');
             $table->index(['locale', 'slug'], 'contents_translations_locale_slug_IDX');

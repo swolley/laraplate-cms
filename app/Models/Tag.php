@@ -13,7 +13,6 @@ use Illuminate\Support\Collection;
 use Modules\Cms\Database\Factories\TagFactory;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasTranslations;
-use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Helpers\SortableTrait;
 use Modules\Core\Overrides\Model;
 use Override;
@@ -26,7 +25,6 @@ final class Tag extends Model implements Sortable
 {
     use HasPath;
     use HasTranslations;
-    use SoftDeletes;
     use SortableTrait;
 
     /**

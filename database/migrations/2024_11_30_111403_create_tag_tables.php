@@ -17,8 +17,10 @@ return new class extends Migration
             // Unique constraints for name and slug are now in tags_translations table (per locale)
             $table->string('type')->nullable()->index('tags_type_IDX')->comment('The type of the tag');
             $table->integer('order_column')->nullable(false)->default(0)->index('tags_order_column_IDX')->comment('The order of the tag');
+
             MigrateUtils::timestamps(
                 $table,
+                hasCreateUpdate: true,
                 hasSoftDelete: true,
             );
         });

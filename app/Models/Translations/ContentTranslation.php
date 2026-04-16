@@ -17,6 +17,7 @@ use Override;
  * @property string $title
  * @property string $slug
  * @property array<string, mixed>|null $components
+ *
  * @mixin IdeHelperContentTranslation
  */
 final class ContentTranslation extends Model implements ITranslated

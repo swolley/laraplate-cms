@@ -17,7 +17,6 @@ use Modules\Cms\Models\Pivot\Contributable;
 use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasTranslatedDynamicContents;
-use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Overrides\Model;
 use Override;
 use Spatie\MediaLibrary\HasMedia as IMediable;
@@ -35,7 +34,6 @@ final class Contributor extends Model implements IMediable, Taggable
         HasTranslatedDynamicContents::getRules as private getRulesTranslatedDynamicContents;
         HasTranslatedDynamicContents::casts as private translatedDynamicContentsCasts;
     }
-    use SoftDeletes;
     // endregion
 
     #[Override]

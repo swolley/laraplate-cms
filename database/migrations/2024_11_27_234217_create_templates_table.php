@@ -18,6 +18,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->nullable(false)->comment('The name of the template');
             $table->longText('content')->nullable(false)->comment('The blade template content');
+
             MigrateUtils::timestamps(
                 $table,
                 hasCreateUpdate: true,

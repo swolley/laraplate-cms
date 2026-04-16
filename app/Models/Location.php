@@ -16,7 +16,6 @@ use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Models\Pivot\Locatable;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasSlug;
-use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Search\Schema\FieldDefinition;
 use Modules\Core\Search\Schema\FieldType;
@@ -34,6 +33,7 @@ use Override;
  * @method static whereContains(Polygon $polygon)
  * @method static whereNotContains(Polygon $polygon)
  * @method static whereEquals(Point $point)
+ *
  * @mixin IdeHelperLocation
  */
 final class Location extends Model implements Taggable
@@ -46,7 +46,6 @@ final class Location extends Model implements Taggable
         toSearchableArray as private toSearchableArrayTrait;
         getSearchMapping as private getSearchMappingTrait;
     }
-    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.

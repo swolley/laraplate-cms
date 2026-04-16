@@ -20,6 +20,7 @@ return new class extends Migration
             $table->foreignId('presettable_id')->nullable(false)->constrained('presettables', 'id', 'contents_presettable_id_FK')->cascadeOnDelete()->comment('The entity preset that the content belongs to');
             $table->json('shared_components')->nullable()->comment('The shared dynamic components of the content');
             $table->integer('order_column')->nullable(false)->default(0)->index('contents_order_column_IDX')->comment('The order of the content');
+
             MigrateUtils::timestamps(
                 $table,
                 hasCreateUpdate: true,

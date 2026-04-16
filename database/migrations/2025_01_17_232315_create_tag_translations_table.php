@@ -21,7 +21,11 @@ return new class extends Migration
             $table->string('locale', 10)->nullable(false)->index('tags_translations_locale_IDX')->comment('The locale of the translation');
             $table->string('name')->nullable(false)->comment('The translated name of the tag');
             $table->string('slug')->nullable(false)->index('tags_translations_slug_IDX')->comment('The translated slug of the tag');
-            MigrateUtils::timestamps($table);
+
+            MigrateUtils::timestamps($table,
+                hasCreateUpdate: true,
+                hasSoftDelete: true,
+            );
 
             $table->unique(['tag_id', 'locale'], 'tags_translations_tag_locale_UN');
             $table->index(['locale', 'slug'], 'tags_translations_locale_slug_IDX');

@@ -19,7 +19,6 @@ use Modules\Core\Helpers\HasApprovals;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasTranslatedDynamicContents;
 use Modules\Core\Helpers\HasValidity;
-use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Helpers\SortableTrait;
 use Modules\Core\Locking\Traits\HasLocks;
 use Modules\Core\Overrides\Model;
@@ -52,7 +51,6 @@ final class Category extends Model implements IMediable, Sortable
         HasTranslatedDynamicContents::casts as private translatedDynamicContentsCasts;
     }
     use HasValidity;
-    use SoftDeletes;
     use SortableTrait {
         SortableTrait::scopeOrdered as private scopePriorityOrdered;
     }

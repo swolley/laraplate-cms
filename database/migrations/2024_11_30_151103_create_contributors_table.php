@@ -21,6 +21,7 @@ return new class extends Migration
             $table->foreignId('presettable_id')->nullable(false)->constrained('presettables', 'id', 'contributors_presettable_id_FK')->cascadeOnDelete()->comment('The entity preset that the contributor belongs to');
             $table->json('shared_components')->nullable()->comment('The shared dynamic components of the contributor');
             $table->string('name')->comment('The name of the contributor');
+
             MigrateUtils::timestamps(
                 $table,
                 hasCreateUpdate: true,

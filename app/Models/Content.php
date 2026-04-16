@@ -27,7 +27,6 @@ use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasTranslatedDynamicContents;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\LocaleContext;
-use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Helpers\SortableTrait;
 use Modules\Core\Locking\HasOptimisticLocking;
 use Modules\Core\Locking\Traits\HasLocks;
@@ -42,6 +41,7 @@ use Spatie\MediaLibrary\HasMedia;
 
 /**
  * @property int|string $id
+ *
  * @mixin IdeHelperContent
  */
 #[ObservedBy(ContentObserver::class)]
@@ -67,7 +67,6 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         Searchable::toSearchableArray as private toSearchableArrayTrait;
         Searchable::getSearchMapping as private getSearchMappingTrait;
     }
-    use SoftDeletes;
     use SortableTrait {
         SortableTrait::scopeOrdered as private scopePriorityOrdered;
     }

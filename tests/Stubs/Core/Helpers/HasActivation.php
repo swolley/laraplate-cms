@@ -22,7 +22,7 @@ trait HasActivation
     #[Scope]
     protected function active(Builder $query): Builder
     {
-        return $query->where('is_active', true);
+        return $query->where($this->qualifyColumn(static::$activation_column), true);
     }
 
     protected function casts(): array

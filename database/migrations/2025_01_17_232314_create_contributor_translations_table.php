@@ -20,7 +20,11 @@ return new class extends Migration
             $table->string('locale', 10)->nullable(false)->index('contributors_translations_locale_IDX')->comment('The locale of the translation');
             $table->string('slug')->nullable();
             $table->json('components')->nullable(false)->comment('The translated contributor components');
-            MigrateUtils::timestamps($table);
+
+            MigrateUtils::timestamps($table,
+                hasCreateUpdate: true,
+                hasSoftDelete: true,
+            );
 
             $table->index(['slug', 'locale'], 'contributors_translations_slug_locale_IDX');
             $table->unique(['contributor_id', 'locale'], 'contributors_translations_contributor_locale_UN');
