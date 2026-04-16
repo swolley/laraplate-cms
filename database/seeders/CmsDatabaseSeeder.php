@@ -17,6 +17,7 @@ use Modules\Core\Models\Field;
 use Modules\Core\Models\Preset;
 use Modules\Core\Models\Role;
 use Modules\Core\Overrides\Seeder;
+use Modules\Core\Services\DynamicContentsService;
 
 final class CmsDatabaseSeeder extends Seeder
 {
@@ -47,6 +48,7 @@ final class CmsDatabaseSeeder extends Seeder
         });
 
         Artisan::call('cache:clear');
+        DynamicContentsService::getInstance()->clearAllCaches();
     }
 
     private function defaultFields(): void

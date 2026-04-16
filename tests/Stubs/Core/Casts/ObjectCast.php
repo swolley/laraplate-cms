@@ -10,7 +10,7 @@ use Override;
 use stdClass;
 
 /**
- * Test stub: mirrors CMS {@see \Modules\Cms\Casts\ObjectCast} for Core {@see Field} in standalone tests.
+ * Test stub: mirrors CMS {@see \Modules\Core\Casts\ObjectCast} for Core {@see Field} in standalone tests.
  */
 final class ObjectCast implements CastsAttributes
 {

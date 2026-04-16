@@ -6,6 +6,7 @@ namespace Modules\Cms\Tests;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -60,7 +61,12 @@ abstract class TestCase extends TestbenchTestCase
      * @return void
      */
     /**
-     * Align in-memory SQLite with Core preset versioning (fields_snapshot, version) without running trigger-heavy Core migrations.
+     * Align the test schema with Core preset versioning (fields_snapshot, version) without
+     * running trigger-heavy Core migrations.
+     *
+     * Keep the same sequence as Core migration `2026_02_27_000000_add_versioning_to_presettables_table`:
+     * drop FK → replace uniques → add columns (nullable JSON, no server DEFAULT) → backfill →
+     * NOT NULL, so MySQL, PostgreSQL, and SQLite stay consistent.
      */
     private function ensurePresettablesVersioningColumns(): void
     {
@@ -73,11 +79,22 @@ abstract class TestCase extends TestbenchTestCase
         }
 
         Schema::table('presettables', function (Blueprint $table): void {
+            $table->dropForeign('presettables_preset_FK');
             $table->dropUnique('presettables_preset_UN');
             $table->unsignedInteger('version')->default(1);
-            $table->json('fields_snapshot')->default('[]');
+            $table->json('fields_snapshot')->nullable();
             $table->timestamp('created_at')->nullable();
             $table->unique(['entity_id', 'preset_id', 'version'], 'presettables_version_UN');
+            $table->foreign(['entity_id', 'preset_id'], 'presettables_preset_FK')
+                ->references(['entity_id', 'id'])
+                ->on('presets')
+                ->cascadeOnDelete();
+        });
+
+        DB::table('presettables')->update(['fields_snapshot' => json_encode([])]);
+
+        Schema::table('presettables', function (Blueprint $table): void {
+            $table->json('fields_snapshot')->nullable(false)->change();
         });
     }
 
