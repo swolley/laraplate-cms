@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Services\GoogleMapsService;
+use Modules\Core\Services\Geocoding\GoogleMapsService;
 
 it('has proper class structure', function (): void {
     $reflection = new ReflectionClass(GoogleMapsService::class);

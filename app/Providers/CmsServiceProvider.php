@@ -28,7 +28,5 @@ final class CmsServiceProvider extends ModuleServiceProvider
     public function register(): void
     {
         parent::register();
-
-        $this->app->register(GeocodingServiceProvider::class);
     }
 }

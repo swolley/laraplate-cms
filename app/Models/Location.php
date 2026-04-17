@@ -15,6 +15,7 @@ use Modules\Cms\Database\Factories\LocationFactory;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Models\Pivot\Locatable;
 use Modules\Core\Helpers\HasPath;
+use Modules\Core\Helpers\HasPlace;
 use Modules\Core\Helpers\HasSlug;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Search\Schema\FieldDefinition;
@@ -33,11 +34,13 @@ use Override;
  * @method static whereContains(Polygon $polygon)
  * @method static whereNotContains(Polygon $polygon)
  * @method static whereEquals(Point $point)
+ *
  * @mixin IdeHelperLocation
  */
 final class Location extends Model implements Taggable
 {
     use HasPath;
+    use HasPlace;
     use HasSlug;
     use HasSpatial;
     use HasTags;
@@ -52,6 +55,7 @@ final class Location extends Model implements Taggable
     #[Override]
     protected $fillable = [
         'name',
+        'place_id',
         'address',
         'city',
         'province',
@@ -97,6 +101,11 @@ final class Location extends Model implements Taggable
     {
         $document = array_merge($this->toSearchableArrayTrait(), Arr::except($this->toArray(), ['id', 'latitude', 'longitude']));
         $document['id'] = (string) $this->getKey();
+
+        if (! empty($this->attributes['place_id'] ?? null) && $this->relationLoaded('place') && $this->place !== null) {
+            return array_merge($document, $this->place->searchDocumentGeographyFields());
+        }
+
         $document['geocode'] = [(float) $this->latitude, (float) $this->longitude];
 
         return $document;
@@ -129,7 +138,11 @@ final class Location extends Model implements Taggable
     #[Override]
     public function getPath(): string
     {
-        return Str::slug($this->country);
+        if (! empty($this->attributes['place_id'] ?? null) && $this->relationLoaded('place') && $this->place !== null) {
+            return $this->place->countryPathSegment();
+        }
+
+        return Str::slug((string) ($this->getRawOriginal('country') ?? ''));
     }
 
     /**
@@ -158,6 +171,9 @@ final class Location extends Model implements Taggable
 
     // region Attributes
 
+    /**
+     * Used when {@see HasPlace} delegates to parent (no {@see place_id} yet): decimals come from {@see geolocation}.
+     */
     protected function getLatitudeAttribute(): ?float
     {
         return $this->geolocation?->latitude;

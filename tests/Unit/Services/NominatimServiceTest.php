@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Services\NominatimService;
+use Modules\Core\Services\Geocoding\NominatimService;
 
 it('has proper class structure', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);

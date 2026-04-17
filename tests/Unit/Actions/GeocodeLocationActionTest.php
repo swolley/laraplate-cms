@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Modules\Cms\Actions\Locations\GeocodeLocationAction;
-use Modules\Cms\Services\Contracts\IGeocodingService;
+use Modules\Core\Contracts\Geocoding\IGeocodingService;
 use Modules\Cms\Tests\TestCase;
 
 uses(TestCase::class);
