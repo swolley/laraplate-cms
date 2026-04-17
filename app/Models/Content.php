@@ -41,7 +41,6 @@ use Spatie\MediaLibrary\HasMedia;
 
 /**
  * @property int|string $id
- *
  * @mixin IdeHelperContent
  */
 #[ObservedBy(ContentObserver::class)]
