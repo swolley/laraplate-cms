@@ -12,6 +12,7 @@ use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Models\Pivot\Categorizable;
 use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Helpers\HasTranslatedDynamicContents;
+use Modules\Core\Models\Taxonomy;
 use Override;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\MediaLibrary\HasMedia as IMediable;
@@ -32,9 +33,9 @@ final class Category extends Taxonomy implements IMediable, Sortable
 
     public function __construct(array $attributes = [])
     {
-        return parent::__construct($attributes);
-        $this->fillable[] = 'logo';
-        $this->fillable[] = 'logo_full';
+        array_push($this->fillable, 'logo', 'logo_full');
+
+        parent::__construct($attributes);
     }
     // endregion
 
