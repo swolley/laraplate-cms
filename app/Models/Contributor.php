@@ -165,7 +165,7 @@ final class Contributor extends Model implements IMediable, Taggable
         return ! $this->getCanLoginAttribute();
     }
 
-    private function isUserAttribute(): bool
+    protected function isUserAttribute(): bool
     {
         return $this->getCanLoginAttribute();
     }
