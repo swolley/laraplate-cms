@@ -17,7 +17,7 @@ return new class extends Migration
     {
         Schema::create('categories_translations', static function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('category_id')->nullable(false)->constrained('categories', 'id', 'categories_translations_category_id_FK')->cascadeOnDelete()->comment('The category that the translation belongs to');
+            $table->foreignId('taxonomy_id')->nullable(false)->constrained('categories', 'id', 'taxonomies_translations_taxonomy_id_FK')->cascadeOnDelete()->comment('The category that the translation belongs to');
             $table->string('locale', 10)->nullable(false)->index('categories_translations_locale_IDX')->comment('The locale of the translation');
             $table->string('name')->nullable(false)->comment('The translated name of the category');
             $table->string('slug')->nullable(false)->index('categories_translations_slug_IDX')->comment('The translated slug of the category');
@@ -29,17 +29,17 @@ return new class extends Migration
                 hasSoftDelete: true,
             );
 
-            $table->unique(['category_id', 'locale'], 'categories_translations_category_locale_UN');
+            $table->unique(['taxonomy_id', 'locale'], 'taxonomies_translations_category_locale_UN');
             $table->index(['locale', 'slug'], 'categories_translations_locale_slug_IDX');
         });
 
         // Add fulltext indexes for databases that support them
         if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
-            DB::statement('ALTER TABLE categories_translations ADD FULLTEXT categories_translations_name_IDX (name)');
+            DB::statement('ALTER TABLE taxonomies_translations ADD FULLTEXT taxonomies_translations_name_IDX (name)');
         } elseif (DB::getDriverName() === 'pgsql') {
             // PostgreSQL fulltext search indexes
             // TODO: This is temporary fixed to english for now
-            DB::statement('CREATE INDEX categories_translations_name_fts_idx ON categories_translations USING gin(to_tsvector(\'english\', name))');
+            DB::statement('CREATE INDEX taxonomies_translations_name_fts_idx ON taxonomies_translations USING gin(to_tsvector(\'english\', name))');
         }
     }
 

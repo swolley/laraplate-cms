@@ -24,19 +24,10 @@ return new class extends Migration
                 hasSoftDelete: true,
             );
         });
-
-        Schema::create('taggables', static function (Blueprint $table): void {
-            $table->foreignId('tag_id')->constrained('tags', 'id', 'taggables_tag_id_FK')->cascadeOnDelete()->comment('The tag that the taggable belongs to');
-            $table->morphs('taggable', 'taggables_morph_idx');
-
-            $table->primary(['tag_id', 'taggable_id', 'taggable_type'], 'taggables_primary_idx');
-            $table->index(['taggable_type', 'taggable_id'], 'taggables_inverse_idx');
-        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('taggables');
         Schema::dropIfExists('tags');
     }
 };

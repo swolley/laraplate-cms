@@ -22,7 +22,7 @@ final class Categorizable extends Pivot
     protected $table = 'categorizables';
 
     #[Override]
-    protected $primaryKey = ['content_id', 'category_id'];
+    protected $primaryKey = ['content_id', 'taxonomy_id'];
 
     #[Override]
     protected $keyType = 'array';

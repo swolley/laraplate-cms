@@ -38,7 +38,7 @@ return new class extends Migration
 
             foreach ($categories as $category) {
                 DB::table('categories_translations')->insert([
-                    'category_id' => $category->id,
+                    'taxonomy_id' => $category->id,
                     'locale' => $default_locale,
                     'name' => $category->name,
                     'slug' => $category->slug ?? '',

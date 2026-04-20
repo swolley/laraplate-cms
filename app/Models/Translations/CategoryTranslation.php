@@ -26,7 +26,7 @@ final class CategoryTranslation extends Model implements ITranslated
      */
     #[Override]
     protected $fillable = [
-        'category_id',
+        'taxonomy_id',
         'locale',
         'name',
         'slug',

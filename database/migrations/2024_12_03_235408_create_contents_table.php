@@ -32,52 +32,6 @@ return new class extends Migration
 
             $table->unique(['id', 'entity_id'], 'content_entity_UN');
         });
-
-        // Fulltext indexes for title are now in contents_translations table
-
-        Schema::create('categorizables', static function (Blueprint $table): void {
-            // $table->id();
-            $table->unsignedBigInteger('content_id')->nullable(false)->comment('The content that the categorizable belongs to');
-            $table->unsignedBigInteger('category_id')->nullable(false)->comment('The category that the categorizable belongs to');
-            MigrateUtils::timestamps($table);
-
-            $table->primary(['content_id', 'category_id']);
-            $table->foreign(['content_id'], 'categorizables_content_FK')
-                ->references(['id'])
-                ->on('contents')
-                ->cascadeOnDelete();
-            $table->foreign(['category_id'], 'categorizables_category_FK')
-                ->references(['id'])
-                ->on('categories')
-                ->cascadeOnDelete();
-        });
-
-        Schema::create('contributables', static function (Blueprint $table): void {
-            // $table->id();
-            $table->foreignId('content_id')->nullable(false)->constrained('contents', 'id', 'contributables_content_id_FK')->cascadeOnDelete()->comment('The content that the contributable belongs to');
-            $table->foreignId('contributor_id')->nullable(false)->constrained('contributors', 'id', 'contributables_contributor_id_FK')->cascadeOnDelete()->comment('The contributor that the contributable belongs to');
-            MigrateUtils::timestamps($table);
-
-            $table->primary(['content_id', 'contributor_id']);
-        });
-
-        Schema::create('relatables', static function (Blueprint $table): void {
-            // $table->id();
-            $table->foreignId('content_id')->nullable(false)->constrained('contents', 'id', 'relatables_content_id_FK')->cascadeOnDelete()->comment('The content that the relatable belongs to');
-            $table->foreignId('related_content_id')->nullable(false)->constrained('contents', 'id', 'relatables_related_content_id_FK')->cascadeOnDelete()->comment('The related content that the relatable belongs to');
-            MigrateUtils::timestamps($table);
-
-            $table->primary(['content_id', 'related_content_id']);
-        });
-
-        Schema::create('locatables', static function (Blueprint $table): void {
-            // $table->id();
-            $table->foreignId('content_id')->nullable(false)->constrained('contents', 'id', 'locatables_content_id_FK')->cascadeOnDelete()->comment('The content that the locatable belongs to');
-            $table->foreignId('location_id')->nullable(false)->constrained('locations', 'id', 'locatables_location_id_FK')->cascadeOnDelete()->comment('The location that the locatable belongs to');
-            MigrateUtils::timestamps($table);
-
-            $table->primary(['content_id', 'location_id']);
-        });
     }
 
     /**
@@ -85,10 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('relatables');
-        Schema::dropIfExists('contributables');
-        Schema::dropIfExists('categorizables');
-        Schema::dropIfExists('locatables');
         Schema::dropIfExists('contents');
     }
 };
