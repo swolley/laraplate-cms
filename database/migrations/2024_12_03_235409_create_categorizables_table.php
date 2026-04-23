@@ -27,7 +27,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->foreign(['taxonomy_id'], 'categorizables_taxonomy_FK')
                 ->references(['id'])
-                ->on('categories')
+                ->on('taxonomies')
                 ->cascadeOnDelete();
         });
     }
