@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Modules\Cms\Casts\EntityType;
-use Modules\Core\Models\Pivot\Presettable;
+use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Core\Models\Preset as CorePreset;
 use Override;
 
@@ -25,7 +25,7 @@ final class Preset extends CorePreset
     public function contents(): HasManyThrough
     {
         return $this->hasManyThrough(
-            $this->getRelatedContentModelClass(),
+            $this->getRelatedModelClass(),
             Presettable::class,
             'preset_id',      // foreign key on presettables pointing to presets
             'presettable_id', // foreign key on contents pointing to presettables
@@ -55,7 +55,7 @@ final class Preset extends CorePreset
     }
 
     #[Override]
-    protected static function getRelatedContentModelClass(): string
+    protected static function getRelatedModelClass(): string
     {
         return Content::class;
     }
