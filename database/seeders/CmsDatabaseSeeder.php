@@ -14,7 +14,7 @@ use Modules\Core\Casts\ActionEnum;
 use Modules\Core\Casts\FieldType;
 use Modules\Core\Database\Seeders\CoreDatabaseSeeder;
 use Modules\Core\Models\Field;
-use Modules\Core\Models\Preset;
+use Modules\Cms\Models\Preset;
 use Modules\Core\Models\Role;
 use Modules\Core\Overrides\Seeder;
 use Modules\Core\Services\DynamicContentsService;

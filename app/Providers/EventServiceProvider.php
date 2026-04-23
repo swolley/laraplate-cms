@@ -5,11 +5,6 @@ declare(strict_types=1);
 namespace Modules\Cms\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Event;
-use Modules\Cms\Models\Entity;
-use Modules\Core\Models\Preset;
-use Modules\Core\Services\DynamicContentsService;
 use Override;
 
 final class EventServiceProvider extends ServiceProvider
@@ -33,25 +28,5 @@ final class EventServiceProvider extends ServiceProvider
     #[Override]
     public function boot(): void
     {
-        Event::listen([
-            'eloquent.saved: ' . Entity::class,
-            'eloquent.deleted: ' . Entity::class,
-        ], function (): void {
-            $this->clearEntityCache();
-        });
-    }
-
-    private function clearEntityCache(): void
-    {
-        Cache::forget(new Entity()->getCacheKey());
-        DynamicContentsService::getInstance()->clearEntitiesCache();
-        $this->clearPresetCache();
-    }
-
-    private function clearPresetCache(): void
-    {
-        Cache::forget(new Preset()->getCacheKey());
-        DynamicContentsService::getInstance()->clearPresetsCache();
-        DynamicContentsService::getInstance()->clearPresettablesCache();
     }
 }

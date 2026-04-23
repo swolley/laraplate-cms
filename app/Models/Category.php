@@ -11,7 +11,6 @@ use Modules\Cms\Helpers\HasMultimedia;
 use Modules\Cms\Helpers\HasTags;
 use Modules\Cms\Models\Pivot\Categorizable;
 use Modules\Core\Contracts\IDynamicEntityTypable;
-use Modules\Core\Helpers\HasTranslatedDynamicContents;
 use Modules\Core\Models\Taxonomy;
 use Override;
 use Spatie\EloquentSortable\Sortable;
@@ -25,11 +24,6 @@ final class Category extends Taxonomy implements IMediable, Sortable
     // region Traits
     use HasMultimedia;
     use HasTags;
-    use HasTranslatedDynamicContents {
-        HasTranslatedDynamicContents::getRules as private getRulesDynamicContents;
-        HasTranslatedDynamicContents::toArray as private translatedDynamicContentsToArray;
-        HasTranslatedDynamicContents::casts as private translatedDynamicContentsCasts;
-    }
 
     public function __construct(array $attributes = [])
     {
