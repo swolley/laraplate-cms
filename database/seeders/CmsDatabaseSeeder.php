@@ -18,6 +18,7 @@ use Modules\Cms\Models\Preset;
 use Modules\Core\Models\Role;
 use Modules\Core\Overrides\Seeder;
 use Modules\Core\Services\DynamicContentsService;
+use Modules\Core\Services\PresetVersioningService;
 
 final class CmsDatabaseSeeder extends Seeder
 {
@@ -189,6 +190,11 @@ final class CmsDatabaseSeeder extends Seeder
                             $this->assignFieldToPreset($preset, $field, false);
                         }
                     }
+
+                    // Create presettable with a frozen fields snapshot after all fields are attached.
+                    // Must be called after every field change since BelongsToMany bulk operations
+                    // do not fire pivot model events that would otherwise trigger versioning.
+                    resolve(PresetVersioningService::class)->createVersion($preset);
 
                     $this->command->line("    - {$entity['name']} <fg=green>created</>");
                 } else {

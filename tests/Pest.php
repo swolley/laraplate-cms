@@ -77,6 +77,8 @@ use Modules\Cms\Models\Pivot\Presettable;
 use Modules\Cms\Models\Preset;
 use Modules\Core\Casts\FieldType as CoreFieldType;
 use Modules\Core\Models\Field;
+use Modules\Core\Services\DynamicContentsService;
+use Modules\Core\Services\PresetVersioningService;
 
 /*
 |--------------------------------------------------------------------------
@@ -108,8 +110,9 @@ function setupCmsEntities(array $entityTypes = [EntityType::CONTENTS, EntityType
 
         $preset = Preset::query()->firstOrCreate(['entity_id' => $entity->id, 'name' => 'default'], ['entity_id' => $entity->id, 'name' => 'default']);
 
-        Presettable::query()->firstOrCreate(['entity_id' => $entity->id, 'preset_id' => $preset->id], ['entity_id' => $entity->id, 'preset_id' => $preset->id]);
-
+        // Fields must be attached before creating the presettable so that the snapshot
+        // captures the full field set. The presettable is created/refreshed via
+        // PresetVersioningService to guarantee fields_snapshot is never null.
         if ($preset->fields()->count() === 0) {
             $field = Field::query()->create([
                 'name' => 'description_' . uniqid(),
@@ -120,6 +123,18 @@ function setupCmsEntities(array $entityTypes = [EntityType::CONTENTS, EntityType
                 'default' => null,
                 'is_required' => false,
             ]);
+        }
+
+        $presettable = Presettable::query()
+            ->where('entity_id', $entity->id)
+            ->where('preset_id', $preset->id)
+            ->whereNull('deleted_at')
+            ->latest('version')
+            ->first();
+
+        if ($presettable === null || empty($presettable->fields_snapshot)) {
+            resolve(PresetVersioningService::class)->createVersion($preset);
+            DynamicContentsService::getInstance()->clearAllCaches();
         }
     }
 }
