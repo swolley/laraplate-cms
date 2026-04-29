@@ -35,7 +35,7 @@ return [
 
     // The fully qualified class name of the media model.
     // 'media_model' => \Spatie\MediaLibrary\MediaCollections\Models\Media::class,
-    'media_model' => Modules\Cms\Models\Media::class,
+    'media_model' => Modules\CMS\Models\Media::class,
 
     /*
      * When enabled, media collections will be serialised using the default
@@ -65,7 +65,7 @@ return [
 
     // This is the class that is responsible for naming generated files.
     // 'file_namer' => Spatie\MediaLibrary\Support\FileNamer\DefaultFileNamer::class,
-    'file_namer' => Modules\Cms\Helpers\MediaFileNamer::class,
+    'file_namer' => Modules\CMS\Helpers\MediaFileNamer::class,
 
     // The class that contains the strategy for determining a media file's path.
     'path_generator' => Spatie\MediaLibrary\Support\PathGenerator\DefaultPathGenerator::class,

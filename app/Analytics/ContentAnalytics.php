@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Analytics;
+namespace Modules\CMS\Analytics;
 
 use Illuminate\Support\Facades\Cache;
-use Modules\Cms\Models\Content;
+use Modules\CMS\Models\Content;
 
 final class ContentAnalytics extends AbstractAnalytics
 {

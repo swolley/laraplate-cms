@@ -5,9 +5,9 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
-use Modules\Cms\Models\Location;
-use Modules\Cms\Services\Contracts\IGeocodingService;
-use Modules\Cms\Tests\TestCase;
+use Modules\CMS\Models\Location;
+use Modules\CMS\Services\Contracts\IGeocodingService;
+use Modules\CMS\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 

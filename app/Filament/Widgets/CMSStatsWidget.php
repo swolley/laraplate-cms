@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Widgets;
+namespace Modules\CMS\Filament\Widgets;
 
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Modules\Cms\Models\Category;
-use Modules\Cms\Models\Content;
-use Modules\Cms\Models\Contributor;
-use Modules\Cms\Models\Location;
-use Modules\Cms\Models\Tag;
+use Modules\CMS\Models\Category;
+use Modules\CMS\Models\Content;
+use Modules\CMS\Models\Contributor;
+use Modules\CMS\Models\Location;
+use Modules\CMS\Models\Tag;
 use Override;
 
-final class CmsStatsWidget extends BaseWidget
+final class CMSStatsWidget extends BaseWidget
 {
     #[Override]
     protected ?string $pollingInterval = null;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Contents;
+namespace Modules\CMS\Filament\Resources\Contents;
 
 use BackedEnum;
 // use Filament\Resources\Resource;
@@ -13,12 +13,12 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Modules\Cms\Filament\Resources\Contents\Pages\CreateContent;
-use Modules\Cms\Filament\Resources\Contents\Pages\EditContent;
-use Modules\Cms\Filament\Resources\Contents\Pages\ListContents;
-use Modules\Cms\Filament\Resources\Contents\Schemas\ContentForm;
-use Modules\Cms\Filament\Resources\Contents\Tables\ContentsTable;
-use Modules\Cms\Models\Content;
+use Modules\CMS\Filament\Resources\Contents\Pages\CreateContent;
+use Modules\CMS\Filament\Resources\Contents\Pages\EditContent;
+use Modules\CMS\Filament\Resources\Contents\Pages\ListContents;
+use Modules\CMS\Filament\Resources\Contents\Schemas\ContentForm;
+use Modules\CMS\Filament\Resources\Contents\Tables\ContentsTable;
+use Modules\CMS\Models\Content;
 use Override;
 use UnitEnum;
 
@@ -31,7 +31,7 @@ final class ContentResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPencil;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'Cms';
+    protected static string|UnitEnum|null $navigationGroup = 'CMS';
 
     #[Override]
     protected static ?int $navigationSort = 2;

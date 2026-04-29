@@ -5,11 +5,11 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Models\Entity;
-use Modules\Cms\Tests\TestCase;
-use Modules\Cms\Tests\Unit\Filament\Utils\CmsHasRecordsEntityHarness;
-use Modules\Cms\Tests\Unit\Filament\Utils\CmsHasRecordsTraitHarness;
+use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Models\Entity;
+use Modules\CMS\Tests\TestCase;
+use Modules\CMS\Tests\Unit\Filament\Utils\CMSHasRecordsEntityHarness;
+use Modules\CMS\Tests\Unit\Filament\Utils\CMSHasRecordsTraitHarness;
 use Modules\Core\Models\Pivot\Presettable;
 use Modules\Core\Models\Preset;
 
@@ -82,7 +82,7 @@ function createSecondContentsEntityWithPreset(): Entity
 }
 
 it('returns filament tabs with badges when multiple content entities exist and counts are present', function (): void {
-    setupCmsEntities([EntityType::CONTENTS]);
+    setupCMSEntities([EntityType::CONTENTS]);
 
     $secondaryEntity = createSecondContentsEntityWithPreset();
 
@@ -98,22 +98,22 @@ it('returns filament tabs with badges when multiple content entities exist and c
     insertMinimalContentRow((int) $primaryPresettable->entity_id, (int) $primaryPresettable->id);
     insertMinimalContentRow((int) $secondaryEntity->id, (int) $secondaryPresettable->id);
 
-    $tabs = (new CmsHasRecordsTraitHarness)->getTabs();
+    $tabs = (new CMSHasRecordsTraitHarness)->getTabs();
 
     expect($tabs)->not->toBeEmpty()
         ->and($tabs)->toHaveKey('all');
 });
 
 it('returns an empty tab list when fewer than two entities are available', function (): void {
-    setupCmsEntities([EntityType::CONTENTS]);
+    setupCMSEntities([EntityType::CONTENTS]);
 
-    $tabs = (new CmsHasRecordsTraitHarness)->getTabs();
+    $tabs = (new CMSHasRecordsTraitHarness)->getTabs();
 
     expect($tabs)->toBeArray()->toBeEmpty();
 });
 
 it('returns no tabs when the resource model does not use dynamic contents', function (): void {
-    $tabs = (new CmsHasRecordsEntityHarness)->getTabs();
+    $tabs = (new CMSHasRecordsEntityHarness)->getTabs();
 
     expect($tabs)->toBeArray()->toBeEmpty();
 });

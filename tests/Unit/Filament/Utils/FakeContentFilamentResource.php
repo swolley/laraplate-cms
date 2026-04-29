@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Tests\Unit\Filament\Utils;
+namespace Modules\CMS\Tests\Unit\Filament\Utils;
 
-use Modules\Cms\Models\Content;
+use Modules\CMS\Models\Content;
 
 final class FakeContentFilamentResource
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Models\Entity;
+use Modules\CMS\Models\Entity;
 
 it('entity model has correct structure', function (): void {
     $reflection = new ReflectionClass(Entity::class);

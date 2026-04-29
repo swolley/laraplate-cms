@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Cache;
-use Modules\Cms\Models\Location;
-use Modules\Cms\Services\Contracts\AbstractGeocodingService;
-use Modules\Cms\Tests\TestCase;
+use Modules\CMS\Models\Location;
+use Modules\CMS\Services\Contracts\AbstractGeocodingService;
+use Modules\CMS\Tests\TestCase;
 
 uses(TestCase::class);
 

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Actions\Locations\GeocodeLocationAction;
+use Modules\CMS\Actions\Locations\GeocodeLocationAction;
 use Modules\Core\Contracts\Geocoding\IGeocodingService;
-use Modules\Cms\Tests\TestCase;
+use Modules\CMS\Tests\TestCase;
 
 uses(TestCase::class);
 

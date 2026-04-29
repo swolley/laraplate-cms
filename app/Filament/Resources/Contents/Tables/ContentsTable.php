@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Contents\Tables;
+namespace Modules\CMS\Filament\Resources\Contents\Tables;
 
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
-use Modules\Cms\Filament\Utils\HasTable;
-use Modules\Cms\Models\Content;
-use Modules\Cms\Models\Media;
+use Modules\CMS\Filament\Utils\HasTable;
+use Modules\CMS\Models\Content;
+use Modules\CMS\Models\Media;
 
 final class ContentsTable
 {

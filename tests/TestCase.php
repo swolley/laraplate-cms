@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Tests;
+namespace Modules\CMS\Tests;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Artisan;
@@ -10,12 +10,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Modules\Cms\Http\Controllers\LocationsController;
+use Modules\CMS\Http\Controllers\LocationsController;
 use Orchestra\Testbench\TestCase as TestbenchTestCase;
 
 /**
- * CMS test case. Boots a Laravel application with the Cms module registered.
- * Core is required at runtime (CmsServiceProvider extends Core's ModuleServiceProvider):
+ * CMS test case. Boots a Laravel application with the CMS module registered.
+ * Core is required at runtime (CMSServiceProvider extends Core's ModuleServiceProvider):
  * run tests from the laraplate application or add the Core module as a dev dependency.
  */
 abstract class TestCase extends TestbenchTestCase
@@ -129,7 +129,7 @@ abstract class TestCase extends TestbenchTestCase
     protected function getPackageProviders($app): array
     {
         return [
-            \Modules\Cms\Providers\CmsServiceProvider::class,
+            \Modules\CMS\Providers\CMSServiceProvider::class,
         ];
     }
 
@@ -149,7 +149,7 @@ abstract class TestCase extends TestbenchTestCase
         $app->make(\Illuminate\Contracts\Config\Repository::class)->set('core.filament.tabs_counts_ttl_seconds', 60);
         $app->make(\Illuminate\Contracts\Config\Repository::class)->set(
             'auth.providers.users.model',
-            \Modules\Cms\Tests\Support\User::class,
+            \Modules\CMS\Tests\Support\User::class,
         );
 
         $config = $app->make(\Illuminate\Contracts\Config\Repository::class);

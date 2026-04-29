@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Contributors\Schemas;
+namespace Modules\CMS\Filament\Resources\Contributors\Schemas;
 
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;

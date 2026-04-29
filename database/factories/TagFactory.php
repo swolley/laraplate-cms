@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Database\Factories;
+namespace Modules\CMS\Database\Factories;
 
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-use Modules\Cms\Models\Tag;
+use Modules\CMS\Models\Tag;
 use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Modules\Core\Overrides\Factory;
 use Override;
 
 /**
- * @extends \Modules\Core\Overrides\Factory<\Modules\Cms\Models\Tag>
+ * @extends \Modules\Core\Overrides\Factory<\Modules\CMS\Models\Tag>
  */
 final class TagFactory extends Factory
 {

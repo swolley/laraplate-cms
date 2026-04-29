@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Presets;
+namespace Modules\CMS\Filament\Resources\Presets;
 
 use BackedEnum;
 // use Filament\Resources\Resource;
@@ -13,11 +13,11 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Modules\Cms\Filament\Resources\Presets\Pages\CreatePreset;
-use Modules\Cms\Filament\Resources\Presets\Pages\EditPreset;
-use Modules\Cms\Filament\Resources\Presets\Pages\ListPresets;
-use Modules\Cms\Filament\Resources\Presets\Schemas\PresetForm;
-use Modules\Cms\Filament\Resources\Presets\Tables\PresetsTable;
+use Modules\CMS\Filament\Resources\Presets\Pages\CreatePreset;
+use Modules\CMS\Filament\Resources\Presets\Pages\EditPreset;
+use Modules\CMS\Filament\Resources\Presets\Pages\ListPresets;
+use Modules\CMS\Filament\Resources\Presets\Schemas\PresetForm;
+use Modules\CMS\Filament\Resources\Presets\Tables\PresetsTable;
 use Modules\Core\Models\Preset;
 use Override;
 use UnitEnum;
@@ -31,7 +31,7 @@ final class PresetResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleGroup;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'Cms';
+    protected static string|UnitEnum|null $navigationGroup = 'CMS';
 
     #[Override]
     protected static ?int $navigationSort = 5;

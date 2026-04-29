@@ -1,5 +1,5 @@
 {
-    "name": "Cms",
+    "name": "CMS",
     "alias": "cms", 
     "description": "Content Management System Module",
     "keywords": [
@@ -15,7 +15,7 @@
     ],
     "priority": 999,
     "providers": [
-        "Modules\\Cms\\Providers\\CmsServiceProvider"
+        "Modules\\CMS\\Providers\\CMSServiceProvider"
     ],
     "files": []
 }

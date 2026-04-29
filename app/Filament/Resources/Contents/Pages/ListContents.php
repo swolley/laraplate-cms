@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Contents\Pages;
+namespace Modules\CMS\Filament\Resources\Contents\Pages;
 
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
-use Modules\Cms\Filament\Resources\Contents\ContentResource;
-use Modules\Cms\Filament\Utils\HasRecords;
+use Modules\CMS\Filament\Resources\Contents\ContentResource;
+use Modules\CMS\Filament\Utils\HasRecords;
 use Override;
 
 final class ListContents extends ListRecords

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Categories;
+namespace Modules\CMS\Filament\Resources\Categories;
 
 use BackedEnum;
 // use Filament\Resources\Resource;
@@ -13,12 +13,12 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Modules\Cms\Filament\Resources\Categories\Pages\CreateCategory;
-use Modules\Cms\Filament\Resources\Categories\Pages\EditCategory;
-use Modules\Cms\Filament\Resources\Categories\Pages\ListCategories;
-use Modules\Cms\Filament\Resources\Categories\Schemas\CategoryForm;
-use Modules\Cms\Filament\Resources\Categories\Tables\CategoriesTable;
-use Modules\Cms\Models\Category;
+use Modules\CMS\Filament\Resources\Categories\Pages\CreateCategory;
+use Modules\CMS\Filament\Resources\Categories\Pages\EditCategory;
+use Modules\CMS\Filament\Resources\Categories\Pages\ListCategories;
+use Modules\CMS\Filament\Resources\Categories\Schemas\CategoryForm;
+use Modules\CMS\Filament\Resources\Categories\Tables\CategoriesTable;
+use Modules\CMS\Models\Category;
 use Override;
 use UnitEnum;
 
@@ -31,7 +31,7 @@ final class CategoryResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFolder;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'Cms';
+    protected static string|UnitEnum|null $navigationGroup = 'CMS';
 
     #[Override]
     protected static ?int $navigationSort = 3;

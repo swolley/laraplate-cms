@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Database\Factories;
+namespace Modules\CMS\Database\Factories;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Models\Category;
+use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Models\Category;
 use Modules\Core\Overrides\Factory;
 use Override;
 
 /**
- * @extends \Modules\Core\Overrides\Factory<\Modules\Cms\Models\Category>
+ * @extends \Modules\Core\Overrides\Factory<\Modules\CMS\Models\Category>
  */
 final class CategoryFactory extends Factory
 {

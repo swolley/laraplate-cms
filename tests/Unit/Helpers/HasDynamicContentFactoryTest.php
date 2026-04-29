@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Models\Content;
-use Modules\Cms\Tests\TestCase;
+use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Models\Content;
+use Modules\CMS\Tests\TestCase;
 use Modules\Core\Overrides\Factory as CoreFactory;
 
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    setupCmsEntities([EntityType::CONTENTS]);
+    setupCMSEntities([EntityType::CONTENTS]);
 });
 
 it('returns entity and presettable ids from dynamicContentDefinition', function (): void {

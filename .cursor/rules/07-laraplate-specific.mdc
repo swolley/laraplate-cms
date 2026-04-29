@@ -1,15 +1,15 @@
 ---
-description: Laraplate/Cms module-specific architecture and conventions
-globs: ["**/Modules/Cms/**", "**/module.json", "**/module.php"]
+description: Laraplate/CMS module-specific architecture and conventions
+globs: ["**/Modules/CMS/**", "**/module.json", "**/module.php"]
 alwaysApply: false
 ---
 
-# Laraplate Cms – Module Specific Rules
+# Laraplate CMS – Module Specific Rules
 
-Questo file definisce le regole **specifiche per il modulo Cms** all'interno di Laraplate.
+Questo file definisce le regole **specifiche per il modulo CMS** all'interno di Laraplate.
 Non descrive l'intera applicazione, ma si concentra su:
-- quale ruolo ha il Cms nel sistema
-- come il Cms si appoggia al Core
+- quale ruolo ha il CMS nel sistema
+- come il CMS si appoggia al Core
 - come organizzare correttamente la logica di content management.
 
 Per le linee guida generali di Laravel, moduli, Filament, testing, CI/CD, ecc. fare riferimento a:
@@ -65,7 +65,7 @@ Non deve esserci dipendenza inversa (Core → Cms).
 Nel modulo Cms la struttura tipica (semplificata) è:
 
 ```
-Modules/Cms/
+Modules/CMS/
 ├── app/
 │   ├── Console/
 │   ├── Filament/
@@ -95,7 +95,7 @@ Modules/Cms/
   - comportamento di Filament resources collegate al dominio Cms,
   - integrazione con le funzionalità del Core (dynamic entities, search, locking, ecc.).
 - Posizione:
-  - usare `Modules/Cms/tests` con struttura chiara `Unit/` e `Feature/`,
+  - usare `Modules/CMS/tests` con struttura chiara `Unit/` e `Feature/`,
   - preferire test di feature per i flussi editoriali principali.
 
 Per linee guida comuni su testing e tooling fare sempre riferimento a:

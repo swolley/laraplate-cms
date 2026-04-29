@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Models\Translations;
+namespace Modules\CMS\Models\Translations;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Cms\Models\Tag;
+use Modules\CMS\Models\Tag;
 use Modules\Core\Helpers\HasSlug;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;

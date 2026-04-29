@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Tags\Schemas;
+namespace Modules\CMS\Filament\Resources\Tags\Schemas;
 
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;

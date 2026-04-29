@@ -7,10 +7,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\Cms\Models\Content;
-use Modules\Cms\Models\Tag;
-use Modules\Cms\Models\Translations\TagTranslation;
-use Modules\Cms\Tests\TestCase;
+use Modules\CMS\Models\Content;
+use Modules\CMS\Models\Tag;
+use Modules\CMS\Models\Translations\TagTranslation;
+use Modules\CMS\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
@@ -22,7 +22,7 @@ beforeEach(function (): void {
         $this->markTestSkipped('Tag integration features require full Core runtime.');
     }
 
-    setupCmsEntities();
+    setupCMSEntities();
 });
 
 it('can be created with factory', function (): void {

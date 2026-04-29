@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Actions\Locations;
+namespace Modules\CMS\Actions\Locations;
 
-use Modules\Cms\Models\Location;
+use Modules\CMS\Models\Location;
 use Modules\Core\Contracts\Geocoding\GeocodingResult;
 use Modules\Core\Contracts\Geocoding\IGeocodingService;
 

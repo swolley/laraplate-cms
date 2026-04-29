@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Entities;
+namespace Modules\CMS\Filament\Resources\Entities;
 
 use BackedEnum;
 // use Filament\Resources\Resource;
@@ -11,12 +11,12 @@ use Filament\Panel;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Modules\Cms\Filament\Resources\Entities\Pages\CreateEntity;
-use Modules\Cms\Filament\Resources\Entities\Pages\EditEntity;
-use Modules\Cms\Filament\Resources\Entities\Pages\ListEntities;
-use Modules\Cms\Filament\Resources\Entities\Schemas\EntityForm;
-use Modules\Cms\Filament\Resources\Entities\Tables\EntitiesTable;
-use Modules\Cms\Models\Entity;
+use Modules\CMS\Filament\Resources\Entities\Pages\CreateEntity;
+use Modules\CMS\Filament\Resources\Entities\Pages\EditEntity;
+use Modules\CMS\Filament\Resources\Entities\Pages\ListEntities;
+use Modules\CMS\Filament\Resources\Entities\Schemas\EntityForm;
+use Modules\CMS\Filament\Resources\Entities\Tables\EntitiesTable;
+use Modules\CMS\Models\Entity;
 use Override;
 use UnitEnum;
 
@@ -29,7 +29,7 @@ final class EntityResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedListBullet;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'Cms';
+    protected static string|UnitEnum|null $navigationGroup = 'CMS';
 
     #[Override]
     protected static ?int $navigationSort = 4;

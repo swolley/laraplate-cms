@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Models;
+namespace Modules\CMS\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Contracts\Taggable;
-use Modules\Cms\Database\Factories\ContributorFactory;
-use Modules\Cms\Helpers\HasMultimedia;
-use Modules\Cms\Helpers\HasTags;
-use Modules\Cms\Models\Pivot\Contributable;
+use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Contracts\Taggable;
+use Modules\CMS\Database\Factories\ContributorFactory;
+use Modules\CMS\Helpers\HasMultimedia;
+use Modules\CMS\Helpers\HasTags;
+use Modules\CMS\Models\Pivot\Contributable;
 use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasTranslatedDynamicContents;

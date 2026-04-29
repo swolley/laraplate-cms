@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament;
+namespace Modules\CMS\Filament;
 
 use Coolsam\Modules\Concerns\ModuleFilamentPlugin;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 
-final class CmsPlugin implements Plugin
+final class CMSPlugin implements Plugin
 {
     use ModuleFilamentPlugin;
 
     public function getModuleName(): string
     {
-        return 'Cms';
+        return 'CMS';
     }
 
     public function getId(): string

@@ -1,7 +1,7 @@
 {
   "name": "swolley/laraplate-cms",
   "vendor": "swolley",
-  "description": "Cms Module contains all the necessary functionalities for build up a new Cms system.",
+  "description": "CMS module contains all the necessary functionalities to build a new content management system.",
   "version": "v1.28.2",
   "keywords": [
     "laravel",
@@ -100,16 +100,16 @@
   },
   "autoload": {
     "psr-4": {
-      "Modules\\Cms\\": "app/",
-      "Modules\\Cms\\Database\\Factories\\": "database/factories/",
-      "Modules\\Cms\\Database\\Seeders\\": "database/seeders/"
+      "Modules\\CMS\\": "app/",
+      "Modules\\CMS\\Database\\Factories\\": "database/factories/",
+      "Modules\\CMS\\Database\\Seeders\\": "database/seeders/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Modules\\Cms\\Tests\\Unit\\": "tests/Unit",
-      "Modules\\Cms\\Tests\\Feature\\": "tests/Feature",
-      "Modules\\Cms\\Tests\\Support\\": "tests/Support/"
+      "Modules\\CMS\\Tests\\Unit\\": "tests/Unit",
+      "Modules\\CMS\\Tests\\Feature\\": "tests/Feature",
+      "Modules\\CMS\\Tests\\Support\\": "tests/Support/"
     },
     "classmap": [
       "tests/TestCase.php",

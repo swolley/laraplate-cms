@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Locations\Pages;
+namespace Modules\CMS\Filament\Resources\Locations\Pages;
 
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
-use Modules\Cms\Filament\Resources\Locations\LocationResource;
+use Modules\CMS\Filament\Resources\Locations\LocationResource;
 use Override;
 
 final class EditLocation extends EditRecord

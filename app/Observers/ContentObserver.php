@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Observers;
+namespace Modules\CMS\Observers;
 
-use Modules\Cms\Models\Content;
+use Modules\CMS\Models\Content;
 
 final class ContentObserver
 {

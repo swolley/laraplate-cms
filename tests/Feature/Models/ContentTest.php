@@ -10,12 +10,12 @@ use Modules\Core\Models\Field;
 use Modules\Core\Models\Pivot\Presettable;
 use Modules\Core\Services\DynamicContentsService;
 use Modules\Core\Services\PresetVersioningService;
-use Modules\Cms\Models\Category;
-use Modules\Cms\Models\Content;
-use Modules\Cms\Models\Contributor;
-use Modules\Cms\Models\Location;
-use Modules\Cms\Models\Tag;
-use Modules\Cms\Tests\TestCase;
+use Modules\CMS\Models\Category;
+use Modules\CMS\Models\Content;
+use Modules\CMS\Models\Contributor;
+use Modules\CMS\Models\Location;
+use Modules\CMS\Models\Tag;
+use Modules\CMS\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
@@ -27,7 +27,7 @@ beforeEach(function (): void {
         $this->markTestSkipped('Content integration features require full Core runtime.');
     }
 
-    setupCmsEntities();
+    setupCMSEntities();
     $this->content = Content::factory()->create();
 });
 

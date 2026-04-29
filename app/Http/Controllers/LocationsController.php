@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Http\Controllers;
+namespace Modules\CMS\Http\Controllers;
 
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
-use Modules\Cms\Actions\Locations\GeocodeLocationAction;
-use Modules\Cms\Http\Requests\GeocodeRequest;
+use Modules\CMS\Actions\Locations\GeocodeLocationAction;
+use Modules\CMS\Http\Requests\GeocodeRequest;
 use Modules\Core\Helpers\ResponseBuilder;
 
 final class LocationsController extends Controller

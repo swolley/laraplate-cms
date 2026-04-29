@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Database\Factories;
+namespace Modules\CMS\Database\Factories;
 
 use function user_class;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Cms\Models\Contributor;
+use Modules\CMS\Models\Contributor;
 use Modules\Core\Helpers\HasDynamicContentFactory;
 use Modules\Core\Helpers\HasDynamicContents;
 use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Cms\Models\Contributor>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\CMS\Models\Contributor>
  */
 final class ContributorFactory extends Factory
 {

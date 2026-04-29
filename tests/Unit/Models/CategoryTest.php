@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Models\Category;
+use Modules\CMS\Models\Category;
 
 it('category model has correct structure', function (): void {
     $reflection = new ReflectionClass(Category::class);
@@ -22,10 +22,10 @@ it('category model uses correct traits', function (): void {
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasActivation::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasApprovals::class);
-    expect($traits)->toContain(Modules\Cms\Helpers\HasMultimedia::class);
+    expect($traits)->toContain(Modules\CMS\Helpers\HasMultimedia::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasPath::class);
     expect($traits)->toContain(Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships::class);
-    expect($traits)->toContain(Modules\Cms\Helpers\HasTags::class);
+    expect($traits)->toContain(Modules\CMS\Helpers\HasTags::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasTranslatedDynamicContents::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasValidity::class);

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Helpers\HasTags;
+use Modules\CMS\Helpers\HasTags;
 
 it('trait can be used', function (): void {
     $trait = new class

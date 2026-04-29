@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Contracts;
+namespace Modules\CMS\Contracts;
 
 use ArrayAccess;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
-use Modules\Cms\Models\Tag;
+use Modules\CMS\Models\Tag;
 
 /**
- * Implemented by models using {@see \Modules\Cms\Helpers\HasTags} so lifecycle callbacks are typed.
+ * Implemented by models using {@see \Modules\CMS\Helpers\HasTags} so lifecycle callbacks are typed.
  */
 interface Taggable
 {

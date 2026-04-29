@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Models\Content;
-use Modules\Cms\Models\Contributor;
-use Modules\Cms\Models\Entity;
-use Modules\Cms\Tests\TestCase;
+use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Models\Content;
+use Modules\CMS\Models\Contributor;
+use Modules\CMS\Models\Entity;
+use Modules\CMS\Tests\TestCase;
 use Modules\Core\Models\Pivot\Presettable;
 use Modules\Core\Models\Preset;
 

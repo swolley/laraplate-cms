@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Http\Controllers;
+namespace Modules\CMS\Http\Controllers;
 
-use Modules\Cms\Actions\Contents\GetContentsByRelationAction;
+use Modules\CMS\Actions\Contents\GetContentsByRelationAction;
 use Modules\Core\Http\Controllers\CrudController;
 use Modules\Core\Http\Requests\ListRequest;
 use Modules\Core\Services\Crud\CrudService;

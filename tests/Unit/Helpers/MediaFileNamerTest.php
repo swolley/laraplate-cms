@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Helpers\MediaFileNamer;
-use Modules\Cms\Tests\TestCase;
+use Modules\CMS\Helpers\MediaFileNamer;
+use Modules\CMS\Tests\TestCase;
 use Spatie\MediaLibrary\Conversions\Conversion;
 
 uses(TestCase::class);

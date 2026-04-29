@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Database\Factories;
+namespace Modules\CMS\Database\Factories;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Models\Category;
-use Modules\Cms\Models\Content;
-use Modules\Cms\Models\Contributor;
-use Modules\Cms\Models\Tag;
+use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Models\Category;
+use Modules\CMS\Models\Content;
+use Modules\CMS\Models\Contributor;
+use Modules\CMS\Models\Tag;
 use Modules\Core\Overrides\Factory;
 use Override;
 
 /**
- * @extends \Modules\Core\Overrides\Factory<\Modules\Cms\Models\Content>
+ * @extends \Modules\Core\Overrides\Factory<\Modules\CMS\Models\Content>
  */
 final class ContentFactory extends Factory
 {

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Tests\Support;
+namespace Modules\CMS\Tests\Support;
 
 require_once __DIR__ . '/Database/Factories/UserFactory.php';
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Modules\Cms\Tests\Support\Database\Factories\UserFactory;
+use Modules\CMS\Tests\Support\Database\Factories\UserFactory;
 use Override;
 
 class User extends Authenticatable

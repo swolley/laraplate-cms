@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
-use Modules\Cms\Models\Entity as CmsEntity;
+use Modules\CMS\Models\Entity as CMSEntity;
 use Modules\Core\Helpers\SoftDeletes;
 use Modules\Core\Models\Field;
 use Modules\Core\Models\Preset;
@@ -55,11 +55,11 @@ class Presettable extends Pivot
     }
 
     /**
-     * @return BelongsTo<CmsEntity>
+     * @return BelongsTo<CMSEntity>
      */
     public function entity(): BelongsTo
     {
-        return $this->belongsTo(CmsEntity::class);
+        return $this->belongsTo(CMSEntity::class);
     }
 
     /**

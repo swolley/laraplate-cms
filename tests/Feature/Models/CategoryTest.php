@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
-use Modules\Cms\Models\Category;
-use Modules\Cms\Models\Content;
-use Modules\Cms\Tests\TestCase;
+use Modules\CMS\Models\Category;
+use Modules\CMS\Models\Content;
+use Modules\CMS\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
@@ -18,7 +18,7 @@ beforeEach(function (): void {
         $this->markTestSkipped('Category integration features require full Core runtime.');
     }
 
-    setupCmsEntities();
+    setupCMSEntities();
     $this->category = Category::factory()->create();
 });
 

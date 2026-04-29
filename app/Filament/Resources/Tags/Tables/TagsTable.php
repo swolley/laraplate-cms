@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Tags\Tables;
+namespace Modules\CMS\Filament\Resources\Tags\Tables;
 
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;

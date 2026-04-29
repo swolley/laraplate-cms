@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Tags;
+namespace Modules\CMS\Filament\Resources\Tags;
 
 use BackedEnum;
 // use Filament\Resources\Resource;
@@ -13,12 +13,12 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Modules\Cms\Filament\Resources\Tags\Pages\CreateTag;
-use Modules\Cms\Filament\Resources\Tags\Pages\EditTag;
-use Modules\Cms\Filament\Resources\Tags\Pages\ListTags;
-use Modules\Cms\Filament\Resources\Tags\Schemas\TagForm;
-use Modules\Cms\Filament\Resources\Tags\Tables\TagsTable;
-use Modules\Cms\Models\Tag;
+use Modules\CMS\Filament\Resources\Tags\Pages\CreateTag;
+use Modules\CMS\Filament\Resources\Tags\Pages\EditTag;
+use Modules\CMS\Filament\Resources\Tags\Pages\ListTags;
+use Modules\CMS\Filament\Resources\Tags\Schemas\TagForm;
+use Modules\CMS\Filament\Resources\Tags\Tables\TagsTable;
+use Modules\CMS\Models\Tag;
 use Override;
 use UnitEnum;
 
@@ -31,7 +31,7 @@ final class TagResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'Cms';
+    protected static string|UnitEnum|null $navigationGroup = 'CMS';
 
     #[Override]
     protected static ?int $navigationSort = 8;

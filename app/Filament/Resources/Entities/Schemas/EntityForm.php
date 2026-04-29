@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Entities\Schemas;
+namespace Modules\CMS\Filament\Resources\Entities\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
-use Modules\Cms\Casts\EntityType;
+use Modules\CMS\Casts\EntityType;
 
 final class EntityForm
 {

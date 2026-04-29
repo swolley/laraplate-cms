@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Locations\Schemas;
+namespace Modules\CMS\Filament\Resources\Locations\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\TextInput;

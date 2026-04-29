@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Models\Tag;
+use Modules\CMS\Models\Tag;
 
 it('tag model has correct structure', function (): void {
     $reflection = new ReflectionClass(Tag::class);

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Actions\Contents\GetContentsByRelationAction;
-use Modules\Cms\Tests\TestCase;
+use Modules\CMS\Actions\Contents\GetContentsByRelationAction;
+use Modules\CMS\Tests\TestCase;
 use Modules\Core\Http\Requests\ListRequest;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 

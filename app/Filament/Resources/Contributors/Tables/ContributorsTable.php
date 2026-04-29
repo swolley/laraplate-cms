@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Contributors\Tables;
+namespace Modules\CMS\Filament\Resources\Contributors\Tables;
 
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
@@ -10,8 +10,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Support\Collection;
-use Modules\Cms\Filament\Utils\HasTable;
-use Modules\Cms\Models\Contributor;
+use Modules\CMS\Filament\Utils\HasTable;
+use Modules\CMS\Models\Contributor;
 
 final class ContributorsTable
 {

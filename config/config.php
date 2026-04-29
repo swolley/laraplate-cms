@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-    'name' => 'Cms',
+    'name' => 'CMS',
 
     'slugger' => env('CMS_SLUGGER', '\Illuminate\Support\Str::slug'),
 

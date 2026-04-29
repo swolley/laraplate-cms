@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Database\Factories;
+namespace Modules\CMS\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -11,7 +11,7 @@ use Modules\Core\Helpers\HasUniqueFactoryValues;
 use Override;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Cms\Models\Location>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\CMS\Models\Location>
  */
 final class LocationFactory extends Factory
 {
@@ -21,7 +21,7 @@ final class LocationFactory extends Factory
      * The name of the factory's corresponding model.
      */
     #[Override]
-    protected $model = \Modules\Cms\Models\Location::class;
+    protected $model = \Modules\CMS\Models\Location::class;
 
     /**
      * Define the model's default state.

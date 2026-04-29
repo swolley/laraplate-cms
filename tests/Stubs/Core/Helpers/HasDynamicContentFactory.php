@@ -8,15 +8,15 @@ use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Models\Field;
+use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Models\Field;
 use Modules\Core\Casts\FieldType;
 use ReflectionObject;
 use RuntimeException;
 use stdClass;
 
 /**
- * Test stub: real Core trait targets Core models; CMS factories need Cms Field/FieldType and factory {@see EntityType} property.
+ * Test stub: real Core trait targets Core models; CMS factories need CMS Field/FieldType and factory {@see EntityType} property.
  */
 trait HasDynamicContentFactory
 {

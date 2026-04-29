@@ -32,7 +32,7 @@ export default defineConfig({
 //            const filePath = join(currentPath, file);
 //            const stats = statSync(filePath);
 //            if (stats.isFile() && !file.startsWith('.')) {
-//                const relativePath = 'Modules/Cms/'+relative(__dirname, filePath);
+//                const relativePath = 'Modules/CMS/'+relative(__dirname, filePath);
 //                filePaths.push(relativePath);
 //            } else if (stats.isDirectory()) {
 //                walkDirectory(filePath);
@@ -52,6 +52,6 @@ export default defineConfig({
 
 
 //export const paths = [
-//    'Modules/Cms/resources/assets/sass/app.scss',
-//    'Modules/Cms/resources/assets/js/app.js',
+//    'Modules/CMS/resources/assets/sass/app.scss',
+//    'Modules/CMS/resources/assets/js/app.js',
 //];

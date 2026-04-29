@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Templates;
+namespace Modules\CMS\Filament\Resources\Templates;
 
 use BackedEnum;
 use Coolsam\Modules\Resource;
@@ -10,12 +10,12 @@ use Filament\Panel;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Modules\Cms\Filament\Resources\Templates\Pages\CreateTemplate;
-use Modules\Cms\Filament\Resources\Templates\Pages\EditTemplate;
-use Modules\Cms\Filament\Resources\Templates\Pages\ListTemplates;
-use Modules\Cms\Filament\Resources\Templates\Schemas\TemplateForm;
-use Modules\Cms\Filament\Resources\Templates\Tables\TemplatesTable;
-use Modules\Cms\Models\Template;
+use Modules\CMS\Filament\Resources\Templates\Pages\CreateTemplate;
+use Modules\CMS\Filament\Resources\Templates\Pages\EditTemplate;
+use Modules\CMS\Filament\Resources\Templates\Pages\ListTemplates;
+use Modules\CMS\Filament\Resources\Templates\Schemas\TemplateForm;
+use Modules\CMS\Filament\Resources\Templates\Tables\TemplatesTable;
+use Modules\CMS\Models\Template;
 use Override;
 use UnitEnum;
 
@@ -28,7 +28,7 @@ final class TemplateResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCodeBracket;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'Cms';
+    protected static string|UnitEnum|null $navigationGroup = 'CMS';
 
     #[Override]
     protected static ?int $navigationSort = 9;

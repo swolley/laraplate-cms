@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Presets\Tables;
+namespace Modules\CMS\Filament\Resources\Presets\Tables;
 
 use Filament\Actions\Action;
 use Filament\Support\Icons\Heroicon;
@@ -10,8 +10,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Modules\Cms\Filament\Utils\HasTable;
-use Modules\Cms\Models\Preset;
+use Modules\CMS\Filament\Utils\HasTable;
+use Modules\CMS\Models\Preset;
 
 final class PresetsTable
 {

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Entities\Pages;
+namespace Modules\CMS\Filament\Resources\Entities\Pages;
 
 use Filament\Resources\Pages\CreateRecord;
-use Modules\Cms\Filament\Resources\Entities\EntityResource;
+use Modules\CMS\Filament\Resources\Entities\EntityResource;
 use Override;
 
 final class CreateEntity extends CreateRecord

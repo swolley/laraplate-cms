@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Core\Models;
 
 use Illuminate\Database\Eloquent\Builder;
-use Modules\Cms\Database\Factories\EntityFactory as CmsEntityFactory;
+use Modules\CMS\Database\Factories\EntityFactory as CMSEntityFactory;
 use Modules\Core\Models\Entity as CoreEntity;
 use Override;
 
@@ -36,9 +36,9 @@ final class Entity extends CoreEntity
     }
 
     #[Override]
-    protected static function newFactory(): CmsEntityFactory
+    protected static function newFactory(): CMSEntityFactory
     {
-        return CmsEntityFactory::new();
+        return CMSEntityFactory::new();
     }
 
     #[Override]

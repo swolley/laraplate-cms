@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Contributors;
+namespace Modules\CMS\Filament\Resources\Contributors;
 
 use BackedEnum;
 // use Filament\Resources\Resource;
@@ -13,12 +13,12 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Modules\Cms\Filament\Resources\Contributors\Pages\CreateContributor;
-use Modules\Cms\Filament\Resources\Contributors\Pages\EditContributor;
-use Modules\Cms\Filament\Resources\Contributors\Pages\ListContributors;
-use Modules\Cms\Filament\Resources\Contributors\Schemas\ContributorForm;
-use Modules\Cms\Filament\Resources\Contributors\Tables\ContributorsTable;
-use Modules\Cms\Models\Contributor;
+use Modules\CMS\Filament\Resources\Contributors\Pages\CreateContributor;
+use Modules\CMS\Filament\Resources\Contributors\Pages\EditContributor;
+use Modules\CMS\Filament\Resources\Contributors\Pages\ListContributors;
+use Modules\CMS\Filament\Resources\Contributors\Schemas\ContributorForm;
+use Modules\CMS\Filament\Resources\Contributors\Tables\ContributorsTable;
+use Modules\CMS\Models\Contributor;
 use Override;
 use UnitEnum;
 
@@ -31,7 +31,7 @@ final class ContributorResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'Cms';
+    protected static string|UnitEnum|null $navigationGroup = 'CMS';
 
     #[Override]
     protected static ?int $navigationSort = 1;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Analytics;
+namespace Modules\CMS\Analytics;
 
 use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\ClientBuilder;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Models;
+namespace Modules\CMS\Models;
 
 use ArrayAccess;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as DbCollection;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
-use Modules\Cms\Database\Factories\TagFactory;
+use Modules\CMS\Database\Factories\TagFactory;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasTranslations;
 use Modules\Core\Helpers\SortableTrait;

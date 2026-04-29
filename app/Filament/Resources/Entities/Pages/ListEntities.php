@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Entities\Pages;
+namespace Modules\CMS\Filament\Resources\Entities\Pages;
 
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 // use Illuminate\Support\Facades\Cache;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Filament\Resources\Entities\EntityResource;
-use Modules\Cms\Filament\Utils\HasRecords;
-use Modules\Cms\Models\Entity;
+use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Filament\Resources\Entities\EntityResource;
+use Modules\CMS\Filament\Utils\HasRecords;
+use Modules\CMS\Models\Entity;
 use Override;
 
 final class ListEntities extends ListRecords

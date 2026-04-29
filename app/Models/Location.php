@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Models;
+namespace Modules\CMS\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Arr;
@@ -10,10 +10,10 @@ use Illuminate\Support\Str;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use MatanYadaev\EloquentSpatial\Objects\Polygon;
 use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
-use Modules\Cms\Contracts\Taggable;
-use Modules\Cms\Database\Factories\LocationFactory;
-use Modules\Cms\Helpers\HasTags;
-use Modules\Cms\Models\Pivot\Locatable;
+use Modules\CMS\Contracts\Taggable;
+use Modules\CMS\Database\Factories\LocationFactory;
+use Modules\CMS\Helpers\HasTags;
+use Modules\CMS\Models\Pivot\Locatable;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasPlace;
 use Modules\Core\Helpers\HasSlug;

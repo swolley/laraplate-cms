@@ -2,25 +2,25 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Database\Seeders;
+namespace Modules\CMS\Database\Seeders;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Models\Entity;
+use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Models\Entity;
 use Modules\Core\Casts\ActionEnum;
 use Modules\Core\Casts\FieldType;
 use Modules\Core\Database\Seeders\CoreDatabaseSeeder;
 use Modules\Core\Models\Field;
-use Modules\Cms\Models\Preset;
+use Modules\CMS\Models\Preset;
 use Modules\Core\Models\Role;
 use Modules\Core\Overrides\Seeder;
 use Modules\Core\Services\DynamicContentsService;
 use Modules\Core\Services\PresetVersioningService;
 
-final class CmsDatabaseSeeder extends Seeder
+final class CMSDatabaseSeeder extends Seeder
 {
     /**
      * @var Collection<string, Entity>

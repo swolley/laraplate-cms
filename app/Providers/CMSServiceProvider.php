@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Providers;
+namespace Modules\CMS\Providers;
 
 use Exception;
 use Modules\Core\Overrides\ModuleServiceProvider;
@@ -11,10 +11,10 @@ use Override;
 /**
  * @property \Illuminate\Foundation\Application $app
  */
-final class CmsServiceProvider extends ModuleServiceProvider
+final class CMSServiceProvider extends ModuleServiceProvider
 {
     #[Override]
-    protected string $name = 'Cms';
+    protected string $name = 'CMS';
 
     #[Override]
     protected string $nameLower = 'cms';

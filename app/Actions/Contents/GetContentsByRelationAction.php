@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Actions\Contents;
+namespace Modules\CMS\Actions\Contents;
 
 use Illuminate\Support\Str;
-use Modules\Cms\Models\Content;
+use Modules\CMS\Models\Content;
 use Modules\Core\Casts\FilterOperator;
 use Modules\Core\Casts\WhereClause;
 use Modules\Core\Http\Requests\ListRequest;

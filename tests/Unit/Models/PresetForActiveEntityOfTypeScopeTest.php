@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Models\Preset;
-use Modules\Cms\Tests\TestCase;
+use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Models\Preset;
+use Modules\CMS\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
@@ -15,7 +15,7 @@ beforeEach(function (): void {
         $this->markTestSkipped('Preset scopes require CMS schema.');
     }
 
-    setupCmsEntities();
+    setupCMSEntities();
 });
 
 it('scopes to active presets whose entity is active and matches the table type', function (): void {

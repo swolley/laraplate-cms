@@ -7,7 +7,7 @@ namespace Modules\Core\Services;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Modules\Cms\Models\Entity as EntityModel;
+use Modules\CMS\Models\Entity as EntityModel;
 use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Models\Pivot\Presettable;
 use Modules\Core\Models\Preset;

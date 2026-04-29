@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Locations\Tables;
+namespace Modules\CMS\Filament\Resources\Locations\Tables;
 
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
-use Modules\Cms\Models\Location;
+use Modules\CMS\Models\Location;
 use Modules\Core\Filament\Utils\HasTable;
 
 final class LocationsTable

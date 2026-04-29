@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Models\Media;
+use Modules\CMS\Models\Media;
 
 it('media model has correct structure', function (): void {
     $reflection = new ReflectionClass(Media::class);

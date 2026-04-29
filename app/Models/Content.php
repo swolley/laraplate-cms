@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Models;
+namespace Modules\CMS\Models;
 
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
@@ -10,17 +10,17 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Casts\ReadingStatistics;
-use Modules\Cms\Contracts\Taggable;
-use Modules\Cms\Database\Factories\ContentFactory;
-use Modules\Cms\Helpers\HasMultimedia;
-use Modules\Cms\Helpers\HasTags;
-use Modules\Cms\Models\Pivot\Categorizable;
-use Modules\Cms\Models\Pivot\Contributable;
-use Modules\Cms\Models\Pivot\Locatable;
-use Modules\Cms\Models\Pivot\Relatable;
-use Modules\Cms\Observers\ContentObserver;
+use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Casts\ReadingStatistics;
+use Modules\CMS\Contracts\Taggable;
+use Modules\CMS\Database\Factories\ContentFactory;
+use Modules\CMS\Helpers\HasMultimedia;
+use Modules\CMS\Helpers\HasTags;
+use Modules\CMS\Models\Pivot\Categorizable;
+use Modules\CMS\Models\Pivot\Contributable;
+use Modules\CMS\Models\Pivot\Locatable;
+use Modules\CMS\Models\Pivot\Relatable;
+use Modules\CMS\Observers\ContentObserver;
 use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Helpers\HasApprovals;
 use Modules\Core\Helpers\HasPath;

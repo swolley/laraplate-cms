@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Models\Preset;
+use Modules\CMS\Models\Preset;
 use Modules\Core\Models\Preset as CorePreset;
 
 it('preset model has correct structure', function (): void {

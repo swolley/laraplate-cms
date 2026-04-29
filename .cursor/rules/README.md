@@ -1,10 +1,10 @@
-# Cursor Rules per il modulo Cms
+# Cursor Rules per il modulo CMS
 
-Questa cartella contiene le regole di configurazione per Cursor relative **al modulo Cms** di `nwidart/laravel-modules`.
+Questa cartella contiene le regole di configurazione per Cursor relative **al modulo CMS** di `nwidart/laravel-modules`.
 Le regole sono pensate per:
 - lavorare nel contesto di un **modulo Laravel**, non di un'app completa
 - riutilizzare i principi globali definiti a livello di root
-- aggiungere il contesto specifico del modulo Cms, che si occupa di content management e funzionalità editoriali.
+- aggiungere il contesto specifico del modulo CMS, che si occupa di content management e funzionalità editoriali.
 
 ## Formato file
 
@@ -12,22 +12,22 @@ I file utilizzano l'estensione `.mdc` (Markdown Configuration) con frontmatter Y
 - `alwaysApply: true` – applicato sempre (nel contesto del modulo)
 - `globs: ["**/*.php"]` – applicato solo quando si lavora con file che rispettano il pattern
 
-## Struttura dei file di regole nel modulo Cms
+## Struttura dei file di regole nel modulo CMS
 
 ### 00-master.mdc (Always Applied)
 - File master leggero che referenzia le altre regole del modulo
-- Principi chiave sempre attivi nel contesto del modulo Cms
+- Principi chiave sempre attivi nel contesto del modulo CMS
 
 ### laravel-boost.mdc (Always Applied, definito a root)
 - **Regola principale** – linee guida complete per l'ecosistema Laravel (valide per tutta l'applicazione)
 - Copre: Filament, Livewire, Pest, Pint, PHPStan, Tailwind, ecc.
-- **Non duplicare contenuti già presenti qui**: i file del modulo Cms devono solo specializzare dove necessario.
+- **Non duplicare contenuti già presenti qui**: i file del modulo CMS devono solo specializzare dove necessario.
 
 ### 01-php-laravel-standards.mdc (Contextual: PHP files)
 - Standard PHP e Laravel specifici
 - Convenzioni di naming
 - Dichiarazioni di tipo
-- Valido per tutti i file PHP del modulo Cms
+- Valido per tutti i file PHP del modulo CMS
 - **Riferimenti a `laravel-boost.mdc` per contenuti duplicati**
 
 ### 02-architecture-patterns.mdc (Contextual: Controllers, Services, Models)
@@ -50,7 +50,7 @@ I file utilizzano l'estensione `.mdc` (Markdown Configuration) con frontmatter Y
 
 ### 05-testing-development.mdc (Contextual: Test files)
 - Strategie di testing con Pest
-- Organizzazione dei test **all'interno di ogni modulo** (es. `Modules/Cms/tests`)
+- Organizzazione dei test **all'interno di ogni modulo** (es. `Modules/CMS/tests`)
 - Strumenti di sviluppo
 - **Riferimenti a `laravel-boost.mdc` per Filament, Telescope, ecc.**
 
@@ -61,8 +61,8 @@ I file utilizzano l'estensione `.mdc` (Markdown Configuration) con frontmatter Y
 - **Solo contenuti unici, non duplicati rispetto a `laravel-boost.mdc`**
 
 ### 07-laraplate-specific.mdc (Contextual: Module files)
-- Regole specifiche per il modulo Cms (content management, media, tassonomie, geocoding, ecc.)
-- Come il modulo Cms si appoggia al Core e agli altri servizi infrastrutturali
+- Regole specifiche per il modulo CMS (content management, media, tassonomie, geocoding, ecc.)
+- Come il modulo CMS si appoggia al Core e agli altri servizi infrastrutturali
 - Standard di sviluppo per funzionalità editoriali e di gestione contenuti
 - **Riferimenti ad altre regole per contenuti generici**
 
@@ -70,13 +70,13 @@ I file utilizzano l'estensione `.mdc` (Markdown Configuration) con frontmatter Y
 
 1. **Eliminazione duplicazioni**: preferisci riferimenti a `laravel-boost.mdc` invece di copiare intere sezioni.
 2. **Contestualizzazione modulare**: usa `globs` per applicare regole solo quando rilevanti nel modulo.
-3. **Master leggero**: `00-master.mdc` serve come entry point minimale per il modulo Cms.
-4. **Ruolo del Cms**: ricorda che Cms fornisce funzionalità di gestione contenuti (entità, categorie, template, media, geocoding, ecc.) costruite sopra i servizi del Core.
+3. **Master leggero**: `00-master.mdc` serve come entry point minimale per il modulo CMS.
+4. **Ruolo del CMS**: ricorda che CMS fornisce funzionalità di gestione contenuti (entità, categorie, template, media, geocoding, ecc.) costruite sopra i servizi del Core.
 
 ## Manutenzione
 
 1. **Per modifiche generali di ecosistema**: modifica `laravel-boost.mdc` a livello root (regola principale).
-2. **Per modifiche specifiche del modulo Cms**: modifica il file appropriato in `Modules/Cms/.cursor/rules/`.
+2. **Per modifiche specifiche del modulo CMS**: modifica il file appropriato in `Modules/CMS/.cursor/rules/`.
 3. **Evita duplicazioni**: se un contenuto esiste già in `laravel-boost.mdc`, fai riferimento a quello invece di duplicare.
-4. **Mantieni contestualizzazione modulare**: usa `globs` per applicare regole solo quando rilevanti nel contesto del modulo Cms.
+4. **Mantieni contestualizzazione modulare**: usa `globs` per applicare regole solo quando rilevanti nel contesto del modulo CMS.
 

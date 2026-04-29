@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Casts\ReadingStatistics;
+use Modules\CMS\Casts\ReadingStatistics;
 
 it('returns zeros for empty block list', function (): void {
     $stats = ReadingStatistics::fromBlocks([]);

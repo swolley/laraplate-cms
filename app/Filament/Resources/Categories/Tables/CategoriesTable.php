@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Categories\Tables;
+namespace Modules\CMS\Filament\Resources\Categories\Tables;
 
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Modules\Cms\Filament\Utils\HasTable;
-use Modules\Cms\Models\Category;
+use Modules\CMS\Filament\Utils\HasTable;
+use Modules\CMS\Models\Category;
 
 final class CategoriesTable
 {

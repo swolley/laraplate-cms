@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use MatanYadaev\EloquentSpatial\Objects\Point;
-use Modules\Cms\Models\Location;
-use Modules\Cms\Tests\TestCase;
+use Modules\CMS\Models\Location;
+use Modules\CMS\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 

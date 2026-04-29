@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Categories\Pages;
+namespace Modules\CMS\Filament\Resources\Categories\Pages;
 
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
-use Modules\Cms\Filament\Resources\Categories\CategoryResource;
+use Modules\CMS\Filament\Resources\Categories\CategoryResource;
 use Override;
 
 final class EditCategory extends EditRecord

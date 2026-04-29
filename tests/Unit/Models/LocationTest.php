@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Models\Location;
+use Modules\CMS\Models\Location;
 
 it('location model has correct structure', function (): void {
     $reflection = new ReflectionClass(Location::class);
@@ -23,7 +23,7 @@ it('location model uses correct traits', function (): void {
     expect($traits)->toContain(Modules\Core\Helpers\HasPath::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasSlug::class);
     expect($traits)->toContain(MatanYadaev\EloquentSpatial\Traits\HasSpatial::class);
-    expect($traits)->toContain(Modules\Cms\Helpers\HasTags::class);
+    expect($traits)->toContain(Modules\CMS\Helpers\HasTags::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
     expect($traits)->toContain(Modules\Core\Search\Traits\Searchable::class);
     expect($traits)->toContain(Modules\Core\Helpers\SoftDeletes::class);

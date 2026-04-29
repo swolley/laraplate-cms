@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Database\Seeders;
+namespace Modules\CMS\Database\Seeders;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Artisan;
 use Laravel\Scout\ModelObserver;
-use Modules\Cms\Models\Category;
-use Modules\Cms\Models\Content;
-use Modules\Cms\Models\Contributor;
-use Modules\Cms\Models\Location;
-use Modules\Cms\Models\Tag;
+use Modules\CMS\Models\Category;
+use Modules\CMS\Models\Content;
+use Modules\CMS\Models\Contributor;
+use Modules\CMS\Models\Location;
+use Modules\CMS\Models\Tag;
 use Modules\Core\Helpers\BatchSeeder;
 
-final class DevCmsDatabaseSeeder extends BatchSeeder
+final class DevCMSDatabaseSeeder extends BatchSeeder
 {
     private const int TARGET_COUNT_CONTRIBUTORS = 15000;
 
@@ -28,7 +28,7 @@ final class DevCmsDatabaseSeeder extends BatchSeeder
 
     protected function execute(): void
     {
-        Artisan::call('module:seed', ['module' => 'Cms', '--force' => $this->command->option('force')], outputBuffer: $this->command->getOutput());
+        Artisan::call('module:seed', ['module' => 'CMS', '--force' => $this->command->option('force')], outputBuffer: $this->command->getOutput());
 
         ModelObserver::disableSyncingFor(Content::class);
         ModelObserver::disableSyncingFor(Location::class);

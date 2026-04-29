@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Models;
+namespace Modules\CMS\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Database\Factories\CategoryFactory;
-use Modules\Cms\Helpers\HasMultimedia;
-use Modules\Cms\Helpers\HasTags;
-use Modules\Cms\Models\Pivot\Categorizable;
+use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Database\Factories\CategoryFactory;
+use Modules\CMS\Helpers\HasMultimedia;
+use Modules\CMS\Helpers\HasTags;
+use Modules\CMS\Models\Pivot\Categorizable;
 use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Models\Taxonomy;
 use Override;

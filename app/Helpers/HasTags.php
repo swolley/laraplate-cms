@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Helpers;
+namespace Modules\CMS\Helpers;
 
 use ArrayAccess;
 use Illuminate\Database\Eloquent\Builder;
@@ -12,8 +12,8 @@ use Illuminate\Database\Eloquent\Relations\MorphPivot;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
-use Modules\Cms\Contracts\Taggable;
-use Modules\Cms\Models\Tag;
+use Modules\CMS\Contracts\Taggable;
+use Modules\CMS\Models\Tag;
 
 trait HasTags
 {
@@ -200,7 +200,7 @@ trait HasTags
             $values = [$values];
         }
 
-        return collect($values)->map(function ($value) use ($type): ?\Modules\Cms\Models\Tag {
+        return collect($values)->map(function ($value) use ($type): ?\Modules\CMS\Models\Tag {
             if ($value instanceof Tag) {
                 throw_if(isset($type) && $value->type !== $type, InvalidArgumentException::class, sprintf('Type was set to %s but tag is of type %s', $type, $value->type));
 

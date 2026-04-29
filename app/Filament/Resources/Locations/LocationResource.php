@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Locations;
+namespace Modules\CMS\Filament\Resources\Locations;
 
 use BackedEnum;
 // use Filament\Resources\Resource;
@@ -13,12 +13,12 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Modules\Cms\Filament\Resources\Locations\Pages\CreateLocation;
-use Modules\Cms\Filament\Resources\Locations\Pages\EditLocation;
-use Modules\Cms\Filament\Resources\Locations\Pages\ListLocations;
-use Modules\Cms\Filament\Resources\Locations\Schemas\LocationForm;
-use Modules\Cms\Filament\Resources\Locations\Tables\LocationsTable;
-use Modules\Cms\Models\Location;
+use Modules\CMS\Filament\Resources\Locations\Pages\CreateLocation;
+use Modules\CMS\Filament\Resources\Locations\Pages\EditLocation;
+use Modules\CMS\Filament\Resources\Locations\Pages\ListLocations;
+use Modules\CMS\Filament\Resources\Locations\Schemas\LocationForm;
+use Modules\CMS\Filament\Resources\Locations\Tables\LocationsTable;
+use Modules\CMS\Models\Location;
 use Override;
 use UnitEnum;
 
@@ -31,7 +31,7 @@ final class LocationResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMapPin;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'Cms';
+    protected static string|UnitEnum|null $navigationGroup = 'CMS';
 
     #[Override]
     protected static ?int $navigationSort = 7;

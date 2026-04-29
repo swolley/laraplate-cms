@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Helpers;
+namespace Modules\CMS\Helpers;
 
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\Conversions\Conversion;

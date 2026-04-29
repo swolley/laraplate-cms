@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Tags\Pages;
+namespace Modules\CMS\Filament\Resources\Tags\Pages;
 
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
-use Modules\Cms\Filament\Resources\Tags\TagResource;
+use Modules\CMS\Filament\Resources\Tags\TagResource;
 use Override;
 
 final class EditTag extends EditRecord

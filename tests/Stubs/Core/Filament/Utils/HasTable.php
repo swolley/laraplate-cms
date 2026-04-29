@@ -9,7 +9,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Minimal Core trait stub so {@see \Modules\Cms\Filament\Utils\HasTable} can compose without the full Core stack.
+ * Minimal Core trait stub so {@see \Modules\CMS\Filament\Utils\HasTable} can compose without the full Core stack.
  */
 trait HasTable
 {

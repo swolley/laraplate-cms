@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Casts\EntityType;
+use Modules\CMS\Casts\EntityType;
 
 it('lists all case values', function (): void {
     $values = EntityType::values();

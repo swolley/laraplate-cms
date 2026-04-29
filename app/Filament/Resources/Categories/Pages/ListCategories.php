@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Categories\Pages;
+namespace Modules\CMS\Filament\Resources\Categories\Pages;
 
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
-use Modules\Cms\Filament\Resources\Categories\CategoryResource;
-use Modules\Cms\Filament\Utils\HasRecords;
-use Modules\Cms\Models\Category;
+use Modules\CMS\Filament\Resources\Categories\CategoryResource;
+use Modules\CMS\Filament\Utils\HasRecords;
+use Modules\CMS\Models\Category;
 use Override;
 
 final class ListCategories extends ListRecords

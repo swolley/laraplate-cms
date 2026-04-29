@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Providers;
+namespace Modules\CMS\Providers;
 
 use Modules\Core\Overrides\RouteServiceProvider as ServiceProvider;
 use Override;
@@ -10,5 +10,5 @@ use Override;
 final class RouteServiceProvider extends ServiceProvider
 {
     #[Override]
-    protected string $name = 'Cms';
+    protected string $name = 'CMS';
 }

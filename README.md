@@ -20,7 +20,7 @@
 
 ## Description
 
-The Cms Module contains all the necessary functionalities to build a new Cms system.
+The CMS module contains all the necessary functionalities to build a new content management system.
 
 ## Installation
 
@@ -49,7 +49,7 @@ Then, you can install the module by running the following command:
 
 ```bash
 php artisan module:install Core
-php artisan module:install Cms
+php artisan module:install CMS
 ```
 
 ## Configuration
@@ -92,7 +92,7 @@ MEDIA_PREFIX=									#media prefix for storage
 
 ### Installed Packages
 
-The Cms Module utilizes several packages to enhance its functionality. Below is a list of the key packages included in the `composer.json` file:
+The CMS module utilizes several packages to enhance its functionality. Below is a list of the key packages included in the `composer.json` file:
 
 -   **Media Management:**
 
@@ -119,7 +119,7 @@ The Cms Module utilizes several packages to enhance its functionality. Below is 
 
 ### Additional Functionalities
 
-The Cms Module includes built-in features such as:
+The CMS module includes built-in features such as:
 
 -   Dynamic Content types management
 -   Media library management with advanced image processing
@@ -142,7 +142,7 @@ The Cms Module includes built-in features such as:
 
 ## Scripts
 
-The Cms Module provides several useful scripts for development and maintenance:
+The CMS module provides several useful scripts for development and maintenance:
 
 ### Code Quality and Testing
 
@@ -189,7 +189,7 @@ composer setup:hooks
 
 ### Other References
 
-Cms Module takes inspiration from, but does not directly require, libraries such as:
+CMS module takes inspiration from, but does not directly require, libraries such as:
 
 -   [spatie/laravel-tags](https://github.com/spatie/laravel-tags): Provides a way to manage tags in models.
 
@@ -203,15 +203,15 @@ If you want to contribute to this project, follow these steps:
 
 ## License
 
-Cms Module is open-sourced software licensed under the [GNU AGPL v3](https://www.gnu.org/licenses/agpl-3.0.html).
+CMS module is open-sourced software licensed under the [GNU AGPL v3](https://www.gnu.org/licenses/agpl-3.0.html).
 
 ## TODO and FIXME
 
-This section tracks all pending tasks and issues that need to be addressed in the Cms Module.
+This section tracks all pending tasks and issues that need to be addressed in the CMS module.
 
 ### High Priority
 
-- [ ] **Dynamic Content Embedding** - `Modules/Cms/app/Models/Content.php:314`
+- [ ] **Dynamic Content Embedding** - `Modules/CMS/app/Models/Content.php:314`
   - TODO: How to extract embedding for dynamic contents?
   - Need to implement proper embedding extraction for AI-powered content analysis
   - Related to vector search and content indexing functionality

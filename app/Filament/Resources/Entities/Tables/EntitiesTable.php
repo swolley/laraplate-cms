@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Entities\Tables;
+namespace Modules\CMS\Filament\Resources\Entities\Tables;
 
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
-use Modules\Cms\Filament\Utils\HasTable;
+use Modules\CMS\Filament\Utils\HasTable;
 
 final class EntitiesTable
 {

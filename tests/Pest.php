@@ -48,7 +48,7 @@ $test_stubs = [
     Modules\Core\Models\Pivot\Presettable::class => __DIR__ . '/Stubs/Core/Models/Pivot/Presettable.php',
     Modules\Core\Models\Preset::class => __DIR__ . '/Stubs/Core/Models/Preset.php',
     Modules\Core\Services\DynamicContentsService::class => __DIR__ . '/Stubs/Core/Services/DynamicContentsService.php',
-    Modules\Cms\Tests\Support\User::class => __DIR__ . '/Support/User.php',
+    Modules\CMS\Tests\Support\User::class => __DIR__ . '/Support/User.php',
     Point::class => __DIR__ . '/Stubs/Spatial/Objects/Point.php',
     MatanYadaev\EloquentSpatial\Objects\Polygon::class => __DIR__ . '/Stubs/Spatial/Objects/Polygon.php',
     MatanYadaev\EloquentSpatial\Traits\HasSpatial::class => __DIR__ . '/Stubs/Spatial/Traits/HasSpatial.php',
@@ -67,14 +67,14 @@ if (! function_exists('user_class')) {
     /** @return class-string<Illuminate\Contracts\Auth\Authenticatable> */
     function user_class(): string
     {
-        return Modules\Cms\Tests\Support\User::class;
+        return Modules\CMS\Tests\Support\User::class;
     }
 }
 
-use Modules\Cms\Casts\EntityType;
-use Modules\Cms\Models\Entity;
-use Modules\Cms\Models\Pivot\Presettable;
-use Modules\Cms\Models\Preset;
+use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Models\Entity;
+use Modules\CMS\Models\Pivot\Presettable;
+use Modules\CMS\Models\Preset;
 use Modules\Core\Casts\FieldType as CoreFieldType;
 use Modules\Core\Models\Field;
 use Modules\Core\Services\DynamicContentsService;
@@ -91,7 +91,7 @@ use Modules\Core\Services\PresetVersioningService;
  *
  * @param  list<EntityType>  $entityTypes
  */
-function setupCmsEntities(array $entityTypes = [EntityType::CONTENTS, EntityType::CONTRIBUTORS, EntityType::CATEGORIES]): void
+function setupCMSEntities(array $entityTypes = [EntityType::CONTENTS, EntityType::CONTRIBUTORS, EntityType::CATEGORIES]): void
 {
     foreach ($entityTypes as $entityType) {
         $name = match ($entityType) {
@@ -142,19 +142,19 @@ function setupCmsEntities(array $entityTypes = [EntityType::CONTENTS, EntityType
 /**
  * Create a test content with all required relationships.
  */
-function createTestContent(array $attributes = []): Modules\Cms\Models\Content
+function createTestContent(array $attributes = []): Modules\CMS\Models\Content
 {
-    setupCmsEntities([EntityType::CONTENTS, EntityType::CONTRIBUTORS]);
+    setupCMSEntities([EntityType::CONTENTS, EntityType::CONTRIBUTORS]);
 
-    $content = Modules\Cms\Models\Content::factory()->create($attributes);
+    $content = Modules\CMS\Models\Content::factory()->create($attributes);
 
     if (! isset($attributes['category_id'])) {
-        $category = Modules\Cms\Models\Category::factory()->create();
+        $category = Modules\CMS\Models\Category::factory()->create();
         $content->categories()->attach($category);
     }
 
     if (! isset($attributes['contributor_id'])) {
-        $contributor = Modules\Cms\Models\Contributor::factory()->create();
+        $contributor = Modules\CMS\Models\Contributor::factory()->create();
         $content->contributors()->attach($contributor);
     }
 
@@ -164,7 +164,7 @@ function createTestContent(array $attributes = []): Modules\Cms\Models\Content
 /**
  * Create a test location with coordinates.
  */
-function createTestLocation(array $attributes = []): Modules\Cms\Models\Location
+function createTestLocation(array $attributes = []): Modules\CMS\Models\Location
 {
     $defaults = [
         'address' => 'Milan, Italy',
@@ -174,7 +174,7 @@ function createTestLocation(array $attributes = []): Modules\Cms\Models\Location
         $defaults['geolocation'] = new Point(45.4642, 9.1900);
     }
 
-    return Modules\Cms\Models\Location::factory()->create(array_merge($defaults, $attributes));
+    return Modules\CMS\Models\Location::factory()->create(array_merge($defaults, $attributes));
 }
 
 /**

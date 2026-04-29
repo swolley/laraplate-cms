@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Utils;
+namespace Modules\CMS\Filament\Utils;
 
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Tables\Grouping\Group;

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use Modules\Cms\Http\Controllers\LocationsController;
+use Modules\CMS\Http\Controllers\LocationsController;
 
 /*
 |--------------------------------------------------------------------------

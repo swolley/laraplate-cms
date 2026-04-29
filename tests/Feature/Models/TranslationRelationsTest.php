@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
-use Modules\Cms\Models\Content;
-use Modules\Cms\Models\Tag;
-use Modules\Cms\Models\Translations\ContentTranslation;
-use Modules\Cms\Models\Translations\TagTranslation;
-use Modules\Cms\Tests\TestCase;
+use Modules\CMS\Models\Content;
+use Modules\CMS\Models\Tag;
+use Modules\CMS\Models\Translations\ContentTranslation;
+use Modules\CMS\Models\Translations\TagTranslation;
+use Modules\CMS\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
@@ -17,7 +17,7 @@ beforeEach(function (): void {
         $this->markTestSkipped('Translation tables required.');
     }
 
-    setupCmsEntities();
+    setupCMSEntities();
 });
 
 it('content translation belongs to content', function (): void {

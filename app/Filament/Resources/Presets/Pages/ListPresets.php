@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Filament\Resources\Presets\Pages;
+namespace Modules\CMS\Filament\Resources\Presets\Pages;
 
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 // use Illuminate\Support\Facades\Cache;
-use Modules\Cms\Filament\Resources\Presets\PresetResource;
-use Modules\Cms\Filament\Utils\HasRecords;
-use Modules\Cms\Models\Entity;
+use Modules\CMS\Filament\Resources\Presets\PresetResource;
+use Modules\CMS\Filament\Utils\HasRecords;
+use Modules\CMS\Models\Entity;
 use Modules\Core\Models\Preset;
 use Override;
 

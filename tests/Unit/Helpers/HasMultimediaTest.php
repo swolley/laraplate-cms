@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Models\Category;
-use Modules\Cms\Tests\TestCase;
+use Modules\CMS\Models\Category;
+use Modules\CMS\Tests\TestCase;
 
 uses(TestCase::class);
 

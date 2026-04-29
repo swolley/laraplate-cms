@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\Cms\Models\Contributor;
+use Modules\CMS\Models\Contributor;
 
 it('contributor model has correct structure', function (): void {
     $reflection = new ReflectionClass(Contributor::class);
@@ -21,8 +21,8 @@ it('contributor model uses correct traits', function (): void {
 
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasPath::class);
-    expect($traits)->toContain(Modules\Cms\Helpers\HasTags::class);
-    expect($traits)->toContain(Modules\Cms\Helpers\HasMultimedia::class);
+    expect($traits)->toContain(Modules\CMS\Helpers\HasTags::class);
+    expect($traits)->toContain(Modules\CMS\Helpers\HasMultimedia::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasVersions::class);
     expect($traits)->toContain(Modules\Core\Helpers\SoftDeletes::class);

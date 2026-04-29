@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Casts;
+namespace Modules\CMS\Casts;
 
 use Modules\Core\Contracts\IDynamicEntityTypable;
 

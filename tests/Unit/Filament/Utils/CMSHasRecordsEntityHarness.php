@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modules\Cms\Tests\Unit\Filament\Utils;
+namespace Modules\CMS\Tests\Unit\Filament\Utils;
 
-use Modules\Cms\Filament\Utils\HasRecords;
+use Modules\CMS\Filament\Utils\HasRecords;
 
-final class CmsHasRecordsEntityHarness
+final class CMSHasRecordsEntityHarness
 {
     use HasRecords;
 

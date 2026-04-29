@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Http;
-use Modules\Cms\Models\Location;
-use Modules\Cms\Services\NominatimService;
-use Modules\Cms\Tests\TestCase;
+use Modules\CMS\Models\Location;
+use Modules\CMS\Services\NominatimService;
+use Modules\CMS\Tests\TestCase;
 
 uses(TestCase::class);
 
