@@ -3,7 +3,13 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Core\Casts\FieldType as CoreFieldType;
+use Modules\Core\Models\Field;
+use Modules\Core\Models\Pivot\Presettable;
+use Modules\Core\Services\DynamicContentsService;
+use Modules\Core\Services\PresetVersioningService;
 use Modules\Cms\Models\Category;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Contributor;
@@ -49,6 +55,65 @@ it('has translatable attributes', function (): void {
     expect($content->slug)->toBe('test-content');
     expect($content->body)->toBe('Test content body');
     expect($content->excerpt)->toBe('Test excerpt');
+});
+
+it('stores dynamic translated and shared fields in the correct containers', function (): void {
+    $content = Content::factory()->create();
+    $preset = $content->preset;
+
+    $translatable_field_name = 'dyn_translatable_' . uniqid();
+    $shared_field_name = 'dyn_shared_' . uniqid();
+
+    $translatable_field = Field::query()->create([
+        'name' => $translatable_field_name,
+        'type' => CoreFieldType::TEXT,
+        'options' => new stdClass(),
+    ]);
+    $shared_field = Field::query()->create([
+        'name' => $shared_field_name,
+        'type' => CoreFieldType::TEXT,
+        'options' => new stdClass(),
+    ]);
+
+    $preset->fields()->attach($translatable_field->id, [
+        'default' => null,
+        'is_required' => false,
+        'is_translatable' => true,
+    ]);
+    $preset->fields()->attach($shared_field->id, [
+        'default' => null,
+        'is_required' => false,
+        'is_translatable' => false,
+    ]);
+
+    resolve(PresetVersioningService::class)->createVersion($preset);
+    DynamicContentsService::getInstance()->clearAllCaches();
+
+    $latest_presettable = Presettable::query()
+        ->where('entity_id', $content->entity_id)
+        ->where('preset_id', $preset->id)
+        ->whereNull('deleted_at')
+        ->latest('version')
+        ->firstOrFail();
+
+    $content->setRelation('presettable', $latest_presettable);
+    $content->{$translatable_field_name} = 'Translated dynamic value';
+    $content->{$shared_field_name} = 'Shared dynamic value';
+    $content->save();
+
+    $content_row = (array) DB::table('contents')->where('id', $content->id)->first();
+    $translation_row = (array) DB::table('content_translations')
+        ->where('content_id', $content->id)
+        ->where('locale', config('app.locale'))
+        ->first();
+
+    $shared_components = json_decode((string) ($content_row['shared_components'] ?? '{}'), true);
+    $translated_components = json_decode((string) ($translation_row['components'] ?? '{}'), true);
+
+    expect($translated_components[$translatable_field_name] ?? null)->toBe('Translated dynamic value')
+        ->and($translated_components)->not->toHaveKey($shared_field_name)
+        ->and($shared_components[$shared_field_name] ?? null)->toBe('Shared dynamic value')
+        ->and($shared_components)->not->toHaveKey($translatable_field_name);
 });
 
 it('belongs to many categories', function (): void {

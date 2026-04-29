@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Cms\Models\Content;
 use Modules\Cms\Models\Tag;
@@ -44,6 +45,26 @@ it('has translatable attributes', function (): void {
 
     expect($tag->name)->toBe('Laravel');
     expect($tag->slug)->toBe('laravel');
+});
+
+it('stores translated fields in translations table for translatable-only models', function (): void {
+    $tag = Tag::factory()->create();
+    $default_locale = config('app.locale');
+
+    $tag->name = 'Stored In Translation';
+    $tag->slug = 'stored-in-translation';
+    $tag->save();
+
+    $tag_row = (array) DB::table('tags')->where('id', $tag->id)->first();
+    $translation_row = (array) DB::table('tags_translations')
+        ->where('tag_id', $tag->id)
+        ->where('locale', $default_locale)
+        ->first();
+
+    expect($tag_row)->not->toHaveKey('name')
+        ->and($tag_row)->not->toHaveKey('slug')
+        ->and($translation_row['name'])->toBe('Stored In Translation')
+        ->and($translation_row['slug'])->toBe('stored-in-translation');
 });
 
 it('has hidden attributes', function (): void {
