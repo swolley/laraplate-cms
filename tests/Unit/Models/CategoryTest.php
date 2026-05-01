@@ -3,21 +3,22 @@
 declare(strict_types=1);
 
 use Modules\CMS\Models\Category;
+use Modules\Core\Models\Taxonomy;
 
 it('category model has correct structure', function (): void {
-    $reflection = new ReflectionClass(Category::class);
-    $source = file_get_contents($reflection->getFileName());
+    $categoryReflection = new ReflectionClass(Category::class);
+    expect($categoryReflection->getParentClass()?->getName())->toBe(Taxonomy::class);
 
-    // Test fillable attributes
-    expect($source)->toContain('protected $fillable');
+    $taxonomySource = file_get_contents((new ReflectionClass(Taxonomy::class))->getFileName());
+    expect($taxonomySource)->toContain('protected $fillable')
+        ->and($taxonomySource)->toContain('protected $hidden');
 
-    // Test hidden attributes
-    expect($source)->toContain('protected $hidden');
+    $categorySource = file_get_contents($categoryReflection->getFileName());
+    expect($categorySource)->toContain('$this->fillable');
 });
 
 it('category model uses correct traits', function (): void {
-    $reflection = new ReflectionClass(Category::class);
-    $traits = $reflection->getTraitNames();
+    $traits = array_values(class_uses_recursive(Category::class));
 
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasActivation::class);
@@ -64,9 +65,9 @@ it('category model has correct method signatures', function (): void {
     $method = $reflection->getMethod('getPath');
     expect($method->getReturnType()->getName())->toBe('string');
 
-    // Test appendPaths method
+    // Test appendPaths method (declared on Taxonomy with return type self)
     $method = $reflection->getMethod('appendPaths');
-    expect($method->getReturnType()->getName())->toBe(Category::class);
+    expect($method->getReturnType()->getName())->toBe(Taxonomy::class);
 
     // Test toArray method
     $method = $reflection->getMethod('toArray');

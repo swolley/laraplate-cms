@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Modules\CMS\Casts\FieldType;
+use Modules\Core\Casts\FieldType;
 
 it('maps field types to validation rule fragments', function (): void {
     expect(FieldType::TEXT->getRule())->toBe('string');

@@ -22,9 +22,6 @@ parameters:
     # File da escludere
     excludePaths:
         - vendor/**
-        - tests/Support/**
-        # Stubs are loaded via bootstrapFiles; excluding avoids duplicate definitions and noise
-        - tests/Stubs/**
         # These areas depend on the monolith (Core Filament utils, Elasticsearch client)
         - app/Filament/**
         - app/Analytics/**
@@ -104,11 +101,6 @@ parameters:
 
     # Avoid noise when ignore patterns drift after refactors
     reportUnmatchedIgnoredErrors: false
-
-    # Core stubs are loaded only via bootstrapFiles (not stubFiles) so PHPStan does not
-    # type-check stub bodies against missing optional deps (e.g. Scout) in isolation.
-    bootstrapFiles:
-        - tests/bootstrap-stubs.php
 
     # Standalone package: Eloquent dynamic attrs; enable when @property blocks are complete
     checkModelProperties: false

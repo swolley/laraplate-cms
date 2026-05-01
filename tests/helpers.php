@@ -8,7 +8,7 @@ if (! function_exists('user_class')) {
      */
     function user_class(): string
     {
-        return Modules\CMS\Tests\Support\User::class;
+        return \App\Models\User::class;
     }
 }
 

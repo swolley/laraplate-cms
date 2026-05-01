@@ -17,9 +17,9 @@ it('invokes geocoding service', function (): void {
     $service->shouldReceive('search')
         ->once()
         ->with('query', 'city', 'province', 'country')
-        ->andReturn(['result']);
+        ->andReturn(null);
 
     $action = new GeocodeLocationAction($service);
 
-    expect($action('query', 'city', 'province', 'country'))->toBe(['result']);
+    expect($action('query', 'city', 'province', 'country'))->toBeNull();
 });

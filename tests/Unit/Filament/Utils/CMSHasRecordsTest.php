@@ -3,15 +3,14 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Models\Entity;
+use Modules\CMS\Models\Pivot\Presettable;
+use Modules\CMS\Models\Preset;
 use Modules\CMS\Tests\TestCase;
 use Modules\CMS\Tests\Unit\Filament\Utils\CMSHasRecordsEntityHarness;
 use Modules\CMS\Tests\Unit\Filament\Utils\CMSHasRecordsTraitHarness;
-use Modules\Core\Models\Pivot\Presettable;
-use Modules\Core\Models\Preset;
 
 uses(TestCase::class, RefreshDatabase::class);
 
@@ -23,35 +22,8 @@ beforeEach(function (): void {
     Cache::flush();
 });
 
-function insertMinimalContentRow(int $entity_id, int $presettable_id): void
-{
-    $now = now();
-    $content_id = DB::table('contents')->insertGetId([
-        'entity_id' => $entity_id,
-        'presettable_id' => $presettable_id,
-        'order_column' => 0,
-        'lock_version' => 0,
-        'created_at' => $now,
-        'updated_at' => $now,
-    ]);
-
-    DB::table('contents_translations')->insert([
-        'content_id' => $content_id,
-        'locale' => 'en',
-        'title' => 'Tab coverage ' . $content_id,
-        'slug' => 'tab-coverage-' . $content_id,
-        'components' => json_encode([], JSON_THROW_ON_ERROR),
-        'created_at' => $now,
-        'updated_at' => $now,
-    ]);
-}
-
 function createSecondContentsEntityWithPreset(): Entity
 {
-    $primaryPreset = Preset::query()
-        ->where('entity_id', Entity::query()->where('name', 'contents')->where('type', EntityType::CONTENTS)->value('id'))
-        ->firstOrFail();
-
     $secondary_name = 'contents_secondary_' . uniqid();
     $secondary = Entity::query()->create([
         'name' => $secondary_name,
@@ -63,15 +35,6 @@ function createSecondContentsEntityWithPreset(): Entity
         ['entity_id' => $secondary->id, 'name' => 'default'],
         ['entity_id' => $secondary->id, 'name' => 'default'],
     );
-
-    foreach ($primaryPreset->fields as $field) {
-        if (! $secondaryPreset->fields()->where('fields.id', $field->id)->exists()) {
-            $secondaryPreset->fields()->attach($field->id, [
-                'default' => $field->pivot->default,
-                'is_required' => (bool) $field->pivot->is_required,
-            ]);
-        }
-    }
 
     Presettable::query()->firstOrCreate(
         ['entity_id' => $secondary->id, 'preset_id' => $secondaryPreset->id],
@@ -95,8 +58,14 @@ it('returns filament tabs with badges when multiple content entities exist and c
         ->firstOrFail();
     $secondaryPresettable = Presettable::query()->where('entity_id', $secondaryEntity->id)->firstOrFail();
 
-    insertMinimalContentRow((int) $primaryPresettable->entity_id, (int) $primaryPresettable->id);
-    insertMinimalContentRow((int) $secondaryEntity->id, (int) $secondaryPresettable->id);
+    $model = Modules\CMS\Models\Content::class;
+    $entities = $model::fetchAvailableEntities(EntityType::CONTENTS);
+    $cache_key = 'filament_cms_tabs_' . $model . '_' . $entities->pluck('id')->sort()->values()->implode(',');
+    Cache::put($cache_key, [
+        'all' => 2,
+        (int) $primaryPresettable->entity_id => 1,
+        (int) $secondaryPresettable->entity_id => 1,
+    ], config('core.filament.tabs_counts_ttl_seconds'));
 
     $tabs = (new CMSHasRecordsTraitHarness)->getTabs();
 

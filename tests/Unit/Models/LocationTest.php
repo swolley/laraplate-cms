@@ -16,8 +16,7 @@ it('location model has correct structure', function (): void {
 });
 
 it('location model uses correct traits', function (): void {
-    $reflection = new ReflectionClass(Location::class);
-    $traits = $reflection->getTraitNames();
+    $traits = array_values(class_uses_recursive(Location::class));
 
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasPath::class);
@@ -59,5 +58,5 @@ it('location model has correct method signatures', function (): void {
 
     // Test toArray method
     $method = $reflection->getMethod('toArray');
-    expect($method->hasReturnType())->toBeFalse();
+    expect($method->getReturnType()->getName())->toBe('array');
 });

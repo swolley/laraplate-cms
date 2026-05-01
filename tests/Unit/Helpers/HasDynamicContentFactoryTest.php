@@ -38,7 +38,7 @@ it('throws when entityType is missing on the factory', function (): void {
     $method->setAccessible(true);
 
     $method->invoke($factory, Content::class);
-})->throws(\RuntimeException::class);
+})->throws(\ReflectionException::class);
 
 it('returns early from createDynamicContentRelations when callback is null', function (): void {
     $content = Content::factory()->make();

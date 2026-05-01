@@ -67,6 +67,7 @@ it('pushes preset filter and resolves preset select options for the entity type'
     $modelInstance = (new ReflectionClass(Content::class))->newInstanceWithoutConstructor();
     $user = new User([
         'name' => 'Table test',
+        'username' => 'table-test-' . uniqid(),
         'email' => 'table-test-' . uniqid('', true) . '@example.test',
         'password' => bcrypt('password'),
     ]);

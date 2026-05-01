@@ -10,6 +10,7 @@ use Modules\CMS\Database\Factories\CategoryFactory;
 use Modules\CMS\Helpers\HasMultimedia;
 use Modules\CMS\Helpers\HasTags;
 use Modules\CMS\Models\Pivot\Categorizable;
+use Modules\CMS\Models\Pivot\Presettable;
 use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Models\Taxonomy;
 use Override;
@@ -37,6 +38,12 @@ final class Category extends Taxonomy implements IMediable, Sortable
     public static function getEntityModelClass(): string
     {
         return Entity::class;
+    }
+
+    #[Override]
+    public static function getPresettableClass(): string
+    {
+        return Presettable::class;
     }
 
     /**

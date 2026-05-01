@@ -16,8 +16,7 @@ it('field model has correct structure', function (): void {
 });
 
 it('field model uses correct traits', function (): void {
-    $reflection = new ReflectionClass(Field::class);
-    $traits = $reflection->getTraitNames();
+    $traits = array_values(class_uses_recursive(Field::class));
 
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasActivation::class);

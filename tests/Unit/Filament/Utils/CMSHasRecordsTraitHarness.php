@@ -6,7 +6,7 @@ namespace Modules\CMS\Tests\Unit\Filament\Utils;
 
 use Modules\CMS\Filament\Utils\HasRecords;
 
-final class CMSHasRecordsTraitHarness
+final class CMSHasRecordsTraitHarness extends CMSFilamentHarnessBase
 {
     use HasRecords;
 

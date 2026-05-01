@@ -49,8 +49,6 @@ return RectorConfig::configure()
         AddOverrideAttributeToOverriddenMethodsRector::class,
         // Turns where('col', null) into where('col'), which changes query semantics (e.g. soft-delete unique rules).
         RemoveNullArgOnNullDefaultParamRector::class,
-        // Test doubles: incompatible with several Laravel "code quality" rules (scopes, empty API shims, ctor signatures).
-        __DIR__ . '/tests/Stubs',
         __DIR__ . '/vendor',
         __DIR__ . '/node_modules',
         __DIR__ . '/storage',
@@ -60,9 +58,6 @@ return RectorConfig::configure()
         '**/Model.php',
         // Ignora file con troppe righe che potrebbero causare problemi di analisi
         '**/vendor/**',
-        MakeModelAttributesAndScopesProtectedRector::class => [
-            __DIR__ . '/tests/Stubs/Core/Helpers/SortableTrait.php',
-        ],
     ])
     ->withPreparedSets(
         deadCode: true,

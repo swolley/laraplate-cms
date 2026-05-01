@@ -16,8 +16,7 @@ it('contributor model has correct structure', function (): void {
 });
 
 it('contributor model uses correct traits', function (): void {
-    $reflection = new ReflectionClass(Contributor::class);
-    $traits = $reflection->getTraitNames();
+    $traits = array_values(class_uses_recursive(Contributor::class));
 
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasPath::class);

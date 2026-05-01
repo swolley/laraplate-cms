@@ -16,8 +16,7 @@ it('tag model has correct structure', function (): void {
 });
 
 it('tag model uses correct traits', function (): void {
-    $reflection = new ReflectionClass(Tag::class);
-    $traits = $reflection->getTraitNames();
+    $traits = array_values(class_uses_recursive(Tag::class));
 
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasPath::class);

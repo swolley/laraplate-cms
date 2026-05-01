@@ -43,7 +43,6 @@
     "pestphp/pest-plugin-stressless": "^4.0",
     "pestphp/pest-plugin-type-coverage": "^4.0",
     "rector/rector": "^2.0",
-    "orchestra/testbench": "^10.9",
     "larastan/larastan": "^3.9",
     "dg/bypass-finals": "^1.9",
     "driftingly/rector-laravel": "^2.2",
@@ -69,7 +68,8 @@
       "pint --parallel --test",
       "rector --dry-run"
     ],
-    "test:unit": "pest --parallel --coverage --exactly=100",
+    "test:unit": "vendor/bin/pest --coverage --exactly=100",
+    "test:unit:parallel": "vendor/bin/pest --parallel --coverage --exactly=100",
     "test:types": "phpstan",
     "test:refactor": "rector",
     "test:licenses": "@php vendor/bin/check-licenses",
@@ -108,13 +108,10 @@
   "autoload-dev": {
     "psr-4": {
       "Modules\\CMS\\Tests\\Unit\\": "tests/Unit",
-      "Modules\\CMS\\Tests\\Feature\\": "tests/Feature",
-      "Modules\\CMS\\Tests\\Support\\": "tests/Support/"
+      "Modules\\CMS\\Tests\\Feature\\": "tests/Feature"
     },
     "classmap": [
-      "tests/TestCase.php",
-      "tests/Support/User.php",
-      "tests/Support/Database/Factories/UserFactory.php"
+      "tests/TestCase.php"
     ]
   },
   "config": {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\CMS\Filament\Utils;
 
 use App\Models\User;
+use Modules\CMS\Models\Preset;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
@@ -14,7 +15,6 @@ use Illuminate\Database\Eloquent\Model;
 use Modules\CMS\Casts\EntityType;
 use Modules\Core\Filament\Utils\HasTable as CoreHasTable;
 use Modules\Core\Helpers\HasDynamicContents;
-use Modules\Core\Models\Preset;
 use ReflectionClass;
 
 trait HasTable
@@ -95,7 +95,7 @@ trait HasTable
         ?callable $filters,
         Model $model_instance,
         string $permissionsPrefix,
-        User $user,
+        ?User $user,
     ): void {
         if (self::hasDynamicContents($model_instance)) {
             $entity_type = $model_instance::getEntityType();
