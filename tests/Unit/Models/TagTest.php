@@ -22,7 +22,7 @@ it('tag model uses correct traits', function (): void {
     expect($traits)->toContain(Modules\Core\Helpers\HasPath::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasTranslations::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
-    expect($traits)->toContain(Modules\Core\Helpers\SoftDeletes::class);
+    expect($traits)->toContain(Modules\Core\SoftDeletes\SoftDeletes::class);
     expect($traits)->toContain(Modules\Core\Helpers\SortableTrait::class);
 });
 

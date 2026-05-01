@@ -24,7 +24,7 @@ it('preset model uses correct traits', function (): void {
     expect($traits)->toContain(Modules\Core\Cache\HasCache::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasVersions::class);
-    expect($traits)->toContain(Modules\Core\Helpers\SoftDeletes::class);
+    expect($traits)->toContain(Modules\Core\SoftDeletes\SoftDeletes::class);
 });
 
 it('preset model has required methods', function (): void {

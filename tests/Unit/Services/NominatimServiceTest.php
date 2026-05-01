@@ -2,12 +2,17 @@
 
 declare(strict_types=1);
 
+/**
+ * NominatimService tests.
+ *
+ * Do not assert ReflectionClass::isFinal(): tests/Pest.php enables DG\BypassFinals,
+ * which reports final classes as non-final so Mockery can replace methods.
+ */
 use Modules\Core\Services\Geocoding\NominatimService;
 
 it('has proper class structure', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
-    expect($reflection->isFinal())->toBeTrue();
     expect($reflection->hasMethod('getInstance'))->toBeTrue();
     expect($reflection->hasMethod('search'))->toBeTrue();
     expect($reflection->hasMethod('url'))->toBeTrue();
@@ -69,7 +74,6 @@ it('has consistent method signatures', function (): void {
 it('has proper class hierarchy', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
-    expect($reflection->isFinal())->toBeTrue();
     expect($reflection->getName())->toBe(NominatimService::class);
 });
 
@@ -82,12 +86,6 @@ it('has required public methods', function (): void {
     expect($methodNames)->toContain('search');
     expect($methodNames)->toContain('url');
     expect($methodNames)->toContain('getInstance');
-});
-
-it('has proper class finality', function (): void {
-    $reflection = new ReflectionClass(NominatimService::class);
-
-    expect($reflection->isFinal())->toBeTrue();
 });
 
 it('has proper namespace', function (): void {
@@ -111,7 +109,6 @@ it('has proper method accessibility', function (): void {
 it('has proper class structure for geocoding', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
-    expect($reflection->isFinal())->toBeTrue();
     expect($reflection->hasMethod('search'))->toBeTrue();
     expect($reflection->hasMethod('url'))->toBeTrue();
 });
@@ -129,7 +126,6 @@ it('has proper method parameter types', function (): void {
 it('has proper class structure for singleton pattern', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
-    expect($reflection->isFinal())->toBeTrue();
     expect($reflection->hasMethod('getInstance'))->toBeTrue();
 
     $constructor = $reflection->getConstructor();
@@ -149,7 +145,6 @@ it('has proper method return types', function (): void {
 it('has proper class structure for service pattern', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
-    expect($reflection->isFinal())->toBeTrue();
     expect($reflection->hasMethod('search'))->toBeTrue();
     expect($reflection->hasMethod('url'))->toBeTrue();
 });
@@ -167,7 +162,6 @@ it('has proper method signatures for geocoding', function (): void {
 it('has proper class structure for API integration', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
-    expect($reflection->isFinal())->toBeTrue();
     expect($reflection->hasMethod('search'))->toBeTrue();
     expect($reflection->hasMethod('url'))->toBeTrue();
 });
@@ -185,7 +179,6 @@ it('has proper method structure for geocoding operations', function (): void {
 it('has proper class structure for singleton service', function (): void {
     $reflection = new ReflectionClass(NominatimService::class);
 
-    expect($reflection->isFinal())->toBeTrue();
     expect($reflection->hasMethod('getInstance'))->toBeTrue();
 
     $constructor = $reflection->getConstructor();

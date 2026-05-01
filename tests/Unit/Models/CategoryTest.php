@@ -31,7 +31,7 @@ it('category model uses correct traits', function (): void {
     expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasValidity::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasVersions::class);
-    expect($traits)->toContain(Modules\Core\Helpers\SoftDeletes::class);
+    expect($traits)->toContain(Modules\Core\SoftDeletes\SoftDeletes::class);
     expect($traits)->toContain(Modules\Core\Helpers\SortableTrait::class);
     expect($traits)->toContain(Modules\Core\Locking\Traits\HasLocks::class);
 });

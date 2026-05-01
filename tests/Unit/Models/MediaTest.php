@@ -16,7 +16,7 @@ it('media model uses correct traits', function (): void {
     $traits = $reflection->getTraitNames();
 
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
-    expect($traits)->toContain(Modules\Core\Helpers\SoftDeletes::class);
+    expect($traits)->toContain(Modules\Core\SoftDeletes\SoftDeletes::class);
 });
 
 it('media model has required methods', function (): void {

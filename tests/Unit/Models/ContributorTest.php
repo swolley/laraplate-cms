@@ -24,7 +24,7 @@ it('contributor model uses correct traits', function (): void {
     expect($traits)->toContain(Modules\CMS\Helpers\HasMultimedia::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
     expect($traits)->toContain(Modules\Core\Helpers\HasVersions::class);
-    expect($traits)->toContain(Modules\Core\Helpers\SoftDeletes::class);
+    expect($traits)->toContain(Modules\Core\SoftDeletes\SoftDeletes::class);
 });
 
 it('contributor model has required methods', function (): void {

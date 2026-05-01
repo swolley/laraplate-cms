@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🐛 Bug Fixes
+
+- Correct trait usage in Content model and update documentation for CMS module
+- Update SoftDeletes trait usage across models and tests
+
+## [1.28.3] - 2026-05-01
+
 ### 🚜 Refactor
 
 - Streamline test setup and remove unused stubs in CMS module
