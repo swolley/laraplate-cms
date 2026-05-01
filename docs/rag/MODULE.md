@@ -1,57 +1,65 @@
-# Modulo CMS — contenuti, struttura editoriale e media
+# CMS module — editorial domain and media workflows
 
-## In parole semplici
+## Purpose
 
-Il modulo **CMS** (Content Management System) è l’area di Laraplate dedicata a **creare, organizzare e pubblicare** contenuti: testi, relazioni tra categorie e tag, modelli di pagina (“template”), contributori, luoghi geografici e preset riutilizzabili. È pensato per team editoriali e per sviluppatori che devono esporre contenuti strutturati senza riscrivere ogni volta form e tabelle da zero.
+`CMS` manages editorial content lifecycle for Laraplate installations: content entities, publication records, taxonomy, media, and location-aware metadata.
 
-Il CMS si appoggia al **Core** per utenti, permessi e infrastruttura comune.
+Important: some historically CMS-associated capabilities may now live in `Core`. Always treat current code ownership as source of truth.
 
-## A chi serve
+## Main capabilities
 
-- **Redazione / marketing**: gestisce categorie, tag, schede contenuto, autori e luoghi; lavora principalmente tramite **Filament** nel cluster del modulo CMS (raggruppamento navigazione gestito dal plugin `Coolsam\Modules` nel panel `admin`).
-- **Sviluppatore**: estende modelli, relazioni, policy e risorse Filament; collega il geocoding e la media library (Spatie Media Library, FFmpeg per elaborazioni avanzate dove abilitato).
-- **Utente tecnico**: configura servizi di geocodifica e dipendenze PHP (estensioni `gd`, `exif`, opzionalmente `imagick`).
+### Content modeling
 
-## Funzionalità principali
+- Defines and manages editorial entities and content records.
+- Supports template-driven structures for consistent publishing.
+- Provides reusable presets for common editorial payloads.
 
-### Gestione contenuti e tassonomia
+### Taxonomy and classification
 
-Attraverso le risorse Filament del modulo (cartella `Modules/CMS/app/Filament/Resources`) si gestiscono tipicamente:
+- Category/tag relationships for navigation and discovery.
+- Contributor and authorship metadata where enabled.
+- Location entities for geocoded or geo-filtered content use cases.
 
-- **Entities** — definizione di tipi di contenuto o schemi riusabili collegati al modello dinamico del dominio.
-- **Contents** — istanze di contenuto basate su entity / template.
-- **Templates** — modelli di presentazione o struttura per uniformare le pubblicazioni.
-- **Categories**, **Tags** — organizzazione gerarchica o trasversale dei contenuti.
-- **Contributors** — autori o firme editoriali.
-- **Presets** — configurazioni rapide o bundle di campi predefiniti per accelerare la creazione contenuti.
-- **Locations** — schede legate a indirizzi o coordinate, con supporto a servizi di geocodifica.
+### Media handling
 
-È presente anche un widget di riepilogo statistiche CMS (`CMSStatsWidget`) dove previsto dalla configurazione del panel.
+- Integrates media library stack for attachments and transformed assets.
+- Supports async media processing patterns (queue-first for heavy conversions).
+- Can coexist with project-specific front-end render pipelines.
 
-### Geocodifica
+### Filament module integration
 
-Il modulo espone un contratto `IGeocodingService` e implementazioni come **Nominatim** (OpenStreetMap), con possibilità di estendere verso altri provider (es. Google Maps) seguendo la stessa interfaccia. Dal punto di vista operativo: quando un contenuto o una sede richiede coordinate, il sistema interroga il servizio configurato e memorizza il risultato nei modelli di dominio previsti.
+- Registers module resources through CMS plugin wiring.
+- Participates in panel navigation clusters and CMS-oriented widgets.
 
-### Media e file
+## How to use
 
-Le dipendenze Composer del modulo includono **Spatie Laravel Media Library** e **php-ffmpeg**: ciò consente allegati, conversioni video/audio e derivazioni immagine in pipeline asincrone o controllate, secondo le convenzioni del progetto (spesso tramite **code** per non bloccare l’interfaccia).
+1. Define entity/template model before importing large datasets.
+2. Create content records and attach taxonomy/contributor/media links.
+3. Use location/geocoding services only when provider constraints and quotas are understood.
+4. Expose CMS outputs through API/theme routes based on project conventions.
 
-### Integrazione Filament
+## Internal flow (high-level)
 
-`CMSPlugin` (`Modules\CMS\Filament\CMSPlugin`) implementa il plugin Filament del modulo così che risorse e pagine CMS vengano registrate nel panel principale in modo modulare, rispettando la configurazione `config/filament-modules.php` (modalità plugin/pannelli e cluster di navigazione).
+- Resource form inputs are normalized and persisted in CMS domain models.
+- Media uploads route through media library storage and conversion pipeline.
+- Optional geocoding enriches location fields before final persistence.
+- Query/UI layers consume taxonomy and relation metadata for filtering and navigation.
 
-## Come si usa in pratica
+## Dependencies and boundaries
 
-1. **Configurazione iniziale**: definire entity e template che riflettono i tipi di pubblicazione richiesti dal progetto (news, landing, schede prodotto, ecc.).
-2. **Creazione contenuti**: redazione crea record in **Contents** scegliendo entity/template corretti; associa categorie, tag, autori e allegati.
-3. **Luoghi**: per sedi o eventi, usare **Locations** e verificare che il provider di geocodifica sia raggiungibile e rispetti i termini di servizio del fornitore (Nominatim richiede uso corretto e caching lato applicazione dove possibile).
-4. **Sviluppo front-end**: consumare i contenuti tramite API o viste del tema applicativo (il percorso esatto dipende dal tema e dalle route del progetto che espongono i modelli CMS).
+- Depends on `Core` for identity, permissions, lifecycle traits, and shared CRUD infrastructure.
+- Should not duplicate cross-cutting capabilities already provided by `Core` (approvals, locking, versioning, ACL mechanics).
 
-## Dipendenze
+## Common pitfalls
 
-- **Core**: obbligatorio per autenticazione, permessi e servizi trasversali.
-- Estensioni PHP consigliate: `ext-gd`, `ext-exif`; `imagick` opzionale per elaborazioni avanzate.
+- Migrating legacy content without first aligning templates/presets causes inconsistent structures.
+- Treating CMS as a plain WYSIWYG system underuses available structured content model.
+- Ignoring ownership shifts between Core and CMS leads to outdated documentation and incorrect extension points.
 
-## Nota per chi integra da zero
+## FAQ prompts for RAG
 
-Il CMS di Laraplate è modulare: non è “solo un editor WYSIWYG”, ma un **sistema di tipi di contenuto** e relazioni. Prima di importare migliaia di record legacy, conviene allineare **entity**, **template** e **preset** al modello informativo desiderato, per evitare contenuti “orfani” o campi inconsistenti.
+- Which content features are still owned by CMS versus moved to Core?
+- How do templates and presets differ in practical editorial workflows?
+- How should taxonomy be modeled for multi-locale content?
+- When should CMS media processing run through queues?
+- What is the safest migration path for legacy CMS data imports?

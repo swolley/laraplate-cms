@@ -26,7 +26,7 @@ it('content model uses correct traits', function (): void {
     expect($traits)->toContain(Modules\Core\Helpers\HasVersions::class);
     expect($traits)->toContain(Modules\Core\Helpers\SoftDeletes::class);
     expect($traits)->toContain(Modules\Core\Helpers\SortableTrait::class);
-    expect($traits)->toContain(Modules\Core\Locking\HasOptimisticLocking::class);
+    expect($traits)->toContain(Modules\Core\Locking\Traits\HasOptimisticLocking::class);
     expect($traits)->toContain(Modules\Core\Locking\Traits\HasLocks::class);
     expect($traits)->toContain(Modules\Core\Search\Traits\Searchable::class);
 });

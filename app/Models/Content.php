@@ -28,8 +28,8 @@ use Modules\Core\Helpers\HasTranslatedDynamicContents;
 use Modules\Core\Helpers\HasValidity;
 use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Helpers\SortableTrait;
-use Modules\Core\Locking\HasOptimisticLocking;
 use Modules\Core\Locking\Traits\HasLocks;
+use Modules\Core\Locking\Traits\HasOptimisticLocking;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Search\Schema\FieldDefinition;
 use Modules\Core\Search\Schema\FieldType;
@@ -41,6 +41,7 @@ use Spatie\MediaLibrary\HasMedia;
 
 /**
  * @property int|string $id
+ *
  * @mixin IdeHelperContent
  */
 #[ObservedBy(ContentObserver::class)]
