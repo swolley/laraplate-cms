@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### 🚜 Refactor
+
+- Streamline test setup and remove unused stubs in CMS module
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cms)* Drop empty phpdoc line in Presettable
+
 ## [1.27.3] - 2026-04-01
 
 ### 🧪 Testing
