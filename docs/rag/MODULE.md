@@ -1,18 +1,16 @@
-# CMS module — editorial domain and media workflows
+# CMS module — content domain and media workflows
 
 ## Purpose
 
-`CMS` manages editorial content lifecycle for Laraplate installations: content entities, publication records, taxonomy, media, and location-aware metadata.
-
-Important: some historically CMS-associated capabilities may now live in `Core`. Always treat current code ownership as source of truth.
+`CMS` manages the content lifecycle for Laraplate installations: content entities, publication records, taxonomy, media, and location-aware metadata.
 
 ## Main capabilities
 
 ### Content modeling
 
-- Defines and manages editorial entities and content records.
+- Defines and manages content model entities and related records.
 - Supports template-driven structures for consistent publishing.
-- Provides reusable presets for common editorial payloads.
+- Provides reusable presets for common structured content payloads.
 
 ### Taxonomy and classification
 
@@ -59,7 +57,7 @@ Important: some historically CMS-associated capabilities may now live in `Core`.
 ## FAQ prompts for RAG
 
 - Which content features are still owned by CMS versus moved to Core?
-- How do templates and presets differ in practical editorial workflows?
+- How do templates and presets differ in practical content-management workflows?
 - How should taxonomy be modeled for multi-locale content?
 - When should CMS media processing run through queues?
 - What is the safest migration path for legacy CMS data imports?

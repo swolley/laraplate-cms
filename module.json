@@ -1,6 +1,6 @@
 {
     "name": "CMS",
-    "alias": "cms", 
+    "alias": "cms",
     "description": "Content Management System Module",
     "keywords": [
         "cms",
@@ -13,7 +13,7 @@
         "tags",
         "contributors"
     ],
-    "priority": 999,
+    "priority": 99,
     "providers": [
         "Modules\\CMS\\Providers\\CMSServiceProvider"
     ],
