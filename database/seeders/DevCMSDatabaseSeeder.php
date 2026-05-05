@@ -16,15 +16,15 @@ use Modules\Core\Helpers\BatchSeeder;
 
 final class DevCMSDatabaseSeeder extends BatchSeeder
 {
-    private const int TARGET_COUNT_CONTRIBUTORS = 15000;
+    private const int TARGET_COUNT_CONTRIBUTORS = 15_000;
 
-    private const int TARGET_COUNT_CATEGORIES = 500;
+    private const int TARGET_COUNT_CATEGORIES = 1_000;
 
-    private const int TARGET_COUNT_LOCATIONS = 10000;
+    private const int TARGET_COUNT_LOCATIONS = 10_000;
 
-    private const int TARGET_COUNT_TAGS = 10000;
+    private const int TARGET_COUNT_TAGS = 300_000;
 
-    private const int TARGET_COUNT_CONTENTS = 500000;
+    private const int TARGET_COUNT_CONTENTS = 500_000;
 
     protected function execute(): void
     {

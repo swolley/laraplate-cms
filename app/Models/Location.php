@@ -101,8 +101,12 @@ final class Location extends Model implements Taggable
         $document = array_merge($this->toSearchableArrayTrait(), Arr::except($this->toArray(), ['id', 'latitude', 'longitude']));
         $document['id'] = (string) $this->getKey();
 
-        if (! empty($this->attributes['place_id'] ?? null) && $this->relationLoaded('place') && $this->place !== null) {
-            return array_merge($document, $this->place->searchDocumentGeographyFields());
+        if (! empty($this->attributes['place_id'] ?? null)) {
+            $place = $this->resolvePlace();
+
+            if ($place !== null) {
+                return array_merge($document, $place->searchDocumentGeographyFields());
+            }
         }
 
         $document['geocode'] = [(float) $this->latitude, (float) $this->longitude];
@@ -137,11 +141,15 @@ final class Location extends Model implements Taggable
     #[Override]
     public function getPath(): string
     {
-        if (! empty($this->attributes['place_id'] ?? null) && $this->relationLoaded('place') && $this->place !== null) {
-            return $this->place->countryPathSegment();
+        if (! empty($this->attributes['place_id'] ?? null)) {
+            $place = $this->resolvePlace();
+
+            if ($place !== null) {
+                return $place->countryPathSegment();
+            }
         }
 
-        return Str::slug((string) ($this->getRawOriginal('country') ?? ''));
+        return Str::slug((string) ($this->getAttribute('country') ?? ''));
     }
 
     /**
@@ -161,17 +169,10 @@ final class Location extends Model implements Taggable
         return LocationFactory::new();
     }
 
-    protected function casts(): array
-    {
-        return [
-            'geolocation' => Point::class,
-        ];
-    }
-
     // region Attributes
 
     /**
-     * Used when {@see HasPlace} delegates to parent (no {@see place_id} yet): decimals come from {@see geolocation}.
+     * Used when {@see HasPlace} holds a point only until {@see place_id} exists: decimals come from {@see geolocation}.
      */
     protected function getLatitudeAttribute(): ?float
     {

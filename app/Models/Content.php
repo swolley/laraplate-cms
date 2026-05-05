@@ -151,7 +151,9 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
      */
     public function categories(): BelongsToMany
     {
-        return $this->belongsToMany(Category::class, 'categorizables')->using(Categorizable::class)->withTimestamps();
+        return $this->belongsToMany(Category::class, 'categorizables', 'content_id', 'taxonomy_id')
+            ->using(Categorizable::class)
+            ->withTimestamps();
     }
 
     /**

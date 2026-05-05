@@ -100,7 +100,7 @@ it('can be found by name', function (): void {
 it('can be found by city', function (): void {
     $location = Location::factory()->create(['city' => 'Unique City']);
 
-    $foundLocation = Location::query()->where('city', 'Unique City')->first();
+    $foundLocation = Location::query()->whereHas('place', static fn ($q) => $q->where('city', 'Unique City'))->first();
 
     expect($foundLocation->id)->toBe($location->id);
 });
@@ -108,7 +108,7 @@ it('can be found by city', function (): void {
 it('can be found by country', function (): void {
     $location = Location::factory()->create(['country' => 'Unique Country']);
 
-    $foundLocation = Location::query()->where('country', 'Unique Country')->first();
+    $foundLocation = Location::query()->whereHas('place', static fn ($q) => $q->where('country', 'Unique Country'))->first();
 
     expect($foundLocation->id)->toBe($location->id);
 });

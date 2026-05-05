@@ -6,6 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ### 🐛 Bug Fixes
 
+- Update pivot keys in Category and Content models, enhance Location model logic, and improve seeder constants
+
+### 🚜 Refactor
+
+- Update module.json and improve documentation for CMS module
+
+## [1.28.4] - 2026-05-01
+
+### 🐛 Bug Fixes
+
 - Correct trait usage in Content model and update documentation for CMS module
 - Update SoftDeletes trait usage across models and tests
 

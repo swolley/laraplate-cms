@@ -53,7 +53,9 @@ final class Category extends Taxonomy implements IMediable, Sortable
      */
     public function contents(): BelongsToMany
     {
-        return $this->belongsToMany(Content::class, 'categorizables')->using(Categorizable::class)->withTimestamps();
+        return $this->belongsToMany(Content::class, 'categorizables', 'taxonomy_id', 'content_id')
+            ->using(Categorizable::class)
+            ->withTimestamps();
     }
 
     #[Override]
