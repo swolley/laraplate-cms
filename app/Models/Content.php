@@ -41,6 +41,7 @@ use Spatie\MediaLibrary\HasMedia;
 
 /**
  * @property int|string $id
+ *
  * @mixin IdeHelperContent
  */
 #[ObservedBy(ContentObserver::class)]
@@ -415,7 +416,6 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         $this->setRelation('presettable', $presettable);
     }
 
-    #[Override]
     protected static function getEntityType(): IDynamicEntityTypable
     {
         return EntityType::CONTENTS;
