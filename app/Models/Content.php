@@ -196,6 +196,24 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         return $relation;
     }
 
+    /**
+     * Get the relations to eager load when indexing the model.
+     *
+     * @return list<string>
+     */
+    public function toSearchableWith(): array
+    {
+        return [
+            'contributors',
+            'categories',
+            'tags',
+            'locations',
+            'translations',
+            'presettable.entity',
+            'presettable.preset',
+        ];
+    }
+
     public function toSearchableArray(): array
     {
         // TODO: transform splitted values into objects? (contributors, categories, tags, locations)

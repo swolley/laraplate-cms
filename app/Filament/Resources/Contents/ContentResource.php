@@ -54,6 +54,10 @@ final class ContentResource extends Resource
                     'presettable.entity',
                     'presettable.preset',
                     'media',
+                    'translation',
+                    'translations',
+                    'categories',
+                    'contributors',
                 ]),
             );
     }

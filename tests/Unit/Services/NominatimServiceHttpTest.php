@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Modules\CMS\Models\Location;
 use Modules\CMS\Services\NominatimService;
@@ -11,6 +12,7 @@ uses(TestCase::class);
 
 afterEach(function (): void {
     Http::fake();
+    Cache::flush();
 });
 
 it('includes optional address params in nominatim request', function (): void {
@@ -123,4 +125,80 @@ it('composes search url from address fields when coordinates are absent', functi
     expect($url)->toStartWith(NominatimService::BASE_URL . '/search?q=')
         ->and(rawurldecode($url))->toContain('Via Roma')
         ->and(rawurldecode($url))->toContain('Milan');
+});
+
+// --- Cache layer tests (Requirements 7.1, 7.2, 7.4, 7.5) ---
+
+/**
+ * Property 8: Geocoding cache prevents redundant HTTP calls.
+ *
+ * Validates: Requirements 7.1, 7.2, 7.4
+ */
+it('returns cached result on second call without making an HTTP request', function (): void {
+    Http::fake([
+        'nominatim.openstreetmap.org/search*' => Http::response([
+            [
+                'address' => ['city' => 'Rome', 'road' => 'Via Veneto', 'state' => 'Lazio', 'country' => 'Italy', 'postcode' => '00187'],
+                'lat' => 41.9,
+                'lon' => 12.5,
+            ],
+        ], 200),
+    ]);
+
+    $service = NominatimService::getInstance();
+
+    // First call — hits the API
+    $first = $service->search('Rome');
+    expect($first)->toBeInstanceOf(Location::class);
+    Http::assertSentCount(1);
+
+    // Second call with identical params — must use cache, no new HTTP request
+    Http::fake([
+        'nominatim.openstreetmap.org/search*' => Http::response([], 500),
+    ]);
+
+    $second = $service->search('Rome');
+    expect($second)->toBeInstanceOf(Location::class);
+
+    // The 500 fake was never reached because the cache was used
+    Http::assertNothingSent();
+});
+
+/**
+ * Property 9: Failed geocoding requests are not cached.
+ *
+ * Validates: Requirement 7.5
+ */
+it('does not cache a failed HTTP response and returns null', function (): void {
+    // Sequence: first call returns 503, second call returns a valid result.
+    // If the failure were cached, the second call would never reach the HTTP layer.
+    Http::fake([
+        'nominatim.openstreetmap.org/search*' => Http::sequence()
+            ->push('', 503)
+            ->push([
+                [
+                    'address' => ['city' => 'Somewhere', 'road' => null, 'state' => null, 'country' => null, 'postcode' => null],
+                    'lat' => 10.0,
+                    'lon' => 20.0,
+                ],
+            ], 200),
+    ]);
+
+    $service = NominatimService::getInstance();
+
+    // First call: HTTP failure — must return null
+    $result = $service->search('uncacheable-failure-query');
+    expect($result)->toBeNull();
+
+    // Verify nothing was written to cache for this key
+    $params = ['query' => 'uncacheable-failure-query', 'city' => null, 'province' => null, 'country' => null, 'limit' => 1];
+    $cache_key = \Modules\Core\Cache\CacheManager::key('geocoding', md5(serialize($params)));
+    expect(\Illuminate\Support\Facades\Cache::get($cache_key))->toBeNull();
+
+    // Second call: API now succeeds — must hit the API again (not return cached null)
+    $retry = $service->search('uncacheable-failure-query');
+    expect($retry)->toBeInstanceOf(Location::class);
+
+    // Both requests were sent to the HTTP layer
+    Http::assertSentCount(2);
 });

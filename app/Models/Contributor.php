@@ -125,7 +125,6 @@ final class Contributor extends Model implements IMediable, Taggable
         return null;
     }
 
-    #[Override]
     protected static function getEntityType(): IDynamicEntityTypable
     {
         return EntityType::CONTRIBUTORS;
