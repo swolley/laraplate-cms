@@ -1,0 +1,14 @@
+---
+alwaysApply: false
+---
+
+# CMS module context (caveman)
+
+- Path: Modules/CMS only.
+- Root rules = base law. Always follow.
+- This file = extra CMS law.
+
+- Focus CMS domain: pages, content, media, publishing.
+- Keep CMS logic inside module.
+- Reuse Core utilities, do not duplicate shared logic.
+- Change outside CMS only if user asks.
