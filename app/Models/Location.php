@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Models;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -14,6 +15,7 @@ use Modules\CMS\Contracts\Taggable;
 use Modules\CMS\Database\Factories\LocationFactory;
 use Modules\CMS\Helpers\HasTags;
 use Modules\CMS\Models\Pivot\Locatable;
+use Modules\CMS\Observers\LocationObserver;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasPlace;
 use Modules\Core\Helpers\HasSlug;
@@ -36,6 +38,7 @@ use Override;
  * @method static whereEquals(Point $point)
  * @mixin IdeHelperLocation
  */
+#[ObservedBy(LocationObserver::class)]
 final class Location extends Model implements Taggable
 {
     use HasPath;
