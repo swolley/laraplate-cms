@@ -4,13 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚀 Features
+
+- Add GeocodeLocationJob for asynchronous geocoding and enhance Content model relations
+- Implement Location and Place observers for geocoding jobs
+
 ### 🐛 Bug Fixes
 
 - Update pivot keys in Category and Content models, enhance Location model logic, and improve seeder constants
+- Remove outdated override attribute in Content model
 
 ### 🚜 Refactor
 
 - Update module.json and improve documentation for CMS module
+
+### 📚 Documentation
+
+- Enhance MODULE.md with detailed CMS architecture and functionality
+
+### ⚙️ Miscellaneous Tasks
+
+- Remove outdated CMS module rules and add new module context file
 
 ## [1.28.4] - 2026-05-01
 
