@@ -84,7 +84,7 @@ final class Contributor extends Model implements IMediable, Taggable
      */
     public function contents(): BelongsToMany
     {
-        return $this->belongsToMany(Content::class, 'contributables')->using(Contributable::class)->withTimestamps();
+        return $this->belongsToMany(Content::class, CMSTables::Contributables->value)->using(Contributable::class)->withTimestamps();
     }
 
     #[Override]

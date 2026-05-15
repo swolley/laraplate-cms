@@ -159,7 +159,7 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
      */
     public function categories(): BelongsToMany
     {
-        return $this->belongsToMany(Category::class, 'categorizables', 'content_id', 'taxonomy_id')
+        return $this->belongsToMany(Category::class, CMSTables::Categorizables->value, 'content_id', 'taxonomy_id')
             ->using(Categorizable::class)
             ->withTimestamps();
     }
@@ -171,7 +171,7 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
      */
     public function locations(): BelongsToMany
     {
-        $relation = $this->belongsToMany(Location::class, 'locatables')->using(Locatable::class)->withTimestamps();
+        $relation = $this->belongsToMany(Location::class, CMSTables::Locatables->value)->using(Locatable::class)->withTimestamps();
         $relation->withTrashed();
 
         return $relation;
@@ -184,7 +184,7 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
      */
     public function contributors(): BelongsToMany
     {
-        return $this->belongsToMany(Contributor::class, 'contributables')->using(Contributable::class)->withTimestamps();
+        return $this->belongsToMany(Contributor::class, CMSTables::Contributables->value)->using(Contributable::class)->withTimestamps();
     }
 
     /**
@@ -194,7 +194,7 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
      */
     public function related(?bool $withInverse = false): BelongsToMany
     {
-        $relation = $this->belongsToMany(self::class, 'relatables')->using(Relatable::class)->withTimestamps();
+        $relation = $this->belongsToMany(self::class, CMSTables::Relatables->value)->using(Relatable::class)->withTimestamps();
 
         if ($withInverse === true) {
             $relation->orWhere(fn (Builder $query) => $query->where('related_content_id', $this->id));

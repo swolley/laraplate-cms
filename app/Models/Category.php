@@ -7,6 +7,7 @@ namespace Modules\CMS\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Database\Factories\CategoryFactory;
+use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Helpers\HasMultimedia;
 use Modules\CMS\Helpers\HasTags;
 use Modules\CMS\Models\Pivot\Categorizable;
@@ -54,7 +55,7 @@ final class Category extends Taxonomy implements IMediable, Sortable
      */
     public function contents(): BelongsToMany
     {
-        return $this->belongsToMany(Content::class, 'categorizables', 'taxonomy_id', 'content_id')
+        return $this->belongsToMany(Content::class, CMSTables::Categorizables->value, 'taxonomy_id', 'content_id')
             ->using(Categorizable::class)
             ->withTimestamps();
     }

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚜 Refactor
+
+- Replace hardcoded table names with enum values in model relationships
+
+## [1.30.0] - 2026-05-15
+
 ### ⚙️ Miscellaneous Tasks
 
 - Update CMS module configuration and dependencies

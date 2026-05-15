@@ -167,7 +167,7 @@ final class Location extends Model implements Taggable
      */
     public function contents(): BelongsToMany
     {
-        return $this->belongsToMany(Content::class, 'locatables')
+        return $this->belongsToMany(Content::class, CMSTables::Locatables->value)
             ->using(Locatable::class)
             ->withTimestamps();
     }

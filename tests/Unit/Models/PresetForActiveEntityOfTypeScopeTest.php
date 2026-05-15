@@ -26,10 +26,15 @@ it('scopes to active presets whose entity is active and matches the table type',
 it('supports filter option labels when composed with entity join and ordering', function (): void {
     $options = Preset::query()
         ->forActiveEntityOfType(EntityType::Contents)
-        ->join('entities', 'presets.entity_id', '=', 'entities.id')
-        ->orderBy('entities.name')
-        ->orderBy('presets.name')
-        ->get(['presets.id', 'presets.name', 'presets.entity_id', 'entities.name'])
+        ->join(CoreTables::Entities->value, CoreTables::Presets->value.'.entity_id', '=', CoreTables::Entities->value.'.id')
+        ->orderBy(CoreTables::Entities->value.'.name')
+        ->orderBy(CoreTables::Presets->value.'.name')
+        ->get([
+            CoreTables::Presets->value.'.id',
+            CoreTables::Presets->value.'.name',
+            CoreTables::Presets->value.'.entity_id',
+            CoreTables::Entities->value.'.name',
+        ])
         ->mapWithKeys(static fn (Preset $preset): array => [$preset->id => $preset->entity->name . ' - ' . $preset->name])
         ->all();
 

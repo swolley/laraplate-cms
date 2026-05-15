@@ -13,6 +13,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Modules\CMS\Casts\EntityType;
+use Modules\Core\Enums\CoreTables;
 use Modules\Core\Filament\Utils\HasTable as CoreHasTable;
 use Modules\Core\Helpers\HasDynamicContents;
 use ReflectionClass;
@@ -143,10 +144,15 @@ trait HasTable
     {
         return Preset::query()
             ->forActiveEntityOfType($entity_type)
-            ->join('entities', 'presets.entity_id', '=', 'entities.id')
-            ->orderBy('entities.name')
-            ->orderBy('presets.name')
-            ->get(['presets.id', 'presets.name', 'presets.entity_id', 'entities.name'])
+            ->join(CoreTables::Entities->value, CoreTables::Presets->value.'.entity_id', '=', CoreTables::Entities->value.'.id')
+            ->orderBy(CoreTables::Entities->value.'.name')
+            ->orderBy(CoreTables::Presets->value.'.name')
+            ->get([
+                CoreTables::Presets->value.'.id',
+                CoreTables::Presets->value.'.name',
+                CoreTables::Presets->value.'.entity_id',
+                CoreTables::Entities->value.'.name',
+            ])
             ->mapWithKeys(static fn (Preset $preset): array => [$preset->id => $preset->entity->name . ' - ' . $preset->name])
             ->all();
     }
