@@ -15,6 +15,9 @@ use InvalidArgumentException;
 use Modules\CMS\Contracts\Taggable;
 use Modules\CMS\Models\Tag;
 
+/**
+ * @phpstan-require-extends \Illuminate\Database\Eloquent\Model
+ */
 trait HasTags
 {
     protected array $queuedTags = [];

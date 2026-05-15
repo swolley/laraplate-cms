@@ -78,14 +78,13 @@ final class NominatimService extends AbstractGeocodingService
         }
 
         $response = Http::withHeaders([
-            'User-Agent' => (string) config('app.name', 'Laraplate') . ' CMS Geocoder',
+            'User-Agent' => config('app.name', 'Laraplate') . ' CMS Geocoder',
         ])->acceptJson()->get(self::BASE_URL . '/search', $query_params);
 
         if (! $response->successful()) {
             return null;
         }
 
-        /** @var mixed $decoded */
         $decoded = $response->json();
 
         if (! is_array($decoded)) {
@@ -102,7 +101,7 @@ final class NominatimService extends AbstractGeocodingService
 
         $slice = array_slice($decoded, 0, $params['limit']);
 
-        return array_values(array_map(fn (array $row): Location => $this->getAddressDetails($row), $slice));
+        return array_values(array_map($this->getAddressDetails(...), $slice));
     }
 
     #[Override]

@@ -15,7 +15,7 @@ use Modules\CMS\Tests\Unit\Filament\Utils\CMSHasTableTraitHarness;
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    setupCMSEntities([EntityType::CONTENTS]);
+    setupCMSEntities([EntityType::Contents]);
 });
 
 it('adds entity and preset groups when the table model uses dynamic contents', function (): void {
@@ -98,7 +98,7 @@ it('pushes preset filter and resolves preset select options for the entity type'
 
     $optionsMethod = new ReflectionMethod(CMSHasTableTraitHarness::class, 'presetSelectFilterOptions');
     $optionsMethod->setAccessible(true);
-    $options = $optionsMethod->invoke(null, EntityType::CONTENTS);
+    $options = $optionsMethod->invoke(null, EntityType::Contents);
 
     expect($options)->toBeArray()->not->toBeEmpty();
 });

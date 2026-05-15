@@ -12,6 +12,9 @@ use Spatie\MediaLibrary\MediaCollections\Events\CollectionHasBeenClearedEvent;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\MediaCannotBeDeleted;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
+/**
+ * @phpstan-require-extends \Illuminate\Database\Eloquent\Model
+ */
 trait HasMedia
 {
     use InteractsWithMedia;

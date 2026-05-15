@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\CMS\Models\Translations;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Content;
 use Modules\Core\Helpers\HasSlug;
 use Modules\Core\Overrides\Model;
@@ -17,6 +18,8 @@ use Override;
  * @property string $title
  * @property string $slug
  * @property array<string, mixed>|null $components
+ * @mixin \Illuminate\Database\Eloquent\Model
+ * @mixin \Eloquent
  * @mixin IdeHelperContentTranslation
  */
 final class ContentTranslation extends Model implements ITranslated
@@ -24,7 +27,7 @@ final class ContentTranslation extends Model implements ITranslated
     use HasSlug;
 
     #[Override]
-    protected $table = 'contents_translations';
+    protected $table = CMSTables::ContentsTranslations->value;
 
     /**
      * The attributes that are mass assignable.

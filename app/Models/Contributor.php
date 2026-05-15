@@ -11,6 +11,7 @@ use Illuminate\Foundation\Auth\User;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Contracts\Taggable;
 use Modules\CMS\Database\Factories\ContributorFactory;
+use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Helpers\HasMultimedia;
 use Modules\CMS\Helpers\HasTags;
 use Modules\CMS\Models\Pivot\Contributable;
@@ -22,6 +23,7 @@ use Override;
 use Spatie\MediaLibrary\HasMedia as IMediable;
 
 /**
+ * @mixin \Eloquent
  * @mixin IdeHelperContributor
  */
 final class Contributor extends Model implements IMediable, Taggable
@@ -35,6 +37,9 @@ final class Contributor extends Model implements IMediable, Taggable
         HasTranslatedDynamicContents::casts as private translatedDynamicContentsCasts;
     }
     // endregion
+
+    #[Override]
+    protected $table = CMSTables::Contributors->value;
 
     #[Override]
     protected $fillable = [
@@ -103,10 +108,10 @@ final class Contributor extends Model implements IMediable, Taggable
         $fields = $this->getRulesTranslatedDynamicContents();
         $rules[Model::DEFAULT_RULE] = array_merge($rules[Model::DEFAULT_RULE], $fields);
         $rules['create'] = array_merge($rules['create'], [
-            'name' => ['required', 'string', 'max:255', 'unique:contributors,name'],
+            'name' => ['required', 'string', 'max:255', 'unique:'.CMSTables::Contributors->value.',name'],
         ]);
         $rules['update'] = array_merge($rules['update'], [
-            'name' => ['sometimes', 'string', 'max:255', 'unique:contributors,name,' . $this->id],
+            'name' => ['sometimes', 'string', 'max:255', 'unique:'.CMSTables::Contributors->value.',name,' . $this->id],
         ]);
 
         return $rules;
@@ -127,7 +132,7 @@ final class Contributor extends Model implements IMediable, Taggable
 
     protected static function getEntityType(): IDynamicEntityTypable
     {
-        return EntityType::CONTRIBUTORS;
+        return EntityType::Contributors;
     }
 
     protected static function booted(): void

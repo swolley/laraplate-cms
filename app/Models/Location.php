@@ -13,6 +13,7 @@ use MatanYadaev\EloquentSpatial\Objects\Polygon;
 use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
 use Modules\CMS\Contracts\Taggable;
 use Modules\CMS\Database\Factories\LocationFactory;
+use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Helpers\HasTags;
 use Modules\CMS\Models\Pivot\Locatable;
 use Modules\CMS\Observers\LocationObserver;
@@ -36,6 +37,7 @@ use Override;
  * @method static whereContains(Polygon $polygon)
  * @method static whereNotContains(Polygon $polygon)
  * @method static whereEquals(Point $point)
+ * @mixin \Eloquent
  * @mixin IdeHelperLocation
  */
 #[ObservedBy(LocationObserver::class)]
@@ -50,6 +52,9 @@ final class Location extends Model implements Taggable
         toSearchableArray as private toSearchableArrayTrait;
         getSearchMapping as private getSearchMappingTrait;
     }
+
+    #[Override]
+    protected $table = CMSTables::Locations->value;
 
     /**
      * The attributes that are mass assignable.
@@ -82,19 +87,19 @@ final class Location extends Model implements Taggable
     public function getSearchMapping(): array
     {
         $schema = $this->getSchemaDefinition();
-        $schema->addField(new FieldDefinition('id', FieldType::KEYWORD, [IndexType::SEARCHABLE]));
-        $schema->addField(new FieldDefinition('entity', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
-        $schema->addField(new FieldDefinition('connection', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
-        $schema->addField(new FieldDefinition(self::$indexedAtField, FieldType::DATE, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::SORTABLE]));
-        $schema->addField(new FieldDefinition('name', FieldType::TEXT, [IndexType::SEARCHABLE, IndexType::FILTERABLE]));
-        $schema->addField(new FieldDefinition('slug', FieldType::KEYWORD, [IndexType::SEARCHABLE]));
-        $schema->addField(new FieldDefinition('address', FieldType::TEXT, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
-        $schema->addField(new FieldDefinition('city', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
-        $schema->addField(new FieldDefinition('province', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
-        $schema->addField(new FieldDefinition('country', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
-        $schema->addField(new FieldDefinition('postcode', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
-        $schema->addField(new FieldDefinition('zone', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
-        $schema->addField(new FieldDefinition('geocode', FieldType::GEOCODE, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
+        $schema->addField(new FieldDefinition('id', FieldType::Keyword, [IndexType::Searchable]));
+        $schema->addField(new FieldDefinition('entity', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
+        $schema->addField(new FieldDefinition('connection', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
+        $schema->addField(new FieldDefinition(self::$indexedAtField, FieldType::Date, [IndexType::Searchable, IndexType::Filterable, IndexType::Sortable]));
+        $schema->addField(new FieldDefinition('name', FieldType::Text, [IndexType::Searchable, IndexType::Filterable]));
+        $schema->addField(new FieldDefinition('slug', FieldType::Keyword, [IndexType::Searchable]));
+        $schema->addField(new FieldDefinition('address', FieldType::Text, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
+        $schema->addField(new FieldDefinition('city', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
+        $schema->addField(new FieldDefinition('province', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
+        $schema->addField(new FieldDefinition('country', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
+        $schema->addField(new FieldDefinition('postcode', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
+        $schema->addField(new FieldDefinition('zone', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
+        $schema->addField(new FieldDefinition('geocode', FieldType::Geocode, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
 
         return $this->getSearchMappingTrait($schema);
     }
@@ -107,7 +112,7 @@ final class Location extends Model implements Taggable
         if (! empty($this->attributes['place_id'] ?? null)) {
             $place = $this->resolvePlace();
 
-            if ($place !== null) {
+            if ($place instanceof \Modules\Core\Models\Place) {
                 return array_merge($document, $place->searchDocumentGeographyFields());
             }
         }
@@ -125,11 +130,11 @@ final class Location extends Model implements Taggable
         //     'longitude' => ['sometimes', 'numeric', 'min:-180', 'max:180'],
         // ]);
         $rules['create'] = array_merge($rules['create'], [
-            'name' => ['required', 'string', 'max:255', 'unique:locations,name'],
+            'name' => ['required', 'string', 'max:255', 'unique:'.CMSTables::Locations->value.',name'],
             'country' => ['required', 'string', 'max:255'],
         ]);
         $rules['update'] = array_merge($rules['update'], [
-            'name' => ['sometimes', 'string', 'max:255', 'unique:locations,name,' . $this->id],
+            'name' => ['sometimes', 'string', 'max:255', 'unique:'.CMSTables::Locations->value.',name,' . $this->id],
             'country' => ['sometimes', 'string', 'max:255'],
         ]);
 
@@ -147,7 +152,7 @@ final class Location extends Model implements Taggable
         if (! empty($this->attributes['place_id'] ?? null)) {
             $place = $this->resolvePlace();
 
-            if ($place !== null) {
+            if ($place instanceof \Modules\Core\Models\Place) {
                 return $place->countryPathSegment();
             }
         }

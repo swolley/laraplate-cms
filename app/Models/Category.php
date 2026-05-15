@@ -18,6 +18,7 @@ use Spatie\EloquentSortable\Sortable;
 use Spatie\MediaLibrary\HasMedia as IMediable;
 
 /**
+ * @mixin \Eloquent
  * @mixin IdeHelperCategory
  */
 final class Category extends Taxonomy implements IMediable, Sortable
@@ -28,8 +29,8 @@ final class Category extends Taxonomy implements IMediable, Sortable
 
     public function __construct(array $attributes = [])
     {
-        array_push($this->fillable, 'logo', 'logo_full');
-
+        $this->fillable[] = 'logo';
+        $this->fillable[] = 'logo_full';
         parent::__construct($attributes);
     }
     // endregion
@@ -61,7 +62,7 @@ final class Category extends Taxonomy implements IMediable, Sortable
     #[Override]
     protected static function getEntityType(): IDynamicEntityTypable
     {
-        return EntityType::CATEGORIES;
+        return EntityType::Categories;
     }
 
     protected static function newFactory(): CategoryFactory

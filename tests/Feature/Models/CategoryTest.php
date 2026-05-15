@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Modules\CMS\Models\Category;
+use Modules\Core\Enums\CoreTables;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Tests\TestCase;
 
@@ -13,7 +14,7 @@ uses(TestCase::class, RefreshDatabase::class);
 beforeEach(function (): void {
     if (
         ! method_exists(Category::class, 'determineOrderColumnName')
-        || ! Schema::hasColumns('categories', ['components', 'shared_components'])
+        || ! Schema::hasColumns(CoreTables::Taxonomies->value, ['components', 'shared_components'])
     ) {
         $this->markTestSkipped('Category integration features require full Core runtime.');
     }

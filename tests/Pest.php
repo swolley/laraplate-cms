@@ -26,12 +26,12 @@ use Modules\Core\Services\PresetVersioningService;
  *
  * @param  list<EntityType>  $entityTypes
  */
-function setupCMSEntities(array $entityTypes = [EntityType::CONTENTS, EntityType::CONTRIBUTORS, EntityType::CATEGORIES]): void
+function setupCMSEntities(array $entityTypes = [EntityType::Contents, EntityType::Contributors, EntityType::Categories]): void
 {
     foreach ($entityTypes as $entityType) {
         $name = match ($entityType) {
-            EntityType::CONTENTS => 'contents',
-            EntityType::CONTRIBUTORS => 'contributors',
+            EntityType::Contents => 'contents',
+            EntityType::Contributors => 'contributors',
             default => mb_strtolower($entityType->value),
         };
 
@@ -48,7 +48,7 @@ function setupCMSEntities(array $entityTypes = [EntityType::CONTENTS, EntityType
         if ($preset->fields()->count() === 0) {
             $field = Field::query()->create([
                 'name' => 'description_' . uniqid(),
-                'type' => CoreFieldType::TEXT,
+                'type' => CoreFieldType::Text,
                 'options' => new stdClass(),
             ]);
             $preset->fields()->attach($field->id, [
@@ -76,7 +76,7 @@ function setupCMSEntities(array $entityTypes = [EntityType::CONTENTS, EntityType
  */
 function createTestContent(array $attributes = []): Modules\CMS\Models\Content
 {
-    setupCMSEntities([EntityType::CONTENTS, EntityType::CONTRIBUTORS]);
+    setupCMSEntities([EntityType::Contents, EntityType::Contributors]);
 
     $content = Modules\CMS\Models\Content::factory()->create($attributes);
 

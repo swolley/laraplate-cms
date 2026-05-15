@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace Modules\CMS\Models;
+use Modules\Core\Enums\CoreTables;
 
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,6 +15,7 @@ use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Casts\ReadingStatistics;
 use Modules\CMS\Contracts\Taggable;
 use Modules\CMS\Database\Factories\ContentFactory;
+use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Helpers\HasMultimedia;
 use Modules\CMS\Helpers\HasTags;
 use Modules\CMS\Models\Pivot\Categorizable;
@@ -41,7 +43,8 @@ use Spatie\MediaLibrary\HasMedia;
 
 /**
  * @property int|string $id
- *
+ * @mixin \Illuminate\Database\Eloquent\Model
+ * @mixin \Eloquent
  * @mixin IdeHelperContent
  */
 #[ObservedBy(ContentObserver::class)]
@@ -70,9 +73,12 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
     use SortableTrait {
         SortableTrait::scopeOrdered as private scopePriorityOrdered;
     }
-    // endregion
 
     public static array $childTypes = [];
+    // endregion
+
+    #[Override]
+    protected $table = CMSTables::Contents->value;
 
     #[Override]
     protected $hidden = [
@@ -85,6 +91,7 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
     /**
      * @var list<string>
      */
+    #[\Override]
     protected $appends = [
         'statistics',
     ];
@@ -112,9 +119,9 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         $entity_id = null;
 
         if (is_int($entity)) {
-            $entity_id = self::fetchAvailableEntities(EntityType::CONTENTS)->firstWhere('id', $entity)?->id;
+            $entity_id = self::fetchAvailableEntities(EntityType::Contents)->firstWhere('id', $entity)?->id;
         } elseif (is_string($entity)) {
-            $entity_id = self::fetchAvailableEntities(EntityType::CONTENTS)->firstWhere('slug', $entity)?->id;
+            $entity_id = self::fetchAvailableEntities(EntityType::Contents)->firstWhere('slug', $entity)?->id;
         } else {
             $entity_id = array_key_exists($entity->id, self::$childTypes) ? $entity->id : null;
         }
@@ -123,11 +130,11 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
             throw new InvalidArgumentException('Invalid entity: ' . json_encode($entity));
         }
 
-        if ($entity instanceof Entity && $entity->type !== EntityType::CONTENTS) {
+        if ($entity instanceof Entity && $entity->type !== EntityType::Contents) {
             throw new InvalidArgumentException('Invalid entity type for content: ' . $entity->type->value);
         }
 
-        $presettable = self::fetchAvailablePresettables(EntityType::CONTENTS)->firstWhere('entity_id', $entity_id);
+        $presettable = self::fetchAvailablePresettables(EntityType::Contents)->firstWhere('entity_id', $entity_id);
 
         throw_unless($presettable, InvalidArgumentException::class, 'No presettable found for entity: ' . $entity);
 
@@ -275,55 +282,55 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
     public function getSearchMapping(): array
     {
         $schema = $this->getSchemaDefinition();
-        $schema->addField(new FieldDefinition('entity', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
-        $schema->addField(new FieldDefinition('preset', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
-        $schema->addField(new FieldDefinition('contributors', FieldType::ARRAY, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE], [
+        $schema->addField(new FieldDefinition('entity', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
+        $schema->addField(new FieldDefinition('preset', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
+        $schema->addField(new FieldDefinition('contributors', FieldType::Array, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable], [
             'properties' => [
-                'name' => FieldType::TEXT,
-                'id' => FieldType::INTEGER,
-                'slug' => FieldType::KEYWORD,
-                'path' => FieldType::KEYWORD,
+                'name' => FieldType::Text,
+                'id' => FieldType::Integer,
+                'slug' => FieldType::Keyword,
+                'path' => FieldType::Keyword,
             ],
         ]));
-        $schema->addField(new FieldDefinition('categories', FieldType::ARRAY, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE], [
+        $schema->addField(new FieldDefinition('categories', FieldType::Array, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable], [
             'properties' => [
-                'name' => FieldType::TEXT,
-                'id' => FieldType::INTEGER,
-                'slug' => FieldType::KEYWORD,
-                'path' => FieldType::KEYWORD,
+                'name' => FieldType::Text,
+                'id' => FieldType::Integer,
+                'slug' => FieldType::Keyword,
+                'path' => FieldType::Keyword,
             ],
         ]));
-        $schema->addField(new FieldDefinition('tags', FieldType::ARRAY, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE], [
+        $schema->addField(new FieldDefinition('tags', FieldType::Array, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable], [
             'properties' => [
-                'name' => FieldType::KEYWORD,
-                'id' => FieldType::INTEGER,
-                'slug' => FieldType::KEYWORD,
-                'path' => FieldType::KEYWORD,
+                'name' => FieldType::Keyword,
+                'id' => FieldType::Integer,
+                'slug' => FieldType::Keyword,
+                'path' => FieldType::Keyword,
             ],
         ]));
-        $schema->addField(new FieldDefinition('locations', FieldType::ARRAY, [IndexType::SEARCHABLE, IndexType::FILTERABLE], [
+        $schema->addField(new FieldDefinition('locations', FieldType::Array, [IndexType::Searchable, IndexType::Filterable], [
             'properties' => [
-                'name' => FieldType::TEXT,
-                'id' => FieldType::INTEGER,
-                'slug' => FieldType::KEYWORD,
-                'path' => FieldType::KEYWORD,
-                'address' => FieldType::TEXT,
-                'city' => FieldType::KEYWORD,
-                'province' => FieldType::KEYWORD,
-                'country' => FieldType::KEYWORD,
-                'postcode' => FieldType::KEYWORD,
-                'zone' => FieldType::KEYWORD,
+                'name' => FieldType::Text,
+                'id' => FieldType::Integer,
+                'slug' => FieldType::Keyword,
+                'path' => FieldType::Keyword,
+                'address' => FieldType::Text,
+                'city' => FieldType::Keyword,
+                'province' => FieldType::Keyword,
+                'country' => FieldType::Keyword,
+                'postcode' => FieldType::Keyword,
+                'zone' => FieldType::Keyword,
             ],
         ]));
-        $schema->addField(new FieldDefinition('type', FieldType::KEYWORD, [IndexType::SEARCHABLE, IndexType::FILTERABLE]));
-        $schema->addField(new FieldDefinition('valid_from', FieldType::DATE, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::SORTABLE]));
-        $schema->addField(new FieldDefinition('valid_to', FieldType::DATE, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::SORTABLE]));
-        $schema->addField(new FieldDefinition('is_deleted', FieldType::BOOLEAN, [IndexType::SEARCHABLE, IndexType::FILTERABLE, IndexType::FACETABLE]));
-        $schema->addField(new FieldDefinition('embedding', FieldType::VECTOR, [IndexType::SEARCHABLE, IndexType::VECTOR]));
+        $schema->addField(new FieldDefinition('type', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable]));
+        $schema->addField(new FieldDefinition('valid_from', FieldType::Date, [IndexType::Searchable, IndexType::Filterable, IndexType::Sortable]));
+        $schema->addField(new FieldDefinition('valid_to', FieldType::Date, [IndexType::Searchable, IndexType::Filterable, IndexType::Sortable]));
+        $schema->addField(new FieldDefinition('is_deleted', FieldType::Boolean, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
+        $schema->addField(new FieldDefinition('embedding', FieldType::Vector, [IndexType::Searchable, IndexType::Vector]));
 
         // Base fields with default translation (for compatibility/fallback)
-        $schema->addField(new FieldDefinition('slug', FieldType::KEYWORD, [IndexType::SEARCHABLE]));
-        $schema->addField(new FieldDefinition('title', FieldType::TEXT, [IndexType::SEARCHABLE, IndexType::FILTERABLE]));
+        $schema->addField(new FieldDefinition('slug', FieldType::Keyword, [IndexType::Searchable]));
+        $schema->addField(new FieldDefinition('title', FieldType::Text, [IndexType::Searchable, IndexType::Filterable]));
 
         // Add fields for each locale
         $available_locales = LocaleContext::getAvailable();
@@ -339,13 +346,13 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
 
         foreach ($available_locales as $locale) {
             // Add title and slug for each locale
-            $schema->addField(new FieldDefinition('title_' . $locale, FieldType::TEXT, [IndexType::SEARCHABLE, IndexType::FILTERABLE]));
-            $schema->addField(new FieldDefinition('slug_' . $locale, FieldType::KEYWORD, [IndexType::SEARCHABLE]));
+            $schema->addField(new FieldDefinition('title_' . $locale, FieldType::Text, [IndexType::Searchable, IndexType::Filterable]));
+            $schema->addField(new FieldDefinition('slug_' . $locale, FieldType::Keyword, [IndexType::Searchable]));
         }
 
         // Add base component fields (from default translation)
         foreach ($component_fields as $field) {
-            $schema->addField(new FieldDefinition($field, FieldType::TEXT, [IndexType::SEARCHABLE]));
+            $schema->addField(new FieldDefinition($field, FieldType::Text, [IndexType::Searchable]));
         }
 
         return $this->getSearchMappingTrait($schema);
@@ -359,8 +366,8 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         $rules['create'] = array_merge($rules['create'], [
             // 'title' => 'required|string|max:255', // Validated in translation
             // 'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
-            'entity_id' => 'required|exists:entities,id',
-            'presettable_id' => 'required|exists:presettables,id',
+            'entity_id' => 'required|exists:'.CoreTables::Entities->value.',id',
+            'presettable_id' => 'required|exists:'.CoreTables::Presettables->value.',id',
             'translations' => 'sometimes|array',
             'translations.*.locale' => 'required|string|max:10',
             'translations.*.title' => 'required|string|max:255',
@@ -370,8 +377,8 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         $rules['update'] = array_merge($rules['update'], [
             // 'title' => 'sometimes|required|string|max:255', // Validated in translation
             // 'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
-            'entity_id' => 'sometimes|required|exists:entities,id',
-            'presettable_id' => 'sometimes|required|exists:presettables,id',
+            'entity_id' => 'sometimes|required|exists:'.CoreTables::Entities->value.',id',
+            'presettable_id' => 'sometimes|required|exists:'.CoreTables::Presettables->value.',id',
             'translations' => 'sometimes|array',
             'translations.*.locale' => 'required|string|max:10',
             'translations.*.title' => 'sometimes|required|string|max:255',
@@ -412,7 +419,7 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         $entity_name = Str::lower($class_name);
 
         // Find entity by name
-        $entity = self::fetchAvailableEntities(EntityType::CONTENTS)->firstWhere('name', $entity_name);
+        $entity = self::fetchAvailableEntities(EntityType::Contents)->firstWhere('name', $entity_name);
 
         if (! $entity) {
             return;
@@ -423,7 +430,7 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         $this->setRelation('entity', $entity);
 
         // Find first available preset for this entity
-        $presettable = self::fetchAvailablePresettables(EntityType::CONTENTS)
+        $presettable = self::fetchAvailablePresettables(EntityType::Contents)
             ->firstWhere('entity_id', $entity->id);
 
         if (! $presettable) {
@@ -436,7 +443,7 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
 
     protected static function getEntityType(): IDynamicEntityTypable
     {
-        return EntityType::CONTENTS;
+        return EntityType::Contents;
     }
 
     protected static function booted(): void

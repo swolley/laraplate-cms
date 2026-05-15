@@ -5,24 +5,25 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\Core\Casts\FieldType as CoreFieldType;
-use Modules\Core\Models\Field;
-use Modules\Core\Models\Pivot\Presettable;
-use Modules\Core\Services\DynamicContentsService;
-use Modules\Core\Services\PresetVersioningService;
+use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Category;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Contributor;
 use Modules\CMS\Models\Location;
 use Modules\CMS\Models\Tag;
 use Modules\CMS\Tests\TestCase;
+use Modules\Core\Casts\FieldType as CoreFieldType;
+use Modules\Core\Models\Field;
+use Modules\Core\Models\Pivot\Presettable;
+use Modules\Core\Services\DynamicContentsService;
+use Modules\Core\Services\PresetVersioningService;
 
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
     if (
         ! method_exists(Content::class, 'determineOrderColumnName')
-        || ! Schema::hasColumns('contents', ['components', 'shared_components'])
+        || ! Schema::hasColumns(CMSTables::Contents->value, ['components', 'shared_components'])
     ) {
         $this->markTestSkipped('Content integration features require full Core runtime.');
     }
@@ -66,12 +67,12 @@ it('stores dynamic translated and shared fields in the correct containers', func
 
     $translatable_field = Field::query()->create([
         'name' => $translatable_field_name,
-        'type' => CoreFieldType::TEXT,
+        'type' => CoreFieldType::Text,
         'options' => new stdClass(),
     ]);
     $shared_field = Field::query()->create([
         'name' => $shared_field_name,
-        'type' => CoreFieldType::TEXT,
+        'type' => CoreFieldType::Text,
         'options' => new stdClass(),
     ]);
 
@@ -101,8 +102,8 @@ it('stores dynamic translated and shared fields in the correct containers', func
     $content->{$shared_field_name} = 'Shared dynamic value';
     $content->save();
 
-    $content_row = (array) DB::table('contents')->where('id', $content->id)->first();
-    $translation_row = (array) DB::table('content_translations')
+    $content_row = (array) DB::table(CMSTables::Contents->value)->where('id', $content->id)->first();
+    $translation_row = (array) DB::table(CMSTables::ContentsTranslations->value)
         ->where('content_id', $content->id)
         ->where('locale', config('app.locale'))
         ->first();

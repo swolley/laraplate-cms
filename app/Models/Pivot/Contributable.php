@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Models\Pivot;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\Pivot;
+use Modules\CMS\Enums\CMSTables;
+use Modules\Core\Overrides\Pivot;
 use Override;
 
 /**
+ * @mixin \Eloquent
  * @mixin IdeHelperContributable
  */
 final class Contributable extends Pivot
 {
-    use HasFactory;
-
     #[Override]
-    protected $table = 'contributables';
+    protected $table = CMSTables::Contributables->value;
 
     protected function casts(): array
     {

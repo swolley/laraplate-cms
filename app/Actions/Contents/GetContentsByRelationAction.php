@@ -20,17 +20,17 @@ final class GetContentsByRelationAction
         if ($entity !== 'contents') {
             $entity = Str::singular($entity);
             $filters['filters'][] = [
-                'operator' => WhereClause::OR->value,
+                'operator' => WhereClause::Or->value,
                 'filters' => [
                     [
                         'property' => 'contents.presettable.entity.name',
                         'value' => $entity,
-                        'operator' => FilterOperator::EQUALS->value,
+                        'operator' => FilterOperator::Equals->value,
                     ],
                     [
                         'property' => 'contents.presettable.entity.slug',
                         'value' => $entity,
-                        'operator' => FilterOperator::EQUALS->value,
+                        'operator' => FilterOperator::Equals->value,
                     ],
                 ],
             ];
@@ -46,7 +46,7 @@ final class GetContentsByRelationAction
     {
         $filters = [
             [
-                'operator' => WhereClause::AND->value,
+                'operator' => WhereClause::And->value,
                 'filters' => $request->get('filters') ?? [],
             ],
         ];
@@ -58,17 +58,17 @@ final class GetContentsByRelationAction
         throw_unless(method_exists(Content::class, $relation), BadRequestException::class, 'Invalid relation');
 
         $filters[0]['filters'][] = [
-            'operator' => WhereClause::OR->value,
+            'operator' => WhereClause::Or->value,
             'filters' => [
                 [
                     'property' => sprintf('contents.%s.name', $relation),
                     'value' => $value,
-                    'operator' => FilterOperator::EQUALS->value,
+                    'operator' => FilterOperator::Equals->value,
                 ],
                 [
                     'property' => sprintf('contents.%s.slug', $relation),
                     'value' => $value,
-                    'operator' => FilterOperator::EQUALS->value,
+                    'operator' => FilterOperator::Equals->value,
                 ],
             ],
         ];

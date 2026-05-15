@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\CMS\Models\Translations;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Tag;
 use Modules\Core\Helpers\HasSlug;
 use Modules\Core\Overrides\Model;
@@ -12,6 +13,7 @@ use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
 /**
+ * @mixin \Eloquent
  * @mixin IdeHelperTagTranslation
  */
 final class TagTranslation extends Model implements ITranslated
@@ -19,7 +21,7 @@ final class TagTranslation extends Model implements ITranslated
     use HasSlug;
 
     #[Override]
-    protected $table = 'tags_translations';
+    protected $table = CMSTables::TagsTranslations->value;
 
     /**
      * The attributes that are mass assignable.

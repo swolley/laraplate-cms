@@ -61,7 +61,7 @@ final class CMSDatabaseSeeder extends Seeder
         DB::transaction(function (): void {
             foreach (['subtitle'] as $field) {
                 if (! $this->fields->has($field)) {
-                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::TEXT, 'options' => (object) ['max_length' => 255], 'is_translatable' => true]));
+                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::Text, 'options' => (object) ['max_length' => 255], 'is_translatable' => true]));
                     $this->command->line("    - {$field} <fg=green>created</>");
                 } else {
                     $this->command->line("    - {$field} already exists");
@@ -70,7 +70,7 @@ final class CMSDatabaseSeeder extends Seeder
 
             foreach (['short_content'] as $field) {
                 if (! $this->fields->has($field)) {
-                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::TEXTAREA, 'options' => (object) ['max_length' => 65535], 'is_translatable' => true]));
+                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::Textarea, 'options' => (object) ['max_length' => 65535], 'is_translatable' => true]));
                     $this->command->line("    - {$field} <fg=green>created</>");
                 } else {
                     $this->command->line("    - {$field} already exists");
@@ -79,7 +79,7 @@ final class CMSDatabaseSeeder extends Seeder
 
             foreach (['content'] as $field) {
                 if (! $this->fields->has($field)) {
-                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::EDITOR, 'options' => (object) [], 'is_translatable' => true]));
+                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::Editor, 'options' => (object) [], 'is_translatable' => true]));
                     $this->command->line("    - {$field} <fg=green>created</>");
                 } else {
                     $this->command->line("    - {$field} already exists");
@@ -88,7 +88,7 @@ final class CMSDatabaseSeeder extends Seeder
 
             foreach (['period_from', 'period_to'] as $field) {
                 if (! $this->fields->has($field)) {
-                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::DATETIME, 'options' => (object) ['format' => 'Y-m-d H:i:s'], 'is_translatable' => false]));
+                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::Datetime, 'options' => (object) ['format' => 'Y-m-d H:i:s'], 'is_translatable' => false]));
                     $this->command->line("    - {$field} <fg=green>created</>");
                 } else {
                     $this->command->line("    - {$field} already exists");
@@ -98,7 +98,7 @@ final class CMSDatabaseSeeder extends Seeder
             $field = 'public_email';
 
             if (! $this->fields->has($field)) {
-                $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::EMAIL, 'options' => (object) [], 'is_translatable' => false]));
+                $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::Email, 'options' => (object) [], 'is_translatable' => false]));
                 $this->command->line("    - {$field} <fg=green>created</>");
             } else {
                 $this->command->line("    - {$field} already exists");
@@ -107,7 +107,7 @@ final class CMSDatabaseSeeder extends Seeder
             $field = 'phone';
 
             if (! $this->fields->has($field)) {
-                $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::PHONE, 'options' => (object) [], 'is_translatable' => false]));
+                $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::Phone, 'options' => (object) [], 'is_translatable' => false]));
                 $this->command->line("    - {$field} <fg=green>created</>");
             } else {
                 $this->command->line("    - {$field} already exists");
@@ -115,7 +115,7 @@ final class CMSDatabaseSeeder extends Seeder
 
             foreach (['website', 'linkedin', 'twitter', 'facebook', 'instagram'] as $field) {
                 if (! $this->fields->has($field)) {
-                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::URL, 'options' => (object) [], 'is_translatable' => false]));
+                    $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::Url, 'options' => (object) [], 'is_translatable' => false]));
                     $this->command->line("    - {$field} <fg=green>created</>");
                 } else {
                     $this->command->line("    - {$field} already exists");
@@ -136,28 +136,28 @@ final class CMSDatabaseSeeder extends Seeder
             $entities = [
                 [
                     'name' => 'post',
-                    'type' => EntityType::CONTENTS,
+                    'type' => EntityType::Contents,
                     'preset' => 'standard',
                     'required_fields' => ['content'],
                     'optional_fields' => ['subtitle', 'short_content'],
                 ],
                 [
                     'name' => 'event',
-                    'type' => EntityType::CONTENTS,
+                    'type' => EntityType::Contents,
                     'preset' => 'standard',
                     'required_fields' => ['content', 'period_from'],
                     'optional_fields' => ['subtitle', 'short_content', 'period_to'],
                 ],
                 [
                     'name' => 'contributor',
-                    'type' => EntityType::CONTRIBUTORS,
+                    'type' => EntityType::Contributors,
                     'preset' => 'standard',
                     'required_fields' => ['content'],
                     'optional_fields' => ['public_email', 'phone', 'website', 'linkedin', 'twitter', 'facebook', 'instagram'],
                 ],
                 [
                     'name' => 'category',
-                    'type' => EntityType::CATEGORIES,
+                    'type' => EntityType::Categories,
                     'preset' => 'standard',
                     'required_fields' => ['content'],
                     'optional_fields' => ['short_content'],
@@ -219,8 +219,8 @@ final class CMSDatabaseSeeder extends Seeder
             $this->create($role_class, [
                 'name' => $name,
                 'permissions' => fn () => $permission_class::whereIn('table_name', ['contents', 'categories', 'presets'])
-                    ->where(static fn ($query) => $query->where('name', 'like', '%.' . ActionEnum::APPROVE->value)
-                        ->orWhere('name', 'like', '%.' . ActionEnum::SELECT->value))
+                    ->where(static fn ($query) => $query->where('name', 'like', '%.' . ActionEnum::Approve->value)
+                        ->orWhere('name', 'like', '%.' . ActionEnum::Select->value))
                     ->get(),
             ]);
             $this->command->line("    - {$name} <fg=green>created</>");
@@ -234,8 +234,8 @@ final class CMSDatabaseSeeder extends Seeder
             if ($key === 'admin' && $role !== null) {
                 $role->permissions()->syncWithoutDetaching(
                     $permission_class::where(static fn ($query) => $query->whereIn('table_name', ['contents', 'categories', 'presets'])
-                        ->orWhere('name', 'like', '%.' . ActionEnum::SELECT->value))
-                        ->whereNot('name', 'like', '%.' . ActionEnum::LOCK->value)->pluck('id'),
+                        ->orWhere('name', 'like', '%.' . ActionEnum::Select->value))
+                        ->whereNot('name', 'like', '%.' . ActionEnum::Lock->value)->pluck('id'),
                 );
             }
         }
@@ -250,9 +250,9 @@ final class CMSDatabaseSeeder extends Seeder
     private function getDefaultFieldValue(Field $field, bool $is_required): mixed
     {
         return match ($field->type) {
-            FieldType::SELECT && isset($field->options->multiple) && $field->options->multiple => [],
-            FieldType::SWITCH => $is_required,
-            FieldType::CHECKBOX => [],
+            FieldType::Select && isset($field->options->multiple) && $field->options->multiple => [],
+            FieldType::Switch => $is_required,
+            FieldType::Checkbox => [],
             default => null,
         };
     }

@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\CMS\Enums\CmsTables;
+use Modules\Core\Enums\CoreTables;
 
 return new class extends Migration
 {
@@ -16,11 +18,11 @@ return new class extends Migration
         $default_locale = config('app.locale');
 
         // Migrate contents data
-        if (Schema::hasTable('contents') && Schema::hasColumn('contents', 'title')) {
-            $contents = DB::table('contents')->whereNotNull('title')->get();
+        if (Schema::hasTable(CmsTables::CONTENTS->value) && Schema::hasColumn(CmsTables::CONTENTS->value, 'title')) {
+            $contents = DB::table(CmsTables::CONTENTS->value)->whereNotNull('title')->get();
 
             foreach ($contents as $content) {
-                DB::table('contents_translations')->insert([
+                DB::table(CmsTables::CONTENTS_TRANSLATIONS->value)->insert([
                     'content_id' => $content->id,
                     'locale' => $default_locale,
                     'title' => $content->title,
@@ -33,11 +35,11 @@ return new class extends Migration
         }
 
         // Migrate categories data
-        if (Schema::hasTable('categories') && Schema::hasColumn('categories', 'name')) {
-            $categories = DB::table('categories')->whereNotNull('name')->get();
+        if (Schema::hasTable(CoreTables::TAXONOMIES->value) && Schema::hasColumn(CoreTables::TAXONOMIES->value, 'name')) {
+            $categories = DB::table(CoreTables::TAXONOMIES->value)->whereNotNull('name')->get();
 
             foreach ($categories as $category) {
-                DB::table('categories_translations')->insert([
+                DB::table(CoreTables::TAXONOMIES_TRANSLATIONS->value)->insert([
                     'taxonomy_id' => $category->id,
                     'locale' => $default_locale,
                     'name' => $category->name,
@@ -50,11 +52,11 @@ return new class extends Migration
         }
 
         // Migrate tags data
-        if (Schema::hasTable('tags') && Schema::hasColumn('tags', 'name')) {
-            $tags = DB::table('tags')->whereNotNull('name')->get();
+        if (Schema::hasTable(CmsTables::TAGS->value) && Schema::hasColumn(CmsTables::TAGS->value, 'name')) {
+            $tags = DB::table(CmsTables::TAGS->value)->whereNotNull('name')->get();
 
             foreach ($tags as $tag) {
-                DB::table('tags_translations')->insert([
+                DB::table(CmsTables::TAGS_TRANSLATIONS->value)->insert([
                     'tag_id' => $tag->id,
                     'locale' => $default_locale,
                     'name' => $tag->name,

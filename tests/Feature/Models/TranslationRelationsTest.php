@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Tag;
 use Modules\CMS\Models\Translations\ContentTranslation;
@@ -13,7 +14,7 @@ use Modules\CMS\Tests\TestCase;
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    if (! Schema::hasTable('contents_translations') || ! Schema::hasTable('tags_translations')) {
+    if (! Schema::hasTable(CMSTables::ContentsTranslations->value) || ! Schema::hasTable(CMSTables::TagsTranslations->value)) {
         $this->markTestSkipped('Translation tables required.');
     }
 

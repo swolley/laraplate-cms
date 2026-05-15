@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Contributor;
 use Modules\CMS\Models\Entity;
@@ -16,13 +17,13 @@ uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
     if (
-        ! Schema::hasColumns('contributors', ['components', 'shared_components'])
+        ! Schema::hasColumns(CMSTables::Contributors->value, ['components', 'shared_components'])
         || ! method_exists(Contributor::class, 'setTranslation')
     ) {
         $this->markTestSkipped('Contributor integration features require full Core runtime.');
     }
 
-    foreach ([EntityType::CONTRIBUTORS, EntityType::CONTENTS] as $entityType) {
+    foreach ([EntityType::Contributors, EntityType::Contents] as $entityType) {
         $name = mb_strtolower($entityType->value);
         $entity = Entity::query()->firstOrCreate(['name' => $name], ['type' => $entityType]);
         $preset = Preset::query()->firstOrCreate(['entity_id' => $entity->id, 'name' => 'default']);

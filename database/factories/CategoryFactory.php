@@ -22,7 +22,7 @@ final class CategoryFactory extends Factory
     #[Override]
     protected $model = Category::class;
 
-    protected EntityType $entityType = EntityType::CATEGORIES;
+    protected EntityType $entityType = EntityType::Categories;
 
     #[Override]
     protected function definitionsArray(): array

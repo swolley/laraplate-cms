@@ -5,28 +5,28 @@ declare(strict_types=1);
 use Modules\Core\Casts\FieldType;
 
 it('maps field types to validation rule fragments', function (): void {
-    expect(FieldType::TEXT->getRule())->toBe('string');
-    expect(FieldType::TEXTAREA->getRule())->toBe('string');
-    expect(FieldType::SWITCH->getRule())->toBe('boolean');
-    expect(FieldType::CHECKBOX->getRule())->toBe('array');
-    expect(FieldType::DATETIME->getRule())->toBe('date');
-    expect(FieldType::NUMBER->getRule())->toBe('number');
-    expect(FieldType::OBJECT->getRule())->toBe('json');
-    expect(FieldType::EDITOR->getRule())->toBe('json');
-    expect(FieldType::ARRAY->getRule())->toBe('array');
-    expect(FieldType::EMAIL->getRule())->toBe('email');
-    expect(FieldType::URL->getRule())->toBe('url');
+    expect(FieldType::Text->getRule())->toBe('string');
+    expect(FieldType::Textarea->getRule())->toBe('string');
+    expect(FieldType::Switch->getRule())->toBe('boolean');
+    expect(FieldType::Checkbox->getRule())->toBe('array');
+    expect(FieldType::Datetime->getRule())->toBe('date');
+    expect(FieldType::Number->getRule())->toBe('number');
+    expect(FieldType::Object->getRule())->toBe('json');
+    expect(FieldType::Editor->getRule())->toBe('json');
+    expect(FieldType::Array->getRule())->toBe('array');
+    expect(FieldType::Email->getRule())->toBe('email');
+    expect(FieldType::Url->getRule())->toBe('url');
 });
 
 it('returns empty rule for select-like types using default branch', function (): void {
-    expect(FieldType::SELECT->getRule())->toBe('');
-    expect(FieldType::RADIO->getRule())->toBe('');
+    expect(FieldType::Select->getRule())->toBe('');
+    expect(FieldType::Radio->getRule())->toBe('');
 });
 
 it('detects textual field types', function (): void {
-    expect(FieldType::TEXT->isTextual())->toBeTrue();
-    expect(FieldType::TEXTAREA->isTextual())->toBeTrue();
-    expect(FieldType::EDITOR->isTextual())->toBeTrue();
-    expect(FieldType::NUMBER->isTextual())->toBeFalse();
-    expect(FieldType::SWITCH->isTextual())->toBeFalse();
+    expect(FieldType::Text->isTextual())->toBeTrue();
+    expect(FieldType::Textarea->isTextual())->toBeTrue();
+    expect(FieldType::Editor->isTextual())->toBeTrue();
+    expect(FieldType::Number->isTextual())->toBeFalse();
+    expect(FieldType::Switch->isTextual())->toBeFalse();
 });

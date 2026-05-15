@@ -17,5 +17,8 @@
     "providers": [
         "Modules\\CMS\\Providers\\CMSServiceProvider"
     ],
-    "files": []
+    "files": [],
+    "requires": [
+        "Core"
+    ]
 }

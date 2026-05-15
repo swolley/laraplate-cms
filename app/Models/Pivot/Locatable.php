@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Models\Pivot;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\Pivot;
+use Modules\CMS\Enums\CMSTables;
+use Modules\Core\Overrides\Pivot;
 use Override;
 
 /**
+ * @mixin \Eloquent
  * @mixin IdeHelperLocatable
  */
 final class Locatable extends Pivot
 {
-    use HasFactory;
-
     #[Override]
-    protected $table = 'locatables';
+    protected $table = CMSTables::Locatables->value;
 
     protected function casts(): array
     {

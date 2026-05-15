@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Tag;
 use Modules\CMS\Models\Translations\TagTranslation;
@@ -17,7 +18,7 @@ uses(TestCase::class, RefreshDatabase::class);
 beforeEach(function (): void {
     if (
         ! method_exists(Tag::class, 'determineOrderColumnName')
-        || ! Schema::hasTable('tags_translations')
+        || ! Schema::hasTable(CMSTables::TagsTranslations->value)
     ) {
         $this->markTestSkipped('Tag integration features require full Core runtime.');
     }
@@ -55,8 +56,8 @@ it('stores translated fields in translations table for translatable-only models'
     $tag->slug = 'stored-in-translation';
     $tag->save();
 
-    $tag_row = (array) DB::table('tags')->where('id', $tag->id)->first();
-    $translation_row = (array) DB::table('tags_translations')
+    $tag_row = (array) DB::table(CMSTables::Tags->value)->where('id', $tag->id)->first();
+    $translation_row = (array) DB::table(CMSTables::TagsTranslations->value)
         ->where('tag_id', $tag->id)
         ->where('locale', $default_locale)
         ->first();

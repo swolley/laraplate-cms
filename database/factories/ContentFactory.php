@@ -26,7 +26,7 @@ final class ContentFactory extends Factory
     #[Override]
     protected $model = Content::class;
 
-    protected EntityType $entityType = EntityType::CONTENTS;
+    protected EntityType $entityType = EntityType::Contents;
 
     /**
      * Create pivot relations for a content model.

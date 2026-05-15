@@ -12,7 +12,7 @@ use Modules\Core\Overrides\Factory as CoreFactory;
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    setupCMSEntities([EntityType::CONTENTS]);
+    setupCMSEntities([EntityType::Contents]);
 });
 
 it('returns entity and presettable ids from dynamicContentDefinition', function (): void {

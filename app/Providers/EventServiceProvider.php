@@ -24,9 +24,4 @@ final class EventServiceProvider extends ServiceProvider
      */
     #[Override]
     protected static $shouldDiscoverEvents = true;
-
-    #[Override]
-    public function boot(): void
-    {
-    }
 }

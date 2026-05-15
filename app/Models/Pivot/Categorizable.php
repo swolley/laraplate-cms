@@ -4,22 +4,21 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Models\Pivot;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\Pivot;
+use Modules\CMS\Enums\CMSTables;
+use Modules\Core\Overrides\Pivot;
 use Override;
 
 /**
+ * @mixin \Eloquent
  * @mixin IdeHelperCategorizable
  */
 final class Categorizable extends Pivot
 {
-    use HasFactory;
-
     #[Override]
     public $incrementing = false;
 
     #[Override]
-    protected $table = 'categorizables';
+    protected $table = CMSTables::Categorizables->value;
 
     #[Override]
     protected $primaryKey = ['content_id', 'taxonomy_id'];

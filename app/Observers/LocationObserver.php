@@ -27,7 +27,7 @@ final class LocationObserver
     public function saved(Location $location): void
     {
         if ($location->wasRecentlyCreated) {
-            GeocodeLocationJob::dispatch($location);
+            dispatch(new \Modules\CMS\Jobs\GeocodeLocationJob($location));
         }
     }
 }

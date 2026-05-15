@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Models\CMS\Enums\CmsTables;
 
 return new class extends Migration
 {
@@ -11,17 +12,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $table = 'contents';
         $current_year = (int)date('Y');
         $old_range = 5;
 
         switch (DB::connection()->getDriverName()) {
             case 'oracle':
             case 'pgsql':
-                $years = DB::table($table)->whereNotNull('valid_from')->selectRaw('MIN(EXTRACT(YEAR FROM valid_from)) as min_year, MAX(EXTRACT(YEAR FROM valid_from)) as max_year')->first();
+                $years = DB::table(CmsTables::CONTENTS->value)->whereNotNull('valid_from')->selectRaw('MIN(EXTRACT(YEAR FROM valid_from)) as min_year, MAX(EXTRACT(YEAR FROM valid_from)) as max_year')->first();
                 break;
             default:
-                $years = DB::table($table)->whereNotNull('valid_from')->selectRaw('MIN(YEAR(valid_from)) as min_year, MAX(YEAR(valid_from)) as max_year')->first();
+                $years = DB::table(CmsTables::CONTENTS->value)->whereNotNull('valid_from')->selectRaw('MIN(YEAR(valid_from)) as min_year, MAX(YEAR(valid_from)) as max_year')->first();
         }
 
         $mapped_years = [];
@@ -49,7 +49,7 @@ return new class extends Migration
             $mapped_years[$current_year + 1] = $current_year + 1;
         }
 
-        $this->createPartitions($table, $mapped_years);
+        $this->createPartitions(CmsTables::CONTENTS->value, $mapped_years);
         $this->reorganizePartitions($table, $mapped_years);
     }
 

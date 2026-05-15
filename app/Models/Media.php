@@ -6,12 +6,14 @@ namespace Modules\CMS\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Carbon;
+use Modules\CMS\Enums\CMSTables;
 use Modules\Core\Helpers\HasVersions;
 use Modules\Core\SoftDeletes\SoftDeletes;
 use Override;
 use Spatie\MediaLibrary\MediaCollections\Models\Media as BaseMedia;
 
 /**
+ * @mixin \Eloquent
  * @mixin IdeHelperMedia
  */
 final class Media extends BaseMedia
@@ -19,6 +21,9 @@ final class Media extends BaseMedia
     use HasFactory;
     use HasVersions;
     use SoftDeletes;
+
+    #[Override]
+    protected $table = CMSTables::Media->value;
 
     #[Override]
     protected $appends = [

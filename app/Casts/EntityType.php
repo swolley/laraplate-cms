@@ -8,9 +8,9 @@ use Modules\Core\Contracts\IDynamicEntityTypable;
 
 enum EntityType: string implements IDynamicEntityTypable
 {
-    case CONTENTS = 'contents';
-    case CONTRIBUTORS = 'contributors';
-    case CATEGORIES = 'categories';
+    case Contents = 'contents';
+    case Contributors = 'contributors';
+    case Categories = 'categories';
 
     /**
      * Get all values as array.

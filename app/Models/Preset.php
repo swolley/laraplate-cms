@@ -9,12 +9,14 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Models\Pivot\Presettable;
+use Modules\Core\Enums\CoreTables;
 use Modules\Core\Models\Preset as CorePreset;
 use Override;
 
 /**
  * CMS preset model; behaviour lives in Core — this class exists for the CMS namespace and Filament resources.
  *
+ * @mixin \Eloquent
  * @mixin IdeHelperPreset
  */
 final class Preset extends CorePreset
@@ -25,7 +27,7 @@ final class Preset extends CorePreset
     public function contents(): HasManyThrough
     {
         return $this->hasManyThrough(
-            $this->getRelatedModelClass(),
+            self::getRelatedModelClass(),
             Presettable::class,
             'preset_id',      // foreign key on presettables pointing to presets
             'presettable_id', // foreign key on contents pointing to presettables
@@ -42,18 +44,19 @@ final class Preset extends CorePreset
     }
 
     #[Override]
-    protected function newBaseQueryBuilder(): Builder
-    {
-        return parent::newBaseQueryBuilder()->whereExists(function (Builder $query): void {
-            $query->select(DB::raw('1'))
-                ->from('entities')
-                ->whereIn('entities.type', EntityType::values());
-        });
-    }
-
-    #[Override]
     protected static function getRelatedModelClass(): string
     {
         return Content::class;
+    }
+
+    #[Override]
+    protected function newBaseQueryBuilder(): Builder
+    {
+        return parent::newBaseQueryBuilder()->whereExists(function (Builder $query): void {
+            $entities_table = CoreTables::Entities->value;
+            $query->select(DB::raw('1'))
+                ->from($entities_table)
+                ->whereIn('entities.type', EntityType::values());
+        });
     }
 }

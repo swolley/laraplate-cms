@@ -27,7 +27,7 @@ function createSecondContentsEntityWithPreset(): Entity
     $secondary_name = 'contents_secondary_' . uniqid();
     $secondary = Entity::query()->create([
         'name' => $secondary_name,
-        'type' => EntityType::CONTENTS,
+        'type' => EntityType::Contents,
         'slug' => Str::slug($secondary_name),
     ]);
 
@@ -45,7 +45,7 @@ function createSecondContentsEntityWithPreset(): Entity
 }
 
 it('returns filament tabs with badges when multiple content entities exist and counts are present', function (): void {
-    setupCMSEntities([EntityType::CONTENTS]);
+    setupCMSEntities([EntityType::Contents]);
 
     $secondaryEntity = createSecondContentsEntityWithPreset();
 
@@ -54,12 +54,12 @@ it('returns filament tabs with badges when multiple content entities exist and c
     }
 
     $primaryPresettable = Presettable::query()
-        ->where('entity_id', Entity::query()->where('name', 'contents')->where('type', EntityType::CONTENTS)->value('id'))
+        ->where('entity_id', Entity::query()->where('name', 'contents')->where('type', EntityType::Contents)->value('id'))
         ->firstOrFail();
     $secondaryPresettable = Presettable::query()->where('entity_id', $secondaryEntity->id)->firstOrFail();
 
     $model = Modules\CMS\Models\Content::class;
-    $entities = $model::fetchAvailableEntities(EntityType::CONTENTS);
+    $entities = $model::fetchAvailableEntities(EntityType::Contents);
     $cache_key = 'filament_cms_tabs_' . $model . '_' . $entities->pluck('id')->sort()->values()->implode(',');
     Cache::put($cache_key, [
         'all' => 2,
@@ -74,7 +74,7 @@ it('returns filament tabs with badges when multiple content entities exist and c
 });
 
 it('returns an empty tab list when fewer than two entities are available', function (): void {
-    setupCMSEntities([EntityType::CONTENTS]);
+    setupCMSEntities([EntityType::Contents]);
 
     $tabs = (new CMSHasRecordsTraitHarness)->getTabs();
 

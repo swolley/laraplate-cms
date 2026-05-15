@@ -19,18 +19,19 @@ use Modules\CMS\Http\Controllers\ContentsController;
  *
 */
 
-Route::group(['prefix' => '{relation}'], static function (): void {
+Route::group(['prefix' => 'select/cms/{relation}'], static function (): void {
     $cached_names = [];
+
     try {
-        /** @var mixed $from_cache */
         $from_cache = Cache::get('entities', collect());
+
         if ($from_cache instanceof Collection) {
             $cached_names = $from_cache->pluck('name')->toArray();
         }
-    } catch (\Throwable) {
+    } catch (Throwable) {
         try {
             Cache::forget('entities');
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // Ignore: driver may be unavailable during early bootstrap.
         }
     }

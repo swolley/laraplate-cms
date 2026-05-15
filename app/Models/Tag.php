@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Collection as DbCollection;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
 use Modules\CMS\Database\Factories\TagFactory;
+use Modules\CMS\Enums\CMSTables;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasTranslations;
 use Modules\Core\Helpers\SortableTrait;
@@ -19,6 +20,7 @@ use Override;
 use Spatie\EloquentSortable\Sortable;
 
 /**
+ * @mixin \Eloquent
  * @mixin IdeHelperTag
  */
 final class Tag extends Model implements Sortable
@@ -26,6 +28,9 @@ final class Tag extends Model implements Sortable
     use HasPath;
     use HasTranslations;
     use SortableTrait;
+
+    #[Override]
+    protected $table = CMSTables::Tags->value;
 
     /**
      * The attributes that are mass assignable.
@@ -204,7 +209,7 @@ final class Tag extends Model implements Sortable
     {
         $resolved_locale = $locale ?? $this->getCurrentLocale();
 
-        self::applyContainingByTranslatedName($query, $name, $resolved_locale);
+        $this->applyContainingByTranslatedName($query, $name, $resolved_locale);
     }
 
     protected function casts(): array
@@ -232,7 +237,7 @@ final class Tag extends Model implements Sortable
     /**
      * @param  Builder<static>  $query
      */
-    private static function applyContainingByTranslatedName(Builder $query, string $name, string $locale): void
+    private function applyContainingByTranslatedName(Builder $query, string $name, string $locale): void
     {
         $needle = '%' . mb_strtolower($name) . '%';
 
