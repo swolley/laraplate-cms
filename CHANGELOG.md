@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### ⚙️ Miscellaneous Tasks
+
+- Update CMS module configuration and dependencies
+
+## [1.29.0] - 2026-05-09
+
 ### 🚀 Features
 
 - Add GeocodeLocationJob for asynchronous geocoding and enhance Content model relations
