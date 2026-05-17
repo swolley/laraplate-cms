@@ -38,6 +38,9 @@ final class Contributor extends Model implements IMediable, Taggable
     }
     // endregion
 
+    /**
+     * @var string
+     */
     #[Override]
     protected $table = CMSTables::Contributors->value;
 
@@ -108,10 +111,10 @@ final class Contributor extends Model implements IMediable, Taggable
         $fields = $this->getRulesTranslatedDynamicContents();
         $rules[Model::DEFAULT_RULE] = array_merge($rules[Model::DEFAULT_RULE], $fields);
         $rules['create'] = array_merge($rules['create'], [
-            'name' => ['required', 'string', 'max:255', 'unique:'.CMSTables::Contributors->value.',name'],
+            'name' => ['required', 'string', 'max:255', 'unique:' . CMSTables::Contributors->value . ',name'],
         ]);
         $rules['update'] = array_merge($rules['update'], [
-            'name' => ['sometimes', 'string', 'max:255', 'unique:'.CMSTables::Contributors->value.',name,' . $this->id],
+            'name' => ['sometimes', 'string', 'max:255', 'unique:' . CMSTables::Contributors->value . ',name,' . $this->id],
         ]);
 
         return $rules;

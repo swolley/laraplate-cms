@@ -14,6 +14,9 @@ use Override;
  */
 final class Contributable extends Pivot
 {
+    /**
+     * @var string
+     */
     #[Override]
     protected $table = CMSTables::Contributables->value;
 

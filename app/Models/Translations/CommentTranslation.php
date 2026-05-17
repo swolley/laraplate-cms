@@ -6,55 +6,57 @@ namespace Modules\CMS\Models\Translations;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\CMS\Enums\CMSTables;
-use Modules\CMS\Models\Tag;
-use Modules\Core\Helpers\HasSlug;
+use Modules\CMS\Models\Comment;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
 /**
  * @mixin \Eloquent
- * @mixin IdeHelperTagTranslation
+ * @mixin IdeHelperCommentTranslation
  */
-final class TagTranslation extends Model implements ITranslated
+final class CommentTranslation extends Model implements ITranslated
 {
-    use HasSlug;
-
     /**
      * @var string
      */
     #[Override]
-    protected $table = CMSTables::TagsTranslations->value;
+    protected $table = CMSTables::CommentsTranslations->value;
 
     /**
-     * The attributes that are mass assignable.
+     * @var list<string>
      */
     #[Override]
     protected $fillable = [
-        'tag_id',
+        'comment_id',
         'locale',
-        'name',
-        'slug',
+        'body',
     ];
 
+    /**
+     * @var list<string>
+     */
     #[Override]
     protected $hidden = [
         'created_at',
         'updated_at',
     ];
 
+    private bool $softDeletesEnabled = false;
+
     /**
-     * The tag that belongs to the translation.
-     *
-     * @return BelongsTo<Tag>
+     * @return BelongsTo<Comment, $this>
      */
-    public function tag(): BelongsTo
+    public function comment(): BelongsTo
     {
-        return $this->belongsTo(Tag::class);
+        return $this->belongsTo(Comment::class);
     }
 
     protected function casts(): array
     {
-        return [];
+        return [
+            'created_at' => 'immutable_datetime',
+            'updated_at' => 'datetime',
+        ];
     }
 }

@@ -14,7 +14,6 @@ use Modules\Core\Casts\FieldType as CoreFieldType;
 use Modules\Core\Models\Field;
 use Modules\Core\Services\DynamicContentsService;
 use Modules\Core\Services\PresetVersioningService;
-
 /*
 |--------------------------------------------------------------------------
 | Functions
@@ -64,11 +63,78 @@ function setupCMSEntities(array $entityTypes = [EntityType::Contents, EntityType
             ->latest('version')
             ->first();
 
-        if ($presettable === null || empty($presettable->fields_snapshot)) {
-            resolve(PresetVersioningService::class)->createVersion($preset);
-            DynamicContentsService::getInstance()->clearAllCaches();
+        if ($presettable !== null && ! empty($presettable->fields_snapshot)) {
+            continue;
         }
+
+        resolve(PresetVersioningService::class)->createVersion($preset);
+        DynamicContentsService::getInstance()->clearAllCaches();
     }
+}
+
+/**
+ * Create a minimal content row for comment tests (avoids full dynamic factory).
+ */
+function createMinimalTestContentForComments(): Modules\CMS\Models\Content
+{
+    $entity = Modules\CMS\Models\Entity::query()->firstOrCreate(
+        ['name' => 'contents'],
+        [
+            'type' => EntityType::Contents,
+            'slug' => 'contents',
+        ],
+    );
+
+    $preset = Modules\CMS\Models\Preset::query()->firstOrCreate(
+        ['entity_id' => $entity->id, 'name' => 'default'],
+        ['entity_id' => $entity->id, 'name' => 'default'],
+    );
+
+    if ($preset->fields()->count() === 0) {
+        $field = Field::query()->create([
+            'name' => 'description_' . uniqid(),
+            'type' => CoreFieldType::Text,
+            'options' => new stdClass(),
+        ]);
+        $preset->fields()->attach($field->id, [
+            'default' => null,
+            'is_required' => false,
+        ]);
+    }
+
+    $presettable = Presettable::query()
+        ->where('entity_id', $entity->id)
+        ->where('preset_id', $preset->id)
+        ->whereNull('deleted_at')
+        ->latest('version')
+        ->first();
+
+    if ($presettable === null) {
+        resolve(PresetVersioningService::class)->createVersion($preset);
+    }
+
+    $presettable = Presettable::query()
+        ->where('entity_id', $entity->id)
+        ->where('preset_id', $preset->id)
+        ->whereNull('deleted_at')
+        ->latest('version')
+        ->firstOrFail();
+
+    $content = Modules\CMS\Models\Content::query()->create([
+        'entity_id' => $entity->id,
+        'presettable_id' => $presettable->id,
+        'valid_from' => now(),
+    ]);
+
+    Modules\CMS\Models\Translations\ContentTranslation::query()->create([
+        'content_id' => $content->id,
+        'locale' => 'en',
+        'title' => 'Comment test content',
+        'slug' => 'comment-test-content',
+        'components' => [],
+    ]);
+
+    return $content->fresh();
 }
 
 /**

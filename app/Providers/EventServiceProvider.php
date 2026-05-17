@@ -10,18 +10,11 @@ use Override;
 final class EventServiceProvider extends ServiceProvider
 {
     /**
-     * The event handler mappings for the application.
-     *
      * @var array<string, array<int, string>>
      */
     #[Override]
     protected $listen = [];
 
-    /**
-     * Indicates if events should be discovered.
-     *
-     * @var bool
-     */
     #[Override]
     protected static $shouldDiscoverEvents = true;
 }

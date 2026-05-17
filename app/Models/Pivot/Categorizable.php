@@ -17,6 +17,9 @@ final class Categorizable extends Pivot
     #[Override]
     public $incrementing = false;
 
+    /**
+     * @var string
+     */
     #[Override]
     protected $table = CMSTables::Categorizables->value;
 

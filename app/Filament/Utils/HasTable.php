@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\CMS\Filament\Utils;
 
 use App\Models\User;
-use Modules\CMS\Models\Preset;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
@@ -13,6 +12,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Models\Preset;
 use Modules\Core\Enums\CoreTables;
 use Modules\Core\Filament\Utils\HasTable as CoreHasTable;
 use Modules\Core\Helpers\HasDynamicContents;
@@ -100,7 +100,6 @@ trait HasTable
     ): void {
         if (self::hasDynamicContents($model_instance)) {
             $entity_type = $model_instance::getEntityType();
-            $entity_type = $entity_type::tryFrom($model_instance->getTable());
 
             if ($entity_type) {
                 $table->pushFilters([
@@ -144,14 +143,14 @@ trait HasTable
     {
         return Preset::query()
             ->forActiveEntityOfType($entity_type)
-            ->join(CoreTables::Entities->value, CoreTables::Presets->value.'.entity_id', '=', CoreTables::Entities->value.'.id')
-            ->orderBy(CoreTables::Entities->value.'.name')
-            ->orderBy(CoreTables::Presets->value.'.name')
+            ->join(CoreTables::Entities->value, CoreTables::Presets->value . '.entity_id', '=', CoreTables::Entities->value . '.id')
+            ->orderBy(CoreTables::Entities->value . '.name')
+            ->orderBy(CoreTables::Presets->value . '.name')
             ->get([
-                CoreTables::Presets->value.'.id',
-                CoreTables::Presets->value.'.name',
-                CoreTables::Presets->value.'.entity_id',
-                CoreTables::Entities->value.'.name',
+                CoreTables::Presets->value . '.id',
+                CoreTables::Presets->value . '.name',
+                CoreTables::Presets->value . '.entity_id',
+                CoreTables::Entities->value . '.name',
             ])
             ->mapWithKeys(static fn (Preset $preset): array => [$preset->id => $preset->entity->name . ' - ' . $preset->name])
             ->all();

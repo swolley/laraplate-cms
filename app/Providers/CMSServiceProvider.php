@@ -6,7 +6,9 @@ namespace Modules\CMS\Providers;
 
 use Exception;
 use Modules\CMS\Observers\PlaceObserver;
+use Modules\CMS\Services\CommentModerationAdapter;
 use Modules\Core\Models\Place;
+use Modules\Core\Services\ModerationAdapterRegistry;
 use Modules\Core\Overrides\ModuleServiceProvider;
 use Override;
 
@@ -44,5 +46,8 @@ final class CMSServiceProvider extends ModuleServiceProvider
         // Address fields (address, city, province, country) are stored on Place via HasPlace,
         // so we must watch Place saves rather than Location saves.
         Place::observe(PlaceObserver::class);
+
+        $this->app->make(ModerationAdapterRegistry::class)
+            ->register($this->app->make(CommentModerationAdapter::class));
     }
 }

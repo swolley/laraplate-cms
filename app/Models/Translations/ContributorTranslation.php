@@ -20,6 +20,9 @@ final class ContributorTranslation extends Model implements ITranslated
 {
     use HasSlug;
 
+    /**
+     * @var string
+     */
     #[Override]
     protected $table = CMSTables::ContributorsTranslations->value;
 

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚀 Features
+
+- Enhance CMS module with comments and content ratings functionality
+
+## [1.30.1] - 2026-05-15
+
 ### 🚜 Refactor
 
 - Replace hardcoded table names with enum values in model relationships

@@ -26,6 +26,9 @@ final class ContentTranslation extends Model implements ITranslated
 {
     use HasSlug;
 
+    /**
+     * @var string
+     */
     #[Override]
     protected $table = CMSTables::ContentsTranslations->value;
 
@@ -39,6 +42,11 @@ final class ContentTranslation extends Model implements ITranslated
         'title',
         'slug',
         'components',
+    ];
+
+    #[Override]
+    protected $attributes = [
+        'components' => '[]',
     ];
 
     #[Override]

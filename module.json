@@ -11,7 +11,9 @@
         "pages",
         "categories",
         "tags",
-        "contributors"
+        "contributors",
+        "comments",
+        "content_ratings"
     ],
     "priority": 99,
     "providers": [

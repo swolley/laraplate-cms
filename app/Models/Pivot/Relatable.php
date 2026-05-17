@@ -14,6 +14,9 @@ use Override;
  */
 final class Relatable extends Pivot
 {
+    /**
+     * @var string
+     */
     #[Override]
     protected $table = CMSTables::Relatables->value;
 

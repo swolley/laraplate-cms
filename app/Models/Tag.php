@@ -29,6 +29,9 @@ final class Tag extends Model implements Sortable
     use HasTranslations;
     use SortableTrait;
 
+    /**
+     * @var string
+     */
     #[Override]
     protected $table = CMSTables::Tags->value;
 
@@ -48,6 +51,8 @@ final class Tag extends Model implements Sortable
         'created_at',
         'updated_at',
     ];
+
+    protected bool $translation_fallback_enabled = true;
 
     public static function findOrCreate(
         string|array|ArrayAccess $values,
@@ -126,7 +131,7 @@ final class Tag extends Model implements Sortable
      */
     public function contents(): MorphToMany
     {
-        return $this->morphedByMany(Content::class, 'taggable', 'taggables');
+        return $this->morphedByMany(Content::class, 'taggable', CMSTables::Taggables->value);
     }
 
     /**

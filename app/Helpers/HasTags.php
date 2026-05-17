@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
 use Modules\CMS\Contracts\Taggable;
+use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Tag;
 
 /**
@@ -128,7 +129,7 @@ trait HasTags
     public function tags(): MorphToMany
     {
         return $this
-            ->morphToMany(Tag::class, 'taggable', 'taggables')
+            ->morphToMany(Tag::class, 'taggable', CMSTables::Taggables->value)
             ->using(MorphPivot::class)
             ->ordered();
     }
@@ -249,7 +250,7 @@ trait HasTags
             ->where('taggable_type', $this->getMorphClass())
             ->join(
                 $tagModel->getTable(),
-                'taggables.tag_id',
+                CMSTables::Taggables->value . '.tag_id',
                 '=',
                 $tagModel->getTable() . '.' . $tagModel->getKeyName(),
             )

@@ -22,6 +22,9 @@ final class Media extends BaseMedia
     use HasVersions;
     use SoftDeletes;
 
+    /**
+     * @var string
+     */
     #[Override]
     protected $table = CMSTables::Media->value;
 

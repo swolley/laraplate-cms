@@ -218,7 +218,7 @@ final class CMSDatabaseSeeder extends Seeder
         if (! $all_roles->has($name)) {
             $this->create($role_class, [
                 'name' => $name,
-                'permissions' => fn () => $permission_class::whereIn('table_name', ['contents', 'categories', 'presets'])
+                'permissions' => fn () => $permission_class::whereIn('table_name', ['contents', 'categories', 'presets', 'cms_comments'])
                     ->where(static fn ($query) => $query->where('name', 'like', '%.' . ActionEnum::Approve->value)
                         ->orWhere('name', 'like', '%.' . ActionEnum::Select->value))
                     ->get(),
@@ -233,7 +233,7 @@ final class CMSDatabaseSeeder extends Seeder
 
             if ($key === 'admin' && $role !== null) {
                 $role->permissions()->syncWithoutDetaching(
-                    $permission_class::where(static fn ($query) => $query->whereIn('table_name', ['contents', 'categories', 'presets'])
+                    $permission_class::where(static fn ($query) => $query->whereIn('table_name', ['contents', 'categories', 'presets', 'cms_comments'])
                         ->orWhere('name', 'like', '%.' . ActionEnum::Select->value))
                         ->whereNot('name', 'like', '%.' . ActionEnum::Lock->value)->pluck('id'),
                 );

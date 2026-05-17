@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 namespace Modules\CMS\Models;
-use Modules\Core\Enums\CoreTables;
 
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Modules\CMS\Casts\EntityType;
@@ -24,6 +24,7 @@ use Modules\CMS\Models\Pivot\Locatable;
 use Modules\CMS\Models\Pivot\Relatable;
 use Modules\CMS\Observers\ContentObserver;
 use Modules\Core\Contracts\IDynamicEntityTypable;
+use Modules\Core\Enums\CoreTables;
 use Modules\Core\Helpers\HasApprovals;
 use Modules\Core\Helpers\HasPath;
 use Modules\Core\Helpers\HasTranslatedDynamicContents;
@@ -77,6 +78,9 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
     public static array $childTypes = [];
     // endregion
 
+    /**
+     * @var string
+     */
     #[Override]
     protected $table = CMSTables::Contents->value;
 
@@ -91,7 +95,7 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
     /**
      * @var list<string>
      */
-    #[\Override]
+    #[Override]
     protected $appends = [
         'statistics',
     ];
@@ -185,6 +189,24 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
     public function contributors(): BelongsToMany
     {
         return $this->belongsToMany(Contributor::class, CMSTables::Contributables->value)->using(Contributable::class)->withTimestamps();
+    }
+
+    /**
+     * Comments on this content (approved/persisted rows only).
+     *
+     * @return HasMany<Comment, $this>
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    /**
+     * @return HasMany<ContentRating, $this>
+     */
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(ContentRating::class);
     }
 
     /**
@@ -366,8 +388,8 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         $rules['create'] = array_merge($rules['create'], [
             // 'title' => 'required|string|max:255', // Validated in translation
             // 'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
-            'entity_id' => 'required|exists:'.CoreTables::Entities->value.',id',
-            'presettable_id' => 'required|exists:'.CoreTables::Presettables->value.',id',
+            'entity_id' => 'required|exists:' . CoreTables::Entities->value . ',id',
+            'presettable_id' => 'required|exists:' . CoreTables::Presettables->value . ',id',
             'translations' => 'sometimes|array',
             'translations.*.locale' => 'required|string|max:10',
             'translations.*.title' => 'required|string|max:255',
@@ -377,8 +399,8 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         $rules['update'] = array_merge($rules['update'], [
             // 'title' => 'sometimes|required|string|max:255', // Validated in translation
             // 'slug' => 'sometimes|nullable|string|max:255', // Validated in translation
-            'entity_id' => 'sometimes|required|exists:'.CoreTables::Entities->value.',id',
-            'presettable_id' => 'sometimes|required|exists:'.CoreTables::Presettables->value.',id',
+            'entity_id' => 'sometimes|required|exists:' . CoreTables::Entities->value . ',id',
+            'presettable_id' => 'sometimes|required|exists:' . CoreTables::Presettables->value . ',id',
             'translations' => 'sometimes|array',
             'translations.*.locale' => 'required|string|max:10',
             'translations.*.title' => 'sometimes|required|string|max:255',

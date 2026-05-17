@@ -14,6 +14,9 @@ use Override;
  */
 final class Locatable extends Pivot
 {
+    /**
+     * @var string
+     */
     #[Override]
     protected $table = CMSTables::Locatables->value;
 

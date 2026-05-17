@@ -15,6 +15,9 @@ use MatanYadaev\EloquentSpatial\Objects\Point;
 use Modules\CMS\Jobs\GeocodeLocationJob;
 use Modules\CMS\Models\Location;
 use Modules\CMS\Services\NominatimService;
+use Modules\CMS\Tests\TestCase;
+
+uses(TestCase::class);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Structure & configuration (no DB required)

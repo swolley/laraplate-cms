@@ -135,7 +135,11 @@ it('toSearchableWith returns all required relations for indexing', function (): 
  */
 it('toSearchableArray does not trigger lazy loading when all relations are eager-loaded', function (): void {
     // Feature: performance-optimization, Property 6: Content toSearchableArray does not trigger lazy loading
-    setupCMSEntities([Modules\CMS\Casts\EntityType::Contents, Modules\CMS\Casts\EntityType::Contributors]);
+    setupCMSEntities([
+        Modules\CMS\Casts\EntityType::Contents,
+        Modules\CMS\Casts\EntityType::Contributors,
+        Modules\CMS\Casts\EntityType::Categories,
+    ]);
 
     // Enable lazy loading guard for this test
     Illuminate\Database\Eloquent\Model::preventLazyLoading(true);
