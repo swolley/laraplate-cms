@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\CMS\Models\Category;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, RefreshDatabase::class);
 
 it('binds translations to taxonomies_translations.taxonomy_id', function (): void {
     $category = new Category;
