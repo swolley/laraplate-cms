@@ -163,7 +163,7 @@ return [
      * The engine that should perform the image conversions.
      * Should be either `gd` or `imagick`.
      */
-    'image_driver' => env('IMAGE_DRIVER', 'gd'),
+    'image_driver' => env('IMAGE_DRIVER', 'imagick'),
 
     /*
      * FFMPEG & FFProbe binaries paths, only used if you try to generate video
@@ -262,5 +262,5 @@ return [
      * When forcing lazy loading, media will be loaded even if you don't eager load media and you have
      * disabled lazy loading globally in the service provider.
      */
-    'force_lazy_loading' => env('FORCE_MEDIA_LIBRARY_LAZY_LOADING', true),
+    // 'force_lazy_loading' => env('FORCE_MEDIA_LIBRARY_LAZY_LOADING', true),
 ];

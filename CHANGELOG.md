@@ -6,6 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
+- *(config)* Clean up configuration files and update media library settings
+
+### 🚜 Refactor
+
+- *(tests)* Enhance testing framework with integration tests for CMS module
+
+## [1.31.0] - 2026-05-17
+
+### 🚀 Features
+
 - Enhance CMS module with comments and content ratings functionality
 
 ## [1.30.1] - 2026-05-15

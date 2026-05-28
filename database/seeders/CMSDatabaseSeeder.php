@@ -10,11 +10,12 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Models\Entity;
+use Modules\CMS\Models\Preset;
 use Modules\Core\Casts\ActionEnum;
 use Modules\Core\Casts\FieldType;
+use Modules\Core\Casts\SettingTypeEnum;
 use Modules\Core\Database\Seeders\CoreDatabaseSeeder;
 use Modules\Core\Models\Field;
-use Modules\CMS\Models\Preset;
 use Modules\Core\Models\Role;
 use Modules\Core\Overrides\Seeder;
 use Modules\Core\Services\DynamicContentsService;
@@ -38,11 +39,23 @@ final class CMSDatabaseSeeder extends Seeder
     private Collection $fields;
 
     /**
+     * @return array<int, array{name: string, value: mixed, type: SettingTypeEnum, group_name: string, description: string, choices?: array<int, mixed>}>
+     */
+    public static function runtimeSettingDefinitions(): array
+    {
+        return [
+            self::setting('cms.locale.auto_translate', false, SettingTypeEnum::Boolean, 'cms', 'Enable CMS locale auto-translation'),
+            self::setting('cms.geocoding.cache_ttl', 604800, SettingTypeEnum::Integer, 'cms', 'Geocoding cache TTL in seconds'),
+        ];
+    }
+
+    /**
      * Run the database seeds.
      */
     public function run(): void
     {
         Model::unguarded(function (): void {
+            $this->seedSettingDefinitions(self::runtimeSettingDefinitions());
             $this->defaultFields();
             $this->defaultEntities();
             $this->defaultRoles();
@@ -50,6 +63,23 @@ final class CMSDatabaseSeeder extends Seeder
 
         Artisan::call('cache:clear');
         DynamicContentsService::getInstance()->clearAllCaches();
+    }
+
+    private static function setting(string $name, mixed $value, SettingTypeEnum $type, string $group, string $description, ?array $choices = null): array
+    {
+        $definition = [
+            'name' => $name,
+            'value' => $value,
+            'type' => $type,
+            'group_name' => $group,
+            'description' => $description,
+        ];
+
+        if ($choices !== null) {
+            $definition['choices'] = $choices;
+        }
+
+        return $definition;
     }
 
     private function defaultFields(): void
@@ -208,10 +238,13 @@ final class CMSDatabaseSeeder extends Seeder
     {
         $this->logOperation(Role::class);
 
+        /** @var class-string<Role> $role_class */
         $role_class = config('permission.models.role');
+
+        /** @var class-string<Permission> $permission_class */
         $permission_class = config('permission.models.permission');
 
-        $all_roles = $role_class::all(['id', 'name'])->keyBy('name');
+        $all_roles = $role_class::query()->get(['id', 'name'])->keyBy('name');
 
         $name = 'publisher';
 
