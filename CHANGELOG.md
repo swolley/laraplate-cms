@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🐛 Bug Fixes
+
+- *(locations)* Enhance geocoding functionality and secure routes
+
+## [1.32.0] - 2026-05-28
+
 ### 🚀 Features
 
 - *(config)* Clean up configuration files and update media library settings

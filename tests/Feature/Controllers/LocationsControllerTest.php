@@ -3,10 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
-use Modules\CMS\Models\Location;
-use Modules\CMS\Services\Contracts\IGeocodingService;
 use Modules\CMS\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
@@ -108,7 +105,8 @@ it('geocode validates minimum query length', function (): void {
 
 it('geocode requires authentication', function (): void {
     /** @var TestCase $this */
-    Auth::logout();
+    $this->app['auth']->guard()->forgetUser();
+    $this->flushSession();
 
     $response = $this->getJson(route('cms.locations.geocode', [
         'q' => 'Rome',
@@ -119,35 +117,14 @@ it('geocode requires authentication', function (): void {
 
 it('geocode maps geocoding exceptions to response error payload', function (): void {
     /** @var TestCase $this */
-    $failing_service = new class implements IGeocodingService
-    {
-        public static function getInstance(): IGeocodingService
-        {
-            return new self;
-        }
-
-        public function search(
-            string $query,
-            ?string $city = null,
-            ?string $province = null,
-            ?string $country = null,
-            int $limit = 1,
-        ): array|Location|null {
-            throw new RuntimeException('upstream geocoder unavailable');
-        }
-
-        public function url(Location $location): string
-        {
-            return '';
-        }
-    };
-
-    $this->instance(IGeocodingService::class, $failing_service);
+    Http::fake(static function (): never {
+        throw new RuntimeException('upstream geocoder unavailable');
+    });
 
     $response = $this->getJson(route('cms.locations.geocode', [
         'q' => 'Rome',
     ]));
 
-    $response->assertStatus(200)
+    $response->assertStatus(500)
         ->assertJsonPath('error', 'upstream geocoder unavailable');
 });

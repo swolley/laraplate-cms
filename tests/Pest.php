@@ -14,6 +14,17 @@ use Modules\Core\Casts\FieldType as CoreFieldType;
 use Modules\Core\Models\Field;
 use Modules\Core\Services\DynamicContentsService;
 use Modules\Core\Services\PresetVersioningService;
+
+/*
+|--------------------------------------------------------------------------
+| Hooks
+|--------------------------------------------------------------------------
+*/
+
+beforeEach(function (): void {
+    DynamicContentsService::reset();
+})->in(__DIR__ . '/Feature', __DIR__ . '/Integration');
+
 /*
 |--------------------------------------------------------------------------
 | Functions
@@ -27,6 +38,8 @@ use Modules\Core\Services\PresetVersioningService;
  */
 function setupCMSEntities(array $entityTypes = [EntityType::Contents, EntityType::Contributors, EntityType::Categories]): void
 {
+    DynamicContentsService::reset();
+
     foreach ($entityTypes as $entityType) {
         $name = match ($entityType) {
             EntityType::Contents => 'contents',
@@ -68,8 +81,9 @@ function setupCMSEntities(array $entityTypes = [EntityType::Contents, EntityType
         }
 
         resolve(PresetVersioningService::class)->createVersion($preset);
-        DynamicContentsService::getInstance()->clearAllCaches();
     }
+
+    DynamicContentsService::getInstance()->clearAllCaches();
 }
 
 /**
@@ -77,7 +91,7 @@ function setupCMSEntities(array $entityTypes = [EntityType::Contents, EntityType
  */
 function createMinimalTestContentForComments(): Modules\CMS\Models\Content
 {
-    $entity = Modules\CMS\Models\Entity::query()->firstOrCreate(
+    $entity = Entity::query()->firstOrCreate(
         ['name' => 'contents'],
         [
             'type' => EntityType::Contents,
@@ -85,7 +99,7 @@ function createMinimalTestContentForComments(): Modules\CMS\Models\Content
         ],
     );
 
-    $preset = Modules\CMS\Models\Preset::query()->firstOrCreate(
+    $preset = Preset::query()->firstOrCreate(
         ['entity_id' => $entity->id, 'name' => 'default'],
         ['entity_id' => $entity->id, 'name' => 'default'],
     );

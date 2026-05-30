@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\CMS\Enums\CMSTables;
@@ -79,8 +78,12 @@ it('has hidden attributes', function (): void {
 
 it('belongs to many contents', function (): void {
     $tag = Tag::factory()->create();
-    $content1 = Content::factory()->create();
-    $content2 = Content::factory()->create();
+    $validity = [
+        'valid_from' => now()->subDay(),
+        'valid_to' => null,
+    ];
+    $content1 = Content::factory()->create($validity);
+    $content2 = Content::factory()->create($validity);
 
     $tag->contents()->attach([$content1->id, $content2->id]);
 
@@ -217,7 +220,7 @@ it('has proper timestamps', function (): void {
     $tag = Tag::factory()->create();
 
     expect($tag->created_at)->toBeInstanceOf(CarbonImmutable::class);
-    expect($tag->updated_at)->toBeInstanceOf(Carbon::class);
+    expect($tag->updated_at)->toBeInstanceOf(CarbonImmutable::class);
 });
 
 it('can be serialized to array with translations', function (): void {

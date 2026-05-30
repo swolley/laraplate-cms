@@ -16,6 +16,6 @@ use Modules\CMS\Http\Controllers\LocationsController;
 |
 */
 
-Route::prefix('cms/locations')->group(function (): void {
+Route::middleware('auth')->prefix('cms/locations')->group(function (): void {
     Route::get('/geocode', [LocationsController::class, 'geocode'])->name('locations.geocode');
 });

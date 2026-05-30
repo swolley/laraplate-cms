@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Actions\Locations;
 
+use MatanYadaev\EloquentSpatial\Objects\Point;
 use Modules\CMS\Models\Location;
 use Modules\Core\Contracts\Geocoding\GeocodingResult;
 use Modules\Core\Contracts\Geocoding\IGeocodingService;
@@ -31,6 +32,17 @@ final readonly class GeocodeLocationAction
 
     private function toLocation(GeocodingResult $result): Location
     {
-        return new Location()->fill($result->toArray());
+        $attributes = $result->toArray();
+        $latitude = $attributes['latitude'] ?? null;
+        $longitude = $attributes['longitude'] ?? null;
+        unset($attributes['latitude'], $attributes['longitude']);
+
+        $location = new Location()->fill($attributes);
+
+        if ($latitude !== null && $longitude !== null) {
+            $location->geolocation = new Point((float) $latitude, (float) $longitude);
+        }
+
+        return $location;
     }
 }

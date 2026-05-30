@@ -22,28 +22,24 @@ beforeEach(function (): void {
 });
 
 it('content translation belongs to content', function (): void {
-    $content = Content::factory()->create();
-    $translation = ContentTranslation::query()->create([
-        'content_id' => $content->id,
-        'locale' => config('app.locale'),
-        'title' => 'T',
-        'slug' => 't',
-        'components' => [],
+    $content = Content::factory()->create([
+        'valid_from' => now()->subDay(),
+        'valid_to' => null,
     ]);
+    $translation = $content->translations()
+        ->where('locale', config('app.locale'))
+        ->firstOrFail();
 
-    expect($translation->content)->toBeInstanceOf(Content::class)
+    expect($translation)->toBeInstanceOf(ContentTranslation::class)
         ->and($translation->content->is($content))->toBeTrue();
 });
 
 it('tag translation belongs to tag', function (): void {
     $tag = Tag::factory()->create();
-    $translation = TagTranslation::query()->create([
-        'tag_id' => $tag->id,
-        'locale' => config('app.locale'),
-        'name' => 'Name',
-        'slug' => 'name',
-    ]);
+    $translation = $tag->translations()
+        ->where('locale', config('app.locale'))
+        ->firstOrFail();
 
-    expect($translation->tag)->toBeInstanceOf(Tag::class)
+    expect($translation)->toBeInstanceOf(TagTranslation::class)
         ->and($translation->tag->is($tag))->toBeTrue();
 });
