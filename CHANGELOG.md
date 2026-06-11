@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚜 Refactor
+
+- *(CommentApprovalCapture)* Improve type hinting in transformation function
+
+### 📚 Documentation
+
+- *(docs)* Update paths in phpstan configuration and add glossaries for CMS module
+
+## [1.32.1] - 2026-05-30
+
 ### 🐛 Bug Fixes
 
 - *(locations)* Enhance geocoding functionality and secure routes
