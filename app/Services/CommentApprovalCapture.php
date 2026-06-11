@@ -67,7 +67,7 @@ final class CommentApprovalCapture
     public static function capture(Comment $comment): bool
     {
         $diff = Collection::make($comment->getDirty())
-            ->transform(static fn ($change, string $key): array => [
+            ->transform(static fn (mixed $value, string $key): array => [
                 'original' => $comment->getOriginal($key),
                 'modified' => $comment->{$key},
             ])
