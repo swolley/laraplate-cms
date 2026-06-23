@@ -9,9 +9,9 @@ use function user_class;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\CMS\Models\Contributor;
-use Modules\Core\Helpers\HasDynamicContentFactory;
-use Modules\Core\Helpers\HasDynamicContents;
-use Modules\Core\Helpers\HasUniqueFactoryValues;
+use Modules\Core\Database\Factories\Concerns\HasDynamicContentFactory;
+use Modules\Core\Models\Concerns\HasDynamicContents;
+use Modules\Core\Database\Factories\Concerns\HasUniqueFactoryValues;
 use Override;
 
 /**

@@ -7,7 +7,7 @@ namespace Modules\CMS\Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use MatanYadaev\EloquentSpatial\Objects\Point;
-use Modules\Core\Helpers\HasUniqueFactoryValues;
+use Modules\Core\Database\Factories\Concerns\HasUniqueFactoryValues;
 use Override;
 
 /**

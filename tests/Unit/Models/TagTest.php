@@ -19,11 +19,11 @@ it('tag model uses correct traits', function (): void {
     $traits = array_values(class_uses_recursive(Tag::class));
 
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
-    expect($traits)->toContain(Modules\Core\Helpers\HasPath::class);
-    expect($traits)->toContain(Modules\Core\Helpers\HasTranslations::class);
-    expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
+    expect($traits)->toContain(Modules\Core\Models\Concerns\HasPath::class);
+    expect($traits)->toContain(Modules\Core\Models\Concerns\HasTranslations::class);
+    expect($traits)->toContain(Modules\Core\Models\Concerns\HasValidations::class);
     expect($traits)->toContain(Modules\Core\SoftDeletes\SoftDeletes::class);
-    expect($traits)->toContain(Modules\Core\Helpers\SortableTrait::class);
+    expect($traits)->toContain(Modules\Core\Models\Concerns\SortableTrait::class);
 });
 
 it('tag model has required methods', function (): void {

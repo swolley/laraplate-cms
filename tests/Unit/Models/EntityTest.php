@@ -17,11 +17,11 @@ it('entity model uses correct traits', function (): void {
     $traits = array_values(class_uses_recursive(Entity::class));
 
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
-    expect($traits)->toContain(Modules\Core\Helpers\HasActivation::class);
+    expect($traits)->toContain(Modules\Core\Models\Concerns\HasActivation::class);
     expect($traits)->toContain(Modules\Core\Cache\HasCache::class);
-    expect($traits)->toContain(Modules\Core\Helpers\HasPath::class);
-    expect($traits)->toContain(Modules\Core\Helpers\HasSlug::class);
-    expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
+    expect($traits)->toContain(Modules\Core\Models\Concerns\HasPath::class);
+    expect($traits)->toContain(Modules\Core\Models\Concerns\HasSlug::class);
+    expect($traits)->toContain(Modules\Core\Models\Concerns\HasValidations::class);
     expect($traits)->toContain(Modules\Core\Locking\Traits\HasLocks::class);
 });
 

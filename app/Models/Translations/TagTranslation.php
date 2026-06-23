@@ -7,7 +7,7 @@ namespace Modules\CMS\Models\Translations;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Tag;
-use Modules\Core\Helpers\HasSlug;
+use Modules\Core\Models\Concerns\HasSlug;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;

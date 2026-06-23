@@ -19,11 +19,11 @@ it('preset model uses correct traits', function (): void {
     $traits = array_values(class_uses_recursive(CorePreset::class));
 
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
-    expect($traits)->toContain(Modules\Core\Helpers\HasActivation::class);
-    expect($traits)->toContain(Modules\Core\Helpers\HasApprovals::class);
+    expect($traits)->toContain(Modules\Core\Models\Concerns\HasActivation::class);
+    expect($traits)->toContain(Modules\Core\Models\Concerns\HasApprovals::class);
     expect($traits)->toContain(Modules\Core\Cache\HasCache::class);
-    expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
-    expect($traits)->toContain(Modules\Core\Helpers\HasVersions::class);
+    expect($traits)->toContain(Modules\Core\Models\Concerns\HasValidations::class);
+    expect($traits)->toContain(Modules\Core\Models\Concerns\HasVersions::class);
     expect($traits)->toContain(Modules\Core\SoftDeletes\SoftDeletes::class);
 });
 

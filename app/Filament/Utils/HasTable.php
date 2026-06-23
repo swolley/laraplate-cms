@@ -15,7 +15,7 @@ use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Models\Preset;
 use Modules\Core\Enums\CoreTables;
 use Modules\Core\Filament\Utils\HasTable as CoreHasTable;
-use Modules\Core\Helpers\HasDynamicContents;
+use Modules\Core\Models\Concerns\HasDynamicContents;
 use ReflectionClass;
 
 trait HasTable

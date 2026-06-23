@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Modules\Core\Filament\Utils\HasRecords as BaseHasRecords;
-use Modules\Core\Helpers\HasDynamicContents;
+use Modules\Core\Models\Concerns\HasDynamicContents;
 
 trait HasRecords
 {

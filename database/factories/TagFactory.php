@@ -8,7 +8,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Modules\CMS\Models\Tag;
-use Modules\Core\Helpers\HasUniqueFactoryValues;
+use Modules\Core\Database\Factories\Concerns\HasUniqueFactoryValues;
 use Modules\Core\Overrides\Factory;
 use Override;
 

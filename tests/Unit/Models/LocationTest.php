@@ -19,11 +19,11 @@ it('location model uses correct traits', function (): void {
     $traits = array_values(class_uses_recursive(Location::class));
 
     expect($traits)->toContain(Illuminate\Database\Eloquent\Factories\HasFactory::class);
-    expect($traits)->toContain(Modules\Core\Helpers\HasPath::class);
-    expect($traits)->toContain(Modules\Core\Helpers\HasSlug::class);
+    expect($traits)->toContain(Modules\Core\Models\Concerns\HasPath::class);
+    expect($traits)->toContain(Modules\Core\Models\Concerns\HasSlug::class);
     expect($traits)->toContain(MatanYadaev\EloquentSpatial\Traits\HasSpatial::class);
     expect($traits)->toContain(Modules\CMS\Helpers\HasTags::class);
-    expect($traits)->toContain(Modules\Core\Helpers\HasValidations::class);
+    expect($traits)->toContain(Modules\Core\Models\Concerns\HasValidations::class);
     expect($traits)->toContain(Modules\Core\Search\Traits\Searchable::class);
     expect($traits)->toContain(Modules\Core\SoftDeletes\SoftDeletes::class);
 });
