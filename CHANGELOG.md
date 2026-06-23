@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ### 🚜 Refactor
 
+- *(cms)* Update Core model and factory concern imports
+
+## [1.33.0] - 2026-06-11
+
+### 🚜 Refactor
+
 - *(CommentApprovalCapture)* Improve type hinting in transformation function
 
 ### 📚 Documentation
