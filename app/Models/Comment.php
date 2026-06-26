@@ -8,14 +8,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\CMS\Database\Factories\CommentFactory;
 use Modules\CMS\Enums\CMSTables;
-use Modules\Core\Events\ModificationApproved;
 use Modules\CMS\Models\Translations\CommentTranslation;
 use Modules\CMS\Scopes\CommentTranslationScope;
 use Modules\CMS\Services\CommentApprovalCapture;
 use Modules\CMS\Services\ContentRatingService;
+use Modules\Core\Events\ModificationApproved;
+use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Models\Concerns\HasApprovals;
 use Modules\Core\Models\Concerns\HasTranslations;
-use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
 use Override;
@@ -25,6 +25,7 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @property int $content_id
  * @property int $user_id
  * @property string|null $body
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperComment
  */
@@ -257,7 +258,7 @@ final class Comment extends Model
     /**
      * @param  array<string, mixed>  $modifications
      */
-    protected function requiresApprovalWhen($modifications): bool
+    protected function requiresApprovalWhen(array $modifications): bool
     {
         if ($this->hasPendingBodyForCurrentLocale()) {
             $locale = LocaleContext::get();
