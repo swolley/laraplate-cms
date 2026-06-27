@@ -19,6 +19,7 @@ use Spatie\EloquentSortable\Sortable;
 use Spatie\MediaLibrary\HasMedia as IMediable;
 
 /**
+ * @phpstan-use HasMultimedia<Category>
  * @mixin \Eloquent
  * @mixin IdeHelperCategory
  */
@@ -51,7 +52,7 @@ final class Category extends Taxonomy implements IMediable, Sortable
     /**
      * The contents that belong to the category.
      *
-     * @return BelongsToMany<Content,Category,Categorizable,'pivot'>
+     * @return BelongsToMany<Content, $this, Categorizable, 'pivot'>
      */
     public function contents(): BelongsToMany
     {

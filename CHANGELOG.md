@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚀 Features
+
+- *(cms)* Expand taggable helpers and trait integrations
+
+### 🚜 Refactor
+
+- *(Comment)* Update imports and improve type hinting
+
+## [1.33.1] - 2026-06-23
+
 ### 🚜 Refactor
 
 - *(cms)* Update Core model and factory concern imports

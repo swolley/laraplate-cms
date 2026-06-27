@@ -23,6 +23,8 @@ use Override;
 use Spatie\MediaLibrary\HasMedia as IMediable;
 
 /**
+ * @phpstan-use HasMultimedia<Contributor>
+ * @phpstan-use HasTranslatedDynamicContents<Contributor>
  * @mixin \Eloquent
  * @mixin IdeHelperContributor
  */

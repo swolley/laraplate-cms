@@ -44,6 +44,9 @@ use Spatie\MediaLibrary\HasMedia;
 
 /**
  * @property int|string $id
+ * @phpstan-use HasMultimedia<Content>
+ * @phpstan-use HasTranslatedDynamicContents<Content>
+ * @phpstan-use HasValidity<Content>
  * @mixin \Illuminate\Database\Eloquent\Model
  * @mixin \Eloquent
  * @mixin IdeHelperContent
@@ -75,8 +78,10 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         SortableTrait::scopeOrdered as private scopePriorityOrdered;
     }
 
+    /**
+     * @var array<string, class-string>
+     */
     public static array $childTypes = [];
-    // endregion
 
     /**
      * @var string
