@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\CMS\Analytics;
 
 use Illuminate\Support\Facades\Cache;
+use JsonException;
 use Modules\CMS\Models\Content;
 
 final class ContentAnalytics extends AbstractAnalytics
@@ -20,6 +21,9 @@ final class ContentAnalytics extends AbstractAnalytics
 
     /**
      * Get content publication trends.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return list<array<string, mixed>>
      */
     public function getPublicationTrends(array $filters = []): array
     {
@@ -32,6 +36,9 @@ final class ContentAnalytics extends AbstractAnalytics
 
     /**
      * Get contributor performance metrics.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return list<array<string, mixed>>
      */
     public function getContributorMetrics(array $filters = []): array
     {
@@ -44,6 +51,9 @@ final class ContentAnalytics extends AbstractAnalytics
 
     /**
      * Get category distribution.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return list<array<string, mixed>>
      */
     public function getCategoryDistribution(array $filters = []): array
     {
@@ -56,6 +66,9 @@ final class ContentAnalytics extends AbstractAnalytics
 
     /**
      * Get tag usage metrics.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return list<array<string, mixed>>
      */
     public function getTagMetrics(array $filters = []): array
     {
@@ -68,6 +81,9 @@ final class ContentAnalytics extends AbstractAnalytics
 
     /**
      * Get geographic distribution of content.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return list<array<string, mixed>>
      */
     public function getGeographicDistribution(array $filters = []): array
     {
@@ -80,6 +96,9 @@ final class ContentAnalytics extends AbstractAnalytics
 
     /**
      * Get content quality metrics based on multiple factors.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return list<array<string, mixed>>
      */
     public function getQualityMetrics(array $filters = []): array
     {
@@ -107,12 +126,21 @@ final class ContentAnalytics extends AbstractAnalytics
         return $this->model->getTable();
     }
 
+    /**
+     * @param  array<string, mixed>  $filters
+     */
     protected function getCacheKey(string $metric, array $filters = []): string
     {
+        try {
+            $encoded_filters = json_encode($filters, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            $encoded_filters = '';
+        }
+
         return sprintf(
             'content_analytics:%s:%s',
             $metric,
-            md5(json_encode($filters)),
+            md5($encoded_filters),
         );
     }
 

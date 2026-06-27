@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\CMS\Analytics;
 
 use Illuminate\Support\Facades\Cache;
+use JsonException;
 use Modules\CMS\Models\Location;
 
 final class LocationAnalytics extends AbstractAnalytics
@@ -20,6 +21,9 @@ final class LocationAnalytics extends AbstractAnalytics
 
     /**
      * Get location clusters.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return list<array<string, mixed>>
      */
     public function getLocationClusters(array $filters = []): array
     {
@@ -32,14 +36,17 @@ final class LocationAnalytics extends AbstractAnalytics
 
     /**
      * Get content distribution by location.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return list<array<string, mixed>>
      */
     public function getContentDistribution(array $filters = []): array
     {
         return Cache::remember(
             $this->getCacheKey('content_distribution', $filters),
             $this->cacheTtlSeconds(),
-            function () {
-                $client = $this->model->getElasticsearchClient();
+            function () use ($filters): array {
+                $client = $this->getElasticsearchClient();
 
                 $query = [
                     'index' => $this->model->searchableAs(),
@@ -70,15 +77,23 @@ final class LocationAnalytics extends AbstractAnalytics
                     ],
                 ];
 
-                $response = $client->search($query);
+                foreach ($filters as $filter_field => $value) {
+                    $query['body']['query']['bool']['must'][] = ['match' => [$filter_field => $value]];
+                }
 
-                return $response['aggregations']['locations']['buckets'];
+                $response = $client->search($query);
+                $results = $this->parseElasticsearchSearchResponse($response);
+
+                return $this->elasticsearchAggregationBuckets($results, 'aggregations', 'locations', 'buckets');
             },
         );
     }
 
     /**
      * Get zone-based metrics.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return list<array<string, mixed>>
      */
     public function getZoneMetrics(array $filters = []): array
     {
@@ -91,6 +106,9 @@ final class LocationAnalytics extends AbstractAnalytics
 
     /**
      * Get city-based metrics.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return list<array<string, mixed>>
      */
     public function getCityMetrics(array $filters = []): array
     {
@@ -111,12 +129,21 @@ final class LocationAnalytics extends AbstractAnalytics
         return $this->model->getTable();
     }
 
+    /**
+     * @param  array<string, mixed>  $filters
+     */
     protected function getCacheKey(string $metric, array $filters = []): string
     {
+        try {
+            $encoded_filters = json_encode($filters, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            $encoded_filters = '';
+        }
+
         return sprintf(
             'location_analytics:%s:%s',
             $metric,
-            md5(json_encode($filters)),
+            md5($encoded_filters),
         );
     }
 

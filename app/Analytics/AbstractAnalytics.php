@@ -6,11 +6,16 @@ namespace Modules\CMS\Analytics;
 
 use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\ClientBuilder;
+use Elastic\Elasticsearch\Response\Elasticsearch as ElasticsearchResponse;
 use Exception;
+use Http\Promise\Promise;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
+use JsonException;
+use RuntimeException;
 
 abstract class AbstractAnalytics
 {
@@ -21,21 +26,38 @@ abstract class AbstractAnalytics
     {
         $config = config('elastic.client.connections.default');
 
+        if (! is_array($config)) {
+            throw new InvalidArgumentException('Elasticsearch client config must be an array.');
+        }
+
         return ClientBuilder::fromConfig($config);
     }
 
     /**
      * Get cache key based on filters.
+     *
+     * @param  array<string, mixed>  $filters
      */
     protected function getCacheKey(string $metric, array $filters = []): string
     {
-        $filters_string = $filters !== [] ? '_' . md5(json_encode($filters)) : '';
+        if ($filters === []) {
+            return 'analytics_' . $metric;
+        }
 
-        return 'analytics_' . $metric . $filters_string;
+        try {
+            $encoded_filters = json_encode($filters, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            $encoded_filters = '';
+        }
+
+        return 'analytics_' . $metric . '_' . md5($encoded_filters);
     }
 
     /**
      * Get term-based metrics from Elasticsearch.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return list<array<string, mixed>>
      */
     protected function getTermBasedMetrics(Model $model, string $field, array $filters = [], int $size = 10): array
     {
@@ -74,9 +96,9 @@ abstract class AbstractAnalytics
 
         try {
             $response = $client->search($query);
-            $results = $response->asArray();
+            $results = $this->parseElasticsearchSearchResponse($response);
 
-            return $results['aggregations']['by_term']['buckets'] ?? [];
+            return $this->elasticsearchAggregationBuckets($results, 'aggregations', 'by_term', 'buckets');
         } catch (Exception $exception) {
             // Log dell'errore
             Log::error('Elasticsearch term-based metrics query failed', [
@@ -92,6 +114,9 @@ abstract class AbstractAnalytics
 
     /**
      * Get geo-based metrics from Elasticsearch.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return list<array<string, mixed>>
      */
     protected function getGeoBasedMetrics(Model $model, string $geo_field, array $filters = []): array
     {
@@ -130,9 +155,9 @@ abstract class AbstractAnalytics
 
         try {
             $response = $client->search($query);
-            $results = $response->asArray();
+            $results = $this->parseElasticsearchSearchResponse($response);
 
-            return $results['aggregations']['geo_clusters']['buckets'] ?? [];
+            return $this->elasticsearchAggregationBuckets($results, 'aggregations', 'geo_clusters', 'buckets');
         } catch (Exception $exception) {
             // Log dell'errore
             Log::error('Elasticsearch geo-based metrics query failed', [
@@ -147,6 +172,9 @@ abstract class AbstractAnalytics
 
     /**
      * Get distribution metrics by field.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return list<array<string, mixed>>
      */
     protected function getDistributionByField(Model $model, string $field, array $filters = [], int $size = 10): array
     {
@@ -185,9 +213,9 @@ abstract class AbstractAnalytics
 
         try {
             $response = $client->search($query);
-            $results = $response->asArray();
+            $results = $this->parseElasticsearchSearchResponse($response);
 
-            return $results['aggregations']['distribution']['buckets'] ?? [];
+            return $this->elasticsearchAggregationBuckets($results, 'aggregations', 'distribution', 'buckets');
         } catch (Exception $exception) {
             // Log dell'errore
             Log::error('Elasticsearch distribution metrics query failed', [
@@ -203,6 +231,9 @@ abstract class AbstractAnalytics
 
     /**
      * Get time-based metrics.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return list<array<string, mixed>>
      */
     protected function getTimeBasedMetrics(Model $model, string $date_field, string $interval = 'day', array $filters = [], ?Carbon $start_date = null, ?Carbon $end_date = null): array
     {
@@ -249,9 +280,9 @@ abstract class AbstractAnalytics
 
         try {
             $response = $client->search($query);
-            $results = $response->asArray();
+            $results = $this->parseElasticsearchSearchResponse($response);
 
-            return $results['aggregations']['time_series']['buckets'] ?? [];
+            return $this->elasticsearchAggregationBuckets($results, 'aggregations', 'time_series', 'buckets');
         } catch (Exception $exception) {
             // Log dell'errore
             Log::error('Elasticsearch time-based metrics query failed', [
@@ -264,5 +295,50 @@ abstract class AbstractAnalytics
 
             return [];
         }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function parseElasticsearchSearchResponse(ElasticsearchResponse|Promise $response): array
+    {
+        if (! $response instanceof ElasticsearchResponse) {
+            throw new RuntimeException('Unexpected async Elasticsearch response.');
+        }
+
+        return $response->asArray();
+    }
+
+    /**
+     * @param  array<string, mixed>  $results
+     * @return list<array<string, mixed>>
+     */
+    protected function elasticsearchAggregationBuckets(array $results, string ...$path): array
+    {
+        $node = $results;
+
+        foreach ($path as $segment) {
+            if (! is_array($node) || ! array_key_exists($segment, $node)) {
+                return [];
+            }
+
+            $node = $node[$segment];
+        }
+
+        if (! is_array($node)) {
+            return [];
+        }
+
+        $buckets = [];
+
+        foreach ($node as $bucket) {
+            if (! is_array($bucket)) {
+                continue;
+            }
+
+            $buckets[] = $bucket;
+        }
+
+        return $buckets;
     }
 }

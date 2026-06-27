@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Modules\CMS\Casts\EntityType;
@@ -22,6 +23,7 @@ use Modules\CMS\Models\Pivot\Categorizable;
 use Modules\CMS\Models\Pivot\Contributable;
 use Modules\CMS\Models\Pivot\Locatable;
 use Modules\CMS\Models\Pivot\Relatable;
+use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Observers\ContentObserver;
 use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Enums\CoreTables;
@@ -47,6 +49,7 @@ use Spatie\MediaLibrary\HasMedia;
  * @phpstan-use HasMultimedia<Content>
  * @phpstan-use HasTranslatedDynamicContents<Content>
  * @phpstan-use HasValidity<Content>
+ * @phpstan-use Searchable<Content>
  * @mixin \Illuminate\Database\Eloquent\Model
  * @mixin \Eloquent
  * @mixin IdeHelperContent
@@ -79,7 +82,7 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
     }
 
     /**
-     * @var array<string, class-string>
+     * @var array<int|string, class-string<static>>
      */
     public static array $childTypes = [];
 
@@ -108,12 +111,12 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
     /**
      * @var list<string>
      */
-    private array $embed = ['title', 'textual_only'];
+    protected array $embed = ['title', 'textual_only'];
 
     /**
      * @var array<string, mixed>
      */
-    private array $sortable = [
+    protected array $sortable = [
         'order_column_name' => 'order_column',
         'sort_when_creating' => true,
     ];
@@ -139,20 +142,33 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
             throw new InvalidArgumentException('Invalid entity: ' . json_encode($entity));
         }
 
+        $normalized_entity_id = is_int($entity_id) ? $entity_id : (int) $entity_id;
+
         if ($entity instanceof Entity && $entity->type !== EntityType::Contents) {
-            throw new InvalidArgumentException('Invalid entity type for content: ' . $entity->type->value);
+            throw new InvalidArgumentException('Invalid entity type for content: ' . $entity->type->toScalar());
         }
 
-        $presettable = self::fetchAvailablePresettables(EntityType::Contents)->firstWhere('entity_id', $entity_id);
+        $presettable = self::fetchAvailablePresettables(EntityType::Contents)->firstWhere('entity_id', $normalized_entity_id);
 
         throw_unless($presettable, InvalidArgumentException::class, 'No presettable found for entity: ' . $entity);
 
-        return new self::$childTypes[$entity_id]([
+        $child_class = self::$childTypes[$normalized_entity_id]
+            ?? self::$childTypes[(string) $normalized_entity_id]
+            ?? null;
+
+        if ($child_class === null) {
+            throw new InvalidArgumentException('No content class registered for entity id: ' . $normalized_entity_id);
+        }
+
+        return new $child_class([
             'presettable_id' => $presettable->id,
-            'entity_id' => $entity_id,
+            'entity_id' => $normalized_entity_id,
         ]);
     }
 
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
     public static function makeWithDefaults(array $attributes = []): static
     {
         $model = new self($attributes);
@@ -224,7 +240,12 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         $relation = $this->belongsToMany(self::class, CMSTables::Relatables->value)->using(Relatable::class)->withTimestamps();
 
         if ($withInverse === true) {
-            $relation->orWhere(fn (Builder $query) => $query->where('related_content_id', $this->id));
+            $relation->orWhere(
+                fn (Builder $query) => $query->where(
+                    DB::raw(CMSTables::Relatables->value . '.related_content_id'),
+                    $this->id,
+                ),
+            );
         }
 
         return $relation;
@@ -248,13 +269,17 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toSearchableArray(): array
     {
         // TODO: transform splitted values into objects? (contributors, categories, tags, locations)
         $document = $this->toSearchableArrayTrait();
         // $document['entity'] = $this->entity->name;
         // $document['entity_id'] = $this->entity->id;
-        $document['preset'] = $this->preset->name;
+        $preset = $this->preset;
+        $document['preset'] = $preset !== null ? $preset->name : '';
         // $document['preset_id'] = $this->preset->id;
         $document['contributors'] = $this->contributors->map(fn (Contributor $contributor) => $contributor->only(['id', 'name', 'slug', 'path']))->values()->all();
         $document['categories'] = $this->categories->map(fn (Category $category) => $category->only(['id', 'name', 'slug', 'path']))->values()->all();
@@ -274,19 +299,18 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         $document['type'] = $this->type;
 
         // Load all translations for indexing
-        $translations = $this->translations;
-        $default_locale = config('app.locale');
+        $default_locale = is_string(config('app.locale')) ? config('app.locale') : 'en';
         $available_locales = LocaleContext::getAvailable();
 
         // Add base fields with default translation (for compatibility/fallback)
-        $default_translation = $translations->firstWhere('locale', $default_locale);
+        $default_translation = $this->findContentTranslation($default_locale);
 
-        if ($default_translation) {
+        if ($default_translation instanceof ContentTranslation) {
             $document['slug'] = $default_translation->slug;
             $document['title'] = $default_translation->title;
 
             // Add default components
-            if (isset($default_translation->components)) {
+            if ($default_translation->components !== null) {
                 foreach ($default_translation->components as $field => $value) {
                     $document[$field] = gettype($value) === 'string' ? Str::replaceMatches('/\\n|\\r|\\t/', '', $value) : $value;
                 }
@@ -295,9 +319,9 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
 
         // Add fields for each locale (title_locale, slug_locale, components_locale)
         foreach ($available_locales as $locale) {
-            $translation = $translations->firstWhere('locale', $locale);
+            $translation = $this->findContentTranslation($locale);
 
-            if ($translation) {
+            if ($translation instanceof ContentTranslation) {
                 $document['title_' . $locale] = $translation->title;
                 $document['slug_' . $locale] = $translation->slug;
             }
@@ -306,6 +330,9 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         return $document;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getSearchMapping(): array
     {
         $schema = $this->getSchemaDefinition();
@@ -361,13 +388,14 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
 
         // Add fields for each locale
         $available_locales = LocaleContext::getAvailable();
-        $translations = $this->translations;
-        $default_translation = $translations->firstWhere('locale', config('app.locale'));
+        $default_translation = $this->findContentTranslation(
+            is_string(config('app.locale')) ? config('app.locale') : 'en',
+        );
 
         // Get component fields from default translation
         $component_fields = [];
 
-        if ($default_translation && isset($default_translation->components)) {
+        if ($default_translation instanceof ContentTranslation && $default_translation->components !== null) {
             $component_fields = array_keys($default_translation->components);
         }
 
@@ -385,6 +413,9 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         return $this->getSearchMappingTrait($schema);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getRules(): array
     {
         $rules = parent::getRules();
@@ -453,7 +484,7 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         }
 
         // Only set if not already set
-        $this->entity_id = $entity->id;
+        $this->entity_id = is_int($entity->id) ? $entity->id : (int) $entity->id;
         $this->setRelation('entity', $entity);
 
         // Find first available preset for this entity
@@ -493,6 +524,8 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
     /**
      * Override components accessor to coordinate HasTranslations and HasDynamicContents.
      * When components is translatable, get it from translation and merge with defaults.
+     *
+     * @return Attribute<array<string, mixed>, array<string, mixed>>
      */
     protected function components(): Attribute
     {
@@ -503,7 +536,7 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
 
                 // If we got components from translation, merge with defaults using HasDynamicContents
                 if ($raw_components !== null) {
-                    return $this->mergeComponentsValues($raw_components);
+                    return $this->mergeComponentsValues(is_array($raw_components) ? $raw_components : []);
                 }
 
                 // Fallback: if no translation, merge empty array with defaults
@@ -516,22 +549,31 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         );
     }
 
+    /**
+     * @return list<string>
+     */
     protected function slugPlaceholders(): array
     {
         // Use title from translation
-        return [...array_map(fn (string $field): string => '{' . $field . '}', $this->dynamicSlugFields()), '{title}'];
+        return array_values([...array_map(fn (string $field): string => '{' . $field . '}', $this->dynamicSlugFields()), '{title}']);
     }
 
+    /**
+     * @param  array<string, mixed>  $modifications
+     */
     protected function requiresApprovalWhen(array $modifications): bool
     {
         return $this->requiresApprovalWhenTrait($modifications) && ($modifications[self::$valid_from_column] ?? $modifications[self::$valid_to_column] ?? false);
     }
 
+    /**
+     * @return Attribute<ReadingStatistics, never>
+     */
     protected function statistics(): Attribute
     {
         return Attribute::make(
             get: function (): ReadingStatistics {
-                $raw = $this->content;
+                $raw = $this->getAttribute('content');
                 $blocks = match (true) {
                     is_array($raw) => $raw['blocks'] ?? [],
                     is_object($raw) => $raw->blocks ?? [],
@@ -545,5 +587,12 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
                 return ReadingStatistics::fromBlocks($blocks);
             },
         );
+    }
+
+    private function findContentTranslation(string $locale): ?ContentTranslation
+    {
+        $translation = $this->translations->firstWhere('locale', $locale);
+
+        return $translation instanceof ContentTranslation ? $translation : null;
     }
 }
