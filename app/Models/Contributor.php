@@ -7,7 +7,6 @@ namespace Modules\CMS\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Foundation\Auth\User;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Contracts\Taggable;
 use Modules\CMS\Database\Factories\ContributorFactory;
@@ -18,11 +17,14 @@ use Modules\CMS\Models\Pivot\Contributable;
 use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Models\Concerns\HasPath;
 use Modules\Core\Models\Concerns\HasTranslatedDynamicContents;
+use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
 use Override;
 use Spatie\MediaLibrary\HasMedia as IMediable;
 
 /**
+ * @property int|null $user_id
+ * @property-read string|null $name
  * @phpstan-use HasMultimedia<Contributor>
  * @phpstan-use HasTranslatedDynamicContents<Contributor>
  * @mixin \Eloquent
@@ -75,17 +77,17 @@ final class Contributor extends Model implements IMediable, Taggable
     }
 
     /**
-     * @return BelongsTo<User>
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(user_class());
+        return $this->belongsTo(User::class);
     }
 
     /**
      * The contents that belong to the contributor.
      *
-     * @return BelongsToMany<Content,Contributor,Contributable,'pivot'>
+     * @return BelongsToMany<Content, $this, Contributable, 'pivot'>
      */
     public function contents(): BelongsToMany
     {
@@ -107,6 +109,9 @@ final class Contributor extends Model implements IMediable, Taggable
         return parent::save($options);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getRules(): array
     {
         $rules = parent::getRules();
@@ -130,7 +135,7 @@ final class Contributor extends Model implements IMediable, Taggable
     }
 
     #[Override]
-    public function getPath(): ?string
+    public function getPath(): null
     {
         return null;
     }
@@ -159,9 +164,12 @@ final class Contributor extends Model implements IMediable, Taggable
         ]);
     }
 
+    /**
+     * @return list<string>
+     */
     protected function slugPlaceholders(): array
     {
-        return [...$this->dynamicSlugFields(), 'name'];
+        return array_values([...$this->dynamicSlugFields(), 'name']);
     }
 
     protected function getCanLoginAttribute(): bool

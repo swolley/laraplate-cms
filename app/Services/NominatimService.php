@@ -9,11 +9,14 @@ use Illuminate\Support\Facades\Http;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use Modules\CMS\Models\Location;
 use Modules\CMS\Services\Contracts\AbstractGeocodingService;
+use Modules\CMS\Services\Contracts\GeocodingServiceSingleton;
+use Modules\CMS\Services\Contracts\IGeocodingService;
 use Modules\Core\Cache\CacheManager;
 use Override;
 
-final class NominatimService extends AbstractGeocodingService
+final class NominatimService extends AbstractGeocodingService implements IGeocodingService
 {
+    use GeocodingServiceSingleton;
     public const string BASE_URL = 'https://nominatim.openstreetmap.org';
 
     #[Override]
@@ -29,7 +32,7 @@ final class NominatimService extends AbstractGeocodingService
         ];
 
         $cache_key = CacheManager::key('geocoding', md5(serialize($params)));
-        $ttl = (int) config('cms.geocoding.cache_ttl', 604800);
+        $ttl = $this->cacheTtlSeconds();
 
         /** @var array<int, Location>|Location|null $cached */
         $cached = Cache::get($cache_key);
@@ -77,8 +80,11 @@ final class NominatimService extends AbstractGeocodingService
             $query_params['country'] = $params['country'];
         }
 
+        $app_name = config('app.name');
+        $user_agent = (is_string($app_name) ? $app_name : 'Laraplate') . ' CMS Geocoder';
+
         $response = Http::withHeaders([
-            'User-Agent' => config('app.name', 'Laraplate') . ' CMS Geocoder',
+            'User-Agent' => $user_agent,
         ])->acceptJson()->get(self::BASE_URL . '/search', $query_params);
 
         if (! $response->successful()) {
@@ -96,32 +102,57 @@ final class NominatimService extends AbstractGeocodingService
         }
 
         if ($params['limit'] === 1) {
-            return $this->getAddressDetails($decoded[0]);
+            $normalized = $this->normalizeNominatimResult($decoded[0] ?? null);
+
+            return $normalized !== null ? $this->getAddressDetails($normalized) : null;
         }
 
-        $slice = array_slice($decoded, 0, $params['limit']);
+        $locations = [];
 
-        return array_values(array_map($this->getAddressDetails(...), $slice));
+        foreach (array_slice($decoded, 0, $params['limit']) as $item) {
+            $normalized = $this->normalizeNominatimResult($item);
+
+            if ($normalized === null) {
+                continue;
+            }
+
+            $locations[] = $this->getAddressDetails($normalized);
+        }
+
+        return $locations;
     }
 
+    /**
+     * @param  array<string, mixed>  $result
+     */
     #[Override]
     protected function getAddressDetails(array $result): Location
     {
-        /** @var array<string, mixed> $address */
         $address = is_array($result['address'] ?? null) ? $result['address'] : [];
 
-        $road = (string) ($address['road'] ?? '');
-        $house_number = (string) ($address['house_number'] ?? '');
+        $road = $this->nominatimString($address['road'] ?? null);
+        $house_number = $this->nominatimString($address['house_number'] ?? null);
         $line = trim($road . ' ' . $house_number);
 
-        $city = (string) ($address['city'] ?? $address['town'] ?? $address['village'] ?? '');
-        $province = (string) ($address['state'] ?? $address['county'] ?? '');
-        $country = (string) ($address['country'] ?? '');
-        $postcode = (string) ($address['postcode'] ?? '');
-        $zone = (string) ($address['suburb'] ?? '');
+        $city = $this->nominatimString($address['city'] ?? null);
+        if ($city === '') {
+            $city = $this->nominatimString($address['town'] ?? null);
+        }
+        if ($city === '') {
+            $city = $this->nominatimString($address['village'] ?? null);
+        }
 
-        $latitude = (float) ($result['lat'] ?? 0);
-        $longitude = (float) ($result['lon'] ?? 0);
+        $province = $this->nominatimString($address['state'] ?? null);
+        if ($province === '') {
+            $province = $this->nominatimString($address['county'] ?? null);
+        }
+
+        $country = $this->nominatimString($address['country'] ?? null);
+        $postcode = $this->nominatimString($address['postcode'] ?? null);
+        $zone = $this->nominatimString($address['suburb'] ?? null);
+
+        $latitude = is_numeric($result['lat'] ?? null) ? (float) $result['lat'] : 0.0;
+        $longitude = is_numeric($result['lon'] ?? null) ? (float) $result['lon'] : 0.0;
 
         return new Location()->fill([
             'address' => $line,
@@ -142,5 +173,47 @@ final class NominatimService extends AbstractGeocodingService
             : rawurlencode($search_string);
 
         return self::BASE_URL . '/search?q=' . $query;
+    }
+
+    private function cacheTtlSeconds(): int
+    {
+        $ttl = config('cms.geocoding.cache_ttl', 604800);
+
+        if (is_int($ttl)) {
+            return $ttl;
+        }
+
+        if (is_numeric($ttl)) {
+            return (int) $ttl;
+        }
+
+        return 604800;
+    }
+
+    private function nominatimString(mixed $value): string
+    {
+        return is_string($value) ? $value : '';
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function normalizeNominatimResult(mixed $item): ?array
+    {
+        if (! is_array($item)) {
+            return null;
+        }
+
+        $normalized = [];
+
+        foreach ($item as $key => $value) {
+            if (! is_string($key)) {
+                continue;
+            }
+
+            $normalized[$key] = $value;
+        }
+
+        return $normalized;
     }
 }

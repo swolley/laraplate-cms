@@ -7,10 +7,10 @@ namespace Modules\CMS\Helpers;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
+use Modules\CMS\Models\Media as CmsMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Events\CollectionHasBeenClearedEvent;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\MediaCannotBeDeleted;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * @phpstan-require-extends \Illuminate\Database\Eloquent\Model
@@ -20,32 +20,30 @@ trait HasMedia
     use InteractsWithMedia;
 
     /**
-     * @return Builder<Media>
+     * @return Builder<CmsMedia>
      */
     public function trashedMedia(): Builder
     {
-        /** @var Builder<Media> $query */
-        $query = $this->media()->getQuery();
-
-        return $query->onlyTrashed();
+        return $this->mediaRelationQuery()->onlyTrashed();
     }
 
     /**
-     * @return Builder<Media>
+     * @return Builder<CmsMedia>
      */
     public function allMedia(): Builder
     {
-        /** @var Builder<Media> $query */
-        $query = $this->media()->withoutGlobalScope(SoftDeletingScope::class)->getQuery();
-
-        return $query;
+        return $this->mediaRelationQuery()->withoutGlobalScope(SoftDeletingScope::class);
     }
 
     public function forceClearMediaCollection(string $collectionName = 'default'): static
     {
         $this
             ->getMedia($collectionName)
-            ->each(static fn (Media $media) => $media->forceDelete());
+            ->each(static function (mixed $media): void {
+                if ($media instanceof CmsMedia) {
+                    $media->forceDelete();
+                }
+            });
 
         event(new CollectionHasBeenClearedEvent($this, $collectionName));
 
@@ -57,13 +55,13 @@ trait HasMedia
     }
 
     /**
-     * @param  array<int, Media>|Collection<int, Media>|Media  $excludedMedia
+     * @param  array<int, CmsMedia>|Collection<int, CmsMedia>|CmsMedia  $excludedMedia
      */
     public function forceClearMediaCollectionExcept(
         string $collectionName = 'default',
-        array|Collection|Media $excludedMedia = [],
+        array|Collection|CmsMedia $excludedMedia = [],
     ): static {
-        if ($excludedMedia instanceof Media) {
+        if ($excludedMedia instanceof CmsMedia) {
             $excludedMedia = collect()->push($excludedMedia);
         }
 
@@ -75,10 +73,14 @@ trait HasMedia
 
         $this
             ->getMedia($collectionName)
-            ->reject(fn (Media $media): bool => $excluded_media->contains(
-                static fn (Media $excluded): bool => $excluded->getKey() === $media->getKey(),
+            ->reject(fn (mixed $media): bool => $media instanceof CmsMedia && $excluded_media->contains(
+                static fn (mixed $excluded): bool => $excluded instanceof CmsMedia && $excluded->getKey() === $media->getKey(),
             ))
-            ->each(static fn (Media $media) => $media->forceDelete());
+            ->each(static function (mixed $media): void {
+                if ($media instanceof CmsMedia) {
+                    $media->forceDelete();
+                }
+            });
 
         if ($this->mediaIsPreloaded()) {
             unset($this->media);
@@ -97,15 +99,15 @@ trait HasMedia
      *
      * @throws MediaCannotBeDeleted
      */
-    public function forceDeleteMedia(int|string|Media $mediaId): void
+    public function forceDeleteMedia(int|string|CmsMedia $mediaId): void
     {
-        if ($mediaId instanceof Media) {
+        if ($mediaId instanceof CmsMedia) {
             $mediaId = $mediaId->getKey();
         }
 
         $media = $this->allMedia()->whereKey($mediaId)->first();
 
-        throw_unless($media instanceof Media, MediaCannotBeDeleted::doesNotBelongToModel($mediaId, $this));
+        throw_unless($media instanceof CmsMedia, MediaCannotBeDeleted::doesNotBelongToModel($mediaId, $this));
 
         $media->forceDelete();
     }
@@ -117,11 +119,11 @@ trait HasMedia
         return (bool) $this->forceDelete();
     }
 
-    public function restoreMedia(int|string|Media $mediaId): void
+    public function restoreMedia(int|string|CmsMedia $mediaId): void
     {
-        $key = $mediaId instanceof Media ? $mediaId->getKey() : $mediaId;
+        $key = $mediaId instanceof CmsMedia ? $mediaId->getKey() : $mediaId;
 
-        $this->trashedMedia()->whereKey($key)->get()->each(static fn (Media $media) => $media->restore());
+        $this->trashedMedia()->whereKey($key)->get()->each(static fn (CmsMedia $media) => $media->restore());
     }
 
     public function restoreAllMedia(string $collectionName = 'default'): void
@@ -129,7 +131,7 @@ trait HasMedia
         $this->trashedMedia()
             ->where('collection_name', $collectionName)
             ->get()
-            ->each(static fn (Media $media) => $media->restore());
+            ->each(static fn (CmsMedia $media) => $media->restore());
     }
 
     public function forceDeleteAllMedia(string $collectionName = 'default'): void
@@ -137,7 +139,7 @@ trait HasMedia
         $this->allMedia()
             ->where('collection_name', $collectionName)
             ->get()
-            ->each(static fn (Media $media) => $media->forceDelete());
+            ->each(static fn (CmsMedia $media) => $media->forceDelete());
     }
 
     /**
@@ -147,15 +149,29 @@ trait HasMedia
     {
         $this
             ->getMedia($collectionName)
-            ->reject(fn (Media $current_media_item): bool => in_array(
+            ->reject(fn (mixed $current_media_item): bool => $current_media_item instanceof CmsMedia && in_array(
                 $current_media_item->getKey(),
                 array_column($newMediaArray, $current_media_item->getKeyName()),
                 true,
             ))
-            ->each(static fn (Media $media) => $media->delete());
+            ->each(static function (mixed $media): void {
+                if ($media instanceof CmsMedia) {
+                    $media->delete();
+                }
+            });
 
         if ($this->mediaIsPreloaded()) {
             unset($this->media);
         }
+    }
+
+    /**
+     * @return Builder<CmsMedia>
+     */
+    private function mediaRelationQuery(): Builder
+    {
+        return CmsMedia::query()
+            ->where('model_type', $this->getMorphClass())
+            ->where('model_id', $this->getKey());
     }
 }

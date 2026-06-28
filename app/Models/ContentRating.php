@@ -52,7 +52,7 @@ final class ContentRating extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(user_class());
+        return $this->belongsTo(User::class);
     }
 
     /**
@@ -63,6 +63,9 @@ final class ContentRating extends Model
         return $this->belongsTo(Comment::class);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getRules(): array
     {
         $rules = parent::getRules();

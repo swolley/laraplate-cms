@@ -13,12 +13,14 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Filament\Resources\Presets\Pages\CreatePreset;
 use Modules\CMS\Filament\Resources\Presets\Pages\EditPreset;
 use Modules\CMS\Filament\Resources\Presets\Pages\ListPresets;
 use Modules\CMS\Filament\Resources\Presets\Schemas\PresetForm;
 use Modules\CMS\Filament\Resources\Presets\Tables\PresetsTable;
-use Modules\Core\Models\Preset;
+use Modules\CMS\Models\Entity;
+use Modules\CMS\Models\Preset;
 use Override;
 use UnitEnum;
 
@@ -51,7 +53,10 @@ final class PresetResource extends Resource
         return PresetsTable::configure($table)
             ->modifyQueryUsing(static fn (Builder $query): Builder => $query
                 ->with(['entity', 'template'])
-                ->whereHas('entity', static fn (Builder $query): Builder => $query->whereIn($query->qualifyColumn('type'), EntityType::values())),
+                ->whereHas('entity', static fn (Builder $query): Builder => $query->whereIn(
+                    (new Entity())->qualifyColumn('type'),
+                    EntityType::values(),
+                )),
             );
     }
 

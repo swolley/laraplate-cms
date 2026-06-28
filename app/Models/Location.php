@@ -20,6 +20,9 @@ use Modules\CMS\Observers\LocationObserver;
 use Modules\Core\Models\Concerns\HasPath;
 use Modules\Core\Models\Concerns\HasPlace;
 use Modules\Core\Models\Concerns\HasSlug;
+use Modules\CMS\Models\Content;
+use Modules\Core\Models\Place;
+use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Search\Schema\FieldDefinition;
 use Modules\Core\Search\Schema\FieldType;
@@ -28,6 +31,11 @@ use Modules\Core\Search\Traits\Searchable;
 use Override;
 
 /**
+ * @property Point|null $geolocation
+ * @property-read float|null $latitude
+ * @property-read float|null $longitude
+ * @property string|null $name
+ * @property int|string|null $place_id
  * @method static whereDistance(Point $point, float $distance)
  * @method static orderByDistance(Point $point, string $direction = 'asc')
  * @method static whereDistanceSphere(Point $point, float $distance)
@@ -107,15 +115,19 @@ final class Location extends Model implements Taggable
         return $this->getSearchMappingTrait($schema);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toSearchableArray(): array
     {
         $document = array_merge($this->toSearchableArrayTrait(), Arr::except($this->toArray(), ['id', 'latitude', 'longitude']));
-        $document['id'] = (string) $this->getKey();
+        $key = $this->getKey();
+        $document['id'] = is_scalar($key) ? (string) $key : '';
 
         if (! empty($this->attributes['place_id'] ?? null)) {
             $place = $this->resolvePlace();
 
-            if ($place instanceof \Modules\Core\Models\Place) {
+            if ($place instanceof Place) {
                 return array_merge($document, $place->searchDocumentGeographyFields());
             }
         }
@@ -125,6 +137,9 @@ final class Location extends Model implements Taggable
         return $document;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getRules(): array
     {
         $rules = parent::getRules();
@@ -155,18 +170,20 @@ final class Location extends Model implements Taggable
         if (! empty($this->attributes['place_id'] ?? null)) {
             $place = $this->resolvePlace();
 
-            if ($place instanceof \Modules\Core\Models\Place) {
+            if ($place instanceof Place) {
                 return $place->countryPathSegment();
             }
         }
 
-        return Str::slug((string) ($this->getAttribute('country') ?? ''));
+        $country = $this->getAttribute('country');
+
+        return Str::slug(is_string($country) ? $country : '');
     }
 
     /**
      * The contents that belong to the location.
      *
-     * @return BelongsToMany<Content, Location, Locatable, 'pivot'>
+     * @return BelongsToMany<Content, $this, Locatable, 'pivot'>
      */
     public function contents(): BelongsToMany
     {

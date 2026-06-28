@@ -22,12 +22,12 @@ use Override;
 final class Preset extends CorePreset
 {
     /**
-     * @return HasManyThrough<Content>
+     * @return HasManyThrough<Content, Presettable, $this>
      */
     public function contents(): HasManyThrough
     {
         return $this->hasManyThrough(
-            self::getRelatedModelClass(),
+            Content::class,
             Presettable::class,
             'preset_id',      // foreign key on presettables pointing to presets
             'presettable_id', // foreign key on contents pointing to presettables

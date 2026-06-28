@@ -18,6 +18,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media as BaseMedia;
  */
 final class Media extends BaseMedia
 {
+    /** @use HasFactory<\Illuminate\Database\Eloquent\Factories\Factory<static>> */
     use HasFactory;
     use HasVersions;
     use SoftDeletes;

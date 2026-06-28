@@ -6,6 +6,7 @@ namespace Modules\CMS\Helpers;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Modules\CMS\Models\Media as CmsMedia;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -61,10 +62,17 @@ trait HasMultimedia
         }
     }
 
+    /**
+     * @return Attribute<?Media, never>
+     */
     protected function cover(): Attribute
     {
         return Attribute::make(
-            get: fn (): ?Media => $this->getFirstMedia('cover'),
+            get: function (): ?Media {
+                $media = $this->getFirstMedia('cover');
+
+                return $media instanceof CmsMedia ? $media : null;
+            },
             // set: fn (Media $value) => $this->addMedia($value->getPath())->toMediaCollection('cover'),
         );
     }

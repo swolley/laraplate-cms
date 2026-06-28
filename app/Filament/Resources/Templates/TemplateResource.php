@@ -15,7 +15,7 @@ use Modules\CMS\Filament\Resources\Templates\Pages\EditTemplate;
 use Modules\CMS\Filament\Resources\Templates\Pages\ListTemplates;
 use Modules\CMS\Filament\Resources\Templates\Schemas\TemplateForm;
 use Modules\CMS\Filament\Resources\Templates\Tables\TemplatesTable;
-use Modules\CMS\Models\Template;
+use Modules\Core\Models\Template;
 use Override;
 use UnitEnum;
 

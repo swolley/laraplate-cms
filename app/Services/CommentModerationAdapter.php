@@ -7,6 +7,7 @@ namespace Modules\CMS\Services;
 use Modules\CMS\Ai\Prompts\CommentModerationPrompt;
 use Modules\CMS\Models\Comment;
 use Modules\CMS\Models\Content;
+use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\Core\Contracts\ModerationAdapter;
 use Modules\Core\Data\ModerationInput;
 use Modules\Core\Data\ModerationRequest;
@@ -24,10 +25,11 @@ final readonly class CommentModerationAdapter implements ModerationAdapter
 
     public function build(Modification $modification): ModerationRequest
     {
-        $changes = $modification->modifications;
-        $content_id = (int) ($changes['content_id']['modified'] ?? 0);
-        $body = (string) ($changes['body']['modified'] ?? '');
-        $locale = (string) ($changes['locale']['modified'] ?? LocaleContext::get());
+        /** @var array<string, array{original: mixed, modified: mixed}> $changes */
+        $changes = $modification->modifications ?? [];
+        $content_id = is_numeric($changes['content_id']['modified'] ?? null) ? (int) $changes['content_id']['modified'] : 0;
+        $body = is_string($changes['body']['modified'] ?? null) ? $changes['body']['modified'] : '';
+        $locale = is_string($changes['locale']['modified'] ?? null) ? $changes['locale']['modified'] : LocaleContext::get();
 
         /** @var Content $content */
         $content = Content::query()
@@ -35,7 +37,8 @@ final readonly class CommentModerationAdapter implements ModerationAdapter
             ->with(['translations', 'presettable.entity'])
             ->findOrFail($content_id);
 
-        $entity_name = $content->presettable?->entity?->name ?? '';
+        $entity = $content->presettable?->entity;
+        $entity_name = $entity !== null ? $entity->name : '';
 
         $context_sections = [
             'Article title' => $this->resolveContentTitle($content, $locale),
@@ -68,7 +71,7 @@ final readonly class CommentModerationAdapter implements ModerationAdapter
      */
     private function resolveParentCommentBody(array $changes, string $locale): string
     {
-        $parent_id = (int) ($changes['parent_id']['modified'] ?? 0);
+        $parent_id = is_numeric($changes['parent_id']['modified'] ?? null) ? (int) $changes['parent_id']['modified'] : 0;
 
         if ($parent_id <= 0) {
             return '';
@@ -86,15 +89,22 @@ final readonly class CommentModerationAdapter implements ModerationAdapter
 
         $translation = $parent->getTranslation($locale, with_fallback: true);
 
-        return mb_trim((string) ($translation?->body ?? ''));
+        return $translation !== null ? mb_trim($translation->body ?? '') : '';
     }
 
     private function resolveContentTitle(Content $content, string $locale): string
     {
-        $translation = $content->translations->firstWhere('locale', $locale)
-            ?? $content->translations->first();
+        $translation = $this->findContentTranslation($content, $locale)
+            ?? $content->translations->first(fn (mixed $item): bool => $item instanceof ContentTranslation);
 
-        return (string) ($translation?->title ?? '');
+        return $translation instanceof ContentTranslation ? $translation->title : '';
+    }
+
+    private function findContentTranslation(Content $content, string $locale): ?ContentTranslation
+    {
+        $translation = $content->translations->firstWhere('locale', $locale);
+
+        return $translation instanceof ContentTranslation ? $translation : null;
     }
 
     private function plainTextExcerpt(Content $content, string $locale, int $maxChars): string

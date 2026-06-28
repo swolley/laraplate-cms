@@ -21,10 +21,10 @@ final class LocationsController extends Controller
 
         try {
             $location = ($this->geocodeLocationAction)(
-                $request->get('q'),
-                $request->get('city'),
-                $request->get('province'),
-                $request->get('country'),
+                $request->geocodeQuery(),
+                $request->geocodeCity(),
+                $request->geocodeProvince(),
+                $request->geocodeCountry(),
             );
             $response->setData($location);
         } catch (Exception $exception) {

@@ -22,8 +22,9 @@ use Override;
 use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 
 /**
- * @property int $content_id
- * @property int $user_id
+ * @property int|null $content_id
+ * @property int|null $user_id
+ * @property int|null $parent_id
  * @property string|null $body
  *
  * @mixin \Eloquent
@@ -80,7 +81,7 @@ final class Comment extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(user_class());
+        return $this->belongsTo(User::class);
     }
 
     /**
@@ -99,7 +100,7 @@ final class Comment extends Model
         $current_locale = LocaleContext::get();
         $fallback_enabled = $this->translationFallbackEnabledBySettings();
 
-        $relation = $this->hasOne(self::getTranslationModelClass());
+        $relation = $this->hasOne(CommentTranslation::class);
 
         if ($fallback_enabled) {
             $relation
@@ -107,7 +108,10 @@ final class Comment extends Model
                 ->orderBy('created_at')
                 ->orderBy('id');
         } else {
-            $relation->where('locale', $current_locale);
+            $relation->where(
+                (new CommentTranslation())->qualifyColumn('locale'),
+                $current_locale,
+            );
         }
 
         return $relation;
@@ -117,9 +121,11 @@ final class Comment extends Model
     {
         $locale ??= LocaleContext::get();
 
-        $translation = $this->translations()->where('locale', $locale)->first();
+        $translation = $this->translations()
+            ->where((new CommentTranslation())->qualifyColumn('locale'), $locale)
+            ->first();
 
-        if ($translation !== null) {
+        if ($translation instanceof CommentTranslation) {
             return $translation;
         }
 
@@ -127,17 +133,28 @@ final class Comment extends Model
             return null;
         }
 
-        return $this->getOriginalTranslation();
+        $fallback = $this->translations()
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->first();
+
+        return $fallback instanceof CommentTranslation ? $fallback : null;
     }
 
     public function getOriginalTranslation(): ?CommentTranslation
     {
-        return $this->translations()
+        $translation = $this->translations()
             ->orderBy('created_at')
             ->orderBy('id')
             ->first();
+
+        return $translation instanceof CommentTranslation ? $translation : null;
     }
 
+    /**
+     * @param  array<string, mixed>|null  $parsed
+     * @return array<string, mixed>
+     */
     #[Override]
     public function toArray(?array $parsed = null): array
     {
@@ -160,7 +177,8 @@ final class Comment extends Model
         }
 
         $this->setForcedApprovalUpdate(true);
-        $changes = $modification->modifications;
+        /** @var array<string, array{original: mixed, modified: mixed}> $changes */
+        $changes = $modification->modifications ?? [];
 
         foreach ($changes as $key => $change) {
             if ($key === 'locale') {
@@ -169,8 +187,10 @@ final class Comment extends Model
 
             if (in_array($key, ['body', 'rating_score'], true)) {
                 if ($key === 'body') {
-                    $locale = (string) ($changes['locale']['modified'] ?? LocaleContext::get());
-                    $this->inLocale($locale)->body = $change['modified'];
+                    $locale_value = $changes['locale']['modified'] ?? LocaleContext::get();
+                    $locale = is_string($locale_value) ? $locale_value : LocaleContext::get();
+                    $modified_body = $change['modified'] ?? null;
+                    $this->inLocale($locale)->body = is_string($modified_body) ? $modified_body : null;
                 }
 
                 continue;
@@ -181,9 +201,10 @@ final class Comment extends Model
 
         $this->save();
 
-        $rating_score = isset($changes['rating_score']['modified'])
-            ? (int) $changes['rating_score']['modified']
-            : null;
+        $modified_rating = $changes['rating_score']['modified'] ?? null;
+        $rating_score = is_int($modified_rating)
+            ? $modified_rating
+            : (is_numeric($modified_rating) ? (int) $modified_rating : null);
 
         resolve(ContentRatingService::class)->syncFromApprovedComment($this, $rating_score);
 
@@ -195,7 +216,25 @@ final class Comment extends Model
 
     public function setRatingScoreAttribute(mixed $value): void
     {
-        $this->pending_rating_score = $value !== null && $value !== '' ? (int) $value : null;
+        if ($value === null || $value === '') {
+            $this->pending_rating_score = null;
+
+            return;
+        }
+
+        if (is_int($value)) {
+            $this->pending_rating_score = $value;
+
+            return;
+        }
+
+        if (is_numeric($value)) {
+            $this->pending_rating_score = (int) $value;
+
+            return;
+        }
+
+        $this->pending_rating_score = null;
     }
 
     public function hasPendingBodyForCurrentLocale(): bool

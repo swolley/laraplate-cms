@@ -12,6 +12,9 @@ use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
 /**
+ * @property int|string $id
+ * @property string $locale
+ * @property string|null $body
  * @mixin \Eloquent
  * @mixin IdeHelperCommentTranslation
  */
@@ -41,8 +44,6 @@ final class CommentTranslation extends Model implements ITranslated
         'created_at',
         'updated_at',
     ];
-
-    private bool $softDeletesEnabled = false;
 
     /**
      * @return BelongsTo<Comment, $this>

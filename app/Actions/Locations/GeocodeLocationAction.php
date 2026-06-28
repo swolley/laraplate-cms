@@ -15,6 +15,9 @@ final readonly class GeocodeLocationAction
         private IGeocodingService $geocodingService,
     ) {}
 
+    /**
+     * @return array<int, Location>|Location|null
+     */
     public function __invoke(?string $query, ?string $city, ?string $province, ?string $country): array|Location|null
     {
         $result = $this->geocodingService->search($query ?? '', $city, $province, $country);
@@ -39,7 +42,7 @@ final readonly class GeocodeLocationAction
 
         $location = new Location()->fill($attributes);
 
-        if ($latitude !== null && $longitude !== null) {
+        if (is_numeric($latitude) && is_numeric($longitude)) {
             $location->geolocation = new Point((float) $latitude, (float) $longitude);
         }
 

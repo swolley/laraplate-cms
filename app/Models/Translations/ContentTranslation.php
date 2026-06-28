@@ -58,7 +58,7 @@ final class ContentTranslation extends Model implements ITranslated
     /**
      * The content that belongs to the translation.
      *
-     * @return BelongsTo<Content>
+     * @return BelongsTo<Content, $this>
      */
     public function content(): BelongsTo
     {

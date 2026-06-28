@@ -46,7 +46,7 @@ final class ContributorTranslation extends Model implements ITranslated
     /**
      * The contributor that belongs to the translation.
      *
-     * @return BelongsTo<Contributor>
+     * @return BelongsTo<Contributor, $this>
      */
     public function contributor(): BelongsTo
     {

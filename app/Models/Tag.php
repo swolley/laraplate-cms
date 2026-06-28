@@ -10,8 +10,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as DbCollection;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 use Modules\CMS\Database\Factories\TagFactory;
 use Modules\CMS\Enums\CMSTables;
+use Modules\CMS\Models\Translations\TagTranslation;
 use Modules\Core\Models\Concerns\HasPath;
 use Modules\Core\Models\Concerns\HasTranslations;
 use Modules\Core\Models\Concerns\SortableTrait;
@@ -60,23 +62,43 @@ final class Tag extends Model implements Sortable
 
     protected bool $translation_fallback_enabled = true;
 
+    /**
+     * @param  string|Tag|array<int|string, string|Tag>|ArrayAccess<int|string, string|Tag>  $values
+     * @return ($values is string ? self : ($values is Tag ? self : Collection<int, self>))
+     */
     public static function findOrCreate(
-        string|array|ArrayAccess $values,
+        string|Tag|array|ArrayAccess $values,
         ?string $type = null,
     ): Collection|self {
-        $tags = collect($values)->map(function (self|string $value) use ($type): self {
-            // @codeCoverageIgnoreStart
+        if ($values instanceof self) {
+            return $values;
+        }
+
+        $tags = collect(self::normalizeFindOrCreateInput($values))->map(function (string|self $value) use ($type): self {
             if ($value instanceof self) {
                 return $value;
             }
-            // @codeCoverageIgnoreEnd
 
             return self::findOrCreateFromString($value, $type);
         });
 
-        return is_string($values) ? $tags->first() : $tags;
+        if (is_string($values)) {
+            $first = $tags->first();
+
+            if (! $first instanceof self) {
+                throw new InvalidArgumentException('Unable to resolve tag from string value.');
+            }
+
+            return $first;
+        }
+
+        /** @var Collection<int, self> $tags */
+        return $tags;
     }
 
+    /**
+     * @return DbCollection<int, self>
+     */
     public static function getWithType(string $type): DbCollection
     {
         return self::query()->withType($type)->get();
@@ -87,6 +109,7 @@ final class Tag extends Model implements Sortable
         return self::query()
             ->where('type', $type)
             ->whereHas('translations', static function (Builder $query) use ($name): void {
+                /** @var Builder<TagTranslation> $query */
                 $query->where('name', $name)
                     ->orWhere('slug', $name);
             })
@@ -94,12 +117,13 @@ final class Tag extends Model implements Sortable
     }
 
     /**
-     * @return Collection<self>
+     * @return DbCollection<int, self>
      */
-    public static function findFromStringOfAnyType(string $name): Collection
+    public static function findFromStringOfAnyType(string $name): DbCollection
     {
         return self::query()
             ->whereHas('translations', static function (Builder $query) use ($name): void {
+                /** @var Builder<TagTranslation> $query */
                 $query->where('name', $name)
                     ->orWhere('slug', $name);
             })
@@ -115,7 +139,8 @@ final class Tag extends Model implements Sortable
                 'type' => $type,
             ]);
             // Set name in default locale translation
-            $tag->setTranslation(config('app.locale'), [
+            $locale = is_string(config('app.locale')) ? config('app.locale') : 'en';
+            $tag->setTranslation($locale, [
                 'name' => $name,
             ]);
 
@@ -125,9 +150,16 @@ final class Tag extends Model implements Sortable
         return $tag;
     }
 
+    /**
+     * @return Collection<int, string|null>
+     */
     public static function getTypes(): Collection
     {
-        return self::query()->groupBy('type')->pluck('type');
+        return self::query()
+            ->groupBy('type')
+            ->pluck('type')
+            ->map(static fn (mixed $type): ?string => is_string($type) ? $type : null)
+            ->values();
     }
 
     /**
@@ -148,6 +180,9 @@ final class Tag extends Model implements Sortable
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getRules(): array
     {
         $rules = parent::getRules();
@@ -172,11 +207,14 @@ final class Tag extends Model implements Sortable
     }
 
     #[Override]
-    public function getPath(): ?string
+    public function getPath(): null
     {
         return null;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     #[Override]
     public function toArray(): array
     {
@@ -240,9 +278,42 @@ final class Tag extends Model implements Sortable
         return [];
     }
 
+    /**
+     * @return list<string>
+     */
     protected function slugPlaceholders(): array
     {
         return [...array_map(fn (string $field): string => '{' . $field . '}', $this->dynamicSlugFields()), '{name}'];
+    }
+
+    /**
+     * @param  array<int|string, string|Tag>|ArrayAccess<int|string, string|Tag>|string|Tag  $values
+     * @return list<string|Tag>
+     */
+    private static function normalizeFindOrCreateInput(array|ArrayAccess|string|Tag $values): array
+    {
+        if ($values instanceof self || is_string($values)) {
+            return [$values];
+        }
+
+        if (is_array($values)) {
+            return array_values($values);
+        }
+
+        $normalized = [];
+        $index = 0;
+
+        while ($values->offsetExists($index)) {
+            $value = $values->offsetGet($index);
+
+            if (is_string($value) || $value instanceof self) {
+                $normalized[] = $value;
+            }
+
+            $index++;
+        }
+
+        return $normalized;
     }
 
     /**
@@ -253,6 +324,7 @@ final class Tag extends Model implements Sortable
         $needle = '%' . mb_strtolower($name) . '%';
 
         $query->whereHas('translations', function (Builder $translation_query) use ($needle, $locale): void {
+            /** @var Builder<TagTranslation> $translation_query */
             $translation_query->where('locale', $locale)
                 ->whereRaw('lower(name) like ?', [$needle]);
         });

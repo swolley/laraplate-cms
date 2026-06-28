@@ -9,32 +9,21 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use Modules\CMS\Models\Location;
-use Override;
 use Throwable;
 
 /**
  * Base implementation with URL building, rate-limited search, and cache helpers for geocoding providers.
  */
-abstract class AbstractGeocodingService implements IGeocodingService
+abstract class AbstractGeocodingService
 {
-    /**
-     * @var array<class-string<static>, static>
-     */
-    private static array $instances = [];
-
-    #[Override]
-    public static function getInstance(): IGeocodingService
-    {
-        return self::$instances[static::class] ??= new static();
-    }
-
-    #[Override]
     public function url(Location $location): string
     {
         return $this->getSearchUrl($this->buildSearchStringFromLocation($location));
     }
 
-    #[Override]
+    /**
+     * @return array<int, Location>|Location|null
+     */
     public function search(
         string $query,
         ?string $city = null,
@@ -63,7 +52,23 @@ abstract class AbstractGeocodingService implements IGeocodingService
             return null;
         }
 
-        return $result;
+        if (is_array($result)) {
+            $locations = [];
+
+            foreach ($result as $item) {
+                if ($item instanceof Location) {
+                    $locations[] = $item;
+                }
+            }
+
+            return $locations;
+        }
+
+        if ($result instanceof Location) {
+            return $result;
+        }
+
+        return null;
     }
 
     /**
@@ -82,10 +87,13 @@ abstract class AbstractGeocodingService implements IGeocodingService
     }
 
     /**
-     * @return array<int, mixed>|Location|null
+     * @return array<int, Location>|Location|null
      */
     abstract protected function performSearch(string $query, ?string $city, ?string $province, ?string $country, int $limit): array|Location|null;
 
+    /**
+     * @param  array<string, mixed>  $result
+     */
     abstract protected function getAddressDetails(array $result): Location;
 
     abstract protected function getSearchUrl(string $search_string): string;

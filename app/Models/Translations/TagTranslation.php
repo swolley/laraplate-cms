@@ -13,6 +13,11 @@ use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
 /**
+ * @property int|string $id
+ * @property string $locale
+ * @property string $name
+ * @property string $slug
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperTagTranslation
  */
@@ -46,7 +51,7 @@ final class TagTranslation extends Model implements ITranslated
     /**
      * The tag that belongs to the translation.
      *
-     * @return BelongsTo<Tag>
+     * @return BelongsTo<Tag, $this>
      */
     public function tag(): BelongsTo
     {

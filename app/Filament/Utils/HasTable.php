@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Modules\CMS\Filament\Utils;
 
 use App\Models\User;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
@@ -26,18 +29,24 @@ trait HasTable
         configureTable as coreConfigureTable;
     }
 
+    /**
+     * @param  list<Action|ActionGroup|BulkAction>  $fixedActions
+     */
     protected static function configureTable(Table $table, ?callable $columns = null, ?callable $actions = null, array $fixedActions = [], ?callable $filters = null): Table
     {
         $model = $table->getModel();
-        $model_instance = new ReflectionClass($model)->newInstanceWithoutConstructor();
 
-        if ($model && self::hasDynamicContents($model_instance)) {
-            $table->groups([
-                Group::make('presettable.entity.name')
-                    ->label('Entity'),
-                Group::make('presettable.preset.name')
-                    ->label('Preset'),
-            ]);
+        if ($model !== null) {
+            $model_instance = new ReflectionClass($model)->newInstanceWithoutConstructor();
+
+            if (self::hasDynamicContents($model_instance)) {
+                $table->groups([
+                    Group::make('presettable.entity.name')
+                        ->label('Entity'),
+                    Group::make('presettable.preset.name')
+                        ->label('Preset'),
+                ]);
+            }
         }
 
         return self::coreConfigureTable(
@@ -98,21 +107,19 @@ trait HasTable
         string $permissionsPrefix,
         ?User $user,
     ): void {
-        if (self::hasDynamicContents($model_instance)) {
-            $entity_type = $model_instance::getEntityType();
+        $entity_type = self::resolveEntityType($model_instance);
 
-            if ($entity_type) {
-                $table->pushFilters([
-                    SelectFilter::make('preset')
-                        ->label('Preset')
-                        ->multiple()
-                        ->options(fn (): array => self::presetSelectFilterOptions($entity_type))
-                        ->query(static fn (Builder $query, array $data): Builder => $query->when(
-                            $data['values'],
-                            static fn (Builder $query, $values): Builder => $query->whereIn('preset_id', $values),
-                        )),
-                ]);
-            }
+        if ($entity_type instanceof EntityType) {
+            $table->pushFilters([
+                SelectFilter::make('preset')
+                    ->label('Preset')
+                    ->multiple()
+                    ->options(fn (): array => self::presetSelectFilterOptions($entity_type))
+                    ->query(static fn (Builder $query, array $data): Builder => $query->when(
+                        $data['values'],
+                        static fn (Builder $query, $values): Builder => $query->whereIn('preset_id', $values),
+                    )),
+            ]);
         }
 
         self::coreConfigureFilters(
@@ -134,6 +141,23 @@ trait HasTable
         return class_uses_trait($model_instance::class, HasDynamicContents::class);
     }
 
+    private static function resolveEntityType(Model $model_instance): ?EntityType
+    {
+        if (! self::hasDynamicContents($model_instance)) {
+            return null;
+        }
+
+        $class = $model_instance::class;
+
+        if (! method_exists($class, 'getEntityType')) {
+            return null;
+        }
+
+        $entity_type = $class::getEntityType();
+
+        return $entity_type instanceof EntityType ? $entity_type : null;
+    }
+
     /**
      * Preset id => "Entity name - Preset name" for the Filament preset multi-select.
      *
@@ -141,18 +165,34 @@ trait HasTable
      */
     private static function presetSelectFilterOptions(EntityType $entity_type): array
     {
-        return Preset::query()
+        $presets_table = CoreTables::Presets->value;
+        $entities_table = CoreTables::Entities->value;
+        $options = [];
+
+        Preset::query()
             ->forActiveEntityOfType($entity_type)
-            ->join(CoreTables::Entities->value, CoreTables::Presets->value . '.entity_id', '=', CoreTables::Entities->value . '.id')
-            ->orderBy(CoreTables::Entities->value . '.name')
-            ->orderBy(CoreTables::Presets->value . '.name')
-            ->get([
-                CoreTables::Presets->value . '.id',
-                CoreTables::Presets->value . '.name',
-                CoreTables::Presets->value . '.entity_id',
-                CoreTables::Entities->value . '.name',
-            ])
-            ->mapWithKeys(static fn (Preset $preset): array => [$preset->id => $preset->entity->name . ' - ' . $preset->name])
-            ->all();
+            ->join($entities_table, "{$presets_table}.entity_id", '=', "{$entities_table}.id")
+            ->orderBy("{$entities_table}.name")
+            ->orderBy("{$presets_table}.name")
+            ->select(
+                "{$presets_table}.id",
+                "{$presets_table}.name",
+                "{$entities_table}.name as entity_name",
+            )
+            ->each(function (Preset $preset) use (&$options): void {
+                $id = $preset->getAttribute('id');
+                $preset_name = $preset->getAttribute('name');
+                $entity_name = $preset->getAttribute('entity_name');
+
+                if (! is_numeric($id)) {
+                    return;
+                }
+
+                $options[(int) $id] = (is_string($entity_name) ? $entity_name : '')
+                    . ' - '
+                    . (is_string($preset_name) ? $preset_name : '');
+            });
+
+        return $options;
     }
 }

@@ -11,6 +11,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Modules\CMS\Filament\Utils\HasTable;
+use Modules\CMS\Models\Pivot\Presettable;
 use Modules\CMS\Models\Preset;
 
 final class PresetsTable
@@ -47,9 +48,20 @@ final class PresetsTable
                             $record->migrateContentsToLastVersion();
                         })
                         ->icon(Heroicon::ArrowPath)
-                        ->visible(static fn (Preset $record): bool => $record->contents()->whereHas('presettable', function (Builder $query) use ($record): void {
-                            $query->where('version', '<', $record->activePresettable()->version);
-                        })->exists()),
+                        ->visible(static function (Preset $record): bool {
+                            $active_presettable = $record->activePresettable();
+
+                            if ($active_presettable === null) {
+                                return false;
+                            }
+
+                            $version_column = (new Presettable())->qualifyColumn('version');
+
+                            return $record->contents()->whereHas(
+                                'presettable',
+                                static fn (Builder $query) => $query->where($version_column, '<', $active_presettable->version),
+                            )->exists();
+                        }),
                 );
             },
         );

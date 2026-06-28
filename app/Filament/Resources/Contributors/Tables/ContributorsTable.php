@@ -8,7 +8,6 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Support\Collection;
 use Modules\CMS\Filament\Utils\HasTable;
 use Modules\CMS\Models\Contributor;
@@ -43,8 +42,9 @@ final class ContributorsTable
                         ->circular()
                         ->toggleable(isToggledHiddenByDefault: false)
                         ->grow(false)
-                        ->defaultImageUrl(static function (Contributor $record): UrlGenerator|string {
-                            $hash = abs(crc32($record->name));
+                        ->defaultImageUrl(static function (Contributor $record): string {
+                            $name = (string) ($record->name ?? 'C');
+                            $hash = abs(crc32($name));
 
                             $hue = $hash % 360;
                             $saturation = 60 + ($hash % 20); // 60-80%
@@ -90,7 +90,11 @@ final class ContributorsTable
 
                             $hex = sprintf('%02x%02x%02x', $r, $g, $b);
 
-                            return url(sprintf('https://ui-avatars.com/api/?name=%s&color=FFFFFF&background=%s', $record->name[0], $hex));
+                            return url(sprintf(
+                                'https://ui-avatars.com/api/?name=%s&color=FFFFFF&background=%s',
+                                mb_substr($name, 0, 1),
+                                $hex,
+                            ));
                         })
                         ->extraImgAttributes(['loading' => 'lazy']),
                     TextColumn::make('name')

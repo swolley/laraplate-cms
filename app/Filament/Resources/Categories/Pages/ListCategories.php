@@ -18,6 +18,9 @@ final class ListCategories extends ListRecords
     #[Override]
     protected static string $resource = CategoryResource::class;
 
+    /**
+     * @return Builder<Category>
+     */
     protected function getTableQuery(): Builder
     {
         /** @var class-string<Category> $model */

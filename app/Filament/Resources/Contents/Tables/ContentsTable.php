@@ -10,7 +10,7 @@ use Filament\Tables\Table;
 use Illuminate\Support\Collection;
 use Modules\CMS\Filament\Utils\HasTable;
 use Modules\CMS\Models\Content;
-use Modules\CMS\Models\Media;
+use Illuminate\Support\Collection as SupportCollection;
 
 final class ContentsTable
 {
@@ -38,13 +38,20 @@ final class ContentsTable
                         ->toggleable(isToggledHiddenByDefault: true),
                     ImageColumn::make('media.images')
                         ->label('Images')
-                        ->state(static fn (Content $record) => collect($record->cover ? [$record->cover?->getUrl('thumb-low')] : [])
-                            ->merge(
-                                $record->getMedia('images')
-                                    ->map(static fn (Media $media): string => $media->getUrl('thumb-low')),
-                            )
-                            ->unique(),
-                        )
+                        ->state(static function (Content $record): SupportCollection {
+                            $urls = [];
+                            $cover = $record->getFirstMedia('cover');
+
+                            if ($cover !== null) {
+                                $urls[] = $cover->getUrl('thumb-low');
+                            }
+
+                            foreach ($record->getMedia('images') as $media) {
+                                $urls[] = $media->getUrl('thumb-low');
+                            }
+
+                            return collect($urls)->unique()->values();
+                        })
                         ->stacked()
                         ->limit(3)
                         ->limitedRemainingText()

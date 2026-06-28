@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Modules\CMS\Helpers;
 
 use ArrayAccess;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphPivot;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection as SupportCollection;
 use InvalidArgumentException;
 use Modules\CMS\Contracts\Taggable;
@@ -19,6 +19,7 @@ use Modules\CMS\Models\Tag;
 
 /**
  * @phpstan-require-extends \Illuminate\Database\Eloquent\Model
+ *
  * @phpstan-require-implements \Modules\CMS\Contracts\Taggable
  */
 trait HasTags
@@ -48,102 +49,16 @@ trait HasTags
                 return;
             }
 
-            $tags = $deleted_model->tags()->get();
+            if (! in_array(HasTags::class, class_uses_recursive($deleted_model), true)) {
+                return;
+            }
 
-            $deleted_model->detachTags($tags->all());
+            if (! method_exists($deleted_model, 'detachModelTags')) {
+                return;
+            }
+
+            $deleted_model->detachModelTags();
         });
-    }
-
-    /**
-     * @param  Builder<static>  $query
-     * @param  string|list<string|Tag>|ArrayAccess<int|string, string|Tag>|Tag  $tags
-     * @return Builder<static>
-     */
-    public static function scopeWithAllTags(
-        Builder $query,
-        string|array|ArrayAccess|Tag $tags,
-        ?string $type = null,
-    ): Builder {
-        $resolved_tags = static::convertToTags($tags, $type);
-
-        foreach ($resolved_tags as $tag) {
-            $query->whereHas('tags', function (Builder $tag_query) use ($tag): void {
-                $tag_query->whereRaw('tags.id = ?', [$tag->id ?? 0]);
-            });
-        }
-
-        return $query;
-    }
-
-    /**
-     * @param  Builder<static>  $query
-     * @param  string|list<string|Tag>|ArrayAccess<int|string, string|Tag>|Tag  $tags
-     * @return Builder<static>
-     */
-    public static function scopeWithAnyTags(
-        Builder $query,
-        string|array|ArrayAccess|Tag $tags,
-        ?string $type = null,
-    ): Builder {
-        $resolved_tags = static::convertToTags($tags, $type);
-        $tag_ids = $resolved_tags->pluck('id')->filter(static fn (mixed $id): bool => $id !== null)->values();
-
-        return $query->whereHas('tags', function (Builder $tag_query) use ($tag_ids): void {
-            $tag_query->whereIn('tags.id', $tag_ids->all());
-        });
-    }
-
-    /**
-     * @param  Builder<static>  $query
-     * @param  string|list<string|Tag>|ArrayAccess<int|string, string|Tag>|Tag  $tags
-     * @return Builder<static>
-     */
-    public static function scopeWithoutTags(
-        Builder $query,
-        string|array|ArrayAccess|Tag $tags,
-        ?string $type = null,
-    ): Builder {
-        $resolved_tags = static::convertToTags($tags, $type);
-        $tag_ids = $resolved_tags->pluck('id')->filter(static fn (mixed $id): bool => $id !== null)->values();
-
-        return $query->whereDoesntHave('tags', function (Builder $tag_query) use ($tag_ids): void {
-            $tag_query->whereIn('tags.id', $tag_ids->all());
-        });
-    }
-
-    /**
-     * @param  Builder<static>  $query
-     * @param  string|list<string|Tag>|ArrayAccess<int|string, string|Tag>|Tag  $tags
-     * @return Builder<static>
-     */
-    public static function scopeWithAllTagsOfAnyType(Builder $query, string|array|ArrayAccess|Tag $tags): Builder
-    {
-        $resolved_tags = static::convertToTagsOfAnyType($tags);
-
-        foreach ($resolved_tags as $tag) {
-            $query->whereHas(
-                'tags',
-                fn (Builder $tag_query): Builder => $tag_query->whereRaw('tags.id = ?', [$tag->id ?? 0]),
-            );
-        }
-
-        return $query;
-    }
-
-    /**
-     * @param  Builder<static>  $query
-     * @param  string|list<string|Tag>|ArrayAccess<int|string, string|Tag>|Tag  $tags
-     * @return Builder<static>
-     */
-    public static function scopeWithAnyTagsOfAnyType(Builder $query, string|array|ArrayAccess|Tag $tags): Builder
-    {
-        $resolved_tags = static::convertToTagsOfAnyType($tags);
-        $tag_ids = $resolved_tags->pluck('id')->filter(static fn (mixed $id): bool => $id !== null)->values();
-
-        return $query->whereHas(
-            'tags',
-            fn (Builder $tag_query): Builder => $tag_query->whereIn('tags.id', $tag_ids->all()),
-        );
     }
 
     /**
@@ -179,9 +94,9 @@ trait HasTags
     }
 
     /**
-     * @param  array<int|string, string|Tag>|ArrayAccess<int|string, string|Tag>|Tag  $tags
+     * @param  array<int|string, string|Tag>|ArrayAccess<int|string, string|Tag>|string|Tag  $tags
      */
-    public function attachTags(array|ArrayAccess|Tag $tags, ?string $type = null): static
+    public function attachTags(array|ArrayAccess|string|Tag $tags, ?string $type = null): static
     {
         $resolved_tags = $this->resolveTagsFromInput($tags, $type);
 
@@ -211,9 +126,7 @@ trait HasTags
         $resolved_tags = static::convertToTags($tags, $type);
 
         foreach ($resolved_tags as $tag) {
-            if ($tag instanceof Tag) {
-                $this->tags()->detach($tag);
-            }
+            $this->tags()->detach($tag);
         }
 
         return $this;
@@ -225,14 +138,10 @@ trait HasTags
     }
 
     /**
-     * @param  string|list<string|Tag>|ArrayAccess<int|string, string|Tag>  $tags
+     * @param  string|Tag|array<int|string, string|Tag>|ArrayAccess<int|string, string|Tag>  $tags
      */
     public function syncTags(string|array|ArrayAccess|Tag $tags): static
     {
-        if (is_string($tags)) {
-            $tags = Arr::wrap($tags);
-        }
-
         $resolved_tags = $this->resolveTagsFromInput($tags, null);
 
         $this->tags()->sync(
@@ -256,13 +165,13 @@ trait HasTags
         $resolved_tags = $this->resolveTagsFromInput($tags, $type);
 
         $this->syncTagIds(
-            $resolved_tags->pluck('id')->filter(static fn (mixed $id): bool => is_int($id) || is_string($id))->map(static function (mixed $id): int {
+            array_values($resolved_tags->pluck('id')->filter(static fn (mixed $id): bool => is_int($id) || is_string($id))->map(static function (mixed $id): int {
                 if (is_int($id)) {
                     return $id;
                 }
 
                 return (int) $id;
-            })->all(),
+            })->all()),
             $type,
         );
 
@@ -277,100 +186,146 @@ trait HasTags
     }
 
     /**
-     * @param  string|list<string|Tag>|ArrayAccess<int|string, string|Tag>|Tag  $values
+     * @param  string|Tag|array<int|string, string|Tag>|ArrayAccess<int|string, string|Tag>  $values
      * @return SupportCollection<int, Tag>
      */
     protected static function convertToTags(string|array|ArrayAccess|Tag $values, ?string $type = null): SupportCollection
     {
-        if ($values instanceof Tag) {
-            $values = [$values];
-        }
+        return SupportCollection::make(self::normalizeTagsInput($values))
+            ->map(function (string|Tag $value) use ($type): ?Tag {
+                if ($value instanceof Tag) {
+                    throw_if(isset($type) && $value->type !== $type, InvalidArgumentException::class, sprintf('Type was set to %s but tag is of type %s', $type, $value->type));
 
-        return SupportCollection::make($values)->map(function (mixed $value) use ($type): ?Tag {
-            if ($value instanceof Tag) {
-                throw_if(isset($type) && $value->type !== $type, InvalidArgumentException::class, sprintf('Type was set to %s but tag is of type %s', $type, $value->type));
+                    return $value;
+                }
 
-                return $value;
-            }
-
-            if (! is_string($value)) {
-                return null;
-            }
-
-            return Tag::findFromString($value, $type);
-        })->filter(static fn (?Tag $tag): bool => $tag instanceof Tag);
+                return Tag::findFromString($value, $type);
+            })
+            ->filter(static fn (?Tag $tag): bool => $tag instanceof Tag)
+            ->values();
     }
 
     /**
-     * @param  string|list<string|Tag>|ArrayAccess<int|string, string|Tag>|Tag  $values
+     * @param  string|Tag|array<int|string, string|Tag>|ArrayAccess<int|string, string|Tag>  $values
      * @return SupportCollection<int, Tag>
      */
     protected static function convertToTagsOfAnyType(string|array|ArrayAccess|Tag $values): SupportCollection
     {
-        if ($values instanceof Tag) {
-            $values = [$values];
-        }
-
-        return SupportCollection::make($values)
-            ->flatMap(function (mixed $value): SupportCollection {
+        return SupportCollection::make(self::normalizeTagsInput($values))
+            ->flatMap(function (string|Tag $value): SupportCollection {
                 if ($value instanceof Tag) {
                     return SupportCollection::make([$value]);
                 }
 
-                if (! is_string($value)) {
-                    return SupportCollection::make();
-                }
-
-                /** @var Collection<int, Tag> $matches */
-                $matches = Tag::findFromStringOfAnyType($value);
-
-                return SupportCollection::make($matches->all());
-            });
+                return SupportCollection::make(Tag::findFromStringOfAnyType($value)->all());
+            })
+            ->values();
     }
 
     /**
-     * @param  array<int|string, string|Tag>|ArrayAccess<int|string, string|Tag>|Tag  $tags
-     * @return SupportCollection<int, Tag>
-     */
-    private function resolveTagsFromInput(array|ArrayAccess|Tag $tags, ?string $type): SupportCollection
-    {
-        $created = Tag::findOrCreate($tags, $type);
-
-        if ($created instanceof Tag) {
-            return SupportCollection::make([$created]);
-        }
-
-        /** @var Collection<int, Tag> $created */
-        return SupportCollection::make($created->all());
-    }
-
-    /**
-     * @return list<string|Tag>
-     */
-    private function normalizeQueuedTags(string|array|ArrayAccess|Tag $tags): array
-    {
-        if ($tags instanceof Tag || is_string($tags)) {
-            return [$tags];
-        }
-
-        if (is_array($tags)) {
-            /** @var list<string|Tag> $tags */
-            return array_values($tags);
-        }
-
-        $normalized = [];
-
-        foreach ($tags as $tag) {
-            if (is_string($tag) || $tag instanceof Tag) {
-                $normalized[] = $tag;
-            }
-        }
-
-        return $normalized;
-    }
-
-    /**
+     * @param  Builder<static>  $query
      * @param  string|list<string|Tag>|ArrayAccess<int|string, string|Tag>|Tag  $tags
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function withAllTags(
+        Builder $query,
+        string|array|ArrayAccess|Tag $tags,
+        ?string $type = null,
+    ): Builder {
+        $resolved_tags = static::convertToTags($tags, $type);
+
+        foreach ($resolved_tags as $tag) {
+            $query->whereHas('tags', function (Builder $tag_query) use ($tag): void {
+                $tag_query->whereRaw('tags.id = ?', [$tag->id ?? 0]);
+            });
+        }
+
+        return $query;
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @param  string|list<string|Tag>|ArrayAccess<int|string, string|Tag>|Tag  $tags
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function withAnyTags(
+        Builder $query,
+        string|array|ArrayAccess|Tag $tags,
+        ?string $type = null,
+    ): Builder {
+        $resolved_tags = static::convertToTags($tags, $type);
+        $tag_ids = $resolved_tags->pluck('id')->filter(static fn (mixed $id): bool => $id !== null)->values();
+
+        return $query->whereHas('tags', function (Builder $tag_query) use ($tag_ids): void {
+            $tag_query->whereIn('tags.id', $tag_ids->all());
+        });
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @param  string|list<string|Tag>|ArrayAccess<int|string, string|Tag>|Tag  $tags
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function withoutTags(
+        Builder $query,
+        string|array|ArrayAccess|Tag $tags,
+        ?string $type = null,
+    ): Builder {
+        $resolved_tags = static::convertToTags($tags, $type);
+        $tag_ids = $resolved_tags->pluck('id')->filter(static fn (mixed $id): bool => $id !== null)->values();
+
+        return $query->whereDoesntHave('tags', function (Builder $tag_query) use ($tag_ids): void {
+            $tag_query->whereIn('tags.id', $tag_ids->all());
+        });
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @param  string|list<string|Tag>|ArrayAccess<int|string, string|Tag>|Tag  $tags
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function withAllTagsOfAnyType(Builder $query, string|array|ArrayAccess|Tag $tags): Builder
+    {
+        $resolved_tags = static::convertToTagsOfAnyType($tags);
+
+        foreach ($resolved_tags as $tag) {
+            $query->whereHas(
+                'tags',
+                fn (Builder $tag_query): Builder => $tag_query->whereRaw('tags.id = ?', [$tag->id ?? 0]),
+            );
+        }
+
+        return $query;
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @param  string|list<string|Tag>|ArrayAccess<int|string, string|Tag>|Tag  $tags
+     * @return Builder<static>
+     */
+    #[Scope]
+    protected function withAnyTagsOfAnyType(Builder $query, string|array|ArrayAccess|Tag $tags): Builder
+    {
+        $resolved_tags = static::convertToTagsOfAnyType($tags);
+        $tag_ids = $resolved_tags->pluck('id')->filter(static fn (mixed $id): bool => $id !== null)->values();
+
+        return $query->whereHas(
+            'tags',
+            fn (Builder $tag_query): Builder => $tag_query->whereIn('tags.id', $tag_ids->all()),
+        );
+    }
+
+    protected function detachModelTags(): void
+    {
+        $this->detachTags($this->tags()->get()->all());
+    }
+
+    /**
+     * @param  string|Tag|array<int|string, string|Tag>|ArrayAccess<int|string, string|Tag>  $tags
      */
     protected function setTagsAttribute(string|array|ArrayAccess|Tag $tags): void
     {
@@ -384,7 +339,7 @@ trait HasTags
     }
 
     /**
-     * @param  list<int>  $ids
+     * @param  array<int>  $ids
      */
     protected function syncTagIds(array $ids, ?string $type = null, bool $detaching = true): void
     {
@@ -432,5 +387,61 @@ trait HasTags
         if ($is_updated) {
             $this->tags()->touchIfTouching();
         }
+    }
+
+    /**
+     * @param  string|Tag|array<int|string, string|Tag>|ArrayAccess<int|string, string|Tag>  $values
+     * @return list<string|Tag>
+     */
+    private static function normalizeTagsInput(string|Tag|array|ArrayAccess $values): array
+    {
+        if ($values instanceof Tag || is_string($values)) {
+            return [$values];
+        }
+
+        if (is_array($values)) {
+            return array_values($values);
+        }
+
+        $normalized = [];
+
+        /** @var ArrayAccess<int|string, mixed> $values */
+        $index = 0;
+
+        while ($values->offsetExists($index)) {
+            $value = $values->offsetGet($index);
+
+            if (is_string($value) || $value instanceof Tag) {
+                $normalized[] = $value;
+            }
+
+            $index++;
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param  string|Tag|array<int|string, string|Tag>|ArrayAccess<int|string, string|Tag>  $tags
+     * @return SupportCollection<int, Tag>
+     */
+    private function resolveTagsFromInput(string|array|ArrayAccess|Tag $tags, ?string $type): SupportCollection
+    {
+        $created = Tag::findOrCreate($tags, $type);
+
+        if ($created instanceof Tag) {
+            return SupportCollection::make([$created]);
+        }
+
+        return SupportCollection::make($created->all())->values();
+    }
+
+    /**
+     * @param  string|Tag|array<int|string, string|Tag>|ArrayAccess<int|string, string|Tag>  $tags
+     * @return list<string|Tag>
+     */
+    private function normalizeQueuedTags(string|array|ArrayAccess|Tag $tags): array
+    {
+        return self::normalizeTagsInput($tags);
     }
 }

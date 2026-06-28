@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\CMS\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Modules\CMS\Contracts\Taggable;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Database\Factories\CategoryFactory;
 use Modules\CMS\Enums\CMSTables;
@@ -19,11 +20,12 @@ use Spatie\EloquentSortable\Sortable;
 use Spatie\MediaLibrary\HasMedia as IMediable;
 
 /**
+ * @property-read string|null $name
  * @phpstan-use HasMultimedia<Category>
  * @mixin \Eloquent
  * @mixin IdeHelperCategory
  */
-final class Category extends Taxonomy implements IMediable, Sortable
+final class Category extends Taxonomy implements IMediable, Sortable, Taggable
 {
     // region Traits
     use HasMultimedia;

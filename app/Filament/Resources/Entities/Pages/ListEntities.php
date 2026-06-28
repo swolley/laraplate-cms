@@ -7,8 +7,7 @@ namespace Modules\CMS\Filament\Resources\Entities\Pages;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Tables\Grouping\Group;
-use Illuminate\Contracts\Database\Eloquent\Builder;
-// use Illuminate\Support\Facades\Cache;
+use Illuminate\Database\Eloquent\Builder;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Filament\Resources\Entities\EntityResource;
 use Modules\CMS\Filament\Utils\HasRecords;
@@ -24,17 +23,24 @@ final class ListEntities extends ListRecords
 
     public function getTabs(): array
     {
-        // $cache_key = 'filament_cms_entities_tabs_' . Entity::class;
-
-        // $counts = Cache::remember($cache_key, config('core.filament.tabs_counts_ttl_seconds'), function () {
-        $counts_by_type = Entity::query()
-            ->selectRaw('type, count(*) as count')
+        $counts_by_type = [];
+        $rows = Entity::query()
+            ->selectRaw('type, count(*) as aggregate_count')
             ->groupBy('type')
-            ->pluck('count', 'type')
-            ->all();
+            ->get();
 
-        $counts = array_merge(['all' => (int) array_sum($counts_by_type)], $counts_by_type);
-        // });
+        foreach ($rows as $row) {
+            $type = $row->getAttribute('type');
+            $count = $row->getAttribute('aggregate_count');
+
+            if (! is_string($type) || ! is_numeric($count)) {
+                continue;
+            }
+
+            $counts_by_type[$type] = (int) $count;
+        }
+
+        $counts = array_merge(['all' => array_sum($counts_by_type)], $counts_by_type);
 
         if (count($counts) < 2) {
             return [];
@@ -44,8 +50,10 @@ final class ListEntities extends ListRecords
             'all' => Tab::make('All')->badge($counts['all']),
         ];
 
+        $type_column = (new Entity())->qualifyColumn('type');
+
         foreach (EntityType::cases() as $type) {
-            $totals = (int) ($counts[$type->value] ?? 0);
+            $totals = $counts_by_type[$type->value] ?? 0;
 
             if ($totals === 0) {
                 continue;
@@ -55,12 +63,14 @@ final class ListEntities extends ListRecords
 
             $tabs[$type->value] = Tab::make($label)
                 ->badge($totals)
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('type', $type));
+                ->modifyQueryUsing(
+                    fn (Builder $query): Builder => $query->where($type_column, $type->toScalar()),
+                );
         }
 
         $this->groups[] = Group::make('type')
             ->label('Type')
-            ->getTitleFromRecordUsing(fn (Entity $record): string => ucfirst((string) $record->type->value));
+            ->getTitleFromRecordUsing(fn (Entity $record): string => ucfirst($record->type->toScalar()));
 
         return $tabs;
     }

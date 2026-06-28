@@ -14,7 +14,7 @@ interface IGeocodingService
     public static function getInstance(): self;
 
     /**
-     * @return array<int, mixed>|Location|null
+     * @return array<int, Location>|Location|null
      */
     public function search(
         string $query,

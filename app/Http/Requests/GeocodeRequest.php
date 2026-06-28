@@ -16,6 +16,8 @@ final class GeocodeRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
+     *
+     * @return array<string, list<string>>
      */
     public function rules(): array
     {
@@ -25,6 +27,26 @@ final class GeocodeRequest extends FormRequest
             'province' => ['nullable', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:255'],
         ];
+    }
+
+    public function geocodeQuery(): string
+    {
+        return $this->string('q')->toString();
+    }
+
+    public function geocodeCity(): ?string
+    {
+        return $this->filled('city') ? $this->string('city')->toString() : null;
+    }
+
+    public function geocodeProvince(): ?string
+    {
+        return $this->filled('province') ? $this->string('province')->toString() : null;
+    }
+
+    public function geocodeCountry(): ?string
+    {
+        return $this->filled('country') ? $this->string('country')->toString() : null;
     }
 
     /**

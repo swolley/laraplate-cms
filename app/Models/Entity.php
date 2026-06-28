@@ -19,7 +19,7 @@ final class Entity extends CoreEntity
     /**
      * The contents that belong to the entity.
      *
-     * @return HasManyThrough<Content>
+     * @return HasManyThrough<Content, Presettable, $this>
      */
     public function contents(): HasManyThrough
     {
@@ -34,7 +34,7 @@ final class Entity extends CoreEntity
     /**
      * The categories that belong to the entity.
      *
-     * @return HasManyThrough<Category>
+     * @return HasManyThrough<Category, Presettable, $this>
      */
     public function categories(): HasManyThrough
     {

@@ -13,13 +13,16 @@ use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 
 final class GetContentsByRelationAction
 {
+    /**
+     * @return array{entity: string, filters: array<int|string, array{operator: string, filters: list<array<string, mixed>>}>}
+     */
     public function __invoke(ListRequest $request, string $relation, string $value, string $entity): array
     {
         $filters = $this->createCommonFilters($request, $relation, $value);
 
         if ($entity !== 'contents') {
             $entity = Str::singular($entity);
-            $filters['filters'][] = [
+            $filters[] = [
                 'operator' => WhereClause::Or->value,
                 'filters' => [
                     [
@@ -42,12 +45,26 @@ final class GetContentsByRelationAction
         ];
     }
 
+    /**
+     * @return array<int|string, array{operator: string, filters: list<array<string, mixed>>}>
+     */
     private function createCommonFilters(ListRequest $request, string $relation, string $value): array
     {
+        $request_filters = $request->get('filters');
+        $nested_filters = [];
+
+        if (is_array($request_filters)) {
+            foreach ($request_filters as $filter) {
+                if (is_array($filter)) {
+                    $nested_filters[] = $filter;
+                }
+            }
+        }
+
         $filters = [
             [
                 'operator' => WhereClause::And->value,
-                'filters' => $request->get('filters') ?? [],
+                'filters' => $nested_filters,
             ],
         ];
 

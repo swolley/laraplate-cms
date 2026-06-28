@@ -8,11 +8,10 @@ use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
-// use Illuminate\Support\Facades\Cache;
 use Modules\CMS\Filament\Resources\Presets\PresetResource;
 use Modules\CMS\Filament\Utils\HasRecords;
 use Modules\CMS\Models\Entity;
-use Modules\Core\Models\Preset;
+use Modules\CMS\Models\Preset;
 use Override;
 
 final class ListPresets extends ListRecords
@@ -26,18 +25,25 @@ final class ListPresets extends ListRecords
     {
         $entities = Entity::query()->get()->keyBy('id');
 
-        // $cache_key = 'filament_cms_presets_tabs_' . Preset::class;
-
-        // $counts = Cache::remember($cache_key, config('core.filament.tabs_counts_ttl_seconds'), function () {
-        $counts_by_entity = Preset::query()
-            ->selectRaw('entity_id, count(*) as count')
+        $counts_by_entity = [];
+        $rows = Preset::query()
+            ->selectRaw('entity_id, count(*) as aggregate_count')
+            ->whereIn('entity_id', $entities->keys()->all())
             ->groupBy('entity_id')
-            ->pluck('count', 'entity_id')
-            ->whereIn('entity_id', $entities->keys())
             ->get();
 
-        $counts = array_merge(['all' => (int) array_sum($counts_by_entity)], $counts_by_entity);
-        // });
+        foreach ($rows as $row) {
+            $entity_id = $row->getAttribute('entity_id');
+            $count = $row->getAttribute('aggregate_count');
+
+            if (! is_numeric($entity_id) || ! is_numeric($count)) {
+                continue;
+            }
+
+            $counts_by_entity[(int) $entity_id] = (int) $count;
+        }
+
+        $counts = array_merge(['all' => array_sum($counts_by_entity)], $counts_by_entity);
 
         if (count($counts) < 2) {
             return [];
@@ -47,22 +53,34 @@ final class ListPresets extends ListRecords
             'all' => Tab::make('All')->badge($counts['all']),
         ];
 
-        foreach ($counts_by_entity as $entity_id => $count) {
-            $totals = (int) ($counts[$entity_id] ?? 0);
+        $entity_column = (new Preset())->qualifyColumn('entity_id');
 
-            if ($totals === 0) {
+        foreach ($counts_by_entity as $entity_id => $count) {
+            if ($count === 0) {
                 continue;
             }
 
-            $entity_name = ucfirst((string) $entities[$entity_id]->name);
+            $entity = $entities->get($entity_id);
+
+            if (! $entity instanceof Entity) {
+                continue;
+            }
+
+            $entity_name = ucfirst($entity->name);
             $tabs[(string) $entity_id] = Tab::make($entity_name)
-                ->badge($totals)
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('entity_id', $entity_id));
+                ->badge($count)
+                ->modifyQueryUsing(
+                    fn (Builder $query): Builder => $query->whereRaw($entity_column . ' = ?', [$entity_id]),
+                );
         }
 
         $this->groups[] = Group::make('entity_id')
             ->label('Entity')
-            ->getTitleFromRecordUsing(fn (Preset $record): string => ucfirst((string) $record->entity->name));
+            ->getTitleFromRecordUsing(function (Preset $record): string {
+                $entity = $record->entity;
+
+                return ucfirst($entity !== null ? $entity->name : '');
+            });
 
         return $tabs;
     }

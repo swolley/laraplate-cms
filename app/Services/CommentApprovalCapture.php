@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Modules\CMS\Services;
 
 use Illuminate\Support\Collection;
+use JsonException;
 use Modules\CMS\Models\Comment;
 use Modules\CMS\Models\ContentRating;
+use Modules\CMS\Models\Translations\CommentTranslation;
 use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Models\Modification;
 
@@ -19,12 +21,13 @@ final class CommentApprovalCapture
     public static function enrichDiff(Comment $comment, array $diff): array
     {
         if ($comment->hasPendingBodyForCurrentLocale()) {
-            $locale = LocaleContext::get();
             $existing = $comment->getOriginalTranslation();
+            $modified_body = $comment->getAttribute('body');
+            $original_body = $existing instanceof CommentTranslation ? $existing->body : null;
 
             $diff['body'] = [
-                'original' => $existing?->body,
-                'modified' => $comment->pending_translations[$locale]['body'] ?? $comment->body,
+                'original' => $original_body,
+                'modified' => is_string($modified_body) ? $modified_body : '',
             ];
         }
 
@@ -56,7 +59,7 @@ final class CommentApprovalCapture
                 ->value('score');
 
             $diff['rating_score'] = [
-                'original' => $existing_score !== null ? (int) $existing_score : null,
+                'original' => is_numeric($existing_score) ? (int) $existing_score : null,
                 'modified' => $comment->pending_rating_score,
             ];
         }
@@ -79,9 +82,14 @@ final class CommentApprovalCapture
             return true;
         }
 
-        $has_modification_pending = $comment->modifications()
-            ->activeOnly()
-            ->where('md5', md5(json_encode($diff)))
+        $encoded_diff = self::encodeDiff($diff);
+        $modifications_relation = $comment->modifications();
+        $modifications_table = $modifications_relation->getRelated()->getTable();
+        $diff_hash = md5($encoded_diff);
+
+        $has_modification_pending = $modifications_relation
+            ->whereRaw($modifications_table . '.active = ?', [1])
+            ->whereRaw($modifications_table . '.md5 = ?', [$diff_hash])
             ->first();
 
         $modifier = auth()->user();
@@ -95,7 +103,7 @@ final class CommentApprovalCapture
         $modification->modifications = $diff;
         $modification->approvers_required = 1;
         $modification->disapprovers_required = 1;
-        $modification->md5 = md5(json_encode($diff));
+        $modification->md5 = md5($encoded_diff);
 
         if ($modifier !== null) {
             $modifier_class = $modifier::class;
@@ -115,5 +123,17 @@ final class CommentApprovalCapture
         }
 
         return false;
+    }
+
+    /**
+     * @param  array<string, array{original: mixed, modified: mixed}>  $diff
+     */
+    private static function encodeDiff(array $diff): string
+    {
+        try {
+            return json_encode($diff, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return '';
+        }
     }
 }

@@ -199,7 +199,7 @@ final readonly class ReadingStatistics implements JsonSerializable
     }
 
     /**
-     * @param  list<mixed>  $blocks
+     * @param  iterable<int, mixed>  $blocks
      * @return list<array{type: string, data: array<string, mixed>}>
      */
     private static function normalizeBlocksList(iterable $blocks): array
@@ -243,7 +243,15 @@ final readonly class ReadingStatistics implements JsonSerializable
         }
 
         if (is_array($data)) {
-            return $data;
+            $normalized = [];
+
+            foreach ($data as $key => $value) {
+                if (is_string($key)) {
+                    $normalized[$key] = $value;
+                }
+            }
+
+            return $normalized;
         }
 
         if (is_object($data)) {
@@ -255,7 +263,19 @@ final readonly class ReadingStatistics implements JsonSerializable
 
             $decoded = json_decode($json, true);
 
-            return is_array($decoded) ? $decoded : [];
+            if (! is_array($decoded)) {
+                return [];
+            }
+
+            $normalized = [];
+
+            foreach ($decoded as $key => $value) {
+                if (is_string($key)) {
+                    $normalized[$key] = $value;
+                }
+            }
+
+            return $normalized;
         }
 
         return [];

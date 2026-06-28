@@ -24,10 +24,10 @@ final class Categorizable extends Pivot
     protected $table = CMSTables::Categorizables->value;
 
     #[Override]
-    protected $primaryKey = ['content_id', 'taxonomy_id'];
+    protected $keyType = 'array';
 
     #[Override]
-    protected $keyType = 'array';
+    protected $primaryKey = ['content_id', 'taxonomy_id'];
 
     protected function casts(): array
     {

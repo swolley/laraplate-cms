@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\CMS\Contracts;
 
 use ArrayAccess;
-use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Modules\CMS\Models\Tag;
 
 /**
@@ -22,11 +21,15 @@ interface Taggable
 
     public function clearQueuedTags(): void;
 
-    public function attachTags(array|ArrayAccess|Tag $tags, ?string $type = null): static;
+    /**
+     * @param  array<int|string, string|Tag>|ArrayAccess<int|string, string|Tag>|string|Tag  $tags
+     */
+    public function attachTags(array|ArrayAccess|string|Tag $tags, ?string $type = null): static;
 
     public function attachTag(string|Tag $tag, ?string $type = null): static;
 
+    /**
+     * @param  array<int|string, string|Tag>|ArrayAccess<int|string, string|Tag>  $tags
+     */
     public function detachTags(array|ArrayAccess $tags, ?string $type = null): static;
-
-    public function tags(): MorphToMany;
 }
