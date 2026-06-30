@@ -11,7 +11,7 @@ use Modules\CMS\Models\Location;
  */
 interface IGeocodingService
 {
-    public static function getInstance(): self;
+    public static function getInstance(): static;
 
     /**
      * @return array<int, Location>|Location|null

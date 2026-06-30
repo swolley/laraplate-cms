@@ -153,7 +153,7 @@ it('search uses rate limiter and returns callback result when not in testing', f
                 && $max_attempts === 60
                 && $decay === 1;
         })
-        ->andReturnUsing(function (string $key, int $max_attempts, Closure $callback, int $decay): array {
+        ->andReturnUsing(function (string $key, int $max_attempts, Closure $callback, int $decay): mixed {
             return $callback();
         });
 
@@ -161,7 +161,10 @@ it('search uses rate limiter and returns callback result when not in testing', f
     {
         protected function performSearch(string $query, ?string $city, ?string $province, ?string $country, int $limit): array|Location|null
         {
-            return ['ok' => $query, 'limit' => $limit];
+            $location = new Location;
+            $location->city = $query;
+
+            return $location;
         }
 
         protected function getAddressDetails(array $result): Location
@@ -175,7 +178,10 @@ it('search uses rate limiter and returns callback result when not in testing', f
         }
     };
 
-    expect($service->search('milan', null, null, null, 3))->toBe(['ok' => 'milan', 'limit' => 3]);
+    $result = $service->search('milan', null, null, null, 3);
+
+    expect($result)->toBeInstanceOf(Location::class)
+        ->and($result?->city)->toBe('milan');
 });
 
 it('search returns null when rate limiter reports too many attempts', function (): void {

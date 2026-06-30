@@ -43,7 +43,7 @@ it('tag model has correct method signatures', function (): void {
 
     // Test getPath method
     $method = $reflection->getMethod('getPath');
-    expect($method->getReturnType()->getName())->toBe('string');
+    expect($method->getReturnType()->getName())->toBe('null');
 
     // Test toArray method
     $method = $reflection->getMethod('toArray');

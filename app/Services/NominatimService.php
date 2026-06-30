@@ -9,14 +9,12 @@ use Illuminate\Support\Facades\Http;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use Modules\CMS\Models\Location;
 use Modules\CMS\Services\Contracts\AbstractGeocodingService;
-use Modules\CMS\Services\Contracts\GeocodingServiceSingleton;
 use Modules\CMS\Services\Contracts\IGeocodingService;
 use Modules\Core\Cache\CacheManager;
 use Override;
 
 final class NominatimService extends AbstractGeocodingService implements IGeocodingService
 {
-    use GeocodingServiceSingleton;
     public const string BASE_URL = 'https://nominatim.openstreetmap.org';
 
     #[Override]

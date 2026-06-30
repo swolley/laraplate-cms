@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use Modules\CMS\Models\Location;
+use Modules\CMS\Services\Contracts\GeocodingServiceSingleton;
 use Throwable;
 
 /**
@@ -16,6 +17,7 @@ use Throwable;
  */
 abstract class AbstractGeocodingService
 {
+    use GeocodingServiceSingleton;
     public function url(Location $location): string
     {
         return $this->getSearchUrl($this->buildSearchStringFromLocation($location));
