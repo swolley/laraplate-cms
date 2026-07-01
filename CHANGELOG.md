@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### 🧪 Testing
+
+- *(cms)* Enhance HasTable trait and improve test coverage
+
 ## [1.34.2] - 2026-06-28
 
 ### 🚜 Refactor
