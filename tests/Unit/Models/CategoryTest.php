@@ -3,7 +3,14 @@
 declare(strict_types=1);
 
 use Modules\CMS\Models\Category;
+use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Database\Factories\CategoryFactory;
+use Modules\CMS\Models\Entity;
+use Modules\CMS\Models\Pivot\Presettable;
+use Modules\CMS\Tests\TestCase;
 use Modules\Core\Models\Taxonomy;
+
+uses(TestCase::class);
 
 it('category model has correct structure', function (): void {
     $categoryReflection = new ReflectionClass(Category::class);
@@ -46,12 +53,42 @@ it('category model has required methods', function (): void {
     expect($reflection->hasMethod('toArray'))->toBeTrue();
 });
 
+it('returns the CMS entity model class', function (): void {
+    expect(Category::getEntityModelClass())->toBe(Entity::class);
+});
+
+it('adds logo fields to fillable attributes on construction', function (): void {
+    $category = new Category;
+
+    expect($category->getFillable())->toContain('logo', 'logo_full');
+});
+
+it('returns the CMS presettable pivot class', function (): void {
+    expect(Category::getPresettableClass())->toBe(Presettable::class);
+});
+
 it('category model has correct relationships', function (): void {
     $reflection = new ReflectionClass(Category::class);
 
     // Test contents relationship
     $method = $reflection->getMethod('contents');
     expect($method->getReturnType()->getName())->toBe(Illuminate\Database\Eloquent\Relations\BelongsToMany::class);
+
+    expect((new Category)->contents())->toBeInstanceOf(Illuminate\Database\Eloquent\Relations\BelongsToMany::class);
+});
+
+it('returns the categories entity type', function (): void {
+    $method = new ReflectionMethod(Category::class, 'getEntityType');
+    $method->setAccessible(true);
+
+    expect($method->invoke(null))->toBe(EntityType::Categories);
+});
+
+it('creates the category factory instance', function (): void {
+    $method = new ReflectionMethod(Category::class, 'newFactory');
+    $method->setAccessible(true);
+
+    expect($method->invoke(null))->toBeInstanceOf(CategoryFactory::class);
 });
 
 it('category model has correct method signatures', function (): void {
@@ -75,8 +112,8 @@ it('category model has correct method signatures', function (): void {
 });
 
 it('builds path, ids and full_name correctly from ancestors', function (): void {
-    if (! function_exists('app') || ! app()->bound('session')) {
-        $this->markTestSkipped('Session not available, skipping path chain test.');
+    if (! function_exists('app') || ! app()->bound('session') || ! Illuminate\Support\Facades\Schema::hasTable('core_settings')) {
+        $this->markTestSkipped('Session or settings table not available, skipping path chain test.');
     }
 
     $reflection = new ReflectionClass(Category::class);
@@ -115,8 +152,8 @@ it('builds path, ids and full_name correctly from ancestors', function (): void 
 });
 
 it('falls back to current node data when no ancestors are present', function (): void {
-    if (! function_exists('app') || ! app()->bound('session')) {
-        $this->markTestSkipped('Session not available, skipping path fallback test.');
+    if (! function_exists('app') || ! app()->bound('session') || ! Illuminate\Support\Facades\Schema::hasTable('core_settings')) {
+        $this->markTestSkipped('Session or settings table not available, skipping path fallback test.');
     }
 
     $reflection = new ReflectionClass(Category::class);

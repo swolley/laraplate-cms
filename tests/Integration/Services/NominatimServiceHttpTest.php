@@ -67,6 +67,16 @@ it('returns null when nominatim responds empty for single result', function (): 
     expect($service->search('nothing'))->toBeNull();
 });
 
+it('returns null when nominatim responds with a non-array payload', function (): void {
+    Http::fake([
+        'nominatim.openstreetmap.org/search*' => Http::response('"not-an-array"', 200),
+    ]);
+
+    $service = NominatimService::getInstance();
+
+    expect($service->search('scalar-payload'))->toBeNull();
+});
+
 it('returns empty array when nominatim responds empty for multiple results', function (): void {
     Http::fake([
         'nominatim.openstreetmap.org/search*' => Http::response([], 200),
@@ -102,6 +112,42 @@ it('maps multiple results when limit is greater than one', function (): void {
         ->and($results[1]->city)->toBe('B');
 });
 
+it('skips invalid multiple results and maps town village and numeric-key payloads', function (): void {
+    Http::fake([
+        'nominatim.openstreetmap.org/search*' => Http::response([
+            'invalid-result',
+            [
+                123 => 'ignored',
+                'address' => [
+                    'road' => 'Market Street',
+                    'town' => 'Townsville',
+                    'county' => 'Countyshire',
+                    'country' => 'Italy',
+                    'postcode' => '12345',
+                ],
+                'lat' => '11.1',
+                'lon' => '22.2',
+            ],
+            [
+                'address' => [
+                    'village' => 'Villageville',
+                ],
+                'lat' => '33.3',
+                'lon' => '44.4',
+            ],
+        ], 200),
+    ]);
+
+    $service = NominatimService::getInstance();
+    $results = $service->search('mixed-results', limit: 5);
+
+    expect($results)->toBeArray()
+        ->and($results)->toHaveCount(2)
+        ->and($results[0]->city)->toBe('Townsville')
+        ->and($results[0]->province)->toBe('Countyshire')
+        ->and($results[1]->city)->toBe('Villageville');
+});
+
 it('builds search url for location', function (): void {
     $service = NominatimService::getInstance();
     $location = new Location;
@@ -125,6 +171,18 @@ it('composes search url from address fields when coordinates are absent', functi
     expect($url)->toStartWith(NominatimService::BASE_URL . '/search?q=')
         ->and(rawurldecode($url))->toContain('Via Roma')
         ->and(rawurldecode($url))->toContain('Milan');
+});
+
+it('normalizes numeric and invalid cache ttl values', function (): void {
+    $service = NominatimService::getInstance();
+    $method = new ReflectionMethod(NominatimService::class, 'cacheTtlSeconds');
+    $method->setAccessible(true);
+
+    config(['cms.geocoding.cache_ttl' => '3600']);
+    expect($method->invoke($service))->toBe(3600);
+
+    config(['cms.geocoding.cache_ttl' => 'invalid']);
+    expect($method->invoke($service))->toBe(604800);
 });
 
 // --- Cache layer tests (Requirements 7.1, 7.2, 7.4, 7.5) ---

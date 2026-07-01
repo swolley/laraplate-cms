@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Entity;
+use Modules\CMS\Models\Preset;
 use Modules\CMS\Tests\TestCase;
 use Modules\CMS\Tests\Unit\Filament\Utils\CMSHasTableTraitHarness;
 
@@ -132,4 +133,18 @@ it('reports true for hasDynamicContents on Content', function (): void {
     $method->setAccessible(true);
 
     expect($method->invoke(null, $modelInstance))->toBeTrue();
+});
+
+it('skips preset select options with non numeric ids', function (): void {
+    $preset = Mockery::mock(Preset::class)->makePartial();
+    $preset->shouldReceive('getAttribute')->with('id')->andReturn('not-numeric');
+    $preset->shouldReceive('getAttribute')->with('name')->andReturn('Preset');
+    $preset->shouldReceive('getAttribute')->with('entity_name')->andReturn('Entity');
+
+    $options = [];
+    $method = new ReflectionMethod(CMSHasTableTraitHarness::class, 'appendPresetSelectFilterOption');
+    $method->setAccessible(true);
+    $method->invokeArgs(null, [&$options, $preset]);
+
+    expect($options)->toBeEmpty();
 });

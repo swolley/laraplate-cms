@@ -107,7 +107,8 @@ trait HasTable
         string $permissionsPrefix,
         ?User $user,
     ): void {
-        $entity_type = self::resolveEntityType($model_instance);
+        $class = $model_instance::class;
+        $entity_type = method_exists($class, 'getEntityType') ? $class::getEntityType() : null;
 
         if ($entity_type instanceof EntityType) {
             $table->pushFilters([
@@ -149,10 +150,6 @@ trait HasTable
 
         $class = $model_instance::class;
 
-        if (! method_exists($class, 'getEntityType')) {
-            return null;
-        }
-
         $entity_type = $class::getEntityType();
 
         return $entity_type instanceof EntityType ? $entity_type : null;
@@ -180,19 +177,27 @@ trait HasTable
                 "{$entities_table}.name as entity_name",
             )
             ->each(function (Preset $preset) use (&$options): void {
-                $id = $preset->getAttribute('id');
-                $preset_name = $preset->getAttribute('name');
-                $entity_name = $preset->getAttribute('entity_name');
-
-                if (! is_numeric($id)) {
-                    return;
-                }
-
-                $options[(int) $id] = (is_string($entity_name) ? $entity_name : '')
-                    . ' - '
-                    . (is_string($preset_name) ? $preset_name : '');
+                self::appendPresetSelectFilterOption($options, $preset);
             });
 
         return $options;
+    }
+
+    /**
+     * @param  array<int, string>  $options
+     */
+    private static function appendPresetSelectFilterOption(array &$options, Preset $preset): void
+    {
+        $id = $preset->getAttribute('id');
+        $preset_name = $preset->getAttribute('name');
+        $entity_name = $preset->getAttribute('entity_name');
+
+        if (! is_numeric($id)) {
+            return;
+        }
+
+        $options[(int) $id] = (is_string($entity_name) ? $entity_name : '')
+            . ' - '
+            . (is_string($preset_name) ? $preset_name : '');
     }
 }

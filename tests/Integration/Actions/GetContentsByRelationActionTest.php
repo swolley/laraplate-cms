@@ -43,6 +43,29 @@ it('normalizes singular relation name when content model uses plural method', fu
     expect($result['filters'])->not->toBeEmpty();
 });
 
+it('keeps only array filters from the request filters payload', function (): void {
+    $request = new class extends ListRequest
+    {
+        public function get(string $key, mixed $default = null): mixed
+        {
+            return $key === 'filters' ? [
+                ['property' => 'contents.title', 'value' => 'Hello', 'operator' => '='],
+                'ignored',
+            ] : $default;
+        }
+    };
+
+    $action = new GetContentsByRelationAction();
+
+    $result = $action($request, 'tags', 'value', 'contents');
+
+    expect($result['filters'][0]['filters'][0])->toBe([
+        'property' => 'contents.title',
+        'value' => 'Hello',
+        'operator' => '=',
+    ]);
+});
+
 it('rejects unknown relations after normalization', function (): void {
     $request = new class extends ListRequest
     {
