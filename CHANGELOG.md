@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚀 Features
+
+- *(cms)* Add content provenance, references and ai assistance metadata
+
+## [1.34.4] - 2026-07-01
+
 ### 🧪 Testing
 
 - *(cms)* Enhance HasTable trait and improve test coverage
