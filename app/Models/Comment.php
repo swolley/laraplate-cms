@@ -26,7 +26,6 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @property int|null $user_id
  * @property int|null $parent_id
  * @property string|null $body
- *
  * @mixin \Eloquent
  * @mixin IdeHelperComment
  */

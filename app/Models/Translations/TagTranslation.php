@@ -17,7 +17,6 @@ use Override;
  * @property string $locale
  * @property string $name
  * @property string $slug
- *
  * @mixin \Eloquent
  * @mixin IdeHelperTagTranslation
  */

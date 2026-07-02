@@ -27,7 +27,6 @@ use Spatie\EloquentSortable\Sortable;
  * @property int|null $order_column
  * @property-read string|null $name
  * @property-read string|null $slug
- *
  * @mixin \Eloquent
  * @mixin IdeHelperTag
  */
