@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\CMS\Models\Translations;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\CMS\Enums\AiAssistance;
 use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Content;
 use Modules\Core\Models\Concerns\HasSlug;
@@ -18,6 +19,7 @@ use Override;
  * @property string $title
  * @property string $slug
  * @property array<string, mixed>|null $components
+ * @property AiAssistance $ai_assistance
  * @mixin \Illuminate\Database\Eloquent\Model
  * @mixin \Eloquent
  * @mixin IdeHelperContentTranslation
@@ -42,11 +44,13 @@ final class ContentTranslation extends Model implements ITranslated
         'title',
         'slug',
         'components',
+        'ai_assistance',
     ];
 
     #[Override]
     protected $attributes = [
         'components' => '[]',
+        'ai_assistance' => 'none',
     ];
 
     #[Override]
@@ -69,6 +73,7 @@ final class ContentTranslation extends Model implements ITranslated
     {
         return [
             'components' => 'json',
+            'ai_assistance' => AiAssistance::class,
         ];
     }
 }

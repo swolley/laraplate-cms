@@ -14,6 +14,7 @@ enum CMSTables: string
     case Contents = 'cms_contents';
     case Comments = 'cms_comments';
     case ContentRatings = 'cms_contents_ratings';
+    case ContentsReferences = 'cms_contents_references';
 
     // generic or vendors models
     case Media = 'vend_media';

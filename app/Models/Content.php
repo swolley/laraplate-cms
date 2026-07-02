@@ -46,6 +46,8 @@ use Spatie\MediaLibrary\HasMedia;
 
 /**
  * @property int|string $id
+ * @property string|null $origin_label
+ * @property string|null $origin_url
  * @phpstan-use HasMultimedia<Content>
  * @phpstan-use HasTranslatedDynamicContents<Content>
  * @phpstan-use HasValidity<Content>
@@ -106,6 +108,14 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
     #[Override]
     protected $appends = [
         'statistics',
+    ];
+
+    /**
+     * @var list<string>
+     */
+    protected $fillable = [
+        'origin_label',
+        'origin_url',
     ];
 
     /**
@@ -228,6 +238,16 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
     public function ratings(): HasMany
     {
         return $this->hasMany(ContentRating::class);
+    }
+
+    /**
+     * The external references (bibliography) cited by this content.
+     *
+     * @return HasMany<ContentReference, $this>
+     */
+    public function references(): HasMany
+    {
+        return $this->hasMany(ContentReference::class);
     }
 
     /**
@@ -431,6 +451,9 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
             'translations.*.title' => 'required|string|max:255',
             'translations.*.slug' => 'sometimes|nullable|string|max:255',
             'translations.*.components' => 'sometimes|array',
+            'translations.*.ai_assistance' => 'sometimes|string|in:none,generated,translated,edited,summarized',
+            'origin_label' => 'sometimes|nullable|string|max:255',
+            'origin_url' => 'sometimes|nullable|url|max:2048',
         ]);
         $rules['update'] = array_merge($rules['update'], [
             // 'title' => 'sometimes|required|string|max:255', // Validated in translation
@@ -442,6 +465,9 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
             'translations.*.title' => 'sometimes|required|string|max:255',
             'translations.*.slug' => 'sometimes|nullable|string|max:255',
             'translations.*.components' => 'sometimes|array',
+            'translations.*.ai_assistance' => 'sometimes|string|in:none,generated,translated,edited,summarized',
+            'origin_label' => 'sometimes|nullable|string|max:255',
+            'origin_url' => 'sometimes|nullable|url|max:2048',
         ]);
 
         return $rules;
