@@ -19,8 +19,8 @@ use Spatie\EloquentSortable\Sortable;
  * @property string $label
  * @property string|null $url
  * @property int $order_column
- *
  * @mixin \Eloquent
+ * @mixin IdeHelperContentReference
  */
 final class ContentReference extends Model implements Sortable
 {
