@@ -1,0 +1,36 @@
+{
+    "content": {
+        "title": "Sample imported article",
+        "slug": "sample-imported-article",
+        "external_id": 1001,
+        "source_type": "fixture",
+        "source_kind": "story",
+        "entity_name": "contents",
+        "preset_name": "default",
+        "category_external_ids": [2001],
+        "contributor_external_ids": [3001],
+        "tag_external_ids": [4001]
+    },
+    "category": {
+        "external_id": 2001,
+        "name": "News",
+        "slug": "news",
+        "entity_name": "categories",
+        "preset_name": "default",
+        "source_type": "fixture"
+    },
+    "contributor": {
+        "external_id": 3001,
+        "name": "Jane Reporter",
+        "slug": "jane-reporter",
+        "entity_name": "contributors",
+        "preset_name": "default",
+        "source_type": "fixture"
+    },
+    "tag": {
+        "external_id": 4001,
+        "name": "Politics",
+        "slug": "politics",
+        "source_type": "fixture"
+    }
+}

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/Import/helpers.php';
 
 use Illuminate\Support\Str;
 use MatanYadaev\EloquentSpatial\Objects\Point;

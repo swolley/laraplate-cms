@@ -6,6 +6,7 @@ namespace Modules\CMS\Providers;
 
 use Exception;
 use Modules\CMS\Observers\PlaceObserver;
+use Modules\CMS\Providers\ImportServiceProvider;
 use Modules\CMS\Services\CommentModerationAdapter;
 use Modules\Core\Models\Place;
 use Modules\Core\Services\ModerationAdapterRegistry;
@@ -32,6 +33,8 @@ final class CMSServiceProvider extends ModuleServiceProvider
     public function register(): void
     {
         parent::register();
+
+        $this->app->register(ImportServiceProvider::class);
     }
 
     /**

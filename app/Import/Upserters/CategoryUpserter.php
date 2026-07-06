@@ -1,0 +1,65 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\CMS\Import\Upserters;
+
+use Modules\CMS\Import\Dto\ImportCategoryDto;
+use Modules\CMS\Import\Support\EntityPresetResolver;
+use Modules\CMS\Import\Support\ExternalReferenceLocator;
+use Modules\CMS\Import\Support\ImportIdMap;
+use Modules\CMS\Models\Category;
+
+final class CategoryUpserter
+{
+    public function __construct(
+        private readonly EntityPresetResolver $entity_preset_resolver,
+        private readonly ExternalReferenceLocator $locator,
+        private readonly ImportIdMap $id_map,
+        private readonly string $locale,
+    ) {}
+
+    public function upsert(ImportCategoryDto $dto): int
+    {
+        $existing_id = $this->id_map->resolve('categories', $dto->externalId)
+            ?? $this->locator->findCategoryId($dto->externalId, $dto->sourceType);
+
+        $entity_id = $this->entity_preset_resolver->entityId($dto->entityName);
+        $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName);
+        $parent_id = $dto->parentExternalId !== null
+            ? $this->id_map->resolve('categories', $dto->parentExternalId)
+            : null;
+
+        if ($existing_id !== null) {
+            $category = Category::query()->withoutGlobalScopes()->with('presettable')->findOrFail($existing_id);
+            $category->parent_id = $parent_id;
+        } else {
+            $category = new Category([
+                'entity_id' => $entity_id,
+                'presettable_id' => $presettable_id,
+                'parent_id' => $parent_id,
+            ]);
+        }
+
+        $category->is_active = $dto->isActive;
+        $category->order_column = $dto->orderColumn;
+        $category->shared_components = $dto->sharedComponents;
+        $category->save();
+
+        $category->setTranslation($this->locale, [
+            'name' => $dto->name,
+            'slug' => $dto->slug,
+            'components' => $dto->components,
+        ]);
+        $category->save();
+
+        if ($dto->deletedAt !== null && ! $category->trashed()) {
+            $category->delete();
+        }
+
+        $category_id = (int) $category->id;
+        $this->id_map->remember('categories', $dto->externalId, $category_id);
+
+        return $category_id;
+    }
+}
