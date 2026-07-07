@@ -56,6 +56,8 @@ final class ContributorUpserter
         $contributor_id = (int) $contributor->id;
         $this->id_map->remember('contributors', $dto->externalId, $contributor_id);
 
+        $this->locator->register($contributor, $dto->sourceType, $dto->externalId);
+
         return $contributor_id;
     }
 }

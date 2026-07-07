@@ -6,6 +6,19 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
+- *(cms)* Implement bulk import functionality with supporting DTOs and upserters
+- *(cms)* Add generic cms:import command with bulk import runner
+- *(cms)* Track import identity and provenance via record origins
+
+### 🚜 Refactor
+
+- *(cms)* Consolidate ai assistance and origin metadata into contents table
+- *(cms)* Update ai_assistance handling in contents and translations tables
+
+## [1.35.0] - 2026-07-02
+
+### 🚀 Features
+
 - *(cms)* Add content provenance, references and ai assistance metadata
 
 ## [1.34.4] - 2026-07-01

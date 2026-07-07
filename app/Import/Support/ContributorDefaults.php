@@ -45,10 +45,7 @@ final class ContributorDefaults
             name: $config['name'],
             slug: $config['slug'],
             components: [],
-            sharedComponents: ImportMetadata::externalReference(
-                max(1, $config['external_id']),
-                'cms_default',
-            ),
+            sharedComponents: [],
             createdAt: null,
             updatedAt: null,
             deletedAt: null,

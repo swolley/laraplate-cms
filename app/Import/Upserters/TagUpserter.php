@@ -48,6 +48,8 @@ final class TagUpserter
         $tag_id = (int) $tag->id;
         $this->id_map->remember('tags', $dto->externalId, $tag_id);
 
+        $this->locator->register($tag, $dto->sourceType, $dto->externalId);
+
         return $tag_id;
     }
 }

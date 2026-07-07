@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -28,6 +29,7 @@ use Modules\CMS\Observers\ContentObserver;
 use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Enums\CoreTables;
 use Modules\Core\Models\Concerns\HasApprovals;
+use Modules\Core\Models\RecordOrigin;
 use Modules\Core\Models\Concerns\HasPath;
 use Modules\Core\Models\Concerns\HasTranslatedDynamicContents;
 use Modules\Core\Models\Concerns\HasValidity;
@@ -46,8 +48,6 @@ use Spatie\MediaLibrary\HasMedia;
 
 /**
  * @property int|string $id
- * @property string|null $origin_label
- * @property string|null $origin_url
  * @phpstan-use HasMultimedia<Content>
  * @phpstan-use HasTranslatedDynamicContents<Content>
  * @phpstan-use HasValidity<Content>
@@ -113,10 +113,7 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
     /**
      * @var list<string>
      */
-    protected $fillable = [
-        'origin_label',
-        'origin_url',
-    ];
+    protected $fillable = [];
 
     /**
      * @var list<string>
@@ -248,6 +245,16 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
     public function references(): HasMany
     {
         return $this->hasMany(ContentReference::class);
+    }
+
+    /**
+     * The provenance of this content (external origin source or manual attribution).
+     *
+     * @return MorphOne<RecordOrigin, $this>
+     */
+    public function origin(): MorphOne
+    {
+        return $this->morphOne(RecordOrigin::class, 'referable');
     }
 
     /**
@@ -452,8 +459,6 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
             'translations.*.slug' => 'sometimes|nullable|string|max:255',
             'translations.*.components' => 'sometimes|array',
             'translations.*.ai_assistance' => 'sometimes|string|in:none,generated,translated,edited,summarized',
-            'origin_label' => 'sometimes|nullable|string|max:255',
-            'origin_url' => 'sometimes|nullable|url|max:2048',
         ]);
         $rules['update'] = array_merge($rules['update'], [
             // 'title' => 'sometimes|required|string|max:255', // Validated in translation
@@ -466,8 +471,6 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
             'translations.*.slug' => 'sometimes|nullable|string|max:255',
             'translations.*.components' => 'sometimes|array',
             'translations.*.ai_assistance' => 'sometimes|string|in:none,generated,translated,edited,summarized',
-            'origin_label' => 'sometimes|nullable|string|max:255',
-            'origin_url' => 'sometimes|nullable|url|max:2048',
         ]);
 
         return $rules;

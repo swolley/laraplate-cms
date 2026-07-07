@@ -53,8 +53,6 @@ final class ContentUpserter
         $content->entity_id = $entity_id;
         $content->presettable_id = $presettable_id;
         $content->shared_components = $dto->sharedComponents;
-        $content->origin_label = $dto->originLabel;
-        $content->origin_url = $dto->originUrl;
         $content->valid_from = $dto->validFrom;
         $content->valid_to = $dto->validTo;
         $content->save();
@@ -64,6 +62,19 @@ final class ContentUpserter
             'slug' => $dto->slug,
             'components' => $dto->components,
         ]);
+
+        foreach ($dto->translations as $locale => $translation) {
+            if ($locale === $this->locale) {
+                continue;
+            }
+
+            $content->setTranslation($locale, [
+                'title' => $translation['title'],
+                'slug' => $translation['slug'],
+                'components' => $translation['components'],
+            ]);
+        }
+
         $content->save();
 
         if ($categoryIds !== []) {
@@ -94,6 +105,18 @@ final class ContentUpserter
 
         $content_id = (int) $content->id;
         $this->id_map->remember('contents', $dto->externalId, $content_id);
+
+        foreach ($dto->familyExternalIds as $family_external_id) {
+            $this->id_map->remember('contents', $family_external_id, $content_id);
+        }
+
+        $this->locator->register(
+            $content,
+            $dto->sourceType,
+            $dto->externalId,
+            $dto->originLabel,
+            $dto->originUrl,
+        );
 
         return $content_id;
     }

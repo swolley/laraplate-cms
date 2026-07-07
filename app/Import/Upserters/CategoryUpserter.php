@@ -60,6 +60,8 @@ final class CategoryUpserter
         $category_id = (int) $category->id;
         $this->id_map->remember('categories', $dto->externalId, $category_id);
 
+        $this->locator->register($category, $dto->sourceType, $dto->externalId);
+
         return $category_id;
     }
 }

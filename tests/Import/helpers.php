@@ -7,7 +7,6 @@ use Modules\CMS\Import\Dto\ImportContributorDto;
 use Modules\CMS\Import\Dto\ImportContentDto;
 use Modules\CMS\Import\Dto\ImportGraphDto;
 use Modules\CMS\Import\Dto\ImportTagDto;
-use Modules\CMS\Import\Support\ImportMetadata;
 
 /**
  * @return array{content: array<string, mixed>, category: array<string, mixed>, contributor: array<string, mixed>, tag: array<string, mixed>}
@@ -37,11 +36,7 @@ function buildImportGraphFromFixture(string $filename = 'sample-graph.json'): Im
         slug: (string) $fixture['category']['slug'],
         parentExternalId: null,
         components: [],
-        sharedComponents: ImportMetadata::externalReference(
-            (int) $fixture['category']['external_id'],
-            (string) $fixture['category']['source_type'],
-            sourceKind: 'section',
-        ),
+        sharedComponents: [],
         isActive: true,
         orderColumn: 0,
         createdAt: null,
@@ -57,10 +52,7 @@ function buildImportGraphFromFixture(string $filename = 'sample-graph.json'): Im
         name: (string) $fixture['contributor']['name'],
         slug: (string) $fixture['contributor']['slug'],
         components: [],
-        sharedComponents: ImportMetadata::externalReference(
-            (int) $fixture['contributor']['external_id'],
-            (string) $fixture['contributor']['source_type'],
-        ),
+        sharedComponents: [],
         createdAt: null,
         updatedAt: null,
         deletedAt: null,
@@ -85,11 +77,7 @@ function buildImportGraphFromFixture(string $filename = 'sample-graph.json'): Im
         title: (string) $fixture['content']['title'],
         slug: (string) $fixture['content']['slug'],
         components: [],
-        sharedComponents: ImportMetadata::externalReference(
-            (int) $fixture['content']['external_id'],
-            (string) $fixture['content']['source_type'],
-            sourceKind: (string) $fixture['content']['source_kind'],
-        ),
+        sharedComponents: [],
         validFrom: now()->toDateTimeString(),
         validTo: null,
         createdAt: null,
