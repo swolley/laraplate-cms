@@ -17,12 +17,14 @@ return new class extends Migration
     public function up(): void
     {
         $table_name = CMSTables::Contents->value;
-        Schema::create($table_name, static function (Blueprint $table) use ($table_name): void {
+        $lock_version_column = config('core.locking.lock_version_column');
+        Schema::create($table_name, static function (Blueprint $table) use ($table_name, $lock_version_column): void {
             $table->id();
             $table->foreignId('entity_id')->nullable(false)->constrained(CoreTables::Entities->value, 'id', "{$table_name}_entity_id_FK")->cascadeOnDelete()->comment('The entity that the content belongs to');
             $table->foreignId('presettable_id')->nullable(false)->constrained(CoreTables::Presettables->value, 'id', "{$table_name}_presettable_id_FK")->cascadeOnDelete()->comment('The entity preset that the content belongs to');
             $table->json('shared_components')->nullable()->comment('The shared dynamic components of the content');
             $table->integer('order_column')->nullable(false)->default(0)->index("{$table_name}_order_column_IDX")->comment('The order of the content');
+            $table->integer($lock_version_column)->unsigned()->nullable()->comment('The optimistic lock version of the content');
 
             MigrateUtils::timestamps(
                 $table,

@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
+- *(cms)* Enhance import functionality with soft-delete handling and new options
+
+## [1.36.0] - 2026-07-07
+
+### 🚀 Features
+
 - *(cms)* Implement bulk import functionality with supporting DTOs and upserters
 - *(cms)* Add generic cms:import command with bulk import runner
 - *(cms)* Track import identity and provenance via record origins

@@ -27,14 +27,15 @@ final class ImportCommand extends Command
                             {--bootstrap= : Path to an external Composer autoloader to require before resolving the importer}
                             {--arg=* : Importer argument as key=value (repeatable)}
                             {--dry-run : Run inside a transaction and roll back without persisting}
-                            {--limit= : Maximum number of records to import (honoured by the importer)}';
+                            {--limit= : Maximum number of records to import (honoured by the importer)}
+                            {--no-search : Disable search engine (Scout) indexing for the duration of the import}';
 
     #[Override]
     protected $description = 'Run a bulk content import through an external importer plugin';
 
     public function handle(BulkImportRunner $runner): int
     {
-        $importer_class = trim((string) $this->option('importer'));
+        $importer_class = mb_trim((string) $this->option('importer'));
 
         if ($importer_class === '') {
             $this->error('The --importer option is required (FQCN implementing BulkImporterInterface).');
@@ -75,6 +76,15 @@ final class ImportCommand extends Command
 
         if ($dry_run) {
             $this->warn('Dry-run enabled: changes will be rolled back and side effects skipped.');
+        }
+
+        // Indexing during a bulk import is undesirable: it slows the run and, in
+        // dry-run, would push records that are about to be rolled back. Forcing
+        // the Scout driver to "null" disables it globally without needing to know
+        // which models are Searchable.
+        if ((bool) $this->option('no-search') || $dry_run) {
+            config(['scout.driver' => 'null']);
+            $this->warn('Search indexing disabled for this import.');
         }
 
         $imported = $runner->run($dry_run, static fn (): int => $importer->import());
@@ -127,7 +137,7 @@ final class ImportCommand extends Command
             }
 
             [$key, $value] = explode('=', $pair, 2);
-            $key = trim($key);
+            $key = mb_trim($key);
 
             if ($key === '') {
                 continue;

@@ -11,7 +11,7 @@ use Modules\CMS\Models\Preset;
 use Modules\Core\Casts\FieldType;
 use Modules\Core\Models\Field;
 use Modules\Core\Services\PresetVersioningService;
-use stdClass;
+use RuntimeException;
 
 final class ImportPresetProvisioner
 {
@@ -77,9 +77,7 @@ final class ImportPresetProvisioner
     private function configuredPresets(): array
     {
         /** @var array<string, mixed> $presets */
-        $presets = config('cms.import.presets', []);
-
-        return $presets;
+        return config('cms.import.presets', []);
     }
 
     /**
@@ -94,28 +92,19 @@ final class ImportPresetProvisioner
     }
 
     /**
-     * @param  array<string, array{type: FieldType, translatable?: bool, required?: bool}>  $definitions
+     * @param  array<string, array{type: FieldType|string, translatable?: bool, required?: bool, options?: array<string, mixed>}>  $definitions
      */
     private function syncFields(Preset $preset, array $definitions): void
     {
         $changed = false;
 
         foreach ($definitions as $field_name => $definition) {
-            $field = Field::query()->firstOrCreate(
-                ['name' => $field_name],
-                [
-                    'type' => $definition['type'] instanceof FieldType
-                        ? $definition['type']
-                        : FieldType::from((string) $definition['type']),
-                    'options' => new stdClass(),
-                ],
-            );
+            $field = $this->ensureField($field_name, $definition, $changed);
 
             if (! $preset->fields()->where('field_id', $field->id)->exists()) {
                 $preset->fields()->attach($field->id, [
                     'default' => null,
                     'is_required' => (bool) ($definition['required'] ?? false),
-                    'is_translatable' => (bool) ($definition['translatable'] ?? false),
                 ]);
                 $changed = true;
             }
@@ -124,6 +113,45 @@ final class ImportPresetProvisioner
         if ($changed) {
             $this->preset_versioning_service->createVersion($preset);
         }
+    }
+
+    /**
+     * Field-level attributes (type, options, is_translatable) are the source of
+     * truth captured by the presettable snapshot, so they must live on the Field
+     * itself and never on the fieldable pivot.
+     *
+     * @param  array{type: FieldType|string, translatable?: bool, required?: bool, options?: array<string, mixed>}  $definition
+     */
+    private function ensureField(string $fieldName, array $definition, bool &$changed): Field
+    {
+        $type = $definition['type'] instanceof FieldType
+            ? $definition['type']
+            : FieldType::from((string) $definition['type']);
+        $is_translatable = (bool) ($definition['translatable'] ?? false);
+        $options = (object) ($definition['options'] ?? []);
+
+        $field = Field::query()->where('name', $fieldName)->first();
+
+        if (! $field instanceof Field) {
+            $field = new Field;
+            $field->name = $fieldName;
+            $field->type = $type;
+            $field->is_translatable = $is_translatable;
+            $field->options = $options;
+            $field->save();
+            $changed = true;
+
+            return $field;
+        }
+
+        // type and is_translatable are frozen once a field exists (they define
+        // where content data is stored). A mismatch is a modeling conflict that
+        // must be surfaced, not silently changed: use a distinct field name.
+        if ($field->type !== $type || $is_translatable !== (bool) $field->is_translatable) {
+            throw new RuntimeException("Field [{$fieldName}] already exists with a different type/translatability; use a distinct field name.");
+        }
+
+        return $field;
     }
 
     private function entityTypeForName(string $entityName): \Modules\CMS\Casts\EntityType

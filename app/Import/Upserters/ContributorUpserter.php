@@ -37,6 +37,14 @@ final class ContributorUpserter
             ]);
         }
 
+        // A record that reappears in the source must be revived before it can be
+        // updated: soft-deleted models reject updates ("Cannot update a softdeleted
+        // model"). reviveInMemory() lets the save() below persist the restoration in
+        // a single write. If the source still marks it deleted, it is re-deleted below.
+        if ($contributor->exists && $contributor->trashed()) {
+            $contributor->reviveInMemory();
+        }
+
         $contributor->name = $dto->name;
         $contributor->shared_components = $dto->sharedComponents;
         $contributor->save();
