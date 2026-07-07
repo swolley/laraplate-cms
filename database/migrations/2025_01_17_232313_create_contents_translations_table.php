@@ -24,6 +24,9 @@ return new class extends Migration
             $table->string('title')->nullable(false)->comment('The translated title of the content');
             $table->string('slug')->nullable(false)->index("{$table_name}_slug_IDX")->comment('The translated slug of the content');
             $table->json('components')->nullable(false)->comment('The translated content components');
+            $table->string('ai_assistance', 32)->nullable(false)->default('none')
+                ->index("{$table_name}_ai_assistance_IDX")
+                ->comment('How AI assisted this locale-specific version');
 
             MigrateUtils::timestamps(
                 $table,

@@ -22,9 +22,6 @@ return new class extends Migration
             $table->foreignId('entity_id')->nullable(false)->constrained(CoreTables::Entities->value, 'id', "{$table_name}_entity_id_FK")->cascadeOnDelete()->comment('The entity that the content belongs to');
             $table->foreignId('presettable_id')->nullable(false)->constrained(CoreTables::Presettables->value, 'id', "{$table_name}_presettable_id_FK")->cascadeOnDelete()->comment('The entity preset that the content belongs to');
             $table->json('shared_components')->nullable()->comment('The shared dynamic components of the content');
-            $table->string('ai_assistance', 32)->nullable(false)->default('none')
-                ->index("{$table_name}_ai_assistance_IDX")
-                ->comment('How AI assisted this locale-specific version');
             $table->string('origin_label')->nullable()
                 ->comment('Human-readable name of the external origin source');
             $table->string('origin_url', 2048)->nullable()
