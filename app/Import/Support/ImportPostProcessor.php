@@ -14,7 +14,7 @@ final class ImportPostProcessor
     {
         if ($clearCaches) {
             DynamicContentsService::getInstance()->clearAllCaches();
-            resolve(DynamicEntityService::class)->clearAllCaches();
+            DynamicEntityService::getInstance()->clearAllCaches();
         }
 
         if ($reindex && config('scout.driver') !== null) {

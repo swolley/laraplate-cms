@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🐛 Bug Fixes
+
+- *(import)* Correct cache clearing method in ImportPostProcessor
+
+## [1.36.1] - 2026-07-07
+
 ### 🚀 Features
 
 - *(cms)* Enhance import functionality with soft-delete handling and new options
