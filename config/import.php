@@ -17,6 +17,12 @@ return [
     ],
 
     /**
+     * When true, bulk importers skip content whose origin is already registered.
+     * Override per run with --arg force=1 on the importer plugin.
+     */
+    'skip_existing' => (bool) env('CMS_IMPORT_SKIP_EXISTING', true),
+
+    /**
      * Optional preset field definitions provisioned at import time.
      *
      * @var array<string, array<string, array<string, array{type: string, translatable?: bool, required?: bool}>>>

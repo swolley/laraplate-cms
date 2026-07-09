@@ -58,6 +58,14 @@ final class ExternalReferenceLocator
     }
 
     /**
+     * @param  class-string<Model>  $referable_class
+     */
+    public function hasImportedRecord(string $referable_class, int $external_id, string $source_type): bool
+    {
+        return $this->findImportedRecordId($referable_class, $external_id, $source_type) !== null;
+    }
+
+    /**
      * Persist (or refresh) the origin of a record in the registry. Keyed by the
      * external identity so repeated imports remain idempotent.
      */

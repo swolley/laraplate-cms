@@ -77,3 +77,13 @@ it('builds deterministic import slugs from source type and external id', functio
     expect($locator->importSlug(1001, 'naxos'))->toBe('import-naxos-1001')
         ->and($locator->importSlug(42, 'cms_default'))->toBe('import-cms_default-42');
 });
+
+it('detects when a content origin is already registered', function (): void {
+    $graph = buildImportGraphFromFixture();
+    resolve(ImportPipeline::class)->import($graph);
+
+    $locator = resolve(ExternalReferenceLocator::class);
+
+    expect($locator->hasImportedRecord(Content::class, 1001, 'fixture'))->toBeTrue()
+        ->and($locator->hasImportedRecord(Content::class, 9999, 'fixture'))->toBeFalse();
+});

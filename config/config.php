@@ -26,6 +26,11 @@ return [
             'clear_caches' => (bool) env('CMS_IMPORT_CLEAR_CACHES', true),
             'reindex' => (bool) env('CMS_IMPORT_REINDEX', false),
         ],
+        /**
+         * When true, bulk importers skip content whose origin is already registered.
+         * Override per run with --arg force=1 on the importer plugin.
+         */
+        'skip_existing' => (bool) env('CMS_IMPORT_SKIP_EXISTING', true),
     ],
 
     // 'locale' => [

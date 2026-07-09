@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🐛 Bug Fixes
+
+- *(import)* Enhance contributor resolution logic in upserter
+- *(import)* Add hasImportedRecord method and configuration for skipping existing content
+
+## [1.36.5] - 2026-07-09
+
 ### 🚀 Features
 
 - *(cms)* Improve location import matching and expand test coverage
