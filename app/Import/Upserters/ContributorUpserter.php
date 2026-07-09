@@ -23,12 +23,18 @@ final class ContributorUpserter
 
     public function upsert(ImportContributorDto $dto): int
     {
-        $existing_id = $this->reference_resolver->resolve(
+        $origin_id = $this->reference_resolver->resolve(
             'contributors',
             Contributor::class,
             $dto->externalId,
             $dto->sourceType,
-        ) ?? $this->contributor_matcher->findExisting($dto->slug, $dto->name);
+        );
+
+        $existing_id = $this->contributor_matcher->resolveImportTarget(
+            $dto->slug,
+            $dto->name,
+            $origin_id,
+        );
 
         $entity_id = $this->entity_preset_resolver->entityId($dto->entityName);
         $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName);

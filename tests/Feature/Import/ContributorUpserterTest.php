@@ -108,3 +108,78 @@ it('does not match contributors by name when they are not configured for dedup',
 
     expect($matcher->findExisting('mario-rossi-b', 'Mario Rossi'))->toBeNull();
 });
+
+it('prefers slug identity over a stale origin mapping for the same external id', function (): void {
+    config(['cms.import.locale' => 'it']);
+
+    $matteo = Contributor::factory()->create(['name' => 'Matteo Prati']);
+    $matteo->setTranslation('it', ['slug' => 'matteo-prati', 'components' => []]);
+    $matteo->save();
+
+    $eugenio = Contributor::factory()->create(['name' => 'Eugenio Raimondi']);
+    $eugenio->setTranslation('it', ['slug' => 'eugenio-raimondi', 'components' => []]);
+    $eugenio->save();
+
+    resolve(\Modules\CMS\Import\Support\ExternalReferenceLocator::class)
+        ->register($matteo, 'naxos_api@naxos-liberta-it', 100);
+
+    $dto = new ImportContributorDto(
+        externalId: 100,
+        name: 'Eugenio Raimondi',
+        slug: 'eugenio-raimondi',
+        components: [],
+        sharedComponents: [],
+        createdAt: null,
+        updatedAt: null,
+        deletedAt: null,
+        sourceType: 'naxos_api@naxos-liberta-it',
+        entityName: ImportEntityNames::CONTRIBUTORS,
+        presetName: 'default',
+    );
+
+    $resolved_id = resolve(ContributorUpserter::class)->upsert($dto);
+
+    expect($resolved_id)->toBe($eugenio->id)
+        ->and(Contributor::query()->count())->toBe(2)
+        ->and($matteo->fresh()->name)->toBe('Matteo Prati')
+        ->and(RecordOrigin::query()
+            ->where('referable_type', Contributor::class)
+            ->where('referable_id', $eugenio->id)
+            ->where('source_key', 'naxos_api@naxos-liberta-it')
+            ->where('external_id', '100')
+            ->exists())->toBeTrue();
+});
+
+it('reassigns a stale origin mapping when the incoming name already belongs to another contributor', function (): void {
+    config(['cms.import.locale' => 'it']);
+
+    $matteo = Contributor::factory()->create(['name' => 'Matteo Prati']);
+    $matteo->setTranslation('it', ['slug' => 'matteo-prati', 'components' => []]);
+    $matteo->save();
+
+    $eugenio = Contributor::factory()->create(['name' => 'Eugenio Raimondi']);
+    $eugenio->setTranslation('it', ['slug' => 'eugenio-raimondi', 'components' => []]);
+    $eugenio->save();
+
+    resolve(\Modules\CMS\Import\Support\ExternalReferenceLocator::class)
+        ->register($matteo, 'naxos_api@naxos-liberta-it', 100);
+
+    $dto = new ImportContributorDto(
+        externalId: 100,
+        name: 'Eugenio Raimondi',
+        slug: 'eugenio-raimondi-alt',
+        components: [],
+        sharedComponents: [],
+        createdAt: null,
+        updatedAt: null,
+        deletedAt: null,
+        sourceType: 'naxos_api@naxos-liberta-it',
+        entityName: ImportEntityNames::CONTRIBUTORS,
+        presetName: 'default',
+    );
+
+    $resolved_id = resolve(ContributorUpserter::class)->upsert($dto);
+
+    expect($resolved_id)->toBe($eugenio->id)
+        ->and($matteo->fresh()->name)->toBe('Matteo Prati');
+});

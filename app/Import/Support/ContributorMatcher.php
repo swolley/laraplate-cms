@@ -46,6 +46,41 @@ final class ContributorMatcher
         return $by_name !== null ? (int) $by_name : null;
     }
 
+    /**
+     * Resolve the contributor row to upsert, preferring editorial identity over a
+     * stale origin mapping when Naxos reuses external ids across tenants or sources.
+     */
+    public function resolveImportTarget(?string $slug, string $name, ?int $origin_id): ?int
+    {
+        $matched_id = $this->findExisting($slug, $name);
+
+        if ($matched_id !== null) {
+            return $matched_id;
+        }
+
+        if ($origin_id === null) {
+            return null;
+        }
+
+        $origin_name = DB::table(CMSTables::Contributors->value)
+            ->where('id', $origin_id)
+            ->value('name');
+
+        if (! is_string($origin_name) || $origin_name === $name) {
+            return $origin_id;
+        }
+
+        $name_owner_id = DB::table(CMSTables::Contributors->value)
+            ->where('name', $name)
+            ->value('id');
+
+        if ($name_owner_id !== null && (int) $name_owner_id !== $origin_id) {
+            return (int) $name_owner_id;
+        }
+
+        return $origin_id;
+    }
+
     private function shouldDedupByName(string $name): bool
     {
         return in_array($name, $this->dedupNames(), true);
