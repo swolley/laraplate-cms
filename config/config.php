@@ -10,11 +10,18 @@ return [
     'import' => [
         'locale' => env('CMS_IMPORT_LOCALE', env('APP_LOCALE', 'en')),
         'default_contributor' => [
-            'external_id' => (int) env('CMS_IMPORT_DEFAULT_CONTRIBUTOR_EXTERNAL_ID', 1),
             'name' => env('CMS_IMPORT_DEFAULT_CONTRIBUTOR_NAME', 'Redazione'),
             'slug' => env('CMS_IMPORT_DEFAULT_CONTRIBUTOR_SLUG', 'redazione'),
-            'source_type' => env('CMS_IMPORT_DEFAULT_CONTRIBUTOR_SOURCE_TYPE', 'cms_default'),
         ],
+        /**
+         * Contributor display names that may be reused across import sources.
+         *
+         * @var list<string>
+         */
+        'contributor_dedup_names' => array_values(array_filter(array_map(
+            static fn (string $name): string => mb_trim($name),
+            explode(',', (string) env('CMS_IMPORT_CONTRIBUTOR_DEDUP_NAMES', 'Redazione')),
+        ))),
         'post_import' => [
             'clear_caches' => (bool) env('CMS_IMPORT_CLEAR_CACHES', true),
             'reindex' => (bool) env('CMS_IMPORT_REINDEX', false),

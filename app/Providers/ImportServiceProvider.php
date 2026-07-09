@@ -6,6 +6,8 @@ namespace Modules\CMS\Providers;
 
 use Modules\CMS\Import\Support\CategoryHierarchySorter;
 use Modules\CMS\Import\Support\ContributorDefaults;
+use Modules\CMS\Import\Support\ContributorMatcher;
+use Modules\CMS\Import\Support\DefaultContributorProvisioner;
 use Modules\CMS\Import\Support\EntityPresetResolver;
 use Modules\CMS\Import\Support\ExternalReferenceLocator;
 use Modules\CMS\Import\Support\ImportIdMap;
@@ -34,6 +36,8 @@ final class ImportServiceProvider extends \Illuminate\Support\ServiceProvider
             ExternalReferenceLocator::class,
             CategoryUpserter::class,
             ContributorUpserter::class,
+            ContributorMatcher::class,
+            DefaultContributorProvisioner::class,
             TagUpserter::class,
             ContentUpserter::class,
         ])->needs('$locale')->give($locale);
@@ -41,6 +45,8 @@ final class ImportServiceProvider extends \Illuminate\Support\ServiceProvider
         $this->app->singleton(ExternalReferenceLocator::class);
         $this->app->singleton(CategoryHierarchySorter::class);
         $this->app->singleton(EntityPresetResolver::class);
+        $this->app->singleton(ContributorMatcher::class);
+        $this->app->singleton(DefaultContributorProvisioner::class);
         $this->app->singleton(ImportPresetProvisioner::class);
         $this->app->singleton(ImportPostProcessor::class);
         $this->app->singleton(RelatedContentResolver::class);

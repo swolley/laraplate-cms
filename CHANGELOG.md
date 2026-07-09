@@ -6,6 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
+- *(import)* Dedup contributors across sources and provision default locally
+
+### 🚜 Refactor
+
+- *(migrations)* Comment out fulltext index creation for slug in locations and tags translations tables
+
+## [1.36.3] - 2026-07-09
+
+### 🚀 Features
+
 - *(cms)* Streamline import entity handling and enhance logging
 
 ## [1.36.2] - 2026-07-08

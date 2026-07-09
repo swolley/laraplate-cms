@@ -7,7 +7,6 @@ return [
     'locale' => env('CMS_IMPORT_LOCALE', env('APP_LOCALE', 'en')),
 
     'default_contributor' => [
-        'external_id' => (int) env('CMS_IMPORT_DEFAULT_CONTRIBUTOR_ID', 0),
         'name' => env('CMS_IMPORT_DEFAULT_CONTRIBUTOR_NAME', 'Redazione'),
         'slug' => env('CMS_IMPORT_DEFAULT_CONTRIBUTOR_SLUG', 'redazione'),
     ],

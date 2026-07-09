@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\CMS\Import\Upserters;
 
 use Modules\CMS\Import\Dto\ImportContributorDto;
+use Modules\CMS\Import\Support\ContributorMatcher;
 use Modules\CMS\Import\Support\EntityPresetResolver;
 use Modules\CMS\Import\Support\ExternalReferenceLocator;
 use Modules\CMS\Import\Support\ImportReferenceResolver;
@@ -16,6 +17,7 @@ final class ContributorUpserter
         private readonly EntityPresetResolver $entity_preset_resolver,
         private readonly ExternalReferenceLocator $locator,
         private readonly ImportReferenceResolver $reference_resolver,
+        private readonly ContributorMatcher $contributor_matcher,
         private readonly string $locale,
     ) {}
 
@@ -26,7 +28,7 @@ final class ContributorUpserter
             Contributor::class,
             $dto->externalId,
             $dto->sourceType,
-        );
+        ) ?? $this->contributor_matcher->findExisting($dto->slug, $dto->name);
 
         $entity_id = $this->entity_preset_resolver->entityId($dto->entityName);
         $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName);

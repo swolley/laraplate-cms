@@ -21,10 +21,6 @@ final class ImportPresetProvisioner
 
     public function provisionFromGraph(ImportGraphDto $graph): void
     {
-        if ($this->configuredPresets() === []) {
-            return;
-        }
-
         $this->ensurePreset($graph->content->entityName, $graph->content->presetName);
 
         foreach ($graph->categories as $category) {
