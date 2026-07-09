@@ -43,12 +43,12 @@ return new class extends Migration
         // Add fulltext indexes for databases that support them
         if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
             DB::statement("ALTER TABLE {$table_name} ADD FULLTEXT {$table_name}_name_IDX (name)");
-            DB::statement("ALTER TABLE {$table_name} ADD FULLTEXT {$table_name}_slug_IDX (slug)");
+            // DB::statement("ALTER TABLE {$table_name} ADD FULLTEXT {$table_name}_slug_IDX (slug)");
         } elseif (DB::getDriverName() === 'pgsql') {
             // PostgreSQL fulltext search indexes
             // TODO: This is temporary fixed to english for now
             DB::statement("CREATE INDEX {$table_name}_name_fts_idx ON {$table_name} USING gin(to_tsvector('english', name))");
-            DB::statement("CREATE INDEX {$table_name}_slug_fts_idx ON {$table_name} USING gin(to_tsvector('english', slug))");
+            // DB::statement("CREATE INDEX {$table_name}_slug_fts_idx ON {$table_name} USING gin(to_tsvector('english', slug))");
         }
     }
 

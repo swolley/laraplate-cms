@@ -34,13 +34,13 @@ return new class extends Migration
         });
 
         // Add fulltext indexes for databases that support them
-        if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
-            DB::statement("ALTER TABLE {$table_name} ADD FULLTEXT {$table_name}_name_IDX (name)");
-        } elseif (DB::getDriverName() === 'pgsql') {
-            // PostgreSQL fulltext search indexes
-            // TODO: This is temporary fixed to english for now
-            DB::statement("CREATE INDEX {$table_name}_name_fts_idx ON {$table_name} USING gin(to_tsvector('english', name))");
-        }
+        // if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+        //     DB::statement("ALTER TABLE {$table_name} ADD FULLTEXT {$table_name}_name_IDX (name)");
+        // } elseif (DB::getDriverName() === 'pgsql') {
+        //     // PostgreSQL fulltext search indexes
+        //     // TODO: This is temporary fixed to english for now
+        //     DB::statement("CREATE INDEX {$table_name}_name_fts_idx ON {$table_name} USING gin(to_tsvector('english', name))");
+        // }
     }
 
     /**
