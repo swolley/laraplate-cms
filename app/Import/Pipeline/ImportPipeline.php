@@ -68,6 +68,10 @@ final class ImportPipeline
 
             $tag_ids = $this->id_map->resolveMany('tags', $graph->content->tagExternalIds);
 
+            foreach ($graph->relatedGraphs as $related_graph) {
+                $this->import($related_graph);
+            }
+
             $content_id = $this->content_upserter->upsert(
                 $graph->content,
                 $category_ids,
@@ -75,10 +79,6 @@ final class ImportPipeline
                 $tag_ids,
                 $location_ids,
             );
-
-            foreach ($graph->relatedGraphs as $related_graph) {
-                $this->import($related_graph);
-            }
 
             return $content_id;
         });

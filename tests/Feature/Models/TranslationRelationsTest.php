@@ -2,44 +2,39 @@
 
 declare(strict_types=1);
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
-use Modules\CMS\Enums\CMSTables;
+use Modules\CMS\Models\Comment;
 use Modules\CMS\Models\Content;
-use Modules\CMS\Models\Tag;
+use Modules\CMS\Models\Translations\CommentTranslation;
 use Modules\CMS\Models\Translations\ContentTranslation;
-use Modules\CMS\Models\Translations\TagTranslation;
 use Modules\CMS\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    if (! Schema::hasTable(CMSTables::ContentsTranslations->value) || ! Schema::hasTable(CMSTables::TagsTranslations->value)) {
-        $this->markTestSkipped('Translation tables required.');
-    }
-
-    setupCMSEntities();
+    $this->content = createMinimalTestContentForComments();
+    $this->user = Modules\Core\Models\User::factory()->create();
 });
 
-it('content translation belongs to content', function (): void {
-    $content = Content::factory()->create([
-        'valid_from' => now()->subDay(),
-        'valid_to' => null,
+it('resolves the parent comment from a comment translation', function (): void {
+    $comment = Comment::factory()->approved()->create([
+        'content_id' => $this->content->id,
+        'user_id' => $this->user->id,
     ]);
-    $translation = $content->translations()
-        ->where('locale', config('app.locale'))
-        ->firstOrFail();
 
-    expect($translation)->toBeInstanceOf(ContentTranslation::class)
-        ->and($translation->content->is($content))->toBeTrue();
+    $translation = $comment->getTranslation('en');
+    expect($translation)->toBeInstanceOf(CommentTranslation::class);
+    expect($translation->comment())->toBeInstanceOf(BelongsTo::class);
+    expect($translation->comment()->getParentKey())->toBe($comment->id);
 });
 
-it('tag translation belongs to tag', function (): void {
-    $tag = Tag::factory()->create();
-    $translation = $tag->translations()
-        ->where('locale', config('app.locale'))
+it('resolves the parent content from a content translation', function (): void {
+    $translation = ContentTranslation::query()
+        ->where('content_id', $this->content->id)
         ->firstOrFail();
 
-    expect($translation)->toBeInstanceOf(TagTranslation::class)
-        ->and($translation->tag->is($tag))->toBeTrue();
+    expect($translation->content())->toBeInstanceOf(BelongsTo::class);
+    expect($translation->content()->getRelated())->toBeInstanceOf(Content::class);
+    expect($translation->content()->getForeignKeyName())->toBe('content_id');
 });

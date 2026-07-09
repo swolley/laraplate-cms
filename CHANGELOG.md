@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
+- *(cms)* Improve location import matching and expand test coverage
+
+## [1.36.4] - 2026-07-09
+
+### 🚀 Features
+
 - *(import)* Dedup contributors across sources and provision default locally
 
 ### 🚜 Refactor

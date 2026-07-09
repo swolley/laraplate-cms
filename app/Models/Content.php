@@ -28,15 +28,15 @@ use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Observers\ContentObserver;
 use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Enums\CoreTables;
+use Modules\Core\Helpers\LocaleContext;
+use Modules\Core\Locking\Traits\HasLocks;
+use Modules\Core\Locking\Traits\HasOptimisticLocking;
 use Modules\Core\Models\Concerns\HasApprovals;
-use Modules\Core\Models\RecordOrigin;
 use Modules\Core\Models\Concerns\HasPath;
 use Modules\Core\Models\Concerns\HasTranslatedDynamicContents;
 use Modules\Core\Models\Concerns\HasValidity;
-use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Models\Concerns\SortableTrait;
-use Modules\Core\Locking\Traits\HasLocks;
-use Modules\Core\Locking\Traits\HasOptimisticLocking;
+use Modules\Core\Models\RecordOrigin;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Search\Schema\FieldDefinition;
 use Modules\Core\Search\Schema\FieldType;
@@ -48,10 +48,12 @@ use Spatie\MediaLibrary\HasMedia;
 
 /**
  * @property int|string $id
+ *
  * @phpstan-use HasMultimedia<Content>
  * @phpstan-use HasTranslatedDynamicContents<Content>
  * @phpstan-use HasValidity<Content>
  * @phpstan-use Searchable<Content>
+ *
  * @mixin \Illuminate\Database\Eloquent\Model
  * @mixin \Eloquent
  * @mixin IdeHelperContent
@@ -264,7 +266,12 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
      */
     public function related(?bool $withInverse = false): BelongsToMany
     {
-        $relation = $this->belongsToMany(self::class, CMSTables::Relatables->value)->using(Relatable::class)->withTimestamps();
+        $relation = $this->belongsToMany(
+            self::class,
+            CMSTables::Relatables->value,
+            'content_id',
+            'related_content_id',
+        )->using(Relatable::class)->withTimestamps();
 
         if ($withInverse === true) {
             $relation->orWhere(

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\CMS\Import\Support;
 
 use Modules\CMS\Import\Dto\ImportCategoryDto;
-use RuntimeException;
+use Modules\CMS\Models\Category;
 
 final class CategoryHierarchySorter
 {
@@ -50,14 +50,12 @@ final class CategoryHierarchySorter
             return;
         }
 
-        if ($category->parentExternalId !== null) {
-            if (! isset($byExternalId[$category->parentExternalId])) {
-                throw new RuntimeException(
-                    "Missing parent category external id {$category->parentExternalId} for {$category->externalId}",
-                );
-            }
+        $parent_external_id = $category->parentExternalId;
 
-            $this->visit($byExternalId[$category->parentExternalId], $byExternalId, $visited, $sorted);
+        if ($parent_external_id !== null) {
+            if (isset($byExternalId[$parent_external_id])) {
+                $this->visit($byExternalId[$parent_external_id], $byExternalId, $visited, $sorted);
+            }
         }
 
         $visited[$category->externalId] = true;

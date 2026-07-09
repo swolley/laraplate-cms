@@ -6,7 +6,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Modules\CMS\Enums\CMSTables;
+use Modules\CMS\Import\Dto\ImportContentDto;
 use Modules\CMS\Import\Dto\ImportGraphDto;
+use Modules\CMS\Import\Dto\ImportRelatedContentDto;
 use Modules\CMS\Import\Pipeline\ImportPipeline;
 use Modules\CMS\Import\Support\ImportIdMap;
 use Modules\CMS\Models\Category;
@@ -166,4 +168,56 @@ it('merges per-locale translations onto a single content and maps the whole fami
         ->and($content->getTranslation($target_locale, false)?->title)->toBe('Translated article')
         ->and($content->getTranslation($target_locale, false)?->slug)->toBe('translated-article')
         ->and(resolve(ImportIdMap::class)->resolve('contents', $family_external_id))->toBe($content_id);
+});
+
+it('imports related contents into cms_relatables within the same graph', function (): void {
+    $source_type = 'naxos_api@test-tenant';
+
+    $child_graph = new ImportGraphDto(
+        content: new ImportContentDto(
+            title: 'Related story',
+            slug: 'related-story',
+            components: [],
+            sharedComponents: [],
+            validFrom: now()->toDateTimeString(),
+            validTo: null,
+            createdAt: null,
+            updatedAt: null,
+            deletedAt: null,
+            externalId: 200,
+            externalUuid: null,
+            sourceType: $source_type,
+        ),
+    );
+
+    $parent_graph = new ImportGraphDto(
+        content: new ImportContentDto(
+            title: 'Parent story',
+            slug: 'parent-story',
+            components: [],
+            sharedComponents: [],
+            validFrom: now()->toDateTimeString(),
+            validTo: null,
+            createdAt: null,
+            updatedAt: null,
+            deletedAt: null,
+            externalId: 100,
+            externalUuid: null,
+            sourceType: $source_type,
+            relatedContents: [
+                new ImportRelatedContentDto(
+                    externalId: 200,
+                    sourceKind: 'story',
+                    sourceType: $source_type,
+                ),
+            ],
+        ),
+        relatedGraphs: [$child_graph],
+    );
+
+    $parent_id = resolve(ImportPipeline::class)->import($parent_graph);
+    $parent = Content::query()->withoutGlobalScopes()->findOrFail($parent_id);
+
+    expect($parent->related)->toHaveCount(1)
+        ->and($parent->related->first()?->slug)->toBe('related-story');
 });
