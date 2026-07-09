@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚀 Features
+
+- *(cms)* Streamline import entity handling and enhance logging
+
+## [1.36.2] - 2026-07-08
+
 ### 🐛 Bug Fixes
 
 - *(import)* Correct cache clearing method in ImportPostProcessor

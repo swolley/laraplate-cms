@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Import\Dto;
 
+use Modules\CMS\Import\Support\ImportEntityNames;
+
 /**
  * @phpstan-type ComponentsArray array<string, mixed>
  * @phpstan-type TranslationPayload array{title: string, slug: string, components: ComponentsArray}
@@ -37,8 +39,8 @@ final readonly class ImportContentDto
         public array $contributorExternalIds = [],
         public array $tagExternalIds = [],
         public array $relatedContents = [],
-        public string $entityName = 'post',
-        public string $presetName = 'standard',
+        public string $entityName = ImportEntityNames::CONTENTS,
+        public string $presetName = 'default',
         public string $sourceKind = 'story',
         public string $categorySourceKind = 'section',
         public ?string $originLabel = null,

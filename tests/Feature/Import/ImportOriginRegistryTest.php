@@ -18,6 +18,8 @@ use Modules\Core\Services\DynamicContentsService;
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
+    config(['scout.driver' => 'null']);
+
     if (! Schema::hasTable(CMSTables::Contents->value)) {
         $this->markTestSkipped('CMS import tests require full schema.');
     }

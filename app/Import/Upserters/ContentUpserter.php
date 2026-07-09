@@ -7,7 +7,8 @@ namespace Modules\CMS\Import\Upserters;
 use Modules\CMS\Import\Dto\ImportContentDto;
 use Modules\CMS\Import\Support\EntityPresetResolver;
 use Modules\CMS\Import\Support\ExternalReferenceLocator;
-use Modules\CMS\Import\Support\ImportIdMap;
+use Modules\CMS\Import\Support\ImportProgressLogger;
+use Modules\CMS\Import\Support\ImportReferenceResolver;
 use Modules\CMS\Import\Support\RelatedContentResolver;
 use Modules\CMS\Models\Content;
 
@@ -16,8 +17,9 @@ final class ContentUpserter
     public function __construct(
         private readonly EntityPresetResolver $entity_preset_resolver,
         private readonly ExternalReferenceLocator $locator,
-        private readonly ImportIdMap $id_map,
+        private readonly ImportReferenceResolver $reference_resolver,
         private readonly RelatedContentResolver $related_content_resolver,
+        private readonly ImportProgressLogger $progress_logger,
         private readonly string $locale,
     ) {}
 
@@ -34,9 +36,12 @@ final class ContentUpserter
         array $tagIds = [],
         array $locationIds = [],
     ): int {
-        $existing_id = $this->id_map->resolve('contents', $dto->externalId)
-            ?? $this->locator->findContentId($dto->externalId, $dto->sourceType)
-            ?? $this->locator->findContentIdBySlug($dto->slug);
+        $existing_id = $this->reference_resolver->resolve(
+            'contents',
+            Content::class,
+            $dto->externalId,
+            $dto->sourceType,
+        );
 
         $entity_id = $this->entity_preset_resolver->entityId($dto->entityName);
         $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName);
@@ -49,6 +54,8 @@ final class ContentUpserter
                 'presettable_id' => $presettable_id,
             ]);
         }
+
+        $created = $existing_id === null;
 
         // A record that reappears in the source must be revived before it can be
         // updated: soft-deleted models reject updates ("Cannot update a softdeleted
@@ -112,10 +119,10 @@ final class ContentUpserter
         }
 
         $content_id = (int) $content->id;
-        $this->id_map->remember('contents', $dto->externalId, $content_id);
+        $this->reference_resolver->remember('contents', $dto->externalId, $content_id);
 
         foreach ($dto->familyExternalIds as $family_external_id) {
-            $this->id_map->remember('contents', $family_external_id, $content_id);
+            $this->reference_resolver->remember('contents', $family_external_id, $content_id);
         }
 
         $this->locator->register(
@@ -125,6 +132,8 @@ final class ContentUpserter
             $dto->originLabel,
             $dto->originUrl,
         );
+
+        $this->progress_logger->contentImported($dto, $created);
 
         return $content_id;
     }

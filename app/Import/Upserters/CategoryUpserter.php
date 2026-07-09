@@ -7,7 +7,7 @@ namespace Modules\CMS\Import\Upserters;
 use Modules\CMS\Import\Dto\ImportCategoryDto;
 use Modules\CMS\Import\Support\EntityPresetResolver;
 use Modules\CMS\Import\Support\ExternalReferenceLocator;
-use Modules\CMS\Import\Support\ImportIdMap;
+use Modules\CMS\Import\Support\ImportReferenceResolver;
 use Modules\CMS\Models\Category;
 
 final class CategoryUpserter
@@ -15,19 +15,28 @@ final class CategoryUpserter
     public function __construct(
         private readonly EntityPresetResolver $entity_preset_resolver,
         private readonly ExternalReferenceLocator $locator,
-        private readonly ImportIdMap $id_map,
+        private readonly ImportReferenceResolver $reference_resolver,
         private readonly string $locale,
     ) {}
 
     public function upsert(ImportCategoryDto $dto): int
     {
-        $existing_id = $this->id_map->resolve('categories', $dto->externalId)
-            ?? $this->locator->findCategoryId($dto->externalId, $dto->sourceType);
+        $existing_id = $this->reference_resolver->resolve(
+            'categories',
+            Category::class,
+            $dto->externalId,
+            $dto->sourceType,
+        );
 
         $entity_id = $this->entity_preset_resolver->entityId($dto->entityName);
         $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName);
         $parent_id = $dto->parentExternalId !== null
-            ? $this->id_map->resolve('categories', $dto->parentExternalId)
+            ? $this->reference_resolver->resolve(
+                'categories',
+                Category::class,
+                $dto->parentExternalId,
+                $dto->sourceType,
+            )
             : null;
 
         if ($existing_id !== null) {
@@ -66,7 +75,7 @@ final class CategoryUpserter
         }
 
         $category_id = (int) $category->id;
-        $this->id_map->remember('categories', $dto->externalId, $category_id);
+        $this->reference_resolver->remember('categories', $dto->externalId, $category_id);
 
         $this->locator->register($category, $dto->sourceType, $dto->externalId);
 

@@ -6,7 +6,9 @@ namespace Modules\CMS\Import\Support;
 
 final class ImportIdMap
 {
-    /** @var array<string, array<int, int>> */
+    /**
+     * @var array<string, array<int, int>>
+     */
     private array $map = [];
 
     public function remember(string $entity, int $externalId, int $localId): void

@@ -10,6 +10,7 @@ use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Category;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Contributor;
+use Modules\CMS\Models\Location;
 use Modules\CMS\Models\Tag;
 use Modules\Core\Enums\CoreTables;
 
@@ -19,60 +20,41 @@ use Modules\Core\Enums\CoreTables;
  */
 final class ExternalReferenceLocator
 {
+    /**
+     * Translation tables used for the deterministic import-slug fallback.
+     *
+     * @var array<class-string<Model>, array{table: string, foreign_key: string}>
+     */
+    private const IMPORT_SLUG_TARGETS = [
+        Content::class => [
+            'table' => CMSTables::ContentsTranslations->value,
+            'foreign_key' => 'content_id',
+        ],
+        Category::class => [
+            'table' => CoreTables::TaxonomiesTranslations->value,
+            'foreign_key' => 'taxonomy_id',
+        ],
+        Contributor::class => [
+            'table' => CMSTables::ContributorsTranslations->value,
+            'foreign_key' => 'contributor_id',
+        ],
+        Tag::class => [
+            'table' => CMSTables::TagsTranslations->value,
+            'foreign_key' => 'tag_id',
+        ],
+    ];
+
     public function __construct(
         private readonly string $locale,
     ) {}
 
-    public function findContentId(int $externalId, string $sourceType): ?int
+    /**
+     * @param  class-string<Model>  $referable_class
+     */
+    public function findImportedRecordId(string $referable_class, int $external_id, string $source_type): ?int
     {
-        return $this->findByOrigin(Content::class, $externalId, $sourceType)
-            ?? DB::table(CMSTables::ContentsTranslations->value)
-                ->where('locale', $this->locale)
-                ->where('slug', $this->importSlug($externalId, $sourceType))
-                ->value('content_id');
-    }
-
-    public function findContentIdBySlug(string $slug): ?int
-    {
-        return DB::table(CMSTables::ContentsTranslations->value)
-            ->where('locale', $this->locale)
-            ->where('slug', $slug)
-            ->value('content_id');
-    }
-
-    public function findCategoryId(int $externalId, string $sourceType): ?int
-    {
-        return $this->findByOrigin(Category::class, $externalId, $sourceType)
-            ?? DB::table(CoreTables::TaxonomiesTranslations->value)
-                ->where('locale', $this->locale)
-                ->where('slug', $this->importSlug($externalId, $sourceType))
-                ->value('taxonomy_id');
-    }
-
-    public function findContributorId(int $externalId, string $sourceType): ?int
-    {
-        return $this->findByOrigin(Contributor::class, $externalId, $sourceType);
-    }
-
-    public function findTagIdBySlug(string $slug): ?int
-    {
-        $tag_id = DB::table(CMSTables::TagsTranslations->value)
-            ->where('locale', $this->locale)
-            ->where('slug', $slug)
-            ->value('tag_id');
-
-        return $tag_id !== null ? (int) $tag_id : null;
-    }
-
-    public function findTagId(int $externalId, string $sourceType): ?int
-    {
-        return $this->findByOrigin(Tag::class, $externalId, $sourceType)
-            ?? $this->findTagIdBySlug($this->importSlug($externalId, $sourceType));
-    }
-
-    public function findLocationId(string $slug): ?int
-    {
-        return DB::table(CMSTables::Locations->value)->where('slug', $slug)->value('id');
+        return $this->findByOrigin($referable_class, $external_id, $source_type)
+            ?? $this->findByImportSlug($referable_class, $external_id, $source_type);
     }
 
     /**
@@ -81,17 +63,17 @@ final class ExternalReferenceLocator
      */
     public function register(
         Model $referable,
-        string $sourceKey,
-        ?int $externalId,
-        ?string $sourceLabel = null,
+        string $source_key,
+        ?int $external_id,
+        ?string $source_label = null,
         ?string $url = null,
     ): void {
         $now = now();
-        $external = $externalId !== null ? (string) $externalId : null;
+        $external = $external_id !== null ? (string) $external_id : null;
 
         $query = DB::table(CoreTables::RecordOrigins->value)
             ->where('referable_type', $referable->getMorphClass())
-            ->where('source_key', $sourceKey)
+            ->where('source_key', $source_key)
             ->when(
                 $external !== null,
                 fn ($q) => $q->where('external_id', $external),
@@ -102,7 +84,7 @@ final class ExternalReferenceLocator
 
         $values = [
             'referable_id' => $referable->getKey(),
-            'source_label' => $sourceLabel,
+            'source_label' => $source_label,
             'url' => $url,
             'updated_at' => $now,
         ];
@@ -116,28 +98,51 @@ final class ExternalReferenceLocator
         DB::table(CoreTables::RecordOrigins->value)->insert([
             ...$values,
             'referable_type' => $referable->getMorphClass(),
-            'source_key' => $sourceKey,
+            'source_key' => $source_key,
             'external_id' => $external,
             'created_at' => $now,
         ]);
     }
 
+    public function importSlug(int $external_id, string $source_type): string
+    {
+        return 'import-' . preg_replace('/[^a-z0-9_-]+/i', '-', $source_type) . '-' . $external_id;
+    }
+
     /**
-     * @param  class-string<Model>  $referableClass
+     * @param  class-string<Model>  $referable_class
      */
-    private function findByOrigin(string $referableClass, int $externalId, string $sourceType): ?int
+    private function findByOrigin(string $referable_class, int $external_id, string $source_type): ?int
     {
         $id = DB::table(CoreTables::RecordOrigins->value)
-            ->where('referable_type', $referableClass)
-            ->where('source_key', $sourceType)
-            ->where('external_id', (string) $externalId)
+            ->where('referable_type', $referable_class)
+            ->where('source_key', $source_type)
+            ->where('external_id', (string) $external_id)
             ->value('referable_id');
 
         return $id !== null ? (int) $id : null;
     }
 
-    private function importSlug(int $externalId, string $sourceType): string
+    /**
+     * @param  class-string<Model>  $referable_class
+     */
+    private function findByImportSlug(string $referable_class, int $external_id, string $source_type): ?int
     {
-        return 'import-' . preg_replace('/[^a-z0-9_-]+/i', '-', $sourceType) . '-' . $externalId;
+        if ($referable_class === Location::class) {
+            return null;
+        }
+
+        $target = self::IMPORT_SLUG_TARGETS[$referable_class] ?? null;
+
+        if ($target === null) {
+            return null;
+        }
+
+        $local_id = DB::table($target['table'])
+            ->where('locale', $this->locale)
+            ->where('slug', $this->importSlug($external_id, $source_type))
+            ->value($target['foreign_key']);
+
+        return $local_id !== null ? (int) $local_id : null;
     }
 }

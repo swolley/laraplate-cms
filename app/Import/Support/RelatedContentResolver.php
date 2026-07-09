@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Modules\CMS\Import\Support;
 
 use Modules\CMS\Import\Dto\ImportRelatedContentDto;
+use Modules\CMS\Models\Content;
 
 final class RelatedContentResolver
 {
     public function __construct(
-        private readonly ExternalReferenceLocator $locator,
-        private readonly ImportIdMap $id_map,
+        private readonly ImportReferenceResolver $reference_resolver,
     ) {}
 
     /**
@@ -22,8 +22,12 @@ final class RelatedContentResolver
         $resolved = [];
 
         foreach ($relatedContents as $related) {
-            $content_id = $this->id_map->resolve('contents', $related->externalId)
-                ?? $this->locator->findContentId($related->externalId, $related->sourceType);
+            $content_id = $this->reference_resolver->resolve(
+                'contents',
+                Content::class,
+                $related->externalId,
+                $related->sourceType,
+            );
 
             if ($content_id !== null) {
                 $resolved[] = $content_id;

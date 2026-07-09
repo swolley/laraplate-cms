@@ -9,6 +9,7 @@ use Modules\CMS\Import\Support\ContributorDefaults;
 use Modules\CMS\Import\Support\EntityPresetResolver;
 use Modules\CMS\Import\Support\ExternalReferenceLocator;
 use Modules\CMS\Import\Support\ImportIdMap;
+use Modules\CMS\Import\Support\ImportReferenceResolver;
 use Modules\CMS\Import\Support\ImportPostProcessor;
 use Modules\CMS\Import\Support\ImportPresetProvisioner;
 use Modules\CMS\Import\Support\RelatedContentResolver;
@@ -27,6 +28,7 @@ final class ImportServiceProvider extends \Illuminate\Support\ServiceProvider
         $locale = static fn (): string => (string) config('cms.import.locale', config('app.locale'));
 
         $this->app->singleton(ImportIdMap::class);
+        $this->app->singleton(ImportReferenceResolver::class);
 
         $this->app->when([
             ExternalReferenceLocator::class,

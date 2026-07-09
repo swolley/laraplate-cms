@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Import\Dto;
 
+use Modules\CMS\Import\Support\ImportEntityNames;
+
 /**
  * @phpstan-type ComponentsArray array<string, mixed>
  */
@@ -23,7 +25,7 @@ final readonly class ImportContributorDto
         public ?string $updatedAt,
         public ?string $deletedAt,
         public string $sourceType,
-        public string $entityName = 'contributor',
+        public string $entityName = ImportEntityNames::CONTRIBUTORS,
         public string $presetName = 'default',
     ) {}
 }

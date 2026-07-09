@@ -13,6 +13,14 @@ use Illuminate\Support\Facades\DB;
 final class BulkImportRunner
 {
     /**
+     * Whether a top-level import limit has been reached.
+     */
+    public static function limitReached(int $imported, ?int $limit): bool
+    {
+        return $limit !== null && $limit > 0 && $imported >= $limit;
+    }
+
+    /**
      * Run the import. In dry-run everything happens inside a transaction that is
      * always rolled back, so mapping/validation/upserts are exercised without persisting.
      *
@@ -31,13 +39,5 @@ final class BulkImportRunner
         } finally {
             DB::rollBack();
         }
-    }
-
-    /**
-     * Whether a top-level import limit has been reached.
-     */
-    public static function limitReached(int $imported, ?int $limit): bool
-    {
-        return $limit !== null && $limit > 0 && $imported >= $limit;
     }
 }

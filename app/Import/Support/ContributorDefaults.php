@@ -11,37 +11,36 @@ use Modules\CMS\Models\Contributor;
 final class ContributorDefaults
 {
     public function __construct(
-        private readonly ExternalReferenceLocator $locator,
+        private readonly ImportReferenceResolver $reference_resolver,
         private readonly ContributorUpserter $contributor_upserter,
-        private readonly ImportIdMap $id_map,
     ) {}
 
     public function resolveContributorId(): int
     {
-        /** @var array{external_id: int, name: string, slug: string} $config */
+        /** @var array{external_id: int, name: string, slug: string, source_type: string} $config */
         $config = config('cms.import.default_contributor', [
-            'external_id' => 0,
+            'external_id' => 1,
             'name' => 'Redazione',
             'slug' => 'redazione',
+            'source_type' => 'cms_default',
         ]);
 
-        if ($config['external_id'] > 0) {
-            $existing = $this->id_map->resolve('contributors', $config['external_id'])
-                ?? $this->locator->findContributorId($config['external_id'], 'cms_default');
+        $external_id = (int) $config['external_id'];
+        $source_type = (string) $config['source_type'];
 
-            if ($existing !== null) {
-                return $existing;
-            }
-        }
+        $existing = $this->reference_resolver->resolve(
+            'contributors',
+            Contributor::class,
+            $external_id,
+            $source_type,
+        );
 
-        $existing_by_name = Contributor::query()->where('name', $config['name'])->value('id');
-
-        if ($existing_by_name !== null) {
-            return (int) $existing_by_name;
+        if ($existing !== null) {
+            return $existing;
         }
 
         $dto = new ImportContributorDto(
-            externalId: max(1, $config['external_id']),
+            externalId: $external_id,
             name: $config['name'],
             slug: $config['slug'],
             components: [],
@@ -49,7 +48,7 @@ final class ContributorDefaults
             createdAt: null,
             updatedAt: null,
             deletedAt: null,
-            sourceType: 'cms_default',
+            sourceType: $source_type,
         );
 
         return $this->contributor_upserter->upsert($dto);

@@ -6,21 +6,26 @@ namespace Modules\CMS\Import\Upserters;
 
 use Modules\CMS\Import\Dto\ImportLocationDto;
 use Modules\CMS\Import\Support\ExternalReferenceLocator;
-use Modules\CMS\Import\Support\ImportIdMap;
+use Modules\CMS\Import\Support\ImportReferenceResolver;
 use Modules\CMS\Models\Location;
 
 final class LocationUpserter
 {
     public function __construct(
         private readonly ExternalReferenceLocator $locator,
-        private readonly ImportIdMap $id_map,
+        private readonly ImportReferenceResolver $reference_resolver,
     ) {}
 
     public function upsert(ImportLocationDto $dto): int
     {
         $existing_id = $dto->externalId !== null
-            ? ($this->id_map->resolve('locations', $dto->externalId) ?? $this->locator->findLocationId($dto->slug))
-            : $this->locator->findLocationId($dto->slug);
+            ? $this->reference_resolver->resolve(
+                'locations',
+                Location::class,
+                $dto->externalId,
+                $dto->sourceType,
+            )
+            : null;
 
         if ($existing_id !== null) {
             $location = Location::query()->findOrFail($existing_id);
@@ -37,7 +42,8 @@ final class LocationUpserter
         $location_id = (int) $location->id;
 
         if ($dto->externalId !== null) {
-            $this->id_map->remember('locations', $dto->externalId, $location_id);
+            $this->reference_resolver->remember('locations', $dto->externalId, $location_id);
+            $this->locator->register($location, $dto->sourceType, $dto->externalId);
         }
 
         return $location_id;

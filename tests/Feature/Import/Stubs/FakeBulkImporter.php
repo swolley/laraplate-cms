@@ -16,7 +16,9 @@ final class FakeBulkImporter implements BulkImporterInterface
 {
     public const string TABLE = 'fake_import_rows';
 
-    /** @var array<string, mixed> */
+    /**
+     * @var array<string, mixed>
+     */
     public static array $lastArguments = [];
 
     public function __construct(

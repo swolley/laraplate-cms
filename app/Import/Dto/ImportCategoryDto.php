@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Import\Dto;
 
+use Modules\CMS\Import\Support\ImportEntityNames;
+
 /**
  * @phpstan-type ComponentsArray array<string, mixed>
  */
@@ -27,7 +29,7 @@ final readonly class ImportCategoryDto
         public ?string $deletedAt,
         public string $sourceType,
         public string $sourceKind = 'section',
-        public string $entityName = 'category',
-        public string $presetName = 'section',
+        public string $entityName = ImportEntityNames::CATEGORIES,
+        public string $presetName = 'default',
     ) {}
 }

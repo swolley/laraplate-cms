@@ -11,14 +11,20 @@ use RuntimeException;
 
 final class EntityPresetResolver
 {
-    /** @var array<string, int> */
+    /**
+     * @var array<string, int>
+     */
     private array $entity_ids = [];
 
-    /** @var array<string, int> */
+    /**
+     * @var array<string, int>
+     */
     private array $presettable_ids = [];
 
     public function entityId(string $entityName): int
     {
+        $entityName = ImportEntityNames::normalize($entityName);
+
         if (isset($this->entity_ids[$entityName])) {
             return $this->entity_ids[$entityName];
         }
@@ -38,6 +44,8 @@ final class EntityPresetResolver
 
     public function presettableId(string $entityName, string $presetName): int
     {
+        $entityName = ImportEntityNames::normalize($entityName);
+
         $cache_key = "{$entityName}:{$presetName}";
 
         if (isset($this->presettable_ids[$cache_key])) {

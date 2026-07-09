@@ -91,6 +91,6 @@ it('requires an external bootstrap autoloader before resolving', function (): vo
 it('fails when the bootstrap file does not exist', function (): void {
     $this->artisan(ImportCommand::class, [
         '--importer' => FakeBulkImporter::class,
-        '--bootstrap' => '/tmp/does-not-exist-'.uniqid().'.php',
+        '--bootstrap' => '/tmp/does-not-exist-' . uniqid() . '.php',
     ])->assertExitCode(1);
 });

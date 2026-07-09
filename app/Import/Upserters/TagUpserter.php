@@ -6,22 +6,25 @@ namespace Modules\CMS\Import\Upserters;
 
 use Modules\CMS\Import\Dto\ImportTagDto;
 use Modules\CMS\Import\Support\ExternalReferenceLocator;
-use Modules\CMS\Import\Support\ImportIdMap;
+use Modules\CMS\Import\Support\ImportReferenceResolver;
 use Modules\CMS\Models\Tag;
 
 final class TagUpserter
 {
     public function __construct(
         private readonly ExternalReferenceLocator $locator,
-        private readonly ImportIdMap $id_map,
+        private readonly ImportReferenceResolver $reference_resolver,
         private readonly string $locale,
     ) {}
 
     public function upsert(ImportTagDto $dto): int
     {
-        $existing_id = $this->id_map->resolve('tags', $dto->externalId)
-            ?? $this->locator->findTagIdBySlug($dto->slug)
-            ?? $this->locator->findTagId($dto->externalId, $dto->sourceType);
+        $existing_id = $this->reference_resolver->resolve(
+            'tags',
+            Tag::class,
+            $dto->externalId,
+            $dto->sourceType,
+        );
 
         if ($existing_id !== null) {
             // Bypass the soft-delete global scope: an id resolved from the origin
@@ -57,7 +60,7 @@ final class TagUpserter
         }
 
         $tag_id = (int) $tag->id;
-        $this->id_map->remember('tags', $dto->externalId, $tag_id);
+        $this->reference_resolver->remember('tags', $dto->externalId, $tag_id);
 
         $this->locator->register($tag, $dto->sourceType, $dto->externalId);
 

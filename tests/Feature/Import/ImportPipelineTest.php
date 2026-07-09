@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Import\Dto\ImportGraphDto;
@@ -18,6 +19,8 @@ use Modules\Core\Services\DynamicContentsService;
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
+    config(['scout.driver' => 'null']);
+
     if (! Schema::hasTable(CMSTables::Contents->value)) {
         $this->markTestSkipped('CMS import tests require full schema.');
     }
@@ -25,6 +28,25 @@ beforeEach(function (): void {
     setupCMSEntities();
     DynamicContentsService::reset();
     resolve(ImportIdMap::class)->reset();
+});
+
+it('logs each imported content with its origin url', function (): void {
+    config(['scout.driver' => 'null']);
+    Log::spy();
+
+    $base_graph = buildImportGraphFromFixture();
+    $graph = new ImportGraphDto(
+        content: $base_graph->content->withOrigin('Naxos', 'https://example.test/sample-imported-article'),
+        categories: $base_graph->categories,
+        contributors: $base_graph->contributors,
+        tags: $base_graph->tags,
+    );
+
+    resolve(ImportPipeline::class)->import($graph);
+
+    Log::shouldHaveReceived('info')
+        ->with('imported new content from original url https://example.test/sample-imported-article')
+        ->once();
 });
 
 it('imports a graph from fixture dto', function (): void {
@@ -85,7 +107,7 @@ it('revives a soft-deleted related record on re-import', function (string $model
 
     $pipeline->import($graph);
 
-    /** @var class-string<\Modules\Core\Overrides\Model> $model */
+    /** @var class-string<Modules\Core\Overrides\Model> $model */
     $record = $model::query()->firstOrFail();
     $record->delete();
 

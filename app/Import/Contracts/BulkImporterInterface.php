@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Import\Contracts;
 
-use Modules\CMS\Import\Dto\ImportGraphDto;
-
 interface BulkImporterInterface
 {
     /**
