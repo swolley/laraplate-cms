@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\CMS\Import\Support\EntityPresetResolver;
 use Modules\CMS\Import\Support\ImportEntityNames;
 use Modules\CMS\Tests\TestCase;
 
-uses(TestCase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 it('normalizes legacy importer entity names to canonical cms entities', function (): void {
     $resolver = resolve(EntityPresetResolver::class);

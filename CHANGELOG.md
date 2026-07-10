@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🧪 Testing
+
+- *(cms)* Migrate ImportEntityNamesTest to RefreshDatabase
+
+## [1.36.6] - 2026-07-09
+
 ### 🐛 Bug Fixes
 
 - *(import)* Enhance contributor resolution logic in upserter
