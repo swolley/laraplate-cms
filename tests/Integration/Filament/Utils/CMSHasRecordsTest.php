@@ -3,8 +3,12 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Enums\CMSTables;
+use Modules\CMS\Models\Content;
+use Modules\CMS\Models\Contributor;
 use Modules\CMS\Models\Entity;
 use Modules\CMS\Models\Pivot\Presettable;
 use Modules\CMS\Models\Preset;
@@ -58,7 +62,7 @@ it('returns filament tabs with badges when multiple content entities exist and c
         ->firstOrFail();
     $secondaryPresettable = Presettable::query()->where('entity_id', $secondaryEntity->id)->firstOrFail();
 
-    $model = Modules\CMS\Models\Content::class;
+    $model = Content::class;
     $entities = $model::fetchAvailableEntities(EntityType::Contents);
     $cache_key = 'filament_cms_tabs_' . $model . '_' . $entities->pluck('id')->sort()->values()->implode(',');
     Cache::put($cache_key, [
@@ -85,4 +89,22 @@ it('returns no tabs when the resource model does not use dynamic contents', func
     $tabs = (new CMSHasRecordsEntityHarness)->getTabs();
 
     expect($tabs)->toBeArray()->toBeEmpty();
+});
+
+it('aggregates entity tab counts without hydrating eager-loaded presettable relations', function (): void {
+    if (! Schema::hasColumns(CMSTables::Contributors->value, ['components', 'shared_components'])) {
+        test()->markTestSkipped('Contributor dynamic contents require full Core runtime.');
+    }
+
+    setupCMSEntities([EntityType::Contributors]);
+
+    Contributor::factory()->create();
+
+    $method = new ReflectionMethod(CMSHasRecordsTraitHarness::class, 'fetchEntityTabCounts');
+    $method->setAccessible(true);
+
+    $counts = $method->invoke(new CMSHasRecordsTraitHarness, Contributor::class);
+
+    expect($counts)->toHaveKey('all')
+        ->and($counts['all'])->toBeGreaterThan(0);
 });

@@ -89,16 +89,14 @@ trait HasRecords
     {
         $rows = $model::query()
             ->withoutGlobalScopes(['global_ordered'])
+            ->withoutEagerLoads()
             ->selectRaw('entity_id, count(*) as aggregate_count')
             ->groupBy('entity_id')
-            ->get();
+            ->pluck('aggregate_count', 'entity_id');
 
         $counts_by_entity = [];
 
-        foreach ($rows as $row) {
-            $entity_id = $row->getAttribute('entity_id');
-            $count = $row->getAttribute('aggregate_count');
-
+        foreach ($rows as $entity_id => $count) {
             if (! is_numeric($entity_id) || ! is_numeric($count)) {
                 continue;
             }

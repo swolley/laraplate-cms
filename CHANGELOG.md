@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚜 Refactor
+
+- *(Content)* Clean up PHPDoc comments by removing unnecessary asterisks
+- *(HasRecords)* Optimize entity count aggregation by removing eager loading
+
 ### 🧪 Testing
 
 - *(cms)* Migrate ImportEntityNamesTest to RefreshDatabase
