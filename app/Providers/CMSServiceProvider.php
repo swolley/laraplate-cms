@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Modules\CMS\Providers;
 
 use Exception;
+use Modules\CMS\Graph\CmsGraphProvider;
 use Modules\CMS\Observers\PlaceObserver;
 use Modules\CMS\Providers\ImportServiceProvider;
 use Modules\CMS\Services\CommentModerationAdapter;
+use Modules\Core\Graph\Contracts\GraphProviderRegistryInterface;
 use Modules\Core\Models\Place;
-use Modules\Core\Services\ModerationAdapterRegistry;
 use Modules\Core\Overrides\ModuleServiceProvider;
+use Modules\Core\Services\ModerationAdapterRegistry;
 use Override;
 
 /**
@@ -44,6 +46,10 @@ final class CMSServiceProvider extends ModuleServiceProvider
     public function boot(): void
     {
         parent::boot();
+
+        $this->app
+            ->make(GraphProviderRegistryInterface::class)
+            ->register($this->app->make(CmsGraphProvider::class), 'cms');
 
         // Observe Place model to dispatch geocoding jobs when address fields change.
         // Address fields (address, city, province, country) are stored on Place via HasPlace,
