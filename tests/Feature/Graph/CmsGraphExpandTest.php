@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
+use Modules\CMS\Models\Comment;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Tag;
 use Modules\CMS\Tests\TestCase;
@@ -51,5 +52,27 @@ it('uses provider defaults when relations are absent', function (): void {
         ->assertJsonPath('data.graphMeta.requestedRelations.0', 'tags')
         ->assertJsonFragment([
             'id' => 'cms:tags:' . $tag->getKey(),
+        ]);
+});
+
+it('expands cross module relations using the target module identity', function (): void {
+    $viewer = User::factory()->create();
+    $viewer->assignRole(Role::findOrCreate('superadmin', 'web'));
+    $commentAuthor = User::factory()->create(['name' => 'Comment Author']);
+
+    $content = Content::factory()->create(['title' => 'Commented Content', 'valid_from' => now()->subDay(), 'valid_to' => null]);
+    $comment = Comment::factory()->approved()->create([
+        'content_id' => $content->getKey(),
+        'user_id' => $commentAuthor->getKey(),
+    ]);
+
+    $this->actingAs($viewer)
+        ->getJson('/api/v1/crud/graph/expand/CMS/comments/' . $comment->getKey() . '?relations[]=user')
+        ->assertOk()
+        ->assertJsonPath('data.center', 'cms:comments:' . $comment->getKey())
+        ->assertJsonFragment([
+            'id' => 'core:users:' . $commentAuthor->getKey(),
+            'module' => 'core',
+            'entity' => 'users',
         ]);
 });
