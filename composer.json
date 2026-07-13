@@ -2,7 +2,7 @@
   "name": "swolley/laraplate-cms",
   "vendor": "swolley",
   "description": "CMS module contains all the necessary functionalities to build a new content management system.",
-  "version": "v1.36.7",
+  "version": "v1.36.8",
   "keywords": [
     "laravel",
     "laraplate",

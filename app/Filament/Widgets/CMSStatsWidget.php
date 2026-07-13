@@ -6,6 +6,7 @@ namespace Modules\CMS\Filament\Widgets;
 
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Facades\Cache;
 use Modules\CMS\Models\Category;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Contributor;
@@ -15,6 +16,9 @@ use Override;
 
 final class CMSStatsWidget extends BaseWidget
 {
+    #[Override]
+    protected static bool $isLazy = true;
+
     #[Override]
     protected ?string $pollingInterval = null;
 
@@ -27,8 +31,13 @@ final class CMSStatsWidget extends BaseWidget
 
     protected function getStats(): array
     {
+        $data = Cache::remember('filament.dashboard.cms_stats', 60, static fn (): array => [
+            'contents' => Content::query()->count(),
+            'contributors' => Contributor::query()->count(),
+        ]);
+
         return [
-            Stat::make('Contents', Content::query()->count())
+            Stat::make('Contents', $data['contents'])
                 ->description('Total contents')
                 ->descriptionIcon('heroicon-o-pencil')
                 ->color('info'),
@@ -36,7 +45,7 @@ final class CMSStatsWidget extends BaseWidget
             //     ->description('Content categories')
             //     ->descriptionIcon('heroicon-o-folder')
             //     ->color('success'),
-            Stat::make('Contributors', Contributor::query()->count())
+            Stat::make('Contributors', $data['contributors'])
                 ->description('Total contributors')
                 ->descriptionIcon('heroicon-o-users')
                 ->color('info'),

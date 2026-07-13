@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚀 Features
+
+- *(cms)* Implement caching in CMSStatsWidget for improved performance
+
+## [1.36.7] - 2026-07-12
+
 ### 🚜 Refactor
 
 - *(Content)* Clean up PHPDoc comments by removing unnecessary asterisks

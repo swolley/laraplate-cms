@@ -11,6 +11,7 @@ use Modules\CMS\Filament\Resources\Entities\EntityResource;
 use Modules\CMS\Filament\Resources\Locations\LocationResource;
 use Modules\CMS\Filament\Resources\Tags\TagResource;
 use Modules\CMS\Filament\Resources\Templates\TemplateResource;
+use Modules\CMS\Filament\Widgets\CMSStatsWidget;
 use Modules\CMS\Tests\TestCase;
 use Modules\Core\Models\Role;
 use Modules\Core\Models\User;
@@ -61,6 +62,14 @@ it('configures cms resource forms without throwing', function (): void {
     expect(TagResource::form(Schema::make()))->toBeInstanceOf(Schema::class);
     expect(LocationResource::form(Schema::make()))->toBeInstanceOf(Schema::class);
     expect(ContributorResource::form(Schema::make()))->toBeInstanceOf(Schema::class);
+});
+
+it('configures cms stats widget as lazy', function (): void {
+    $property = new ReflectionProperty(CMSStatsWidget::class, 'isLazy');
+    $property->setAccessible(true);
+
+    expect($property->getDeclaringClass()->getName())->toBe(CMSStatsWidget::class)
+        ->and($property->getValue())->toBeTrue();
 });
 
 it('configures cms tag location and contributor resource tables without throwing', function (): void {
