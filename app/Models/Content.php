@@ -371,41 +371,45 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         $schema->addField(new FieldDefinition('entity', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
         $schema->addField(new FieldDefinition('preset', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
         $schema->addField(new FieldDefinition('contributors', FieldType::Array, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable], [
+            'relation' => 'contributors',
             'properties' => [
                 'name' => FieldType::Text,
-                'id' => FieldType::Integer,
-                'slug' => FieldType::Keyword,
-                'path' => FieldType::Keyword,
+                'id' => ['type' => FieldType::Integer, 'filterable' => true],
+                'slug' => ['type' => FieldType::Keyword, 'filterable' => true],
+                'path' => ['type' => FieldType::Keyword, 'filterable' => true],
             ],
         ]));
         $schema->addField(new FieldDefinition('categories', FieldType::Array, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable], [
+            'relation' => 'categories',
             'properties' => [
                 'name' => FieldType::Text,
-                'id' => FieldType::Integer,
-                'slug' => FieldType::Keyword,
-                'path' => FieldType::Keyword,
+                'id' => ['type' => FieldType::Integer, 'filterable' => true],
+                'slug' => ['type' => FieldType::Keyword, 'filterable' => true],
+                'path' => ['type' => FieldType::Keyword, 'filterable' => true],
             ],
         ]));
         $schema->addField(new FieldDefinition('tags', FieldType::Array, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable], [
+            'relation' => 'tags',
             'properties' => [
                 'name' => FieldType::Keyword,
-                'id' => FieldType::Integer,
-                'slug' => FieldType::Keyword,
-                'path' => FieldType::Keyword,
+                'id' => ['type' => FieldType::Integer, 'filterable' => true],
+                'slug' => ['type' => FieldType::Keyword, 'filterable' => true],
+                'path' => ['type' => FieldType::Keyword, 'filterable' => true],
             ],
         ]));
         $schema->addField(new FieldDefinition('locations', FieldType::Array, [IndexType::Searchable, IndexType::Filterable], [
+            'relation' => 'locations',
             'properties' => [
                 'name' => FieldType::Text,
-                'id' => FieldType::Integer,
-                'slug' => FieldType::Keyword,
+                'id' => ['type' => FieldType::Integer, 'filterable' => true],
+                'slug' => ['type' => FieldType::Keyword, 'filterable' => true],
                 'path' => FieldType::Keyword,
                 'address' => FieldType::Text,
-                'city' => FieldType::Keyword,
-                'province' => FieldType::Keyword,
-                'country' => FieldType::Keyword,
-                'postcode' => FieldType::Keyword,
-                'zone' => FieldType::Keyword,
+                'city' => ['type' => FieldType::Keyword, 'filterable' => true],
+                'province' => ['type' => FieldType::Keyword, 'filterable' => true],
+                'country' => ['type' => FieldType::Keyword, 'filterable' => true],
+                'postcode' => ['type' => FieldType::Keyword, 'filterable' => true],
+                'zone' => ['type' => FieldType::Keyword, 'filterable' => true],
             ],
         ]));
         $schema->addField(new FieldDefinition('type', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable]));

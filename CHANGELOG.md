@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
+- *(Content)* Enhance search schema with filterable relation fields
+
+## [1.36.8] - 2026-07-13
+
+### 🚀 Features
+
 - *(cms)* Implement caching in CMSStatsWidget for improved performance
 
 ## [1.36.7] - 2026-07-12

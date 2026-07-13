@@ -125,6 +125,19 @@ it('toSearchableWith returns all required relations for indexing', function (): 
         ->toContain('presettable.preset');
 });
 
+it('declares filterable indexed relation fields in the content search schema', function (): void {
+    $reflection = new ReflectionClass(Content::class);
+    $source = file_get_contents((string) $reflection->getFileName());
+
+    expect($source)->toContain("'relation' => 'contributors'")
+        ->and($source)->toContain("'relation' => 'categories'")
+        ->and($source)->toContain("'relation' => 'tags'")
+        ->and($source)->toContain("'relation' => 'locations'")
+        ->and($source)->toContain("'id' => ['type' => FieldType::Integer, 'filterable' => true]")
+        ->and($source)->toContain("'slug' => ['type' => FieldType::Keyword, 'filterable' => true]")
+        ->and($source)->toContain("'country' => ['type' => FieldType::Keyword, 'filterable' => true]");
+});
+
 /**
  * Property 6: Content toSearchableArray does not trigger lazy loading.
  *
