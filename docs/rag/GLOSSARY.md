@@ -25,6 +25,7 @@ Canonical English names for CMS entities in this module. Use these terms in code
 | **Category** | Hierarchical taxonomy node (`Core\Models\Taxonomy` subclass). |
 | **Tag**      | Flat label attached to contents via `HasTags`.             |
 | **Author**   | Contributor profile for bylines and attribution.           |
+| **Indexed CMS relation field** | Contributor/category/tag/location data copied into the content search document and filterable through schema-declared dot paths. |
 
 
 ## Media and location
@@ -64,6 +65,7 @@ Canonical English names for CMS entities in this module. Use these terms in code
 | **HasLocks**                      | Prevents concurrent edits on locked content rows.             |
 | **HasValidity**                   | Publication window (`valid_from` / `valid_to`).               |
 | **Searchable**                    | Queues indexing via Core `ModelRequiresIndexing`.             |
+| **Content relation-field filter** | Public search filter such as `tags.id` or `locations.country`; Core applies it through the active search driver before pagination. |
 | **HasPath**                       | SEO-friendly URL path generation for contents.                  |
 
 

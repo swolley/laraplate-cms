@@ -319,6 +319,7 @@ CMS registers panel resources through `CMSPlugin` (`Modules/CMS/app/Filament/CMS
 - Media uploads route through `HasMultimedia` collections and run conversions (image and video keyframes) according to the configuration.
 - Optional geocoding enriches `Location` rows; canonical geography lives on `Core places` when `place_id` is available.
 - Search indexing is driven by `Searchable` schemas; pivots, translations, and validity dates flow into the search documents to mirror UX filters.
+- CMS exposes indexed relation-field filters for content search. Supported dot paths include `contributors.id`, `contributors.slug`, `contributors.path`, `categories.id`, `categories.slug`, `categories.path`, `tags.id`, `tags.slug`, `tags.path`, `locations.id`, `locations.slug`, `locations.city`, `locations.province`, `locations.country`, `locations.postcode`, and `locations.zone`. Core translates them consistently across Elasticsearch, Typesense, and database search.
 
 ## Dependencies and boundaries
 
