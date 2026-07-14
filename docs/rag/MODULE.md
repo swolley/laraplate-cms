@@ -6,7 +6,7 @@
 
 ### Module boundaries
 
-HTTP/Filament/Artisan entry points talk to CMS Eloquent models (`Content`, `Tag`, `Category`, `Contributor`, `Location`, `Preset`, `Media`). Models extend Core abstractions (`Core\Models\Entity`, `Core\Models\Taxonomy`, `Core\Models\Preset`) and reuse Core traits (`HasLocks`, `HasApprovals`, `HasValidity`, `HasTranslations`, `HasTranslatedDynamicContents`, `HasPath`, `HasPlace`, `Searchable`). Side effects are orchestrated by the `ContentObserver` (auto-assignment of `entity_id` / `presettable_id`), the geocoding action `GeocodeLocationAction` over `IGeocodingService` (default `NominatimService`), and the Spatie media library pipeline wired through the `HasMultimedia` helper. The `CMSPlugin` registers Filament resources for the panel.
+HTTP/Filament/Artisan entry points talk to CMS Eloquent models (`Content`, `Tag`, `Category`, `Contributor`, `Location`, `Preset`, `Media`). Models extend Core abstractions (`Core\Models\Entity`, `Core\Models\Taxonomy`, `Core\Models\Preset`) and reuse Core traits (`HasLocks`, `HasApprovals`, `HasValidity`, `HasTranslations`, `HasTranslatedDynamicContents`, `HasPath`, `HasPlace`, `Searchable`). Side effects are orchestrated by the `ContentObserver` (auto-assignment of `entity_id` / `presettable_id`), the geocoding action `GeocodeLocationAction` over `IGeocodingService` (default `NominatimService`), the Spatie media library pipeline wired through the `HasMultimedia` helper, and `CmsGraphProvider` for Core Graph defaults. The `CMSPlugin` registers Filament resources for the panel.
 
 ```mermaid
 flowchart TB
@@ -39,6 +39,7 @@ flowchart TB
     Validity[HasValidity]
     I18n[HasTranslations plus HasTranslatedDynamicContents]
     Search[Searchable plus FieldDefinition]
+    Graph[Core Graph provider]
     Geo[IGeocodingService]
   end
   subgraph plug [Plugins and integrations]
@@ -67,6 +68,7 @@ flowchart TB
   Content --> Validity
   Content --> I18n
   Content --> Search
+  Content --> Graph
   Multimedia --> Spatie
   PluginCMS -.-> Filament
 ```
@@ -280,6 +282,12 @@ stateDiagram-v2
   Locked --> Published: released
 ```
 
+### CMS graph provider
+
+CMS is the first module provider for the Core Graph framework. It registers `CmsGraphProvider`, but Core owns `/crud/graph/expand`, `/crud/graph/search`, `/crud/graph/stats`, traversal, ACL filtering, provider rule enforcement, and response serialization. CMS contributes default content relations and presentation metadata only.
+
+For `contents`, provider defaults expand `tags`, `categories`, `contributors`, and `locations` when the caller omits `relations[]`. Explicit `relations[]` still win. CMS summary fields include editorial identifiers (`title`, `slug`, `path`, `status`, `type`, timestamps), and edge labels map relation names to content semantics such as `tagged_as`, `categorized_as`, `contributed_by`, and `located_at`. Relations that expose implementation internals (`translations`, `history`, `modifications`, `locks`, `media`) are excluded from graph traversal.
+
 ### Search indexing
 
 CMS models implementing `Searchable` build their Typesense schema declaratively through `FieldDefinition` + `IndexType`. `Content::getSearchMapping()` emits flattened arrays for contributors/categories/tags/locations, separate per-locale title/slug fields, and a vector `embedding` field. `Content::toSearchableArray()` reads translations through `HasTranslations`, hydrates pivot data, and projects `valid_from` / `valid_to` so filters can mirror the publishing window. `Location::getSearchMapping()` adds geo + address keyword fields and reuses Core `Place::searchDocumentGeographyFields()` when `place_id` is set.
@@ -320,6 +328,7 @@ CMS registers panel resources through `CMSPlugin` (`Modules/CMS/app/Filament/CMS
 - Optional geocoding enriches `Location` rows; canonical geography lives on `Core places` when `place_id` is available.
 - Search indexing is driven by `Searchable` schemas; pivots, translations, and validity dates flow into the search documents to mirror UX filters.
 - CMS exposes indexed relation-field filters for content search. Supported dot paths include `contributors.id`, `contributors.slug`, `contributors.path`, `categories.id`, `categories.slug`, `categories.path`, `tags.id`, `tags.slug`, `tags.path`, `locations.id`, `locations.slug`, `locations.city`, `locations.province`, `locations.country`, `locations.postcode`, and `locations.zone`. Core translates them consistently across Elasticsearch, Typesense, and database search.
+- CMS contributes Core Graph provider defaults for content relations; Graph remains a Core capability and CMS does not own traversal, route registration, or authorization behavior.
 
 ## Dependencies and boundaries
 
