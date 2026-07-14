@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Enums;
 
+use Modules\Core\Enums\Concerns\HasModuleTablesUtils;
+
 enum CMSTables: string
 {
+    use HasModuleTablesUtils;
+    
     // cms models
     case Tags = 'cms_tags';
     case Taggables = 'cms_taggables';

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### ⚙️ Miscellaneous Tasks
+
+- *(docs)* Update README and GLOSSARY with search indexing details
+
+## [1.36.9] - 2026-07-13
+
 ### 🚀 Features
 
 - *(Content)* Enhance search schema with filterable relation fields
