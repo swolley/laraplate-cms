@@ -288,6 +288,10 @@ CMS is the first module provider for the Core Graph framework. It registers `Cms
 
 For `contents`, provider defaults expand `tags`, `categories`, `contributors`, and `locations` when the caller omits `relations[]`. Explicit `relations[]` still win. CMS summary fields include editorial identifiers (`title`, `slug`, `path`, `status`, `type`, timestamps), and edge labels map relation names to content semantics such as `tagged_as`, `categorized_as`, `contributed_by`, and `located_at`. Relations that expose implementation internals (`translations`, `history`, `modifications`, `locks`, `media`) are excluded from graph traversal.
 
+### Graph runtime benchmark
+
+`Modules/CMS/tests/Benchmark/CmsGraphRuntimeBenchmarkTest.php` is an opt-in performance harness for Core Graph over CMS content. It is outside the normal module test suites and skips unless `CMS_GRAPH_BENCHMARK_ENABLED=true`. The dataset size is controlled by `CMS_GRAPH_BENCHMARK_CONTENTS`, `CMS_GRAPH_BENCHMARK_TAGS`, `CMS_GRAPH_BENCHMARK_CATEGORIES`, `CMS_GRAPH_BENCHMARK_CONTRIBUTORS`, `CMS_GRAPH_BENCHMARK_LOCATIONS`, and `CMS_GRAPH_BENCHMARK_ITERATIONS`. Scenarios cover provider-default expand, explicit relation expand, graph search with and without expansion, and stats. Output is JSON metrics for duration, queries, memory, nodes, edges, truncation, and ACL filtering. Use it as evidence for or against Core Graph materialization; do not run it as a standard suite gate.
+
 ### Search indexing
 
 CMS models implementing `Searchable` build their Typesense schema declaratively through `FieldDefinition` + `IndexType`. `Content::getSearchMapping()` emits flattened arrays for contributors/categories/tags/locations, separate per-locale title/slug fields, and a vector `embedding` field. `Content::toSearchableArray()` reads translations through `HasTranslations`, hydrates pivot data, and projects `valid_from` / `valid_to` so filters can mirror the publishing window. `Location::getSearchMapping()` adds geo + address keyword fields and reuses Core `Place::searchDocumentGeographyFields()` when `place_id` is set.
@@ -331,6 +335,7 @@ CMS registers panel resources through `CMSPlugin` (`Modules/CMS/app/Filament/CMS
 - Search indexing is driven by `Searchable` schemas; pivots, translations, and validity dates flow into the search documents to mirror UX filters.
 - CMS exposes indexed relation-field filters for content search. Supported dot paths include `contributors.id`, `contributors.slug`, `contributors.path`, `categories.id`, `categories.slug`, `categories.path`, `tags.id`, `tags.slug`, `tags.path`, `locations.id`, `locations.slug`, `locations.city`, `locations.province`, `locations.country`, `locations.postcode`, and `locations.zone`. Core translates them consistently across Elasticsearch, Typesense, and database search.
 - CMS contributes Core Graph provider defaults for content relations; Graph remains a Core capability and CMS does not own traversal, route registration, or authorization behavior.
+- CMS owns an opt-in graph runtime benchmark for realistic content relation datasets; it is controlled by `CMS_GRAPH_BENCHMARK_*` environment variables and is not part of the normal test suites.
 
 ## Dependencies and boundaries
 

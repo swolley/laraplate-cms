@@ -36,3 +36,25 @@ These filters target indexed relation fields, not arbitrary Eloquent traversal. 
 CMS registers `Modules\CMS\Graph\CmsGraphProvider` as a Core Graph provider. Core still owns graph routes, traversal, authorization, request validation, and response shape. CMS only contributes content-oriented defaults: `contents` expand to `tags`, `categories`, `contributors`, and `locations` when no `relations[]` are requested; summary fields prefer editorial identifiers such as title, slug, path, status, type, and timestamps; edge labels map CMS relations to names such as `tagged_as`, `categorized_as`, `contributed_by`, and `located_at`.
 
 Graph relation loading follows Core rules: explicit `relations[]` win, provider defaults apply only when relations are omitted, and excluded CMS implementation relations such as translations, history, modifications, locks, and media are not graph-traversable.
+
+## Graph runtime benchmark
+
+CMS includes an opt-in benchmark for Core Graph runtime traversal over realistic content relations. The benchmark is intentionally outside the normal PHPUnit suites and is skipped unless explicitly enabled. Run it when changing Core Graph traversal/search behavior, CMS graph provider defaults, or before deciding whether Phase 5 materialized edges are justified.
+
+```bash
+CMS_GRAPH_BENCHMARK_ENABLED=true rtk php artisan test --compact Modules/CMS/tests/Benchmark/CmsGraphRuntimeBenchmarkTest.php
+```
+
+Environment variables:
+
+| Variable | Default | Purpose |
+| --- | ---: | --- |
+| `CMS_GRAPH_BENCHMARK_ENABLED` | `false` | Enables the opt-in benchmark. |
+| `CMS_GRAPH_BENCHMARK_CONTENTS` | `250` | Number of content records generated. |
+| `CMS_GRAPH_BENCHMARK_TAGS` | `80` | Number of tags shared across contents. |
+| `CMS_GRAPH_BENCHMARK_CATEGORIES` | `40` | Number of categories shared across contents. |
+| `CMS_GRAPH_BENCHMARK_CONTRIBUTORS` | `40` | Number of contributors shared across contents. |
+| `CMS_GRAPH_BENCHMARK_LOCATIONS` | `40` | Number of locations shared across contents. |
+| `CMS_GRAPH_BENCHMARK_ITERATIONS` | `5` | Iterations per benchmark scenario. |
+
+The benchmark reports per-scenario duration, query count, peak memory, node count, edge count, truncation, and ACL filtering. Treat it as performance evidence, not as a normal pass/fail feature test.
