@@ -35,6 +35,8 @@ return new class extends Migration
             $table->unique(['user_id', 'name', 'deleted_at'], "{$table_name}_UN");
             $table->unique(['id', 'entity_id'], "{$table_name}_entity_UN");
         });
+
+        MigrateUtils::fuzzyIndex($table_name, 'name');
     }
 
     /**

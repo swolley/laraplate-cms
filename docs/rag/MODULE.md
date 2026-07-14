@@ -292,6 +292,8 @@ For `contents`, provider defaults expand `tags`, `categories`, `contributors`, a
 
 CMS models implementing `Searchable` build their Typesense schema declaratively through `FieldDefinition` + `IndexType`. `Content::getSearchMapping()` emits flattened arrays for contributors/categories/tags/locations, separate per-locale title/slug fields, and a vector `embedding` field. `Content::toSearchableArray()` reads translations through `HasTranslations`, hydrates pivot data, and projects `valid_from` / `valid_to` so filters can mirror the publishing window. `Location::getSearchMapping()` adds geo + address keyword fields and reuses Core `Place::searchDocumentGeographyFields()` when `place_id` is set.
 
+Database migrations use Core `MigrateUtils` instead of embedding driver-specific search DDL. Fuzzy intent is declared for `cms_locations.name`, `cms_contents_translations.title`, `cms_tags_translations.name`, and `cms_contributors.name`; PostgreSQL receives trigram GIN indexes and Oracle receives `CONTEXT` indexes, while unsupported engines degrade safely. Slugs keep their existing B-tree indexes and are marked as prefix fields in search schemas. Dynamic component fields are full-text fields for external search engines, but their JSON storage deliberately receives no database full-text index until CMS owns a normalized physical `search_text` projection.
+
 ```mermaid
 flowchart LR
   Models[CMS models with Searchable]

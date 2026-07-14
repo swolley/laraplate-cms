@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\CMS\Enums\CMSTables;
 use Modules\Core\Helpers\MigrateUtils;
@@ -38,14 +37,7 @@ return new class extends Migration
             $table->index(['locale', 'slug'], "{$table_name}_locale_slug_IDX");
         });
 
-        // Add fulltext indexes for databases that support them
-        if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
-            DB::statement("ALTER TABLE {$table_name} ADD FULLTEXT {$table_name}_title_IDX (title)");
-        } elseif (DB::getDriverName() === 'pgsql') {
-            // PostgreSQL fulltext search indexes
-            // TODO: This is temporary fixed to english for now
-            DB::statement("CREATE INDEX {$table_name}_title_fts_idx ON {$table_name} USING gin(to_tsvector('english', title))");
-        }
+        MigrateUtils::fuzzyIndex($table_name, 'title');
     }
 
     /**

@@ -102,8 +102,8 @@ final class Location extends Model implements Taggable
         $schema->addField(new FieldDefinition('entity', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
         $schema->addField(new FieldDefinition('connection', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
         $schema->addField(new FieldDefinition(self::$indexedAtField, FieldType::Date, [IndexType::Searchable, IndexType::Filterable, IndexType::Sortable]));
-        $schema->addField(new FieldDefinition('name', FieldType::Text, [IndexType::Searchable, IndexType::Filterable]));
-        $schema->addField(new FieldDefinition('slug', FieldType::Keyword, [IndexType::Searchable]));
+        $schema->addField(new FieldDefinition('name', FieldType::Text, [IndexType::Searchable, IndexType::Filterable, IndexType::Fuzzy]));
+        $schema->addField(new FieldDefinition('slug', FieldType::Keyword, [IndexType::Searchable, IndexType::Prefix]));
         $schema->addField(new FieldDefinition('address', FieldType::Text, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
         $schema->addField(new FieldDefinition('city', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
         $schema->addField(new FieldDefinition('province', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));

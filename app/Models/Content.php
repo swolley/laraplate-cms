@@ -419,8 +419,8 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         $schema->addField(new FieldDefinition('embedding', FieldType::Vector, [IndexType::Searchable, IndexType::Vector]));
 
         // Base fields with default translation (for compatibility/fallback)
-        $schema->addField(new FieldDefinition('slug', FieldType::Keyword, [IndexType::Searchable]));
-        $schema->addField(new FieldDefinition('title', FieldType::Text, [IndexType::Searchable, IndexType::Filterable]));
+        $schema->addField(new FieldDefinition('slug', FieldType::Keyword, [IndexType::Searchable, IndexType::Prefix]));
+        $schema->addField(new FieldDefinition('title', FieldType::Text, [IndexType::Searchable, IndexType::Filterable, IndexType::Fuzzy]));
 
         // Add fields for each locale
         $available_locales = LocaleContext::getAvailable();
@@ -437,13 +437,13 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
 
         foreach ($available_locales as $locale) {
             // Add title and slug for each locale
-            $schema->addField(new FieldDefinition('title_' . $locale, FieldType::Text, [IndexType::Searchable, IndexType::Filterable]));
-            $schema->addField(new FieldDefinition('slug_' . $locale, FieldType::Keyword, [IndexType::Searchable]));
+            $schema->addField(new FieldDefinition('title_' . $locale, FieldType::Text, [IndexType::Searchable, IndexType::Filterable, IndexType::Fuzzy]));
+            $schema->addField(new FieldDefinition('slug_' . $locale, FieldType::Keyword, [IndexType::Searchable, IndexType::Prefix]));
         }
 
         // Add base component fields (from default translation)
         foreach ($component_fields as $field) {
-            $schema->addField(new FieldDefinition($field, FieldType::Text, [IndexType::Searchable]));
+            $schema->addField(new FieldDefinition($field, FieldType::Text, [IndexType::Searchable, IndexType::FullText]));
         }
 
         return $this->getSearchMappingTrait($schema);
