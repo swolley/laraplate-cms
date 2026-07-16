@@ -7,6 +7,7 @@ namespace Modules\CMS\Console;
 use Illuminate\Console\Command;
 use Modules\CMS\Import\Contracts\BulkImporterInterface;
 use Modules\CMS\Import\Support\BulkImportRunner;
+use Modules\CMS\Import\Support\SiblingImportersDiscovery;
 use Override;
 use Throwable;
 
@@ -18,9 +19,15 @@ use Throwable;
  * Composer autoloader (--bootstrap) and resolved from the container by FQCN
  * (--importer), receiving --arg key=value pairs plus the generic dry-run/limit
  * flags as named constructor parameters. This command is source-agnostic.
+ *
+ * When neither --bootstrap nor --importer is provided and a sibling
+ * laraplate-importers project is present, the command may interactively offer
+ * to load that project's autoloader and pick a BulkImporterInterface class.
  */
 final class ImportCommand extends Command
 {
+    private const string SKIP_IMPORTER = '(skip)';
+
     #[Override]
     protected $signature = 'cms:import
                             {--importer= : Fully-qualified class name implementing BulkImporterInterface}
@@ -33,8 +40,10 @@ final class ImportCommand extends Command
     #[Override]
     protected $description = 'Run a bulk content import through an external importer plugin';
 
-    public function handle(BulkImportRunner $runner): int
+    public function handle(BulkImportRunner $runner, SiblingImportersDiscovery $discovery): int
     {
+        $this->maybePromptSiblingImporters($discovery);
+
         $importer_class = mb_trim((string) $this->option('importer'));
 
         if ($importer_class === '') {
@@ -92,6 +101,66 @@ final class ImportCommand extends Command
         $this->info("Imported {$imported} record(s)" . ($dry_run ? ' (dry-run, rolled back).' : '.'));
 
         return self::SUCCESS;
+    }
+
+    private function maybePromptSiblingImporters(SiblingImportersDiscovery $discovery): void
+    {
+        if ($this->optionValueIsPresent('importer') || $this->optionValueIsPresent('bootstrap')) {
+            return;
+        }
+
+        $root = $discovery->root();
+
+        if ($root === null) {
+            return;
+        }
+
+        if (! $this->confirm(
+            'Found laraplate-importers at ' . $root . '. Load its Composer autoloader?',
+            false,
+        )) {
+            return;
+        }
+
+        $autoload = $discovery->autoloadPath($root);
+
+        if ($autoload === null) {
+            $this->error('laraplate-importers vendor/autoload.php not found. Run composer install in that project first.');
+
+            return;
+        }
+
+        require_once $autoload;
+
+        $importers = $discovery->discoverImplementations($root);
+
+        if ($importers === []) {
+            $this->warn('No BulkImporterInterface implementations found under laraplate-importers/src.');
+
+            return;
+        }
+
+        $choices = [self::SKIP_IMPORTER, ...$importers];
+
+        $selected = $this->choice(
+            'Select an importer (optional)',
+            $choices,
+            0,
+        );
+
+        if ($selected === self::SKIP_IMPORTER) {
+            return;
+        }
+
+        $this->input->setOption('bootstrap', $autoload);
+        $this->input->setOption('importer', $selected);
+    }
+
+    private function optionValueIsPresent(string $name): bool
+    {
+        $value = $this->option($name);
+
+        return is_string($value) && mb_trim($value) !== '';
     }
 
     private function loadBootstrap(): bool

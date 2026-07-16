@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚀 Features
+
+- *(cms)* Enhance ImportCommand with sibling importers discovery
+
+## [1.37.0] - 2026-07-14
+
 ### ⚙️ Miscellaneous Tasks
 
 - *(docs)* Update README and GLOSSARY with search indexing details
