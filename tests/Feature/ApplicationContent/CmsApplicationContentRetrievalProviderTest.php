@@ -201,6 +201,7 @@ it('uses the requested translation and the configured default fallback only', fu
         'components' => ['content' => 'Testo italiano visibile'],
     ])->save();
     $fallback = cms_content_for_retrieval('Fallback title', 'Fallback visible phrase');
+    $fallback->translations()->where('locale', 'it')->forceDelete();
     $provider = cms_retrieval_provider_with_hits([
         ['id' => (string) $localized->getKey(), 'score' => 0.9, 'source' => []],
         ['id' => (string) $fallback->getKey(), 'score' => 0.8, 'source' => []],
