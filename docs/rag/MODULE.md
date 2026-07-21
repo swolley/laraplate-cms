@@ -106,7 +106,7 @@ flowchart LR
 
 #### Content relationships and morph pivots
 
-`Content` is the editorial aggregate root for `EntityType::CONTENTS`. It links contributors, categories, locations, related contents, and tags via dedicated pivots: `contributables`, `categorizables` (FK on `taxonomy_id`), `locatables`, `relatables`, and the polymorphic `taggables` (used by `Content`, `Contributor`, `Category`, `Location` through `HasTags`). Translations live in `contents_translations` keyed by `content_id` + `locale` and store the user-facing fields `title`, `slug`, `components`. `Searchable` builds a Typesense schema that flattens contributors/categories/tags/locations and emits per-locale `title_{locale}` and `slug_{locale}` keys.
+`Content` is the primary content aggregate for `EntityType::CONTENTS`. It links contributors, categories, locations, related contents, and tags via dedicated pivots: `contributables`, `categorizables` (FK on `taxonomy_id`), `locatables`, `relatables`, and the polymorphic `taggables` (used by `Content`, `Contributor`, `Category`, `Location` through `HasTags`). Translations live in `contents_translations` keyed by `content_id` + `locale` and store the user-facing fields `title`, `slug`, `components`. `Searchable` builds a Typesense schema that flattens contributors/categories/tags/locations and emits per-locale `title_{locale}` and `slug_{locale}` keys.
 
 ```mermaid
 flowchart LR
@@ -286,7 +286,17 @@ stateDiagram-v2
 
 CMS is the first module provider for the Core Graph framework. It registers `CmsGraphProvider`, but Core owns `/crud/graph/expand`, `/crud/graph/search`, `/crud/graph/stats`, traversal, ACL filtering, provider rule enforcement, and response serialization. CMS contributes default content relations and presentation metadata only.
 
-For `contents`, provider defaults expand `tags`, `categories`, `contributors`, and `locations` when the caller omits `relations[]`. Explicit `relations[]` still win. CMS summary fields include editorial identifiers (`title`, `slug`, `path`, `status`, `type`, timestamps), and edge labels map relation names to content semantics such as `tagged_as`, `categorized_as`, `contributed_by`, and `located_at`. Relations that expose implementation internals (`translations`, `history`, `modifications`, `locks`, `media`) are excluded from graph traversal.
+For `contents`, provider defaults expand `tags`, `categories`, `contributors`, and `locations` when the caller omits `relations[]`. Explicit `relations[]` still win. CMS summary fields include content identifiers (`title`, `slug`, `path`, `status`, `type`, timestamps), and edge labels map relation names to content semantics such as `tagged_as`, `categorized_as`, `contributed_by`, and `located_at`. Relations that expose implementation internals (`translations`, `history`, `modifications`, `locks`, `media`) are excluded from graph traversal.
+
+### CMS application content retrieval provider
+
+CMS explicitly registers `CmsApplicationContentRetrievalProvider` as source `cms.contents` through the Core registry. This source is used only by the authenticated in-app assistant after server-side routing and authorization; it is not copied into either documentation RAG corpus and it does not create a public assistant route.
+
+The provider sends the natural-language query and Core-supplied ACL filters through `AdvancedSearchService`. Ranked candidates are then rehydrated from `Content::query()->valid()` with the authorization service and the same `FiltersGroup` applied again. Soft-deleted, invalid, stale, cross-connection, or no-longer-authorized candidates disappear without confirming their existence. If orchestrated search is unavailable, the provider can use its bounded title-only lexical fallback; it never performs an unbounded scan.
+
+`CmsContentEvidenceProjector` emits only an allowlisted title, normalized plain-text component fields, locale, revision, and canonical `/app/cms/contents/{id}` reference. Unknown components, media, hidden relations, raw search payloads, persistence metadata, and authorization internals remain excluded by default.
+
+The reproducible record-level baseline uses 30 synthetic cases in `tests/Fixtures/application-content/cms-contents.json`; the report is `docs/evaluations/application-content/2026-07-record-baseline.json`. Aggregate hit@5 is `0.7619`, citation precision and authorized-empty accuracy are `1.0`, while semantic/paraphrase and the passage-candidate slice are `0.0`. This is evidence for a separate passage-index evaluation, not permission to add another index automatically.
 
 ### Graph runtime benchmark
 
@@ -294,7 +304,7 @@ For `contents`, provider defaults expand `tags`, `categories`, `contributors`, a
 
 ### Search indexing
 
-CMS models implementing `Searchable` build their Typesense schema declaratively through `FieldDefinition` + `IndexType`. `Content::getSearchMapping()` emits flattened arrays for contributors/categories/tags/locations, separate per-locale title/slug fields, and a vector `embedding` field. `Content::toSearchableArray()` reads translations through `HasTranslations`, hydrates pivot data, and projects `valid_from` / `valid_to` so filters can mirror the publishing window. `Location::getSearchMapping()` adds geo + address keyword fields and reuses Core `Place::searchDocumentGeographyFields()` when `place_id` is set.
+CMS models implementing `Searchable` build their Typesense schema declaratively through `FieldDefinition` + `IndexType`. `Content::getSearchMapping()` emits flattened arrays for contributors/categories/tags/locations, separate per-locale title/slug fields, and a vector `embedding` field. `Content::toSearchableArray()` reads translations through `HasTranslations`, hydrates pivot data, and projects `valid_from` / `valid_to` so filters can mirror the content availability window. `Location::getSearchMapping()` adds geo + address keyword fields and reuses Core `Place::searchDocumentGeographyFields()` when `place_id` is set.
 
 Database migrations use Core `MigrateUtils` instead of embedding driver-specific search DDL. Fuzzy intent is declared for `cms_locations.name`, `cms_contents_translations.title`, `cms_tags_translations.name`, and `cms_contributors.name`; PostgreSQL receives trigram GIN indexes and Oracle receives `CONTEXT` indexes, while unsupported engines degrade safely. Slugs keep their existing B-tree indexes and are marked as prefix fields in search schemas. Dynamic component fields are full-text fields for external search engines, but their JSON storage deliberately receives no database full-text index until CMS owns a normalized physical `search_text` projection.
 
