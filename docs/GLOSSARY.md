@@ -76,9 +76,19 @@ Canonical English names for CMS entities in this module. Use these terms in code
 
 CMS **does not** import AI classes or read `config('ai.*')` directly.
 
+## Imports
+
+| Term | Meaning |
+|------|---------|
+| **CMS bulk importer** | External or local adapter implementing the CMS marker contract and writing through the CMS destination pipeline. |
+| **`cms:import`** | CMS-owned Artisan entry point built on Core's abstract import framework. |
+| **Importer-declared connection** | Optional destination connection used by Core to isolate a transactional dry-run. |
+| **Synchronization** | Ongoing external-system exchange with cursors, identity mapping, conflict rules, retries, and scheduling; not implied by a batch import. |
+
 ## Related reading
 
 - `docs/COMMENT_MODERATION.md` — comment capture and approval flow
+- `docs/IMPORTS.md` — CMS bulk import command and extension boundary
 - `docs/rag/MODULE.md` — RAG-oriented CMS overview
 - `Modules/Core/docs/EVENT_ORCHESTRATION.md` — event bus contracts
 - `Modules/AI/docs/MODERATION.md` — AI-side moderation pipeline

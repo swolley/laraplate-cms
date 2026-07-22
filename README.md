@@ -10,6 +10,7 @@ Content management: entities, presets, contents, categories, comments, media, an
 | **Cross-module event bus** (moderation + search indexing overview) | [Modules/Core/docs/EVENT_ORCHESTRATION.md](../Core/docs/EVENT_ORCHESTRATION.md) |
 | **AI moderation** (listener, job, config) | [Modules/AI/docs/MODERATION.md](../AI/docs/MODERATION.md) |
 | **CMS graph provider** (content graph defaults and edge labels) | [Modules/Core/docs/GRAPH_SYSTEM.md](../Core/docs/GRAPH_SYSTEM.md) |
+| **Bulk imports** (`cms:import`, external plugins, dry-run boundary) | [docs/IMPORTS.md](docs/IMPORTS.md) |
 
 ## Comment moderation (summary)
 
@@ -24,6 +25,12 @@ flowchart LR
 ```
 
 CMS registers `CommentModerationContextBuilder` on Core’s `ModerationContextBuilderRegistry`; AI resolves it at runtime without importing CMS classes.
+
+## Bulk imports
+
+CMS exposes the module-owned `cms:import` command while Core supplies its common command mechanics. The command accepts only importers implementing the CMS marker contract, so selecting the command also fixes the destination domain. Source access and mapping remain in external plugins; CMS retains its content DTOs, pipeline, upserters, and post-processing.
+
+See [docs/IMPORTS.md](docs/IMPORTS.md) for options, Naxos examples, dry-run guarantees, and extension rules.
 
 ## Search indexing
 

@@ -75,6 +75,14 @@ flowchart TB
 
 ## Main capabilities
 
+### Module-owned bulk import command
+
+CMS exposes `cms:import` as its explicit bulk-import destination. The command inherits option parsing, bootstrap loading, common output, resolution contracts, and transactional execution from Core's non-runnable `AbstractImportCommand`. CMS injects `CmsBulkImporterResolver` and `SiblingImportersDiscovery`, and accepts only `Modules\CMS\Import\Contracts\BulkImporterInterface` implementations.
+
+The retained CMS marker extends Core's neutral importer contract, so existing Naxos API and SQL importers keep their namespace compatibility. CMS still owns content DTOs, `ImportPipeline`, upserters, preset provisioning, reference resolution, and post-processing. External plugins own source connectivity and mapping.
+
+Dry-run rolls back writes on the connection declared by a connection-aware importer, or the default connection for legacy importers. It cannot reverse other connections or external side effects. `cms:import` is a bounded batch command, not a continuous synchronization engine. See `docs/IMPORTS.md` and `docs/rag/IMPORTS.md`.
+
 ### Dynamic content model: Entity, Preset, Presettable, Content
 
 CMS sits on top of the Core dynamic-entity stack. `Modules/CMS/app/Models/Entity.php` extends `Core\Models\Entity` and exposes the `EntityType` enum with three CMS values: `CONTENTS`, `CONTRIBUTORS`, and `CATEGORIES`. Each `Entity` row drives schema and presets; a `Presettable` is a versioned snapshot of fields tied to one preset and one entity (table `presettables`). Domain rows (`Content`, `Contributor`, `Category`) carry both `entity_id` and `presettable_id`. The `ContentObserver` auto-assigns these on creation when missing; `Preset::migrateContentsToLastVersion()` reassigns existing rows to the latest snapshot when fields change.
