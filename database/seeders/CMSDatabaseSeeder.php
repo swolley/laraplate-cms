@@ -7,7 +7,6 @@ namespace Modules\CMS\Database\Seeders;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Models\Entity;
 use Modules\CMS\Models\Preset;
@@ -86,9 +85,10 @@ final class CMSDatabaseSeeder extends Seeder
     {
         $this->logOperation(Field::class);
 
-        $this->fields = Field::query()->withoutGlobalScopes()->get()->keyBy('name');
+        $field_model = new Field;
+        $this->fields = $field_model->newQuery()->withoutGlobalScopes()->get()->keyBy('name');
 
-        DB::transaction(function (): void {
+        $field_model->getConnection()->transaction(function (): void {
             foreach (['subtitle'] as $field) {
                 if (! $this->fields->has($field)) {
                     $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::Text, 'options' => (object) ['max_length' => 255], 'is_translatable' => true]));
@@ -158,9 +158,10 @@ final class CMSDatabaseSeeder extends Seeder
     {
         $this->logOperation(Entity::class);
 
-        $this->entities = Entity::query()->withoutGlobalScopes()->get()->keyBy('name');
+        $entity_model = new Entity;
+        $this->entities = $entity_model->newQuery()->withoutGlobalScopes()->get()->keyBy('name');
 
-        DB::transaction(function (): void {
+        $entity_model->getConnection()->transaction(function (): void {
             $standard = 'standard';
 
             $entities = [

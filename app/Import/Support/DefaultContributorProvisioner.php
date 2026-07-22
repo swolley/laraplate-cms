@@ -15,7 +15,10 @@ use Modules\CMS\Models\Contributor;
  */
 final class DefaultContributorProvisioner
 {
-    private ?int $cached_id = null;
+    /**
+     * @var array<string, int>
+     */
+    private array $cached_ids = [];
 
     public function __construct(
         private readonly ImportPresetProvisioner $preset_provisioner,
@@ -24,10 +27,15 @@ final class DefaultContributorProvisioner
         private readonly string $locale,
     ) {}
 
-    public function ensure(): int
+    public function ensure(?ImportConnectionContext $context = null): int
     {
-        if ($this->cached_id !== null) {
-            return $this->cached_id;
+        $context ??= new ImportConnectionContext(new Contributor);
+        $contributor_model = $context->model(Contributor::class);
+
+        $connection_name = $context->connectionName();
+
+        if (isset($this->cached_ids[$connection_name])) {
+            return $this->cached_ids[$connection_name];
         }
 
         $config = $this->config();
@@ -36,17 +44,18 @@ final class DefaultContributorProvisioner
         $existing = $this->contributor_matcher->findExisting(
             slug: $config['slug'],
             name: $config['name'],
+            context: $context,
         );
 
         if ($existing !== null) {
-            return $this->cached_id = $existing;
+            return $this->cached_ids[$connection_name] = $existing;
         }
 
-        $this->preset_provisioner->ensurePreset($binding['entity'], $binding['preset']);
+        $this->preset_provisioner->ensurePreset($binding['entity'], $binding['preset'], $context);
 
-        $contributor = new Contributor([
-            'entity_id' => $this->entity_preset_resolver->entityId($binding['entity']),
-            'presettable_id' => $this->entity_preset_resolver->presettableId($binding['entity'], $binding['preset']),
+        $contributor = $contributor_model->newInstance([
+            'entity_id' => $this->entity_preset_resolver->entityId($binding['entity'], $context),
+            'presettable_id' => $this->entity_preset_resolver->presettableId($binding['entity'], $binding['preset'], $context),
             'name' => $config['name'],
         ]);
         $contributor->save();
@@ -59,7 +68,12 @@ final class DefaultContributorProvisioner
             $contributor->save();
         }
 
-        return $this->cached_id = (int) $contributor->id;
+        return $this->cached_ids[$connection_name] = (int) $contributor->id;
+    }
+
+    public function reset(): void
+    {
+        $this->cached_ids = [];
     }
 
     /**

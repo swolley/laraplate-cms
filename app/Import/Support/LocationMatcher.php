@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Import\Support;
 
-use Illuminate\Support\Facades\DB;
-use Modules\CMS\Enums\CMSTables;
+use Illuminate\Database\ConnectionInterface;
+use Modules\CMS\Models\Location;
 
 /**
  * Cross-source location deduplication for import upserts.
@@ -16,10 +16,19 @@ use Modules\CMS\Enums\CMSTables;
  */
 final class LocationMatcher
 {
-    public function findExisting(?string $slug, string $name): ?int
+    private readonly Location $location;
+
+    public function __construct(?Location $location = null)
     {
+        $this->location = $location ?? new Location;
+    }
+
+    public function findExisting(?string $slug, string $name, ?ImportConnectionContext $context = null): ?int
+    {
+        $location = $context?->model(Location::class) ?? $this->location;
+
         if ($slug !== null && $slug !== '') {
-            $by_slug = DB::table(CMSTables::Locations->value)
+            $by_slug = $location->getConnection()->table($location->getTable())
                 ->where('slug', $slug)
                 ->value('id');
 
@@ -28,10 +37,15 @@ final class LocationMatcher
             }
         }
 
-        $by_name = DB::table(CMSTables::Locations->value)
+        $by_name = $location->getConnection()->table($location->getTable())
             ->where('name', $name)
             ->value('id');
 
         return $by_name !== null ? (int) $by_name : null;
+    }
+
+    private function connection(): ConnectionInterface
+    {
+        return $this->location->getConnection();
     }
 }

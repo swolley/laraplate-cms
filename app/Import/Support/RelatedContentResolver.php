@@ -17,7 +17,7 @@ final class RelatedContentResolver
      * @param  list<ImportRelatedContentDto>  $relatedContents
      * @return list<int>
      */
-    public function resolveContentIds(array $relatedContents): array
+    public function resolveContentIds(array $relatedContents, ?ImportConnectionContext $context = null): array
     {
         $resolved = [];
 
@@ -27,6 +27,7 @@ final class RelatedContentResolver
                 Content::class,
                 $related->externalId,
                 $related->sourceType,
+                $context,
             );
 
             if ($content_id !== null) {

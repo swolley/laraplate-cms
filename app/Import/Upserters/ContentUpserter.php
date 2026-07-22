@@ -7,6 +7,7 @@ namespace Modules\CMS\Import\Upserters;
 use Modules\CMS\Import\Dto\ImportContentDto;
 use Modules\CMS\Import\Support\EntityPresetResolver;
 use Modules\CMS\Import\Support\ExternalReferenceLocator;
+use Modules\CMS\Import\Support\ImportConnectionContext;
 use Modules\CMS\Import\Support\ImportProgressLogger;
 use Modules\CMS\Import\Support\ImportReferenceResolver;
 use Modules\CMS\Import\Support\RelatedContentResolver;
@@ -24,6 +25,14 @@ final class ContentUpserter
     ) {}
 
     /**
+     * @return list<class-string<\Illuminate\Database\Eloquent\Model>>
+     */
+    public function participantModelClasses(): array
+    {
+        return [Content::class, \Modules\CMS\Models\Translations\ContentTranslation::class, \Modules\Core\Models\RecordOrigin::class];
+    }
+
+    /**
      * @param  list<int>  $categoryIds
      * @param  list<int>  $contributorIds
      * @param  list<int>  $tagIds
@@ -35,21 +44,25 @@ final class ContentUpserter
         array $contributorIds = [],
         array $tagIds = [],
         array $locationIds = [],
+        ?ImportConnectionContext $context = null,
     ): int {
+        $context ??= new ImportConnectionContext(new Content);
+        $content_model = $context->model(Content::class);
         $existing_id = $this->reference_resolver->resolve(
             'contents',
             Content::class,
             $dto->externalId,
             $dto->sourceType,
+            $context,
         );
 
-        $entity_id = $this->entity_preset_resolver->entityId($dto->entityName);
-        $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName);
+        $entity_id = $this->entity_preset_resolver->entityId($dto->entityName, $context);
+        $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName, $context);
 
         if ($existing_id !== null) {
-            $content = Content::query()->withoutGlobalScopes()->findOrFail($existing_id);
+            $content = $content_model->newQueryWithoutScopes()->findOrFail($existing_id);
         } else {
-            $content = new Content([
+            $content = $content_model->newInstance([
                 'entity_id' => $entity_id,
                 'presettable_id' => $presettable_id,
             ]);
@@ -108,7 +121,7 @@ final class ContentUpserter
             $content->locations()->sync($locationIds);
         }
 
-        $related_ids = $this->related_content_resolver->resolveContentIds($dto->relatedContents);
+        $related_ids = $this->related_content_resolver->resolveContentIds($dto->relatedContents, $context);
 
         if ($related_ids !== []) {
             $content->related()->sync($related_ids);
@@ -119,10 +132,10 @@ final class ContentUpserter
         }
 
         $content_id = (int) $content->id;
-        $this->reference_resolver->remember('contents', $dto->externalId, $content_id);
+        $this->reference_resolver->remember('contents', $dto->externalId, $content_id, $dto->sourceType, $context);
 
         foreach ($dto->familyExternalIds as $family_external_id) {
-            $this->reference_resolver->remember('contents', $family_external_id, $content_id);
+            $this->reference_resolver->remember('contents', $family_external_id, $content_id, $dto->sourceType, $context);
         }
 
         $this->locator->register(

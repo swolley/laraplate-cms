@@ -21,7 +21,7 @@ final class EntityPresetResolver
      */
     private array $presettable_ids = [];
 
-    public function entityId(string $entityName): int
+    public function entityId(string $entityName, ?ImportConnectionContext $context = null): int
     {
         $entityName = ImportEntityNames::normalize($entityName);
 
@@ -29,7 +29,8 @@ final class EntityPresetResolver
             return $this->entity_ids[$entityName];
         }
 
-        $entity_id = Entity::query()
+        $context ??= new ImportConnectionContext(new Entity);
+        $entity_id = $context->model(Entity::class)->newQuery()
             ->where('name', $entityName)
             ->value('id');
 
@@ -42,7 +43,7 @@ final class EntityPresetResolver
         return (int) $entity_id;
     }
 
-    public function presettableId(string $entityName, string $presetName): int
+    public function presettableId(string $entityName, string $presetName, ?ImportConnectionContext $context = null): int
     {
         $entityName = ImportEntityNames::normalize($entityName);
 
@@ -52,9 +53,10 @@ final class EntityPresetResolver
             return $this->presettable_ids[$cache_key];
         }
 
-        $entity_id = $this->entityId($entityName);
+        $context ??= new ImportConnectionContext(new Entity);
+        $entity_id = $this->entityId($entityName, $context);
 
-        $preset = Preset::query()
+        $preset = $context->model(Preset::class)->newQuery()
             ->where('entity_id', $entity_id)
             ->where('name', $presetName)
             ->first();
@@ -63,7 +65,7 @@ final class EntityPresetResolver
             throw new RuntimeException("CMS preset not found: {$entityName}/{$presetName}");
         }
 
-        $presettable = CmsPresettable::query()
+        $presettable = $context->model(CmsPresettable::class)->newQuery()
             ->where('preset_id', $preset->id)
             ->where('entity_id', $entity_id)
             ->whereNull('deleted_at')

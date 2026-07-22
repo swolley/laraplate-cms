@@ -9,12 +9,26 @@ use Illuminate\Support\Facades\Schema;
 use Modules\CMS\Console\ImportCommand;
 use Modules\CMS\Import\Support\SiblingImportersDiscovery;
 use Modules\CMS\Tests\Feature\Import\Stubs\FakeBulkImporter;
+use Modules\CMS\Tests\Feature\Import\Stubs\LegacyFakeBulkImporter;
 use Modules\CMS\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
     Schema::create(FakeBulkImporter::TABLE, static function (Blueprint $table): void {
+        $table->id();
+        $table->string('name');
+    });
+
+    config([
+        'database.connections.affinity' => [
+            ...config('database.connections.sqlite'),
+            'database' => ':memory:',
+        ],
+    ]);
+    DB::purge('affinity');
+
+    Schema::connection('affinity')->create(FakeBulkImporter::TABLE, static function (Blueprint $table): void {
         $table->id();
         $table->string('name');
     });
@@ -30,6 +44,8 @@ beforeEach(function (): void {
 
 afterEach(function (): void {
     Schema::dropIfExists(FakeBulkImporter::TABLE);
+    Schema::connection('affinity')->dropIfExists(FakeBulkImporter::TABLE);
+    DB::purge('affinity');
 });
 
 it('resolves the importer by FQCN, forwards args and reports the imported count', function (): void {
@@ -66,6 +82,37 @@ it('rolls back all writes in --dry-run', function (): void {
 
     expect(DB::table(FakeBulkImporter::TABLE)->count())->toBe(0)
         ->and(FakeBulkImporter::$lastArguments['dryRun'])->toBeTrue();
+});
+
+it('writes importer rows to its affinity connection', function (): void {
+    $this->artisan(ImportCommand::class, [
+        '--importer' => FakeBulkImporter::class,
+        '--arg' => ['records=3', 'connectionName=affinity'],
+    ])->assertExitCode(0);
+
+    expect(DB::connection('affinity')->table(FakeBulkImporter::TABLE)->count())->toBe(3)
+        ->and(DB::table(FakeBulkImporter::TABLE)->count())->toBe(0);
+});
+
+it('rolls back dry-run importer rows on its affinity connection', function (): void {
+    $this->artisan(ImportCommand::class, [
+        '--importer' => FakeBulkImporter::class,
+        '--arg' => ['records=3', 'connectionName=affinity'],
+        '--dry-run' => true,
+    ])->assertExitCode(0);
+
+    expect(DB::connection('affinity')->table(FakeBulkImporter::TABLE)->count())->toBe(0)
+        ->and(DB::table(FakeBulkImporter::TABLE)->count())->toBe(0);
+});
+
+it('uses the default connection for a legacy importer dry-run', function (): void {
+    $this->artisan(ImportCommand::class, [
+        '--importer' => LegacyFakeBulkImporter::class,
+        '--arg' => ['records=3'],
+        '--dry-run' => true,
+    ])->assertExitCode(0);
+
+    expect(DB::table(FakeBulkImporter::TABLE)->count())->toBe(0);
 });
 
 it('fails when the importer class cannot be found', function (): void {

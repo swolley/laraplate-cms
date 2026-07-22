@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Import\Pipeline;
 
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Model;
 use Modules\CMS\Import\Dto\ImportGraphDto;
 use Modules\CMS\Import\Support\CategoryHierarchySorter;
 use Modules\CMS\Import\Support\ContributorDefaults;
+use Modules\CMS\Import\Support\ImportConnectionContext;
 use Modules\CMS\Import\Support\ImportIdMap;
 use Modules\CMS\Import\Support\ImportPresetProvisioner;
 use Modules\CMS\Import\Upserters\CategoryUpserter;
@@ -15,6 +16,7 @@ use Modules\CMS\Import\Upserters\ContentUpserter;
 use Modules\CMS\Import\Upserters\ContributorUpserter;
 use Modules\CMS\Import\Upserters\LocationUpserter;
 use Modules\CMS\Import\Upserters\TagUpserter;
+use Modules\CMS\Models\Content;
 
 final class ImportPipeline
 {
@@ -30,57 +32,103 @@ final class ImportPipeline
         private readonly ImportIdMap $id_map,
     ) {}
 
-    public function import(ImportGraphDto $graph): int
+    public function import(ImportGraphDto $graph, ?Model $root_model = null): int
     {
-        return DB::transaction(function () use ($graph): int {
-            $this->preset_provisioner->provisionFromGraph($graph);
+        $root_model ??= new Content;
+        $context = new ImportConnectionContext($root_model);
 
-            foreach ($this->category_sorter->sort($graph->categories) as $category) {
-                $this->category_upserter->upsert($category);
-            }
+        $context->preflight($this->participantModelClasses($graph));
 
-            foreach ($graph->contributors as $contributor) {
-                $this->contributor_upserter->upsert($contributor);
-            }
+        return $context->connection()->transaction(
+            fn (): int => $this->importGraph($graph, $context),
+        );
+    }
 
-            foreach ($graph->tags as $tag) {
-                $this->tag_upserter->upsert($tag);
-            }
+    public function resetState(): void
+    {
+        $this->id_map->reset();
+        $this->contributor_defaults->reset();
+    }
 
-            $location_ids = [];
+    private function importGraph(ImportGraphDto $graph, ImportConnectionContext $context): int
+    {
+        $this->preset_provisioner->provisionFromGraph($graph, $context);
 
-            foreach ($graph->locations as $location) {
-                $location_ids[] = $this->location_upserter->upsert($location);
-            }
+        foreach ($this->category_sorter->sort($graph->categories) as $category) {
+            $this->category_upserter->upsert($category, $context);
+        }
 
-            $category_ids = $this->id_map->resolveMany(
-                'categories',
-                $graph->content->categoryExternalIds,
-            );
-            $contributor_ids = $this->id_map->resolveMany(
-                'contributors',
-                $graph->content->contributorExternalIds,
-            );
+        foreach ($graph->contributors as $contributor) {
+            $this->contributor_upserter->upsert($contributor, $context);
+        }
 
-            if ($contributor_ids === []) {
-                $contributor_ids = [$this->contributor_defaults->resolveContributorId()];
-            }
+        foreach ($graph->tags as $tag) {
+            $this->tag_upserter->upsert($tag, $context);
+        }
 
-            $tag_ids = $this->id_map->resolveMany('tags', $graph->content->tagExternalIds);
+        $location_ids = [];
 
-            foreach ($graph->relatedGraphs as $related_graph) {
-                $this->import($related_graph);
-            }
+        foreach ($graph->locations as $location) {
+            $location_ids[] = $this->location_upserter->upsert($location, $context);
+        }
 
-            $content_id = $this->content_upserter->upsert(
-                $graph->content,
-                $category_ids,
-                $contributor_ids,
-                $tag_ids,
-                $location_ids,
-            );
+        $category_ids = $this->id_map->resolveMany(
+            'categories',
+            $graph->content->categoryExternalIds,
+            $context->connectionName(),
+            $graph->content->sourceType,
+        );
+        $contributor_ids = $this->id_map->resolveMany(
+            'contributors',
+            $graph->content->contributorExternalIds,
+            $context->connectionName(),
+            $graph->content->sourceType,
+        );
 
-            return $content_id;
-        });
+        if ($contributor_ids === []) {
+            $contributor_ids = [$this->contributor_defaults->resolveContributorId($context)];
+        }
+
+        $tag_ids = $this->id_map->resolveMany(
+            'tags',
+            $graph->content->tagExternalIds,
+            $context->connectionName(),
+            $graph->content->sourceType,
+        );
+
+        foreach ($graph->relatedGraphs as $related_graph) {
+            $this->importGraph($related_graph, $context);
+        }
+
+        return $this->content_upserter->upsert(
+            $graph->content,
+            $category_ids,
+            $contributor_ids,
+            $tag_ids,
+            $location_ids,
+            $context,
+        );
+    }
+
+    /**
+     * @return list<class-string<Model>>
+     */
+    private function participantModelClasses(ImportGraphDto $graph): array
+    {
+        $classes = [
+            ...$this->preset_provisioner->participantModelClasses(),
+            ...$this->content_upserter->participantModelClasses(),
+            ...$this->contributor_upserter->participantModelClasses(),
+            ...($graph->categories === [] ? [] : $this->category_upserter->participantModelClasses()),
+            ...($graph->contributors === [] ? [] : $this->contributor_upserter->participantModelClasses()),
+            ...($graph->tags === [] ? [] : $this->tag_upserter->participantModelClasses()),
+            ...($graph->locations === [] ? [] : $this->location_upserter->participantModelClasses()),
+        ];
+
+        foreach ($graph->relatedGraphs as $related_graph) {
+            $classes = [...$classes, ...$this->participantModelClasses($related_graph)];
+        }
+
+        return array_values(array_unique($classes));
     }
 }

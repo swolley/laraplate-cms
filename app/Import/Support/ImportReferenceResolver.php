@@ -29,14 +29,37 @@ final class ImportReferenceResolver
         string $referable_class,
         int $external_id,
         string $source_type,
+        ?ImportConnectionContext $context = null,
     ): ?int {
-        return $this->id_map->resolve($map_entity, $external_id)
-            ?? $this->locator->findImportedRecordId($referable_class, $external_id, $source_type);
+        $referable = $context?->model($referable_class) ?? new $referable_class;
+
+        return $this->id_map->resolve(
+            $map_entity,
+            $external_id,
+            $context?->connectionName(),
+            $context instanceof ImportConnectionContext ? $source_type : null,
+        ) ?? $this->locator->findImportedRecordId(
+            $referable,
+            $external_id,
+            $source_type,
+            context: $context,
+        );
     }
 
-    public function remember(string $map_entity, int $external_id, int $local_id): void
-    {
-        $this->id_map->remember($map_entity, $external_id, $local_id);
+    public function remember(
+        string $map_entity,
+        int $external_id,
+        int $local_id,
+        string $source_type = '',
+        ?ImportConnectionContext $context = null,
+    ): void {
+        $this->id_map->remember(
+            $map_entity,
+            $external_id,
+            $local_id,
+            $context?->connectionName(),
+            $source_type,
+        );
     }
 
     /**
@@ -48,11 +71,12 @@ final class ImportReferenceResolver
         string $referable_class,
         array $external_ids,
         string $source_type,
+        ?ImportConnectionContext $context = null,
     ): array {
         $resolved = [];
 
         foreach ($external_ids as $external_id) {
-            $local_id = $this->resolve($map_entity, $referable_class, $external_id, $source_type);
+            $local_id = $this->resolve($map_entity, $referable_class, $external_id, $source_type, $context);
 
             if ($local_id !== null) {
                 $resolved[] = $local_id;

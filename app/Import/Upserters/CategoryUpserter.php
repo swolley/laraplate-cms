@@ -7,6 +7,7 @@ namespace Modules\CMS\Import\Upserters;
 use Modules\CMS\Import\Dto\ImportCategoryDto;
 use Modules\CMS\Import\Support\EntityPresetResolver;
 use Modules\CMS\Import\Support\ExternalReferenceLocator;
+use Modules\CMS\Import\Support\ImportConnectionContext;
 use Modules\CMS\Import\Support\ImportReferenceResolver;
 use Modules\CMS\Models\Category;
 
@@ -19,31 +20,43 @@ final class CategoryUpserter
         private readonly string $locale,
     ) {}
 
-    public function upsert(ImportCategoryDto $dto): int
+    /**
+     * @return list<class-string<\Illuminate\Database\Eloquent\Model>>
+     */
+    public function participantModelClasses(): array
     {
+        return [Category::class, \Modules\Core\Models\Translations\TaxonomyTranslation::class, \Modules\Core\Models\RecordOrigin::class];
+    }
+
+    public function upsert(ImportCategoryDto $dto, ?ImportConnectionContext $context = null): int
+    {
+        $context ??= new ImportConnectionContext(new Category);
+        $category_model = $context->model(Category::class);
         $existing_id = $this->reference_resolver->resolve(
             'categories',
             Category::class,
             $dto->externalId,
             $dto->sourceType,
+            $context,
         );
 
-        $entity_id = $this->entity_preset_resolver->entityId($dto->entityName);
-        $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName);
+        $entity_id = $this->entity_preset_resolver->entityId($dto->entityName, $context);
+        $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName, $context);
         $parent_id = $dto->parentExternalId !== null
             ? $this->reference_resolver->resolve(
                 'categories',
                 Category::class,
                 $dto->parentExternalId,
                 $dto->sourceType,
+                $context,
             )
             : null;
 
         if ($existing_id !== null) {
-            $category = Category::query()->withoutGlobalScopes()->with('presettable')->findOrFail($existing_id);
+            $category = $category_model->newQueryWithoutScopes()->with('presettable')->findOrFail($existing_id);
             $category->parent_id = $parent_id;
         } else {
-            $category = new Category([
+            $category = $category_model->newInstance([
                 'entity_id' => $entity_id,
                 'presettable_id' => $presettable_id,
                 'parent_id' => $parent_id,
@@ -75,7 +88,7 @@ final class CategoryUpserter
         }
 
         $category_id = (int) $category->id;
-        $this->reference_resolver->remember('categories', $dto->externalId, $category_id);
+        $this->reference_resolver->remember('categories', $dto->externalId, $category_id, $dto->sourceType, $context);
 
         $this->locator->register($category, $dto->sourceType, $dto->externalId);
 

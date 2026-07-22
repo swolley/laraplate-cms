@@ -7,6 +7,7 @@ namespace Modules\CMS\Import\Upserters;
 use InvalidArgumentException;
 use Modules\CMS\Import\Dto\ImportLocationDto;
 use Modules\CMS\Import\Support\ExternalReferenceLocator;
+use Modules\CMS\Import\Support\ImportConnectionContext;
 use Modules\CMS\Import\Support\ImportReferenceResolver;
 use Modules\CMS\Import\Support\LocationMatcher;
 use Modules\CMS\Models\Location;
@@ -19,25 +20,36 @@ final class LocationUpserter
         private readonly LocationMatcher $location_matcher,
     ) {}
 
-    public function upsert(ImportLocationDto $dto): int
+    /**
+     * @return list<class-string<\Illuminate\Database\Eloquent\Model>>
+     */
+    public function participantModelClasses(): array
     {
+        return [Location::class, \Modules\Core\Models\RecordOrigin::class];
+    }
+
+    public function upsert(ImportLocationDto $dto, ?ImportConnectionContext $context = null): int
+    {
+        $context ??= new ImportConnectionContext(new Location);
+        $location_model = $context->model(Location::class);
         $existing_id = ($dto->externalId !== null
             ? $this->reference_resolver->resolve(
                 'locations',
                 Location::class,
                 $dto->externalId,
                 $dto->sourceType,
+                $context,
             )
             : null)
-            ?? $this->location_matcher->findExisting($dto->slug, $dto->name);
+            ?? $this->location_matcher->findExisting($dto->slug, $dto->name, $context);
 
         if ($existing_id !== null) {
-            $location = Location::query()->findOrFail($existing_id);
+            $location = $location_model->newQuery()->findOrFail($existing_id);
             $location->name = $dto->name;
             $location->slug = $dto->slug;
             $location->save();
         } else {
-            $location = Location::query()->create([
+            $location = $location_model->newQuery()->create([
                 'name' => $dto->name,
                 'slug' => $dto->slug,
                 'country' => $this->resolvedCountry($dto),
@@ -47,7 +59,7 @@ final class LocationUpserter
         $location_id = (int) $location->id;
 
         if ($dto->externalId !== null) {
-            $this->reference_resolver->remember('locations', $dto->externalId, $location_id);
+            $this->reference_resolver->remember('locations', $dto->externalId, $location_id, $dto->sourceType, $context);
             $this->locator->register($location, $dto->sourceType, $dto->externalId);
         }
 

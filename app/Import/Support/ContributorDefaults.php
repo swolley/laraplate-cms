@@ -10,8 +10,13 @@ final class ContributorDefaults
         private readonly DefaultContributorProvisioner $default_contributor_provisioner,
     ) {}
 
-    public function resolveContributorId(): int
+    public function resolveContributorId(?ImportConnectionContext $context = null): int
     {
-        return $this->default_contributor_provisioner->ensure();
+        return $this->default_contributor_provisioner->ensure($context);
+    }
+
+    public function reset(): void
+    {
+        $this->default_contributor_provisioner->reset();
     }
 }

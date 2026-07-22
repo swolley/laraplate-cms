@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Import\Support;
 
-use Illuminate\Support\Facades\DB;
-use Modules\CMS\Enums\CMSTables;
+use Illuminate\Database\ConnectionInterface;
 use Modules\CMS\Models\Contributor;
+use Modules\CMS\Models\Translations\ContributorTranslation;
 
 /**
  * Cross-source contributor deduplication for import upserts.
@@ -18,14 +18,23 @@ use Modules\CMS\Models\Contributor;
  */
 final class ContributorMatcher
 {
+    private readonly Contributor $contributor;
+
     public function __construct(
         private readonly string $locale,
-    ) {}
+        ?Contributor $contributor = null,
+    ) {
+        $this->contributor = $contributor ?? new Contributor;
+    }
 
-    public function findExisting(?string $slug, string $name): ?int
+    public function findExisting(?string $slug, string $name, ?ImportConnectionContext $context = null): ?int
     {
+        $contributor = $context?->model(Contributor::class) ?? $this->contributor;
+
         if ($slug !== null && $slug !== '') {
-            $by_slug = DB::table(CMSTables::ContributorsTranslations->value)
+            $translation = new ContributorTranslation;
+
+            $by_slug = $contributor->getConnection()->table($translation->getTable())
                 ->where('locale', $this->locale)
                 ->where('slug', $slug)
                 ->value('contributor_id');
@@ -39,7 +48,7 @@ final class ContributorMatcher
             return null;
         }
 
-        $by_name = DB::table(CMSTables::Contributors->value)
+        $by_name = $contributor->getConnection()->table($contributor->getTable())
             ->where('name', $name)
             ->value('id');
 
@@ -50,9 +59,10 @@ final class ContributorMatcher
      * Resolve the contributor row to upsert, preferring editorial identity over a
      * stale origin mapping when Naxos reuses external ids across tenants or sources.
      */
-    public function resolveImportTarget(?string $slug, string $name, ?int $origin_id): ?int
+    public function resolveImportTarget(?string $slug, string $name, ?int $origin_id, ?ImportConnectionContext $context = null): ?int
     {
-        $matched_id = $this->findExisting($slug, $name);
+        $contributor = $context?->model(Contributor::class) ?? $this->contributor;
+        $matched_id = $this->findExisting($slug, $name, $context);
 
         if ($matched_id !== null) {
             return $matched_id;
@@ -62,7 +72,7 @@ final class ContributorMatcher
             return null;
         }
 
-        $origin_name = DB::table(CMSTables::Contributors->value)
+        $origin_name = $contributor->getConnection()->table($contributor->getTable())
             ->where('id', $origin_id)
             ->value('name');
 
@@ -70,11 +80,11 @@ final class ContributorMatcher
             return $origin_id;
         }
 
-        $name_owner_id = DB::table(CMSTables::Contributors->value)
+        $name_owner_id = $contributor->getConnection()->table($contributor->getTable())
             ->where('name', $name)
             ->value('id');
 
-        if ($name_owner_id !== null && (int) $name_owner_id !== $origin_id) {
+        if ($name_owner_id !== null && $origin_id !== (int) $name_owner_id) {
             return (int) $name_owner_id;
         }
 
@@ -84,6 +94,11 @@ final class ContributorMatcher
     private function shouldDedupByName(string $name): bool
     {
         return in_array($name, $this->dedupNames(), true);
+    }
+
+    private function connection(): ConnectionInterface
+    {
+        return $this->contributor->getConnection();
     }
 
     /**

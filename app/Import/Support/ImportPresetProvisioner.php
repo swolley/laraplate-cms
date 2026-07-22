@@ -19,22 +19,38 @@ final class ImportPresetProvisioner
         private readonly PresetVersioningService $preset_versioning_service,
     ) {}
 
-    public function provisionFromGraph(ImportGraphDto $graph): void
+    public function provisionFromGraph(ImportGraphDto $graph, ?ImportConnectionContext $context = null): void
     {
-        $this->ensurePreset($graph->content->entityName, $graph->content->presetName);
+        $context ??= new ImportConnectionContext(new Entity);
+        $this->assertContext($context);
+        $this->ensurePreset($graph->content->entityName, $graph->content->presetName, $context);
 
         foreach ($graph->categories as $category) {
-            $this->ensurePreset($category->entityName, $category->presetName);
+            $this->ensurePreset($category->entityName, $category->presetName, $context);
         }
 
         foreach ($graph->contributors as $contributor) {
-            $this->ensurePreset($contributor->entityName, $contributor->presetName);
+            $this->ensurePreset($contributor->entityName, $contributor->presetName, $context);
         }
     }
 
-    public function ensurePreset(string $entityName, string $presetName): CmsPresettable
+    public function assertContext(ImportConnectionContext $context): void
     {
-        $entity = Entity::query()->firstOrCreate(
+        $context->preflight($this->participantModelClasses());
+    }
+
+    /**
+     * @return list<class-string<\Illuminate\Database\Eloquent\Model>>
+     */
+    public function participantModelClasses(): array
+    {
+        return [Entity::class, Preset::class, CmsPresettable::class, Field::class];
+    }
+
+    public function ensurePreset(string $entityName, string $presetName, ?ImportConnectionContext $context = null): CmsPresettable
+    {
+        $context ??= new ImportConnectionContext(new Entity);
+        $entity = $context->model(Entity::class)->newQuery()->firstOrCreate(
             ['name' => $entityName],
             [
                 'slug' => $entityName,
@@ -42,7 +58,7 @@ final class ImportPresetProvisioner
             ],
         );
 
-        $preset = Preset::query()->firstOrCreate(
+        $preset = $context->model(Preset::class)->newQuery()->firstOrCreate(
             ['entity_id' => $entity->id, 'name' => $presetName],
             ['entity_id' => $entity->id, 'name' => $presetName],
         );
@@ -50,10 +66,10 @@ final class ImportPresetProvisioner
         $definitions = $this->fieldDefinitions($entityName, $presetName);
 
         if ($definitions !== []) {
-            $this->syncFields($preset, $definitions);
+            $this->syncFields($preset, $definitions, $context);
         }
 
-        $active = CmsPresettable::query()
+        $active = $context->model(CmsPresettable::class)->newQuery()
             ->where('preset_id', $preset->id)
             ->where('entity_id', $entity->id)
             ->whereNull('deleted_at')
@@ -90,12 +106,12 @@ final class ImportPresetProvisioner
     /**
      * @param  array<string, array{type: FieldType|string, translatable?: bool, required?: bool, options?: array<string, mixed>}>  $definitions
      */
-    private function syncFields(Preset $preset, array $definitions): void
+    private function syncFields(Preset $preset, array $definitions, ImportConnectionContext $context): void
     {
         $changed = false;
 
         foreach ($definitions as $field_name => $definition) {
-            $field = $this->ensureField($field_name, $definition, $changed);
+            $field = $this->ensureField($field_name, $definition, $changed, $context);
 
             if (! $preset->fields()->where('field_id', $field->id)->exists()) {
                 $preset->fields()->attach($field->id, [
@@ -118,7 +134,7 @@ final class ImportPresetProvisioner
      *
      * @param  array{type: FieldType|string, translatable?: bool, required?: bool, options?: array<string, mixed>}  $definition
      */
-    private function ensureField(string $fieldName, array $definition, bool &$changed): Field
+    private function ensureField(string $fieldName, array $definition, bool &$changed, ImportConnectionContext $context): Field
     {
         $type = $definition['type'] instanceof FieldType
             ? $definition['type']
@@ -126,10 +142,11 @@ final class ImportPresetProvisioner
         $is_translatable = (bool) ($definition['translatable'] ?? false);
         $options = (object) ($definition['options'] ?? []);
 
-        $field = Field::query()->where('name', $fieldName)->first();
+        $field_model = $context->model(Field::class);
+        $field = $field_model->newQuery()->where('name', $fieldName)->first();
 
         if (! $field instanceof Field) {
-            $field = new Field;
+            $field = $field_model->newInstance();
             $field->name = $fieldName;
             $field->type = $type;
             $field->is_translatable = $is_translatable;

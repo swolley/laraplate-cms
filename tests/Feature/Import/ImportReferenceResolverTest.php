@@ -87,3 +87,28 @@ it('detects when a content origin is already registered', function (): void {
     expect($locator->hasImportedRecord(Content::class, 1001, 'fixture'))->toBeTrue()
         ->and($locator->hasImportedRecord(Content::class, 9999, 'fixture'))->toBeFalse();
 });
+
+it('rejects a locator target whose class differs from the declared class before querying', function (): void {
+    $locator = resolve(ExternalReferenceLocator::class);
+
+    expect(fn () => $locator->findImportedRecordId(
+        Content::class,
+        1001,
+        'fixture',
+        new Contributor,
+    ))->toThrow(LogicException::class, 'Declared import model');
+});
+
+it('isolates in-memory ids by connection and source identity', function (): void {
+    $map = resolve(ImportIdMap::class);
+    $map->remember('contents', 10, 101, 'sqlite', 'source-a');
+    $map->remember('contents', 10, 202, 'affinity', 'source-a');
+    $map->remember('contents', 10, 303, 'sqlite', 'source-b');
+
+    expect($map->resolve('contents', 10, 'sqlite', 'source-a'))->toBe(101)
+        ->and($map->resolve('contents', 10, 'affinity', 'source-a'))->toBe(202)
+        ->and($map->resolve('contents', 10, 'sqlite', 'source-b'))->toBe(303);
+
+    expect(fn (): ?int => $map->resolve('contents', 10))
+        ->toThrow(LogicException::class, 'ambiguous without connection and source context');
+});

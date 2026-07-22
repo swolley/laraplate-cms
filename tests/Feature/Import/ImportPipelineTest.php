@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Modules\CMS\Enums\CMSTables;
@@ -64,6 +65,30 @@ it('imports a graph from fixture dto', function (): void {
         ->and($content->categories)->toHaveCount(1)
         ->and($content->contributors)->toHaveCount(1)
         ->and($content->tags)->toHaveCount(1);
+});
+
+it('rejects a mixed connection graph before writing', function (): void {
+    config([
+        'database.connections.affinity' => [
+            ...config('database.connections.sqlite'),
+            'database' => ':memory:',
+        ],
+    ]);
+    DB::purge('affinity');
+
+    $content = (new Content)->setConnection('affinity');
+    $content_count = Content::query()->withoutGlobalScopes()->count();
+    $writes = [];
+    DB::listen(static function ($query) use (&$writes): void {
+        if (preg_match('/^\s*(insert|update|delete)/i', $query->sql) === 1) {
+            $writes[] = $query->sql;
+        }
+    });
+
+    expect(fn (): int => resolve(ImportPipeline::class)->import(buildImportGraphFromFixture(), $content))
+        ->toThrow(LogicException::class, 'Import model [Modules\CMS\Models\Entity] resolves connection [sqlite], expected root [Modules\CMS\Models\Content] connection [affinity].')
+        ->and(Content::query()->withoutGlobalScopes()->count())->toBe($content_count)
+        ->and($writes)->toBe([]);
 });
 
 it('is idempotent when importing the same graph twice', function (): void {

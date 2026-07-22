@@ -8,6 +8,7 @@ use Modules\CMS\Import\Dto\ImportContributorDto;
 use Modules\CMS\Import\Support\ContributorMatcher;
 use Modules\CMS\Import\Support\EntityPresetResolver;
 use Modules\CMS\Import\Support\ExternalReferenceLocator;
+use Modules\CMS\Import\Support\ImportConnectionContext;
 use Modules\CMS\Import\Support\ImportReferenceResolver;
 use Modules\CMS\Models\Contributor;
 
@@ -21,28 +22,40 @@ final class ContributorUpserter
         private readonly string $locale,
     ) {}
 
-    public function upsert(ImportContributorDto $dto): int
+    /**
+     * @return list<class-string<\Illuminate\Database\Eloquent\Model>>
+     */
+    public function participantModelClasses(): array
     {
+        return [Contributor::class, \Modules\CMS\Models\Translations\ContributorTranslation::class, \Modules\Core\Models\RecordOrigin::class];
+    }
+
+    public function upsert(ImportContributorDto $dto, ?ImportConnectionContext $context = null): int
+    {
+        $context ??= new ImportConnectionContext(new Contributor);
+        $contributor_model = $context->model(Contributor::class);
         $origin_id = $this->reference_resolver->resolve(
             'contributors',
             Contributor::class,
             $dto->externalId,
             $dto->sourceType,
+            $context,
         );
 
         $existing_id = $this->contributor_matcher->resolveImportTarget(
             $dto->slug,
             $dto->name,
             $origin_id,
+            $context,
         );
 
-        $entity_id = $this->entity_preset_resolver->entityId($dto->entityName);
-        $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName);
+        $entity_id = $this->entity_preset_resolver->entityId($dto->entityName, $context);
+        $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName, $context);
 
         if ($existing_id !== null) {
-            $contributor = Contributor::query()->withoutGlobalScopes()->findOrFail($existing_id);
+            $contributor = $contributor_model->newQueryWithoutScopes()->findOrFail($existing_id);
         } else {
-            $contributor = new Contributor([
+            $contributor = $contributor_model->newInstance([
                 'entity_id' => $entity_id,
                 'presettable_id' => $presettable_id,
                 'name' => $dto->name,
@@ -74,7 +87,7 @@ final class ContributorUpserter
         }
 
         $contributor_id = (int) $contributor->id;
-        $this->reference_resolver->remember('contributors', $dto->externalId, $contributor_id);
+        $this->reference_resolver->remember('contributors', $dto->externalId, $contributor_id, $dto->sourceType, $context);
 
         $this->locator->register($contributor, $dto->sourceType, $dto->externalId);
 
