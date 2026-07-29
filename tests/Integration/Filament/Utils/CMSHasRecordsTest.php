@@ -3,10 +3,8 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Modules\CMS\Casts\EntityType;
-use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Contributor;
 use Modules\CMS\Models\Entity;
@@ -92,7 +90,9 @@ it('returns no tabs when the resource model does not use dynamic contents', func
 });
 
 it('aggregates entity tab counts without hydrating eager-loaded presettable relations', function (): void {
-    if (! Schema::hasColumns(CMSTables::Contributors->value, ['components', 'shared_components'])) {
+    $contributor = new Contributor;
+
+    if (! $contributor->getConnection()->getSchemaBuilder()->hasColumns($contributor->getTable(), ['components', 'shared_components'])) {
         test()->markTestSkipped('Contributor dynamic contents require full Core runtime.');
     }
 

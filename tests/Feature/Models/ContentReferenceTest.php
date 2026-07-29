@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
-use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\ContentReference;
 use Modules\CMS\Tests\TestCase;
@@ -12,7 +10,9 @@ use Modules\CMS\Tests\TestCase;
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    if (! Schema::hasTable(CMSTables::ContentsReferences->value)) {
+    $reference = new ContentReference;
+
+    if (! $reference->getConnection()->getSchemaBuilder()->hasTable($reference->getTable())) {
         $this->markTestSkipped('cms_contents_references table not migrated.');
     }
 

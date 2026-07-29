@@ -3,16 +3,17 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
 use Modules\CMS\Casts\EntityType;
-use Modules\Core\Enums\CoreTables;
 use Modules\CMS\Models\Preset;
 use Modules\CMS\Tests\TestCase;
+use Modules\Core\Enums\CoreTables;
 
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    if (! Schema::hasTable(CoreTables::Presets->value)) {
+    $preset = new Preset;
+
+    if (! $preset->getConnection()->getSchemaBuilder()->hasTable($preset->getTable())) {
         $this->markTestSkipped('Preset scopes require CMS schema.');
     }
 

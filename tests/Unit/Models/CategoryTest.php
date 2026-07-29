@@ -8,6 +8,7 @@ use Modules\CMS\Database\Factories\CategoryFactory;
 use Modules\CMS\Models\Entity;
 use Modules\CMS\Models\Pivot\Presettable;
 use Modules\CMS\Tests\TestCase;
+use Modules\Core\Models\Setting;
 use Modules\Core\Models\Taxonomy;
 
 uses(TestCase::class);
@@ -112,7 +113,9 @@ it('category model has correct method signatures', function (): void {
 });
 
 it('builds path, ids and full_name correctly from ancestors', function (): void {
-    if (! function_exists('app') || ! app()->bound('session') || ! Illuminate\Support\Facades\Schema::hasTable('core_settings')) {
+    $setting = new Setting;
+
+    if (! function_exists('app') || ! app()->bound('session') || ! $setting->getConnection()->getSchemaBuilder()->hasTable($setting->getTable())) {
         $this->markTestSkipped('Session or settings table not available, skipping path chain test.');
     }
 
@@ -152,7 +155,9 @@ it('builds path, ids and full_name correctly from ancestors', function (): void 
 });
 
 it('falls back to current node data when no ancestors are present', function (): void {
-    if (! function_exists('app') || ! app()->bound('session') || ! Illuminate\Support\Facades\Schema::hasTable('core_settings')) {
+    $setting = new Setting;
+
+    if (! function_exists('app') || ! app()->bound('session') || ! $setting->getConnection()->getSchemaBuilder()->hasTable($setting->getTable())) {
         $this->markTestSkipped('Session or settings table not available, skipping path fallback test.');
     }
 

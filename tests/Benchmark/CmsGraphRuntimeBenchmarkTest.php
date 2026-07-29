@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Modules\CMS\Models\Category;
@@ -40,6 +41,29 @@ function cmsGraphBenchmarkConfig(): array
         'iterations' => cmsGraphBenchmarkInt('CMS_GRAPH_BENCHMARK_ITERATIONS', 5),
     ];
 }
+
+function cmsGraphBenchmarkConnection(Content $content): ConnectionInterface
+{
+    return $content->getConnection();
+}
+
+it('measures query logging on the content model connection', function (): void {
+    config([
+        'database.connections.affinity' => [
+            ...config('database.connections.sqlite'),
+            'database' => ':memory:',
+        ],
+    ]);
+    DB::purge('affinity');
+
+    try {
+        $content = (new Content)->setConnection('affinity');
+
+        expect(cmsGraphBenchmarkConnection($content)->getName())->toBe('affinity');
+    } finally {
+        DB::purge('affinity');
+    }
+});
 
 it('measures cms graph runtime traversal on a realistic dataset', function (): void {
     if (! cmsGraphBenchmarkEnabled()) {
@@ -85,7 +109,7 @@ it('measures cms graph runtime traversal on a realistic dataset', function (): v
     $metrics = [];
 
     foreach ($scenarios as $name => $uri) {
-        $metrics[$name] = cmsGraphBenchmarkScenario($this, $user, $uri, $config['iterations']);
+        $metrics[$name] = cmsGraphBenchmarkScenario($this, $user, $center, $uri, $config['iterations']);
     }
 
     fwrite(STDERR, PHP_EOL . json_encode([
@@ -99,24 +123,28 @@ it('measures cms graph runtime traversal on a realistic dataset', function (): v
 /**
  * @return array<string, mixed>
  */
-function cmsGraphBenchmarkScenario(TestCase $test, User $user, string $uri, int $iterations): array
+function cmsGraphBenchmarkScenario(TestCase $test, User $user, Content $content, string $uri, int $iterations): array
 {
     $samples = [];
+    $connection = cmsGraphBenchmarkConnection($content);
 
     for ($i = 0; $i < $iterations; $i++) {
-        DB::flushQueryLog();
-        DB::enableQueryLog();
+        $connection->flushQueryLog();
+        $connection->enableQueryLog();
 
-        $start = hrtime(true);
-        $startMemory = memory_get_usage(true);
+        try {
+            $start = hrtime(true);
+            $startMemory = memory_get_usage(true);
 
-        $response = $test->actingAs($user)->getJson($uri);
+            $response = $test->actingAs($user)->getJson($uri);
 
-        $durationMs = (hrtime(true) - $start) / 1_000_000;
-        $peakMemoryMb = (memory_get_peak_usage(true) - $startMemory) / 1024 / 1024;
-        $queries = count(DB::getQueryLog());
-        DB::flushQueryLog();
-        DB::disableQueryLog();
+            $durationMs = (hrtime(true) - $start) / 1_000_000;
+            $peakMemoryMb = (memory_get_peak_usage(true) - $startMemory) / 1024 / 1024;
+            $queries = count($connection->getQueryLog());
+        } finally {
+            $connection->flushQueryLog();
+            $connection->disableQueryLog();
+        }
 
         $response->assertOk();
         $payload = $response->json('data') ?? [];

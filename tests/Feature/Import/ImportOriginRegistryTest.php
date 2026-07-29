@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
-use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Import\Pipeline\ImportPipeline;
 use Modules\CMS\Import\Support\ImportIdMap;
 use Modules\CMS\Models\Category;
@@ -20,7 +18,9 @@ uses(TestCase::class, RefreshDatabase::class);
 beforeEach(function (): void {
     config(['scout.driver' => 'null']);
 
-    if (! Schema::hasTable(CMSTables::Contents->value)) {
+    $content = new Content;
+
+    if (! $content->getConnection()->getSchemaBuilder()->hasTable($content->getTable())) {
         $this->markTestSkipped('CMS import tests require full schema.');
     }
 

@@ -3,9 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
 use Modules\CMS\Casts\EntityType;
-use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Contributor;
 use Modules\CMS\Models\Entity;
@@ -16,8 +14,10 @@ use Modules\Core\Models\Preset;
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
+    $contributor = new Contributor;
+
     if (
-        ! Schema::hasColumns(CMSTables::Contributors->value, ['components', 'shared_components'])
+        ! $contributor->getConnection()->getSchemaBuilder()->hasColumns($contributor->getTable(), ['components', 'shared_components'])
         || ! method_exists(Contributor::class, 'setTranslation')
     ) {
         $this->markTestSkipped('Contributor integration features require full Core runtime.');

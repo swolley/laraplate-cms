@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
-use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Tests\TestCase;
 use Modules\Core\Models\RecordOrigin;
@@ -12,7 +10,9 @@ use Modules\Core\Models\RecordOrigin;
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    if (! Schema::hasTable(CMSTables::Contents->value)) {
+    $content = new Content;
+
+    if (! $content->getConnection()->getSchemaBuilder()->hasTable($content->getTable())) {
         $this->markTestSkipped('CMS contents table not migrated.');
     }
 

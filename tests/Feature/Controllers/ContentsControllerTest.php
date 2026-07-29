@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
-use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Category;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Contributor;
@@ -13,7 +11,9 @@ use Modules\CMS\Tests\TestCase;
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    if (! Schema::hasColumns(CMSTables::Contents->value, ['components', 'shared_components'])) {
+    $content = new Content;
+
+    if (! $content->getConnection()->getSchemaBuilder()->hasColumns($content->getTable(), ['components', 'shared_components'])) {
         $this->markTestSkipped('Contents controller integration requires full Core runtime.');
     }
 

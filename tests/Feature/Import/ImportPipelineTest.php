@@ -5,8 +5,6 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
-use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Import\Dto\ImportContentDto;
 use Modules\CMS\Import\Dto\ImportGraphDto;
 use Modules\CMS\Import\Dto\ImportRelatedContentDto;
@@ -24,7 +22,9 @@ uses(TestCase::class, RefreshDatabase::class);
 beforeEach(function (): void {
     config(['scout.driver' => 'null']);
 
-    if (! Schema::hasTable(CMSTables::Contents->value)) {
+    $content = new Content;
+
+    if (! $content->getConnection()->getSchemaBuilder()->hasTable($content->getTable())) {
         $this->markTestSkipped('CMS import tests require full schema.');
     }
 
@@ -78,17 +78,26 @@ it('rejects a mixed connection graph before writing', function (): void {
 
     $content = (new Content)->setConnection('affinity');
     $content_count = Content::query()->withoutGlobalScopes()->count();
-    $writes = [];
-    DB::listen(static function ($query) use (&$writes): void {
+    $affinity_writes = [];
+    $default_writes = [];
+    $capture_affinity_write = static function ($query) use (&$affinity_writes): void {
         if (preg_match('/^\s*(insert|update|delete)/i', $query->sql) === 1) {
-            $writes[] = $query->sql;
+            $affinity_writes[] = $query->sql;
         }
-    });
+    };
+    $capture_default_write = static function ($query) use (&$default_writes): void {
+        if (preg_match('/^\s*(insert|update|delete)/i', $query->sql) === 1) {
+            $default_writes[] = $query->sql;
+        }
+    };
+    $content->getConnection()->listen($capture_affinity_write);
+    DB::connection((string) config('database.default'))->listen($capture_default_write);
 
     expect(fn (): int => resolve(ImportPipeline::class)->import(buildImportGraphFromFixture(), $content))
         ->toThrow(LogicException::class, 'Import model [Modules\CMS\Models\Entity] resolves connection [sqlite], expected root [Modules\CMS\Models\Content] connection [affinity].')
         ->and(Content::query()->withoutGlobalScopes()->count())->toBe($content_count)
-        ->and($writes)->toBe([]);
+        ->and($affinity_writes)->toBe([])
+        ->and($default_writes)->toBe([]);
 });
 
 it('is idempotent when importing the same graph twice', function (): void {

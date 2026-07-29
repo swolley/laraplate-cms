@@ -3,19 +3,28 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Modules\CMS\Console\ImportCommand;
 use Modules\CMS\Import\Support\SiblingImportersDiscovery;
 use Modules\CMS\Tests\Feature\Import\Stubs\FakeBulkImporter;
+use Modules\CMS\Tests\Feature\Import\Stubs\FakeImportRow;
 use Modules\CMS\Tests\Feature\Import\Stubs\LegacyFakeBulkImporter;
 use Modules\CMS\Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
+function fakeImportRows(?string $connection_name = null): Builder
+{
+    $model = (new FakeImportRow)->setConnection($connection_name ?? config('database.default'));
+
+    return $model->getConnection()->table($model->getTable());
+}
+
 beforeEach(function (): void {
-    Schema::create(FakeBulkImporter::TABLE, static function (Blueprint $table): void {
+    $default_model = (new FakeImportRow)->setConnection(config('database.default'));
+    $default_model->getConnection()->getSchemaBuilder()->create($default_model->getTable(), static function (Blueprint $table): void {
         $table->id();
         $table->string('name');
     });
@@ -28,7 +37,8 @@ beforeEach(function (): void {
     ]);
     DB::purge('affinity');
 
-    Schema::connection('affinity')->create(FakeBulkImporter::TABLE, static function (Blueprint $table): void {
+    $affinity_model = (new FakeImportRow)->setConnection('affinity');
+    $affinity_model->getConnection()->getSchemaBuilder()->create($affinity_model->getTable(), static function (Blueprint $table): void {
         $table->id();
         $table->string('name');
     });
@@ -43,8 +53,11 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
-    Schema::dropIfExists(FakeBulkImporter::TABLE);
-    Schema::connection('affinity')->dropIfExists(FakeBulkImporter::TABLE);
+    $default_model = (new FakeImportRow)->setConnection(config('database.default'));
+    $default_model->getConnection()->getSchemaBuilder()->dropIfExists($default_model->getTable());
+
+    $affinity_model = (new FakeImportRow)->setConnection('affinity');
+    $affinity_model->getConnection()->getSchemaBuilder()->dropIfExists($affinity_model->getTable());
     DB::purge('affinity');
 });
 
@@ -56,7 +69,7 @@ it('resolves the importer by FQCN, forwards args and reports the imported count'
         ->expectsOutputToContain('Imported 3 record(s)')
         ->assertExitCode(0);
 
-    expect(DB::table(FakeBulkImporter::TABLE)->count())->toBe(3)
+    expect(fakeImportRows()->count())->toBe(3)
         ->and(FakeBulkImporter::$lastArguments['records'])->toBe('3');
 });
 
@@ -67,7 +80,7 @@ it('honours the --limit option', function (): void {
         '--limit' => 2,
     ])->assertExitCode(0);
 
-    expect(DB::table(FakeBulkImporter::TABLE)->count())->toBe(2)
+    expect(fakeImportRows()->count())->toBe(2)
         ->and(FakeBulkImporter::$lastArguments['limit'])->toBe(2);
 });
 
@@ -80,7 +93,7 @@ it('rolls back all writes in --dry-run', function (): void {
         ->expectsOutputToContain('Dry-run enabled')
         ->assertExitCode(0);
 
-    expect(DB::table(FakeBulkImporter::TABLE)->count())->toBe(0)
+    expect(fakeImportRows()->count())->toBe(0)
         ->and(FakeBulkImporter::$lastArguments['dryRun'])->toBeTrue();
 });
 
@@ -90,8 +103,8 @@ it('writes importer rows to its affinity connection', function (): void {
         '--arg' => ['records=3', 'connectionName=affinity'],
     ])->assertExitCode(0);
 
-    expect(DB::connection('affinity')->table(FakeBulkImporter::TABLE)->count())->toBe(3)
-        ->and(DB::table(FakeBulkImporter::TABLE)->count())->toBe(0);
+    expect(fakeImportRows('affinity')->count())->toBe(3)
+        ->and(fakeImportRows()->count())->toBe(0);
 });
 
 it('rolls back dry-run importer rows on its affinity connection', function (): void {
@@ -101,8 +114,8 @@ it('rolls back dry-run importer rows on its affinity connection', function (): v
         '--dry-run' => true,
     ])->assertExitCode(0);
 
-    expect(DB::connection('affinity')->table(FakeBulkImporter::TABLE)->count())->toBe(0)
-        ->and(DB::table(FakeBulkImporter::TABLE)->count())->toBe(0);
+    expect(fakeImportRows('affinity')->count())->toBe(0)
+        ->and(fakeImportRows()->count())->toBe(0);
 });
 
 it('uses the default connection for a legacy importer dry-run', function (): void {
@@ -112,7 +125,7 @@ it('uses the default connection for a legacy importer dry-run', function (): voi
         '--dry-run' => true,
     ])->assertExitCode(0);
 
-    expect(DB::table(FakeBulkImporter::TABLE)->count())->toBe(0);
+    expect(fakeImportRows()->count())->toBe(0);
 });
 
 it('fails when the importer class cannot be found', function (): void {
@@ -192,7 +205,7 @@ it('loads sibling autoload and runs the selected importer', function (): void {
             ->expectsOutputToContain('Imported 2 record(s)')
             ->assertExitCode(0);
 
-        expect(DB::table(FakeBulkImporter::TABLE)->count())->toBe(2);
+        expect(fakeImportRows()->count())->toBe(2);
     } finally {
         removeDirectory($fixture['root']);
     }
@@ -221,7 +234,7 @@ namespace Demo\Importers;
 
 use Illuminate\Support\Facades\DB;
 use Modules\CMS\Import\Contracts\BulkImporterInterface;
-use Modules\CMS\Tests\Feature\Import\Stubs\FakeBulkImporter;
+use Modules\CMS\Tests\Feature\Import\Stubs\FakeImportRow;
 
 final class SelectableBulkImporter implements BulkImporterInterface
 {
@@ -240,7 +253,8 @@ final class SelectableBulkImporter implements BulkImporterInterface
         }
 
         for ($i = 0; $i < $total; $i++) {
-            DB::table(FakeBulkImporter::TABLE)->insert(['name' => "sibling-{$i}"]);
+            $model = new FakeImportRow;
+            DB::connection(config('database.default'))->table($model->getTable())->insert(['name' => "sibling-{$i}"]);
         }
 
         return $total;

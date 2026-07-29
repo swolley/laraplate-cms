@@ -3,19 +3,19 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
-use Modules\CMS\Enums\CMSTables;
+use Modules\CMS\Models\Content;
 use Modules\CMS\Tests\TestCase;
 use Modules\Core\Casts\FieldType;
-use Modules\Core\Enums\CoreTables;
 use Modules\Core\Models\Field;
+use Modules\Core\Models\Pivot\Fieldable;
 
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    if (! Schema::hasTable(CMSTables::Contents->value)) {
+    $content = new Content;
+
+    if (! $content->getConnection()->getSchemaBuilder()->hasTable($content->getTable())) {
         $this->markTestSkipped('CMS schema required.');
     }
 
@@ -24,9 +24,11 @@ beforeEach(function (): void {
 
 function aLinkedField(): Field
 {
-    $field_id = DB::table(CoreTables::Fieldables->value)->value('field_id');
+    $field = new Field;
+    $fieldable = (new Fieldable)->setConnection($field->getConnection()->getName());
+    $field_id = $fieldable->getConnection()->table($fieldable->getTable())->value('field_id');
 
-    return Field::query()->findOrFail($field_id);
+    return $field->newQuery()->findOrFail($field_id);
 }
 
 function anotherType(FieldType $current): FieldType

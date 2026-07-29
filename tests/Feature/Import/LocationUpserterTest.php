@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Schema;
-use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Import\Dto\ImportLocationDto;
 use Modules\CMS\Import\Support\ExternalReferenceLocator;
 use Modules\CMS\Import\Upserters\LocationUpserter;
@@ -20,7 +18,9 @@ beforeEach(function (): void {
     config(['scout.driver' => 'null']);
     Queue::fake();
 
-    if (! Schema::hasTable(CMSTables::Locations->value)) {
+    $location = new Location;
+
+    if (! $location->getConnection()->getSchemaBuilder()->hasTable($location->getTable())) {
         $this->markTestSkipped('CMS location upserter tests require full schema.');
     }
 });

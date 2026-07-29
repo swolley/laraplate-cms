@@ -3,9 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
 use Modules\CMS\Enums\AiAssistance;
-use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Tests\TestCase;
@@ -13,7 +11,10 @@ use Modules\CMS\Tests\TestCase;
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    if (! Schema::hasColumn(CMSTables::ContentsTranslations->value, 'ai_assistance')) {
+    $content = new Content;
+    $translation = (new ContentTranslation)->setConnection($content->getConnection()->getName());
+
+    if (! $translation->getConnection()->getSchemaBuilder()->hasColumn($translation->getTable(), 'ai_assistance')) {
         $this->markTestSkipped('ai_assistance column not migrated yet.');
     }
 

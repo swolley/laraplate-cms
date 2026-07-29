@@ -3,14 +3,12 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Category;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Contributor;
 use Modules\CMS\Models\Location;
 use Modules\CMS\Models\Tag;
+use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Tests\TestCase;
 use Modules\Core\Casts\FieldType as CoreFieldType;
 use Modules\Core\Models\Field;
@@ -21,9 +19,11 @@ use Modules\Core\Services\PresetVersioningService;
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
+    $content = new Content;
+
     if (
         ! method_exists(Content::class, 'determineOrderColumnName')
-        || ! Schema::hasColumns(CMSTables::Contents->value, ['components', 'shared_components'])
+        || ! $content->getConnection()->getSchemaBuilder()->hasColumns($content->getTable(), ['components', 'shared_components'])
     ) {
         $this->markTestSkipped('Content integration features require full Core runtime.');
     }
@@ -102,8 +102,9 @@ it('stores dynamic translated and shared fields in the correct containers', func
     $content->{$shared_field_name} = 'Shared dynamic value';
     $content->save();
 
-    $content_row = (array) DB::table(CMSTables::Contents->value)->where('id', $content->id)->first();
-    $translation_row = (array) DB::table(CMSTables::ContentsTranslations->value)
+    $translation = (new ContentTranslation)->setConnection($content->getConnection()->getName());
+    $content_row = (array) $content->getConnection()->table($content->getTable())->where('id', $content->id)->first();
+    $translation_row = (array) $translation->getConnection()->table($translation->getTable())
         ->where('content_id', $content->id)
         ->where('locale', config('app.locale'))
         ->first();

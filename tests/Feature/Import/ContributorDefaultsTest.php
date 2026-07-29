@@ -3,9 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
 use Modules\CMS\Casts\EntityType;
-use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Import\Support\ContributorDefaults;
 use Modules\CMS\Import\Support\DefaultContributorProvisioner;
 use Modules\CMS\Import\Support\ImportIdMap;
@@ -19,7 +17,9 @@ uses(TestCase::class, RefreshDatabase::class);
 beforeEach(function (): void {
     config(['scout.driver' => 'null']);
 
-    if (! Schema::hasTable(CMSTables::Contributors->value)) {
+    $contributor = new Contributor;
+
+    if (! $contributor->getConnection()->getSchemaBuilder()->hasTable($contributor->getTable())) {
         $this->markTestSkipped('CMS contributor defaults tests require full schema.');
     }
 
