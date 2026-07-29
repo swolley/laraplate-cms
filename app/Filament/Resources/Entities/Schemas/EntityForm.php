@@ -10,11 +10,16 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 use Modules\CMS\Casts\EntityType;
+use Modules\Core\Filament\Utils\HasForm;
 
 final class EntityForm
 {
+    use HasForm;
+
     public static function configure(Schema $schema): Schema
     {
+        self::configureForm($schema);
+
         return $schema
             ->components([
                 TextInput::make('name')

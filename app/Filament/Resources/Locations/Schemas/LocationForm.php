@@ -8,11 +8,16 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Modules\Core\Filament\Utils\HasForm;
 
 final class LocationForm
 {
+    use HasForm;
+
     public static function configure(Schema $schema): Schema
     {
+        self::configureForm($schema);
+
         return $schema
             ->components([
                 TextInput::make('name')
