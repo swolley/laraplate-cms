@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### 🚜 Refactor
+
+- *(filament)* Wire Core HasForm into CMS form schemas
+- *(filament)* Delegate entity/preset fields to HasForm
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cms)* Mark module as laraplate_owned
+
 ## [1.37.1] - 2026-07-16
 
 ### 🚀 Features

@@ -1,5 +1,6 @@
 {
     "name": "CMS",
+    "laraplate_owned": true,
     "alias": "cms",
     "description": "Content Management System Module",
     "keywords": [
