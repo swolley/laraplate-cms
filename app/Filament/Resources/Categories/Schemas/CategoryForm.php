@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\CMS\Filament\Resources\Categories\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
@@ -17,16 +16,8 @@ final class CategoryForm
 
     public static function configure(Schema $schema): Schema
     {
-        self::configureForm($schema);
-
-        return $schema
-            ->components([
-                Select::make('entity_id')
-                    ->relationship('entity', 'name')
-                    ->required(),
-                Select::make('presettable_id')
-                    ->relationship('presettable', 'name')
-                    ->required(),
+        return self::configureForm(
+            $schema->components([
                 TextInput::make('parent_id')
                     ->numeric(),
                 TextInput::make('name')
@@ -52,6 +43,7 @@ final class CategoryForm
                 DateTimePicker::make('valid_from')
                     ->required(),
                 DateTimePicker::make('valid_to'),
-            ]);
+            ]),
+        );
     }
 }

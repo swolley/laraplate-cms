@@ -16,24 +16,17 @@ final class ContributorForm
 
     public static function configure(Schema $schema): Schema
     {
-        self::configureForm($schema);
-
-        return $schema
-            ->components([
+        return self::configureForm(
+            $schema->components([
                 Select::make('user_id')
                     ->relationship('user', 'name'),
-                Select::make('entity_id')
-                    ->relationship('entity', 'name')
-                    ->required(),
-                Select::make('presettable_id')
-                    ->relationship('preset', 'name')
-                    ->required(),
                 TextInput::make('name')
                     ->required(),
                 TextInput::make('components')
                     ->required(),
                 Toggle::make('is_deleted')
                     ->required(),
-            ]);
+            ]),
+        );
     }
 }
