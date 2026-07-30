@@ -61,3 +61,23 @@ it('leaves non-dynamic body fields after the cascade prefix', function (): void 
 
     expect($names)->toBe(['dynamic_entity_id', 'dynamic_preset_id', 'presettable_id', 'title']);
 });
+
+it('strips Filament-generated entity_id and presettable_id to avoid duplicates', function (): void {
+    $schema = HasFormHarness::run(
+        Schema::make()
+            ->model(Content::class)
+            ->components([
+                Select::make('entity_id')->relationship('entity', 'name'),
+                Select::make('presettable_id')->relationship('presettable', 'name'),
+                TextInput::make('title'),
+            ]),
+    );
+
+    $names = array_values(array_map(
+        static fn ($component): ?string => method_exists($component, 'getName') ? $component->getName() : null,
+        $schema->getComponents(withHidden: true),
+    ));
+
+    expect($names)->toBe(['dynamic_entity_id', 'dynamic_preset_id', 'presettable_id', 'title'])
+        ->and($names)->not->toContain('entity_id');
+});
