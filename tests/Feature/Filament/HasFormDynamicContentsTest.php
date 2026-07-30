@@ -59,7 +59,8 @@ it('leaves non-dynamic body fields after the cascade prefix', function (): void 
         $schema->getComponents(withHidden: true),
     ));
 
-    expect($names)->toBe(['dynamic_entity_id', 'dynamic_preset_id', 'presettable_id', 'title']);
+    // Content uses HasOptimisticLocking, so the hidden guard is appended last.
+    expect($names)->toBe(['dynamic_entity_id', 'dynamic_preset_id', 'presettable_id', 'title', 'lock_version']);
 });
 
 it('strips Filament-generated entity_id and presettable_id to avoid duplicates', function (): void {
@@ -78,6 +79,6 @@ it('strips Filament-generated entity_id and presettable_id to avoid duplicates',
         $schema->getComponents(withHidden: true),
     ));
 
-    expect($names)->toBe(['dynamic_entity_id', 'dynamic_preset_id', 'presettable_id', 'title'])
+    expect($names)->toBe(['dynamic_entity_id', 'dynamic_preset_id', 'presettable_id', 'title', 'lock_version'])
         ->and($names)->not->toContain('entity_id');
 });
