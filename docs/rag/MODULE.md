@@ -298,7 +298,7 @@ For `contents`, provider defaults expand `tags`, `categories`, `contributors`, a
 
 ### CMS application content retrieval provider
 
-CMS explicitly registers `CmsApplicationContentRetrievalProvider` as source `cms.contents` through the Core registry. This source is used only by the authenticated in-app assistant after server-side routing and authorization; it is not copied into either documentation RAG corpus and it does not create a public assistant route.
+CMS explicitly registers `CmsApplicationContentRetrievalProvider` as source `cms.contents` through the Core registry. This source is used only by authenticated, non-guest `InAppAssistance` after server-side routing and authorization; it is not copied into either documentation RAG corpus and it does not authorize a session-based guest assistant.
 
 The provider sends the natural-language query and Core-supplied ACL filters through `AdvancedSearchService`. Ranked candidates are then rehydrated from `Content::query()->valid()` with the authorization service and the same `FiltersGroup` applied again. Soft-deleted, invalid, stale, cross-connection, or no-longer-authorized candidates disappear without confirming their existence. If orchestrated search is unavailable, the provider can use its bounded title-only lexical fallback; it never performs an unbounded scan.
 
