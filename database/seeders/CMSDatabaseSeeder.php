@@ -6,7 +6,6 @@ namespace Modules\CMS\Database\Seeders;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Artisan;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Models\Entity;
 use Modules\CMS\Models\Preset;
@@ -16,9 +15,13 @@ use Modules\Core\Casts\SettingTypeEnum;
 use Modules\Core\Database\Seeders\CoreDatabaseSeeder;
 use Modules\Core\Models\Field;
 use Modules\Core\Models\Role;
+use Modules\Core\Models\Setting;
 use Modules\Core\Overrides\Seeder;
+use Modules\Core\Seeding\SeedDefinition;
+use Modules\Core\Seeding\SeedReconciler;
 use Modules\Core\Services\DynamicContentsService;
 use Modules\Core\Services\PresetVersioningService;
+use Modules\Core\Services\SettingsCacheCoordinator;
 
 final class CMSDatabaseSeeder extends Seeder
 {
@@ -38,7 +41,7 @@ final class CMSDatabaseSeeder extends Seeder
     private Collection $fields;
 
     /**
-     * @return array<int, array{name: string, value: mixed, type: SettingTypeEnum, group_name: string, description: string, choices?: array<int, mixed>}>
+     * @return array<int, array{name: string, value: mixed, encrypted: bool, choices: ?array<int, mixed>, type: SettingTypeEnum, group_name: string, description: string}>
      */
     public static function runtimeSettingDefinitions(): array
     {
@@ -53,32 +56,52 @@ final class CMSDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->defaultSettings();
+
         Model::unguarded(function (): void {
-            $this->seedSettingDefinitions(self::runtimeSettingDefinitions());
             $this->defaultFields();
             $this->defaultEntities();
             $this->defaultRoles();
         });
 
-        Artisan::call('cache:clear');
+        // The orchestrator already flushes the settings cache once after every node succeeds
+        // (SeedOrchestrator::run()); a targeted flush here keeps standalone runs of this seeder
+        // (module:seed CMS, tests calling $this->seed(CMSDatabaseSeeder::class)) correct too,
+        // without the blanket `cache:clear` this used to call.
+        app(SettingsCacheCoordinator::class)->flushAll();
         DynamicContentsService::getInstance()->clearAllCaches();
     }
 
+    private function defaultSettings(): void
+    {
+        $outcome = app(SeedReconciler::class)->reconcile(
+            SeedDefinition::for(Setting::class)
+                ->identity(['name'])
+                ->structural(['type', 'group_name', 'description', 'choices'])
+                ->initial(['value'])
+                ->ownedBy('CMS')
+                ->rows(self::runtimeSettingDefinitions()),
+        );
+
+        $this->command?->line(
+            '    - created ' . count($outcome->created) . ', realigned ' . count($outcome->realigned) . ", unchanged {$outcome->unchanged}",
+        );
+    }
+
+    /**
+     * @return array{name: string, value: mixed, encrypted: bool, choices: ?array<int, mixed>, type: SettingTypeEnum, group_name: string, description: string}
+     */
     private static function setting(string $name, mixed $value, SettingTypeEnum $type, string $group, string $description, ?array $choices = null): array
     {
-        $definition = [
+        return [
             'name' => $name,
             'value' => $value,
+            'encrypted' => false,
+            'choices' => $choices,
             'type' => $type,
             'group_name' => $group,
             'description' => $description,
         ];
-
-        if ($choices !== null) {
-            $definition['choices'] = $choices;
-        }
-
-        return $definition;
     }
 
     private function defaultFields(): void
@@ -92,36 +115,36 @@ final class CMSDatabaseSeeder extends Seeder
             foreach (['subtitle'] as $field) {
                 if (! $this->fields->has($field)) {
                     $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::Text, 'options' => (object) ['max_length' => 255], 'is_translatable' => true]));
-                    $this->command->line("    - {$field} <fg=green>created</>");
+                    $this->command?->line("    - {$field} <fg=green>created</>");
                 } else {
-                    $this->command->line("    - {$field} already exists");
+                    $this->command?->line("    - {$field} already exists");
                 }
             }
 
             foreach (['short_content'] as $field) {
                 if (! $this->fields->has($field)) {
                     $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::Textarea, 'options' => (object) ['max_length' => 65535], 'is_translatable' => true]));
-                    $this->command->line("    - {$field} <fg=green>created</>");
+                    $this->command?->line("    - {$field} <fg=green>created</>");
                 } else {
-                    $this->command->line("    - {$field} already exists");
+                    $this->command?->line("    - {$field} already exists");
                 }
             }
 
             foreach (['content'] as $field) {
                 if (! $this->fields->has($field)) {
                     $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::Editor, 'options' => (object) [], 'is_translatable' => true]));
-                    $this->command->line("    - {$field} <fg=green>created</>");
+                    $this->command?->line("    - {$field} <fg=green>created</>");
                 } else {
-                    $this->command->line("    - {$field} already exists");
+                    $this->command?->line("    - {$field} already exists");
                 }
             }
 
             foreach (['period_from', 'period_to'] as $field) {
                 if (! $this->fields->has($field)) {
                     $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::Datetime, 'options' => (object) ['format' => 'Y-m-d H:i:s'], 'is_translatable' => false]));
-                    $this->command->line("    - {$field} <fg=green>created</>");
+                    $this->command?->line("    - {$field} <fg=green>created</>");
                 } else {
-                    $this->command->line("    - {$field} already exists");
+                    $this->command?->line("    - {$field} already exists");
                 }
             }
 
@@ -129,26 +152,26 @@ final class CMSDatabaseSeeder extends Seeder
 
             if (! $this->fields->has($field)) {
                 $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::Email, 'options' => (object) [], 'is_translatable' => false]));
-                $this->command->line("    - {$field} <fg=green>created</>");
+                $this->command?->line("    - {$field} <fg=green>created</>");
             } else {
-                $this->command->line("    - {$field} already exists");
+                $this->command?->line("    - {$field} already exists");
             }
 
             $field = 'phone';
 
             if (! $this->fields->has($field)) {
                 $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::Phone, 'options' => (object) [], 'is_translatable' => false]));
-                $this->command->line("    - {$field} <fg=green>created</>");
+                $this->command?->line("    - {$field} <fg=green>created</>");
             } else {
-                $this->command->line("    - {$field} already exists");
+                $this->command?->line("    - {$field} already exists");
             }
 
             foreach (['website', 'linkedin', 'twitter', 'facebook', 'instagram'] as $field) {
                 if (! $this->fields->has($field)) {
                     $this->fields->put($field, $this->create(Field::class, ['name' => $field, 'type' => FieldType::Url, 'options' => (object) [], 'is_translatable' => false]));
-                    $this->command->line("    - {$field} <fg=green>created</>");
+                    $this->command?->line("    - {$field} <fg=green>created</>");
                 } else {
-                    $this->command->line("    - {$field} already exists");
+                    $this->command?->line("    - {$field} already exists");
                 }
             }
         });
@@ -227,9 +250,9 @@ final class CMSDatabaseSeeder extends Seeder
                     // do not fire pivot model events that would otherwise trigger versioning.
                     resolve(PresetVersioningService::class)->createVersion($preset);
 
-                    $this->command->line("    - {$entity['name']} <fg=green>created</>");
+                    $this->command?->line("    - {$entity['name']} <fg=green>created</>");
                 } else {
-                    $this->command->line("    - {$entity['name']} already exists");
+                    $this->command?->line("    - {$entity['name']} already exists");
                 }
             }
         });
@@ -257,9 +280,9 @@ final class CMSDatabaseSeeder extends Seeder
                         ->orWhere('name', 'like', '%.' . ActionEnum::Select->value))
                     ->get(),
             ]);
-            $this->command->line("    - {$name} <fg=green>created</>");
+            $this->command?->line("    - {$name} <fg=green>created</>");
         } else {
-            $this->command->line("    - {$name} already exists");
+            $this->command?->line("    - {$name} already exists");
         }
 
         foreach (CoreDatabaseSeeder::getDefaultUserRoles() as $key => $role) {

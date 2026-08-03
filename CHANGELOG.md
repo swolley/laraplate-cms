@@ -6,6 +6,17 @@ All notable changes to this project will be documented in this file.
 
 ### 🚜 Refactor
 
+- *(cms)* Seed definitions via SeedReconciler, stamped CMS-owned
+
+### 🧪 Testing
+
+- *(filament)* Assert HasForm strips duplicate entity/presettable fields
+- *(cms)* Expect the lock version field in the Content form schema
+
+## [1.40.1] - 2026-07-29
+
+### 🚜 Refactor
+
 - *(filament)* Wire Core HasForm into CMS form schemas
 - *(filament)* Delegate entity/preset fields to HasForm
 
