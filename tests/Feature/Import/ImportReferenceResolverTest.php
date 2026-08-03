@@ -13,6 +13,7 @@ use Modules\CMS\Models\Contributor;
 use Modules\CMS\Models\Tag;
 use Modules\CMS\Tests\TestCase;
 use Modules\Core\Models\RecordOrigin;
+use Modules\Core\Import\Support\RecordOriginRegistry;
 use Modules\Core\Services\DynamicContentsService;
 
 uses(TestCase::class, RefreshDatabase::class);
@@ -76,6 +77,19 @@ it('builds deterministic import slugs from source type and external id', functio
 
     expect($locator->importSlug(1001, 'naxos'))->toBe('import-naxos-1001')
         ->and($locator->importSlug(42, 'cms_default'))->toBe('import-cms_default-42');
+});
+
+it('delegates persistent external identities to the Core registry', function (): void {
+    $constructor = (new ReflectionClass(ExternalReferenceLocator::class))->getConstructor();
+    $dependencies = collect($constructor?->getParameters() ?? [])
+        ->map(static fn (ReflectionParameter $parameter): ?string => $parameter->getType() instanceof ReflectionNamedType
+            ? $parameter->getType()->getName()
+            : null)
+        ->filter()
+        ->values()
+        ->all();
+
+    expect($dependencies)->toContain(RecordOriginRegistry::class);
 });
 
 it('detects when a content origin is already registered', function (): void {

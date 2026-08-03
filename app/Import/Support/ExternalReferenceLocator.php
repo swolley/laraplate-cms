@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Import\Support;
 
-use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Model;
 use LogicException;
 use Modules\CMS\Models\Category;
@@ -15,7 +14,8 @@ use Modules\CMS\Models\Tag;
 use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Models\Translations\ContributorTranslation;
 use Modules\CMS\Models\Translations\TagTranslation;
-use Modules\Core\Models\RecordOrigin;
+use Modules\Core\Import\Support\RecordOriginRegistry;
+use Modules\Core\Import\ValueObjects\ExternalRecordIdentity;
 use Modules\Core\Models\Translations\TaxonomyTranslation;
 
 /**
@@ -49,6 +49,7 @@ final class ExternalReferenceLocator
     ];
 
     public function __construct(
+        private readonly RecordOriginRegistry $registry,
         private readonly string $locale,
     ) {}
 
@@ -116,43 +117,14 @@ final class ExternalReferenceLocator
         ?string $source_label = null,
         ?string $url = null,
     ): void {
-        $now = now();
         $external = $external_id !== null ? (string) $external_id : null;
 
-        $connection = $referable->getConnection();
-        $origin_table = (new RecordOrigin)->getTable();
-
-        $query = $connection->table($origin_table)
-            ->where('referable_type', $referable->getMorphClass())
-            ->where('source_key', $source_key)
-            ->when(
-                $external !== null,
-                fn ($q) => $q->where('external_id', $external),
-                fn ($q) => $q->whereNull('external_id')->where('referable_id', $referable->getKey()),
-            );
-
-        $existing_id = $query->value('id');
-
-        $values = [
-            'referable_id' => $referable->getKey(),
-            'source_label' => $source_label,
-            'url' => $url,
-            'updated_at' => $now,
-        ];
-
-        if ($existing_id !== null) {
-            $connection->table($origin_table)->where('id', $existing_id)->update($values);
-
-            return;
-        }
-
-        $connection->table($origin_table)->insert([
-            ...$values,
-            'referable_type' => $referable->getMorphClass(),
-            'source_key' => $source_key,
-            'external_id' => $external,
-            'created_at' => $now,
-        ]);
+        $this->registry->register(
+            $referable,
+            new ExternalRecordIdentity($source_key, $external),
+            $source_label,
+            $url,
+        );
     }
 
     public function importSlug(int $external_id, string $source_type): string
@@ -162,13 +134,7 @@ final class ExternalReferenceLocator
 
     private function findByOrigin(Model $referable, int $external_id, string $source_type): ?int
     {
-        $id = $this->connectionFor($referable)->table((new RecordOrigin)->getTable())
-            ->where('referable_type', $referable->getMorphClass())
-            ->where('source_key', $source_type)
-            ->where('external_id', (string) $external_id)
-            ->value('referable_id');
-
-        return $id !== null ? (int) $id : null;
+        return $this->registry->referableId($referable, $source_type, (string) $external_id);
     }
 
     private function findByImportSlug(Model $target_model, int $external_id, string $source_type): ?int
@@ -185,7 +151,7 @@ final class ExternalReferenceLocator
 
         $translation_model = new $target['translation_model'];
 
-        $local_id = $this->connectionFor($target_model)->table($translation_model->getTable())
+        $local_id = $target_model->getConnection()->table($translation_model->getTable())
             ->where('locale', $this->locale)
             ->where('slug', $this->importSlug($external_id, $source_type))
             ->value($target['foreign_key']);
@@ -193,8 +159,4 @@ final class ExternalReferenceLocator
         return $local_id !== null ? (int) $local_id : null;
     }
 
-    private function connectionFor(Model $target_model): ConnectionInterface
-    {
-        return $target_model->getConnection();
-    }
 }

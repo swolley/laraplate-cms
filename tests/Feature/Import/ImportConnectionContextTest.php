@@ -15,6 +15,7 @@ use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Models\Translations\ContributorTranslation;
 use Modules\CMS\Tests\TestCase;
 use Modules\Core\Models\RecordOrigin;
+use Modules\Core\Import\Support\RecordOriginRegistry;
 
 uses(TestCase::class);
 
@@ -105,7 +106,7 @@ it('uses the target model connection for origin and dynamic translation lookups'
     $content->setAttribute('id', 77);
     $content->exists = true;
 
-    $locator = new ExternalReferenceLocator('it');
+    $locator = new ExternalReferenceLocator(app(RecordOriginRegistry::class), 'it');
     $locator->register($content, 'fixture', 41);
 
     $default_connection = DB::connection(config('database.default'));
