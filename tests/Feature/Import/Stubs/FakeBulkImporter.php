@@ -7,6 +7,7 @@ namespace Modules\CMS\Tests\Feature\Import\Stubs;
 use Illuminate\Database\Eloquent\Model;
 use Modules\CMS\Import\Contracts\BulkImporterInterface;
 use Modules\CMS\Import\Contracts\ModelBoundBulkImporterInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * In-memory importer used to exercise the generic cms:import command:
@@ -29,7 +30,7 @@ final class FakeBulkImporter implements BulkImporterInterface, ModelBoundBulkImp
         public readonly ?string $connectionName = null,
     ) {}
 
-    public function import(): int
+    public function import(?OutputInterface $output = null): int
     {
         self::$lastArguments = [
             'records' => $this->records,

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\CMS\Import\Dto\ImportContentDto;
 use Modules\CMS\Import\Support\ImportProgressLogger;
 use Modules\CMS\Tests\TestCase;
+use Symfony\Component\Console\Output\BufferedOutput;
 
 uses(TestCase::class);
 
@@ -58,4 +59,33 @@ it('logs an updated content import and falls back when origin url is missing', f
     Log::shouldHaveReceived('info')
         ->with('updated content from original url naxos_sql#42')
         ->once();
+});
+
+it('writes progress to the console output only when provided', function (): void {
+    Log::spy();
+
+    $dto = new ImportContentDto(
+        title: 'Sample article',
+        slug: 'sample-article',
+        components: [],
+        sharedComponents: [],
+        validFrom: null,
+        validTo: null,
+        createdAt: null,
+        updatedAt: null,
+        deletedAt: null,
+        externalId: 42,
+        externalUuid: null,
+        sourceType: 'naxos_api',
+        originUrl: 'https://example.test/articles/sample-article',
+    );
+
+    $message = 'imported new content from original url https://example.test/articles/sample-article';
+
+    (new ImportProgressLogger)->contentImported($dto, created: true);
+
+    $output = new BufferedOutput;
+    (new ImportProgressLogger)->contentImported($dto, created: true, output: $output);
+
+    expect($output->fetch())->toContain($message);
 });

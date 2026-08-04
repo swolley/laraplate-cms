@@ -244,7 +244,7 @@ final class SelectableBulkImporter implements BulkImporterInterface
         public readonly ?int $limit = null,
     ) {}
 
-    public function import(): int
+    public function import(?\Symfony\Component\Console\Output\OutputInterface $output = null): int
     {
         $total = max(0, (int) $this->records);
 

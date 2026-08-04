@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🚜 Refactor
 
+- *(import)* Pass optional console output to `ImportProgressLogger` instead of fwrite
 - *(cms)* Seed definitions via SeedReconciler, stamped CMS-owned
 
 ### 🧪 Testing

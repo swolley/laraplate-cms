@@ -12,6 +12,7 @@ use Modules\CMS\Import\Support\ImportProgressLogger;
 use Modules\CMS\Import\Support\ImportReferenceResolver;
 use Modules\CMS\Import\Support\RelatedContentResolver;
 use Modules\CMS\Models\Content;
+use Symfony\Component\Console\Output\OutputInterface;
 
 final class ContentUpserter
 {
@@ -45,6 +46,7 @@ final class ContentUpserter
         array $tagIds = [],
         array $locationIds = [],
         ?ImportConnectionContext $context = null,
+        ?OutputInterface $output = null,
     ): int {
         $context ??= new ImportConnectionContext(new Content);
         $content_model = $context->model(Content::class);
@@ -146,7 +148,7 @@ final class ContentUpserter
             $dto->originUrl,
         );
 
-        $this->progress_logger->contentImported($dto, $created);
+        $this->progress_logger->contentImported($dto, $created, $output);
 
         return $content_id;
     }

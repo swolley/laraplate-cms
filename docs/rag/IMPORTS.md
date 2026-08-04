@@ -17,7 +17,7 @@ The command name selects CMS as the destination. `--importer` selects the source
 
 ## Compatibility and boundaries
 
-The CMS marker extends Core's neutral `import(): int` contract, preserving existing Naxos importer namespaces. CMS still owns content DTOs, mapping contracts, `ImportPipeline`, upserters, preset provisioning, reference resolution, and post-processing. External packages own source clients, credentials, readers, normalization, and source-specific mappings.
+The CMS marker extends Core's neutral `import(?OutputInterface $output = null): int` contract, preserving existing Naxos importer namespaces. When the console output is passed (from `cms:import`), CMS forwards it to `ImportPipeline` / `ImportProgressLogger` for per-content progress lines; omitting it keeps pipeline-only runs quiet. CMS still owns content DTOs, mapping contracts, `ImportPipeline`, upserters, preset provisioning, reference resolution, and post-processing. External packages own source clients, credentials, readers, normalization, and source-specific mappings.
 
 Dry-run uses the connection returned by the optional connection-aware importer contract, falling back to the default connection. It rolls back only writes on that connection. The importer must suppress files, queues, HTTP calls, other connections, and all other external side effects.
 

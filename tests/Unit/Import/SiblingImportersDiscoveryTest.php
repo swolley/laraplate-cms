@@ -31,7 +31,7 @@ use Modules\CMS\Import\Contracts\BulkImporterInterface;
 
 final class ConcreteImporter implements BulkImporterInterface
 {
-    public function import(): int
+    public function import(?\Symfony\Component\Console\Output\OutputInterface $output = null): int
     {
         return 0;
     }

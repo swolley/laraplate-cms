@@ -11,6 +11,7 @@ use Modules\CMS\Import\Contracts\SourceIteratorInterface;
 use Modules\CMS\Import\Pipeline\ImportPipeline;
 use Modules\CMS\Import\Support\ImportPostProcessor;
 use Modules\CMS\Models\Content;
+use Symfony\Component\Console\Output\OutputInterface;
 
 abstract class AbstractBulkImporter implements BulkImporterInterface, ModelBoundBulkImporterInterface
 {
@@ -35,7 +36,7 @@ abstract class AbstractBulkImporter implements BulkImporterInterface, ModelBound
         return $this->importRootModel()->getConnection();
     }
 
-    public function import(): int
+    public function import(?OutputInterface $output = null): int
     {
         $this->pipeline->resetState();
         $imported = 0;
@@ -48,7 +49,7 @@ abstract class AbstractBulkImporter implements BulkImporterInterface, ModelBound
                     continue;
                 }
 
-                $this->pipeline->import($graph, $this->importRootModel());
+                $this->pipeline->import($graph, $this->importRootModel(), $output);
                 $imported++;
             }
 

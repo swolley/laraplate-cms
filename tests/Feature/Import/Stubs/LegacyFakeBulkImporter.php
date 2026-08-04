@@ -6,6 +6,7 @@ namespace Modules\CMS\Tests\Feature\Import\Stubs;
 
 use Illuminate\Support\Facades\DB;
 use Modules\CMS\Import\Contracts\BulkImporterInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 final class LegacyFakeBulkImporter implements BulkImporterInterface
 {
@@ -15,7 +16,7 @@ final class LegacyFakeBulkImporter implements BulkImporterInterface
         public readonly ?int $limit = null,
     ) {}
 
-    public function import(): int
+    public function import(?OutputInterface $output = null): int
     {
         $total = max(0, (int) $this->records);
 

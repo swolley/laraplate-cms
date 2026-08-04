@@ -42,10 +42,10 @@ It does not reverse writes on additional connections, files, object storage, que
 External CMS importers continue to implement `Modules\CMS\Import\Contracts\BulkImporterInterface`. This compatibility marker extends Core's neutral contract and requires:
 
 ```php
-public function import(): int;
+public function import(?OutputInterface $output = null): int;
 ```
 
-Return the number of imported root records. Use CMS DTOs, `ImportPipeline`, and domain services for destination writes. Do not move source credentials, source clients, or source-specific mappings into CMS or Core.
+Return the number of imported root records. When `$output` is provided (as `cms:import` does), forward it to `ImportPipeline::import()` so per-content progress lines are written through Laravel's console output. Pipeline-only callers omit it and stay silent. Use CMS DTOs, `ImportPipeline`, and domain services for destination writes. Do not move source credentials, source clients, or source-specific mappings into CMS or Core.
 
 The command implementation is deliberately thin: `Modules\CMS\Console\ImportCommand` declares `cms:import`, adds the colored CMS suffix, and injects the CMS resolver and plugin discovery adapter into Core's `AbstractImportCommand`. CMS retains `BulkImportRunner` as a compatibility adapter because existing Naxos importers call its static `limitReached()` helper.
 

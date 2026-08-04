@@ -17,6 +17,7 @@ use Modules\CMS\Import\Upserters\ContributorUpserter;
 use Modules\CMS\Import\Upserters\LocationUpserter;
 use Modules\CMS\Import\Upserters\TagUpserter;
 use Modules\CMS\Models\Content;
+use Symfony\Component\Console\Output\OutputInterface;
 
 final class ImportPipeline
 {
@@ -32,15 +33,18 @@ final class ImportPipeline
         private readonly ImportIdMap $id_map,
     ) {}
 
-    public function import(ImportGraphDto $graph, ?Model $root_model = null): int
-    {
+    public function import(
+        ImportGraphDto $graph,
+        ?Model $root_model = null,
+        ?OutputInterface $output = null,
+    ): int {
         $root_model ??= new Content;
         $context = new ImportConnectionContext($root_model);
 
         $context->preflight($this->participantModelClasses($graph));
 
         return $context->connection()->transaction(
-            fn (): int => $this->importGraph($graph, $context),
+            fn (): int => $this->importGraph($graph, $context, $output),
         );
     }
 
@@ -50,8 +54,11 @@ final class ImportPipeline
         $this->contributor_defaults->reset();
     }
 
-    private function importGraph(ImportGraphDto $graph, ImportConnectionContext $context): int
-    {
+    private function importGraph(
+        ImportGraphDto $graph,
+        ImportConnectionContext $context,
+        ?OutputInterface $output = null,
+    ): int {
         $this->preset_provisioner->provisionFromGraph($graph, $context);
 
         foreach ($this->category_sorter->sort($graph->categories) as $category) {
@@ -97,7 +104,7 @@ final class ImportPipeline
         );
 
         foreach ($graph->relatedGraphs as $related_graph) {
-            $this->importGraph($related_graph, $context);
+            $this->importGraph($related_graph, $context, $output);
         }
 
         return $this->content_upserter->upsert(
@@ -107,6 +114,7 @@ final class ImportPipeline
             $tag_ids,
             $location_ids,
             $context,
+            $output,
         );
     }
 
