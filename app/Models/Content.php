@@ -554,6 +554,21 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         });
     }
 
+    /**
+     * Soft-keep approval modifications after vote (Chiara rejection trail / Marco history).
+     * Overrides Core HasApprovals which defaults deleteWhenDisapproved to true.
+     */
+    public function initializeHasApprovals(): void
+    {
+        if (preview()) {
+            $this->append('preview');
+            $this->makeHidden('preview');
+        }
+
+        $this->deleteWhenDisapproved = false;
+        $this->deleteWhenApproved = false;
+    }
+
     protected static function newFactory(): ContentFactory
     {
         return ContentFactory::new();
