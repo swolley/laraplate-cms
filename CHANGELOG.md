@@ -4,9 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚀 Features
+
+- *(cms)* Require approval on live content edits
+
+### 🐛 Bug Fixes
+
+- *(cms)* Soft-keep content modifications after approve/disapprove
+
 ### 🚜 Refactor
 
-- *(import)* Pass optional console output to `ImportProgressLogger` instead of fwrite
+- *(import)* Emit progress via optional OutputInterface
+
+## [1.40.2] - 2026-08-03
+
+### 🚜 Refactor
+
 - *(cms)* Seed definitions via SeedReconciler, stamped CMS-owned
 
 ### 🧪 Testing

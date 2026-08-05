@@ -616,7 +616,16 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
      */
     protected function requiresApprovalWhen(array $modifications): bool
     {
-        return $this->requiresApprovalWhenTrait($modifications) && ($modifications[self::$valid_from_column] ?? $modifications[self::$valid_to_column] ?? false);
+        if ($modifications === []) {
+            return false;
+        }
+
+        // Unpublished (draft) and expired: write-through. Live + scheduled: protect.
+        if (! $this->isPublished() && ! $this->isScheduled()) {
+            return false;
+        }
+
+        return $this->requiresApprovalWhenTrait($modifications);
     }
 
     /**
