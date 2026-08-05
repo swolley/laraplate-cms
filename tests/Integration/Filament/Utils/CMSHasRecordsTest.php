@@ -92,7 +92,7 @@ it('returns no tabs when the resource model does not use dynamic contents', func
 it('aggregates entity tab counts without hydrating eager-loaded presettable relations', function (): void {
     $contributor = new Contributor;
 
-    if (! $contributor->getConnection()->getSchemaBuilder()->hasColumns($contributor->getTable(), ['components', 'shared_components'])) {
+    if (! $contributor->getConnection()->getSchemaBuilder()->hasColumn($contributor->getTable(), 'shared_components')) {
         test()->markTestSkipped('Contributor dynamic contents require full Core runtime.');
     }
 

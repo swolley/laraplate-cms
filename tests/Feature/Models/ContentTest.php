@@ -23,7 +23,7 @@ beforeEach(function (): void {
 
     if (
         ! method_exists(Content::class, 'determineOrderColumnName')
-        || ! $content->getConnection()->getSchemaBuilder()->hasColumns($content->getTable(), ['components', 'shared_components'])
+        || ! $content->getConnection()->getSchemaBuilder()->hasColumn($content->getTable(), 'shared_components')
     ) {
         $this->markTestSkipped('Content integration features require full Core runtime.');
     }

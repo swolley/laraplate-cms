@@ -6,10 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Contributor;
-use Modules\CMS\Models\Entity;
 use Modules\CMS\Tests\TestCase;
-use Modules\Core\Models\Pivot\Presettable;
-use Modules\Core\Models\Preset;
 
 uses(TestCase::class, RefreshDatabase::class);
 
@@ -17,18 +14,13 @@ beforeEach(function (): void {
     $contributor = new Contributor;
 
     if (
-        ! $contributor->getConnection()->getSchemaBuilder()->hasColumns($contributor->getTable(), ['components', 'shared_components'])
+        ! $contributor->getConnection()->getSchemaBuilder()->hasColumn($contributor->getTable(), 'shared_components')
         || ! method_exists(Contributor::class, 'setTranslation')
     ) {
         $this->markTestSkipped('Contributor integration features require full Core runtime.');
     }
 
-    foreach ([EntityType::Contributors, EntityType::Contents] as $entityType) {
-        $name = mb_strtolower($entityType->value);
-        $entity = Entity::query()->firstOrCreate(['name' => $name], ['type' => $entityType]);
-        $preset = Preset::query()->firstOrCreate(['entity_id' => $entity->id, 'name' => 'default']);
-        Presettable::query()->firstOrCreate(['entity_id' => $entity->id, 'preset_id' => $preset->id]);
-    }
+    setupCMSEntities([EntityType::Contributors, EntityType::Contents]);
 
     $this->contributor = Contributor::factory()->create();
 });

@@ -13,9 +13,11 @@ uses(TestCase::class, RefreshDatabase::class);
 beforeEach(function (): void {
     $content = new Content;
 
-    if (! $content->getConnection()->getSchemaBuilder()->hasColumns($content->getTable(), ['components', 'shared_components'])) {
+    if (! $content->getConnection()->getSchemaBuilder()->hasColumn($content->getTable(), 'shared_components')) {
         $this->markTestSkipped('Contents controller integration requires full Core runtime.');
     }
+
+    setupCMSEntities();
 
     $this->user = user_class()::factory()->create();
     $this->actingAs($this->user);

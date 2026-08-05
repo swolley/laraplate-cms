@@ -14,7 +14,7 @@ beforeEach(function (): void {
 
     if (
         ! method_exists(Category::class, 'determineOrderColumnName')
-        || ! $category->getConnection()->getSchemaBuilder()->hasColumns($category->getTable(), ['components', 'shared_components'])
+        || ! $category->getConnection()->getSchemaBuilder()->hasColumn($category->getTable(), 'shared_components')
     ) {
         $this->markTestSkipped('Category integration features require full Core runtime.');
     }
