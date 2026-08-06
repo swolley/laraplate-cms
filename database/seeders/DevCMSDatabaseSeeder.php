@@ -81,11 +81,13 @@ final class DevCMSDatabaseSeeder extends BatchSeeder
     {
         $this->command->info('Creating pivot relations...');
 
-        // Get all contents and create relations in batches
-        Content::query()->chunk(1000, static function ($contents): void {
-            foreach ($contents as $content) {
-                Content::factory()->createRelations($content);
-            }
+        // Build the candidate id pools once, then relate contents chunk by chunk:
+        // picking from the pools in PHP avoids an ORDER BY RAND() query per content
+        // over the (large, growing) related tables.
+        $pools = Content::factory()->buildRelationIdPools();
+
+        Content::query()->chunkById(1000, static function ($contents) use ($pools): void {
+            Content::factory()->createRelations($contents, null, $pools);
         });
 
         $this->command->info('Pivot relations created successfully!');

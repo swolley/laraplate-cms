@@ -31,50 +31,57 @@ final class ContentFactory extends Factory
     /**
      * Create pivot relations for a content model.
      *
+     * Candidate ids are picked in PHP from pre-loaded pools instead of an
+     * `ORDER BY RAND()` query per content: the latter full-scans and filesorts
+     * the whole (growing) table on every call, which is the dominant cost when
+     * seeding hundreds of thousands of contents. Pass $pools (built once via
+     * {@see self::buildRelationIdPools()}) when relating many contents so the
+     * pools are not rebuilt per content.
+     *
      * @param  Content|Collection<Content>  $content
+     * @param  array{contributors: list<int>, categories: list<int>, tags: list<int>, contents: list<int>}|null  $pools
      */
-    public function createRelations(Model|Collection $content, ?callable $callback = null): void
+    public function createRelations(Model|Collection $content, ?callable $callback = null, ?array $pools = null): void
     {
-        $this->createDynamicContentRelations($content, function (Content $content) use ($callback): void {
+        $pools ??= $this->buildRelationIdPools();
+
+        $contents = $content instanceof Collection ? $content : collect([$content]);
+        $existing = $this->existingRelationSets($contents);
+
+        $this->createDynamicContentRelations($content, function (Content $content) use ($callback, $pools, $existing): void {
             if (! $content->getKey() || ! $content->exists) {
                 return;
             }
 
-            if ($content->doesntHave('contributors')) {
-                $contributors = Contributor::query()->inRandomOrder()->limit(fake()->numberBetween(1, 3))->get();
+            if (! isset($existing['contributors'][$content->id])) {
+                $contributor_ids = $this->pickRandomIds($pools['contributors'], fake()->numberBetween(1, 3));
 
-                if ($contributors->isNotEmpty()) {
-                    $content->contributors()->syncWithoutDetaching($contributors->pluck('id')->toArray());
-                } else {
-                    $content->contributors()->sync($contributors->pluck('id')->toArray());
+                if ($contributor_ids !== []) {
+                    $content->contributors()->attach($contributor_ids);
                 }
             }
 
-            if ($content->doesntHave('categories')) {
-                $categories = Category::query()->inRandomOrder()->limit(fake()->numberBetween(1, 2))->get();
+            if (! isset($existing['categories'][$content->id])) {
+                $category_ids = $this->pickRandomIds($pools['categories'], fake()->numberBetween(1, 2));
 
-                if ($categories->isNotEmpty()) {
-                    $content->categories()->syncWithoutDetaching($categories->pluck('id')->toArray());
+                if ($category_ids !== []) {
+                    $content->categories()->attach($category_ids);
                 }
             }
 
-            if (fake()->boolean(70) && $content->doesntHave('tags')) {
-                $tags = Tag::query()->inRandomOrder()->limit(fake()->numberBetween(1, 5))->get();
+            if (fake()->boolean(70) && ! isset($existing['tags'][$content->id])) {
+                $tag_ids = $this->pickRandomIds($pools['tags'], fake()->numberBetween(1, 5));
 
-                if ($tags->isNotEmpty()) {
-                    $content->tags()->syncWithoutDetaching($tags->pluck('id')->toArray());
+                if ($tag_ids !== []) {
+                    $content->tags()->attach($tag_ids);
                 }
             }
 
-            if (fake()->boolean(35) && $content->doesntHave('related')) {
-                $relateds = Content::query()->inRandomOrder()->where('id', '!=', $content->id)->limit(fake()->numberBetween(1, 3))->get();
+            if (fake()->boolean(35) && ! isset($existing['related'][$content->id])) {
+                $related_ids = $this->pickRandomIds($pools['contents'], fake()->numberBetween(1, 3), $content->id);
 
-                if ($relateds->isNotEmpty()) {
-                    $remapped = $relateds->map(fn (Content $related): array => [
-                        'related_content_id' => $related->id,
-                        'content_id' => $content->id,
-                    ])->all();
-                    $content->related()->syncWithoutDetaching($remapped);
+                if ($related_ids !== []) {
+                    $content->related()->attach($related_ids);
                 }
             }
 
@@ -82,6 +89,88 @@ final class ContentFactory extends Factory
                 $callback($content);
             }
         });
+    }
+
+    /**
+     * Resolve, once for the whole batch, which contents already have each
+     * relation — the batched replacement for a per-content `doesntHave()` call.
+     * Keeps the pivot phase idempotent (a re-run skips contents already related)
+     * while collapsing 4 existence queries per content into 4 per batch.
+     *
+     * Global scopes are dropped on the outer query so the check covers exactly
+     * the given contents regardless of their own validity/ordering; each
+     * relation's own scopes still apply inside `has()`.
+     *
+     * @param  \Illuminate\Support\Collection<int, Content>  $contents
+     * @return array{contributors: array<int, true>, categories: array<int, true>, tags: array<int, true>, related: array<int, true>}
+     */
+    private function existingRelationSets(\Illuminate\Support\Collection $contents): array
+    {
+        $ids = $contents->map(static fn (Content $content): int => $content->getKey())->all();
+
+        if ($ids === []) {
+            return ['contributors' => [], 'categories' => [], 'tags' => [], 'related' => []];
+        }
+
+        $with_relation = static fn (string $relation): array => array_fill_keys(
+            Content::withoutGlobalScopes()->whereKey($ids)->has($relation)->pluck('id')->all(),
+            true,
+        );
+
+        return [
+            'contributors' => $with_relation('contributors'),
+            'categories' => $with_relation('categories'),
+            'tags' => $with_relation('tags'),
+            'related' => $with_relation('related'),
+        ];
+    }
+
+    /**
+     * Build the candidate id pools once so {@see self::createRelations()} can
+     * pick related records in PHP rather than issuing an `ORDER BY RAND()` query
+     * per content.
+     *
+     * @return array{contributors: list<int>, categories: list<int>, tags: list<int>, contents: list<int>}
+     */
+    public function buildRelationIdPools(): array
+    {
+        return [
+            'contributors' => Contributor::query()->pluck('id')->all(),
+            'categories' => Category::query()->pluck('id')->all(),
+            'tags' => Tag::query()->pluck('id')->all(),
+            // Drop the ordering scope: a pluck does not need an ORDER BY, and it
+            // does not change which ids are eligible (validity/soft-delete stay).
+            'contents' => Content::query()->withoutGlobalScope('global_ordered')->pluck('id')->all(),
+        ];
+    }
+
+    /**
+     * Pick up to $count distinct ids at random from $pool, optionally excluding
+     * one id (used to keep a content out of its own related set).
+     *
+     * @param  list<int>  $pool
+     * @return list<int>
+     */
+    private function pickRandomIds(array $pool, int $count, ?int $exclude = null): array
+    {
+        if ($pool === []) {
+            return [];
+        }
+
+        $count = min($count, count($pool));
+
+        if ($count < 1) {
+            return [];
+        }
+
+        $keys = (array) array_rand($pool, $count);
+        $ids = array_map(static fn (int $key): int => $pool[$key], $keys);
+
+        if ($exclude !== null) {
+            $ids = array_values(array_filter($ids, static fn (int $id): bool => $id !== $exclude));
+        }
+
+        return $ids;
     }
 
     /**
