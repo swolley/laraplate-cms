@@ -57,8 +57,6 @@ final class Contributor extends Model implements IMediable, Taggable
     protected $hidden = [
         'user_id',
         'user',
-        'created_at',
-        'updated_at',
     ];
 
     private ?User $tempUser = null;

@@ -41,12 +41,6 @@ final class TagTranslation extends Model implements ITranslated
         'slug',
     ];
 
-    #[Override]
-    protected $hidden = [
-        'created_at',
-        'updated_at',
-    ];
-
     /**
      * The tag that belongs to the translation.
      *

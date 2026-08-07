@@ -37,12 +37,6 @@ final class ContributorTranslation extends Model implements ITranslated
         'components',
     ];
 
-    #[Override]
-    protected $hidden = [
-        'created_at',
-        'updated_at',
-    ];
-
     /**
      * The contributor that belongs to the translation.
      *

@@ -96,8 +96,6 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
 
     #[Override]
     protected $hidden = [
-        'created_at',
-        'updated_at',
         'withCaching',
         'withoutObjectCaching',
     ];

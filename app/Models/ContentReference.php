@@ -44,15 +44,6 @@ final class ContentReference extends Model implements Sortable
     ];
 
     /**
-     * @var list<string>
-     */
-    #[Override]
-    protected $hidden = [
-        'created_at',
-        'updated_at',
-    ];
-
-    /**
      * @var array<string, mixed>
      */
     protected array $sortable = [

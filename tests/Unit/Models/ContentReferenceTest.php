@@ -14,7 +14,6 @@ it('content reference model has correct structure', function (): void {
     $source = file_get_contents($reflection->getFileName());
 
     expect($source)->toContain('protected $fillable')
-        ->and($source)->toContain('protected $hidden')
         ->and($source)->toContain(CMSTables::ContentsReferences->value);
 });
 

@@ -10,9 +10,6 @@ it('field model has correct structure', function (): void {
 
     // Test fillable attributes
     expect($source)->toContain('protected $fillable');
-
-    // Test hidden attributes
-    expect($source)->toContain('protected $hidden');
 });
 
 it('field model uses correct traits', function (): void {

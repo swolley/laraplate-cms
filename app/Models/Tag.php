@@ -55,8 +55,6 @@ final class Tag extends Model implements Sortable
     #[Override]
     protected $hidden = [
         'order_column',
-        'created_at',
-        'updated_at',
     ];
 
     protected bool $translation_fallback_enabled = true;

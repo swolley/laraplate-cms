@@ -53,12 +53,6 @@ final class ContentTranslation extends Model implements ITranslated
         'ai_assistance' => 'none',
     ];
 
-    #[Override]
-    protected $hidden = [
-        'created_at',
-        'updated_at',
-    ];
-
     /**
      * The content that belongs to the translation.
      *

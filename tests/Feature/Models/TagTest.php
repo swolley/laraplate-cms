@@ -73,8 +73,8 @@ it('has hidden attributes', function (): void {
     $tagArray = $tag->toArray();
 
     expect($tagArray)->not->toHaveKey('order_column');
-    expect($tagArray)->not->toHaveKey('created_at');
-    expect($tagArray)->not->toHaveKey('updated_at');
+    expect($tagArray)->toHaveKey('created_at');
+    expect($tagArray)->toHaveKey('updated_at');
 });
 
 it('belongs to many contents', function (): void {

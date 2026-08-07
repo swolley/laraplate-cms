@@ -46,8 +46,8 @@ it('has hidden attributes', function (): void {
 
     expect($contributorArray)->not->toHaveKey('user_id');
     expect($contributorArray)->not->toHaveKey('user');
-    expect($contributorArray)->not->toHaveKey('created_at');
-    expect($contributorArray)->not->toHaveKey('updated_at');
+    expect($contributorArray)->toHaveKey('created_at');
+    expect($contributorArray)->toHaveKey('updated_at');
 });
 
 it('belongs to many contents', function (): void {

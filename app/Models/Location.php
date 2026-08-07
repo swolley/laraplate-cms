@@ -84,12 +84,6 @@ final class Location extends Model implements Taggable
         'slug',
     ];
 
-    #[Override]
-    protected $hidden = [
-        'created_at',
-        'updated_at',
-    ];
-
     /**
      * Typesense mapping to avoid empty schema errors.
      *

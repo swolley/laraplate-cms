@@ -53,15 +53,6 @@ final class Comment extends Model
         'user_id',
     ];
 
-    /**
-     * @var list<string>
-     */
-    #[Override]
-    protected $hidden = [
-        'created_at',
-        'updated_at',
-    ];
-
     public static function captureSave(self $item): bool
     {
         return CommentApprovalCapture::capture($item);

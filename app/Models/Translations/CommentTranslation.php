@@ -37,15 +37,6 @@ final class CommentTranslation extends Model implements ITranslated
     ];
 
     /**
-     * @var list<string>
-     */
-    #[Override]
-    protected $hidden = [
-        'created_at',
-        'updated_at',
-    ];
-
-    /**
      * @return BelongsTo<Comment, $this>
      */
     public function comment(): BelongsTo
