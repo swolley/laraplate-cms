@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🐛 Bug Fixes
+
+- *(cms)* Stop hiding created_at and updated_at on models
+
+### 🚜 Refactor
+
+- *(tests)* Update schema column checks in tests
+- *(cms)* Optimize content relation creation by using pre-built ID pools
+
+## [1.41.0] - 2026-08-05
+
 ### 🚀 Features
 
 - *(cms)* Require approval on live content edits
