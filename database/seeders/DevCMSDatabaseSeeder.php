@@ -37,13 +37,16 @@ final class DevCMSDatabaseSeeder extends BatchSeeder
         ModelObserver::disableSyncingFor(Location::class);
 
         try {
-            Model::unguarded(function (): void {
-                $this->seedContributors();
-                $this->seedCategories();
-                $this->seedLocations();
-                $this->seedTags();
-                $this->seedContents();
-            });
+            $this->withoutModelVersioning(
+                [Content::class, Contributor::class, Category::class, Location::class, Tag::class],
+                fn () => Model::unguarded(function (): void {
+                    $this->seedContributors();
+                    $this->seedCategories();
+                    $this->seedLocations();
+                    $this->seedTags();
+                    $this->seedContents();
+                }),
+            );
         } finally {
             ModelObserver::enableSyncingFor(Content::class);
             ModelObserver::enableSyncingFor(Location::class);
