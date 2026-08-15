@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Modules\CMS\Helpers;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Model;
-use Modules\CMS\Models\Media as CmsMedia;
+use Modules\Core\Helpers\HasMedia;
+use Modules\Core\Models\Media as CmsMedia;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 

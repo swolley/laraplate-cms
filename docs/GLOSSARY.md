@@ -28,8 +28,8 @@ Canonical English names for CMS entities in this module. Use these terms in code
 
 | Term | Meaning |
 |------|---------|
-| **Media** | Spatie Media Library wrapper for CMS attachments. |
-| **HasMultimedia** | Trait wiring upload collections and conversions. |
+| **Media** | Core-owned Spatie Media Library model (`Core\Models\Media`, `vend_media` table); CMS consumes it, it is not CMS-owned. |
+| **HasMultimedia** | CMS trait wiring upload collections and conversions on top of the Core `HasMedia` foundation trait. |
 | **Location** | Geo-tagged place metadata for content. |
 | **GeocodeLocationAction** | Resolves coordinates via Core `IGeocodingService`. |
 | **HasPlace** | Core trait linking `Location` to a `Place` row. |

@@ -6,7 +6,7 @@
 
 ### Module boundaries
 
-HTTP/Filament/Artisan entry points talk to CMS Eloquent models (`Content`, `Tag`, `Category`, `Contributor`, `Location`, `Preset`, `Media`). Models extend Core abstractions (`Core\Models\Entity`, `Core\Models\Taxonomy`, `Core\Models\Preset`) and reuse Core traits (`HasLocks`, `HasApprovals`, `HasValidity`, `HasTranslations`, `HasTranslatedDynamicContents`, `HasPath`, `HasPlace`, `Searchable`). Side effects are orchestrated by the `ContentObserver` (auto-assignment of `entity_id` / `presettable_id`), the geocoding action `GeocodeLocationAction` over `IGeocodingService` (default `NominatimService`), the Spatie media library pipeline wired through the `HasMultimedia` helper, and `CmsGraphProvider` for Core Graph defaults. The `CMSPlugin` registers Filament resources for the panel.
+HTTP/Filament/Artisan entry points talk to CMS Eloquent models (`Content`, `Tag`, `Category`, `Contributor`, `Location`, `Preset`). Models extend Core abstractions (`Core\Models\Entity`, `Core\Models\Taxonomy`, `Core\Models\Preset`) and reuse Core traits (`HasLocks`, `HasApprovals`, `HasValidity`, `HasTranslations`, `HasTranslatedDynamicContents`, `HasPath`, `HasPlace`, `Searchable`). Side effects are orchestrated by the `ContentObserver` (auto-assignment of `entity_id` / `presettable_id`), the geocoding action `GeocodeLocationAction` over `IGeocodingService` (default `NominatimService`), the Spatie media library pipeline wired through the CMS `HasMultimedia` helper (which builds on the Core-owned `HasMedia` trait and `Core\Models\Media` / `vend_media` — media is a Core foundation, not CMS-owned), and `CmsGraphProvider` for Core Graph defaults. The `CMSPlugin` registers Filament resources for the panel.
 
 ```mermaid
 flowchart TB
@@ -22,7 +22,6 @@ flowchart TB
     Contributor[Contributor]
     Location[Location]
     Preset[Preset]
-    Media[Media]
   end
   subgraph cmsCore [CMS helpers and observers]
     Observer[ContentObserver]
@@ -41,6 +40,7 @@ flowchart TB
     Search[Searchable plus FieldDefinition]
     Graph[Core Graph provider]
     Geo[IGeocodingService]
+    CoreMedia[Core HasMedia plus Media vend_media]
   end
   subgraph plug [Plugins and integrations]
     PluginCMS[CMSPlugin]
@@ -69,7 +69,9 @@ flowchart TB
   Content --> I18n
   Content --> Search
   Content --> Graph
+  Multimedia --> CoreMedia
   Multimedia --> Spatie
+  CoreMedia --> Spatie
   PluginCMS -.-> Filament
 ```
 

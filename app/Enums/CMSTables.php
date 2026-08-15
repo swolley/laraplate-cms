@@ -9,7 +9,7 @@ use Modules\Core\Enums\Concerns\HasModuleTablesUtils;
 enum CMSTables: string
 {
     use HasModuleTablesUtils;
-    
+
     // cms models
     case Tags = 'cms_tags';
     case Taggables = 'cms_taggables';
@@ -19,9 +19,6 @@ enum CMSTables: string
     case Comments = 'cms_comments';
     case ContentRatings = 'cms_contents_ratings';
     case ContentsReferences = 'cms_contents_references';
-
-    // generic or vendors models
-    case Media = 'vend_media';
 
     // translations
     case ContentsTranslations = 'cms_contents_translations';
