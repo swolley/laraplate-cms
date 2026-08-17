@@ -14,7 +14,9 @@ use Modules\CMS\Helpers\HasTags;
 use Modules\CMS\Models\Pivot\Categorizable;
 use Modules\CMS\Models\Pivot\Presettable;
 use Modules\Core\Contracts\IDynamicEntityTypable;
+use Modules\Core\Contracts\ProvidesFacetLabelSources;
 use Modules\Core\Models\Taxonomy;
+use Modules\Core\Services\Crud\DTOs\FacetLabelSource;
 use Override;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\MediaLibrary\HasMedia as IMediable;
@@ -25,7 +27,7 @@ use Spatie\MediaLibrary\HasMedia as IMediable;
  * @mixin \Eloquent
  * @mixin IdeHelperCategory
  */
-final class Category extends Taxonomy implements IMediable, Sortable, Taggable
+final class Category extends Taxonomy implements IMediable, ProvidesFacetLabelSources, Sortable, Taggable
 {
     // region Traits
     use HasMultimedia;
@@ -49,6 +51,25 @@ final class Category extends Taxonomy implements IMediable, Sortable, Taggable
     public static function getPresettableClass(): string
     {
         return Presettable::class;
+    }
+
+    /**
+     * Facet label source for the self-referential parent facet: the parent id
+     * (`parent_id`) labels from the parent category's locale-scoped translated name.
+     *
+     * @return array<string, FacetLabelSource>
+     */
+    #[Override]
+    public function facetLabelSources(): array
+    {
+        return [
+            'parent' => new FacetLabelSource(
+                relatedClass: self::class,
+                foreignKey: 'parent_id',
+                translationRelation: 'translations',
+                translationColumn: 'name',
+            ),
+        ];
     }
 
     /**
