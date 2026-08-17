@@ -117,6 +117,29 @@ it('facets contents by the categories pivot with translated labels', function ()
     expect($labels)->toBe(['Cinema', 'Sport']);
 });
 
+it('facets contents by content type labelled from the entity accessor foreign key', function (): void {
+    app()->setLocale('en');
+    setupCMSEntities([EntityType::Contents, EntityType::Categories]);
+
+    content_with_categories([]);
+    content_with_categories([]);
+
+    // entity_id has no BelongsTo on Content (entity is an accessor); the label
+    // resolves through the declared facet label source instead.
+    $page = content_facet(new FacetQuery(
+        groupBy: 'entity_id',
+        fields: ['entity.name'],
+        labelField: 'entity.name',
+        sort: FacetSort::CountDesc,
+    ));
+
+    $contentsEntity = Modules\CMS\Models\Content::query()->first()->entity_id;
+    $row = collect($page->values)->firstWhere('key', $contentsEntity);
+
+    expect($row['count'])->toBe(2)
+        ->and($row['attributes'])->toBe(['entity.name' => 'contents']);
+});
+
 it('searches contents category facet by the translated label', function (): void {
     app()->setLocale('en');
     setupCMSEntities([EntityType::Contents, EntityType::Categories]);
