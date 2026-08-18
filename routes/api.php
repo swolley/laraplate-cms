@@ -19,6 +19,10 @@ use Modules\CMS\Http\Controllers\ContentsController;
  *
 */
 
+Route::post('cms/contents/{content}/relations', [ContentsController::class, 'syncRelations'])
+    ->whereNumber('content')
+    ->name('contents.relations');
+
 Route::group(['prefix' => 'select/cms/{relation}'], static function (): void {
     $cached_names = [];
 
