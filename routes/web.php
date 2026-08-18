@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Modules\CMS\Http\Controllers\InsightsController;
 use Modules\CMS\Http\Controllers\LocationsController;
 
 /*
@@ -18,4 +19,9 @@ use Modules\CMS\Http\Controllers\LocationsController;
 
 Route::middleware('auth')->prefix('cms/locations')->group(function (): void {
     Route::get('/geocode', [LocationsController::class, 'geocode'])->name('locations.geocode');
+});
+
+Route::middleware('auth')->prefix('cms/insights')->group(function (): void {
+    Route::get('/map/locations', [InsightsController::class, 'mapLocations'])->name('insights.map-locations');
+    Route::get('/graph/tags', [InsightsController::class, 'tagGraph'])->name('insights.tag-graph');
 });

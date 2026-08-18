@@ -44,6 +44,13 @@ CMS registers `Modules\CMS\Graph\CmsGraphProvider` as a Core Graph provider. Cor
 
 Graph relation loading follows Core rules: explicit `relations[]` win, provider defaults apply only when relations are omitted, and excluded CMS implementation relations such as translations, history, modifications, locks, and media are not graph-traversable.
 
+## Insights endpoints (map & tag graph)
+
+Two read-only, auth-guarded endpoints back the CMS map and tag-graph surfaces (dashboard widgets and the facet alternative-selectors). They live in `Modules\CMS\Http\Controllers\InsightsController` and are registered under the `cms/insights` prefix.
+
+- `GET cms/insights/map/locations` (`cms.insights.map-locations`) — returns the geo-located locations that are used by at least one content, each with a `contentCount`. Coordinates come from the canonical Core `core_places` row (decimal `latitude`/`longitude`), so the query is portable across drivers and needs no spatial functions (`Modules\CMS\Services\Map\MapLocationsService`). Pass an optional viewport with all four query params `south`, `west`, `north`, `east` (WGS84 degrees, supplied together) to scope results to what the map shows; antimeridian-crossing boxes are not supported.
+- `GET cms/insights/graph/tags` (`cms.insights.tag-graph`) — returns the tag co-occurrence adjacency graph as `{ nodes, edges }`: nodes are tags weighted by how many contents use them; edges join two tags (undirected, `source < target`) weighted by how many contents they share (`Modules\CMS\Services\Graph\TagCoOccurrenceService`). Optional query params `minCoOccurrence` (default `1`) drops weak edges and `maxNodes` (default `200`) caps the busiest tags. Labels resolve from `cms_tags_translations`, preferring the active locale then the fallback locale, so a tag hidden by the model locale scope still gets a name.
+
 ## Graph runtime benchmark
 
 CMS includes an opt-in benchmark for Core Graph runtime traversal over realistic content relations. The benchmark is intentionally outside the normal PHPUnit suites and is skipped unless explicitly enabled. Run it when changing Core Graph traversal/search behavior, CMS graph provider defaults, or before deciding whether Phase 5 materialized edges are justified.
