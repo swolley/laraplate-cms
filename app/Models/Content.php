@@ -27,6 +27,7 @@ use Modules\CMS\Models\Pivot\Relatable;
 use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Observers\ContentObserver;
 use Modules\Core\Contracts\IDynamicEntityTypable;
+use Modules\Core\Contracts\ProvidesFacetLabelSources;
 use Modules\Core\Enums\CoreTables;
 use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Locking\Traits\HasLocks;
@@ -39,6 +40,7 @@ use Modules\Core\Models\Concerns\SortableTrait;
 use Modules\Core\Models\RecordOrigin;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Search\Schema\FieldDefinition;
+use Modules\Core\Services\Crud\DTOs\FacetLabelSource;
 use Modules\Core\Search\Schema\FieldType;
 use Modules\Core\Search\Schema\IndexType;
 use Modules\Core\Search\Traits\Searchable;
@@ -57,7 +59,7 @@ use Spatie\MediaLibrary\HasMedia;
  * @mixin IdeHelperContent
  */
 #[ObservedBy(ContentObserver::class)]
-final class Content extends Model implements HasMedia, Sortable, Taggable
+final class Content extends Model implements HasMedia, ProvidesFacetLabelSources, Sortable, Taggable
 {
     // region Traits
     use HasApprovals {
@@ -180,6 +182,20 @@ final class Content extends Model implements HasMedia, Sortable, Taggable
         $model->setDefaultEntityAndPreset();
 
         return $model;
+    }
+
+    /**
+     * Facet label sources for foreign keys exposed through accessors rather than a
+     * BelongsTo: the content type (`entity_id`) labels from the entity name.
+     *
+     * @return array<string, FacetLabelSource>
+     */
+    #[Override]
+    public function facetLabelSources(): array
+    {
+        return [
+            'entity' => new FacetLabelSource(relatedClass: Entity::class, foreignKey: 'entity_id'),
+        ];
     }
 
     /**
