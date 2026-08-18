@@ -22,6 +22,5 @@ Route::middleware('auth')->prefix('cms/locations')->group(function (): void {
 });
 
 Route::middleware('auth')->prefix('cms/insights')->group(function (): void {
-    Route::get('/map/locations', [InsightsController::class, 'mapLocations'])->name('insights.map-locations');
     Route::get('/graph/tags', [InsightsController::class, 'tagGraph'])->name('insights.tag-graph');
 });

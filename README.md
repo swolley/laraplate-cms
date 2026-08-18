@@ -44,12 +44,13 @@ CMS registers `Modules\CMS\Graph\CmsGraphProvider` as a Core Graph provider. Cor
 
 Graph relation loading follows Core rules: explicit `relations[]` win, provider defaults apply only when relations are omitted, and excluded CMS implementation relations such as translations, history, modifications, locks, and media are not graph-traversable.
 
-## Insights endpoints (map & tag graph)
+## Insights (map & tag graph)
 
-Two read-only, auth-guarded endpoints back the CMS map and tag-graph surfaces (dashboard widgets and the facet alternative-selectors). They live in `Modules\CMS\Http\Controllers\InsightsController` and are registered under the `cms/insights` prefix.
+The map and tag-graph surfaces (dashboard widgets and the facet alternative-selectors) get their data two different ways.
 
-- `GET cms/insights/map/locations` (`cms.insights.map-locations`) — returns the geo-located locations that are used by at least one content, each with a `contentCount`. Coordinates come from the canonical Core `core_places` row (decimal `latitude`/`longitude`), so the query is portable across drivers and needs no spatial functions (`Modules\CMS\Services\Map\MapLocationsService`). Pass an optional viewport with all four query params `south`, `west`, `north`, `east` (WGS84 degrees, supplied together) to scope results to what the map shows; antimeridian-crossing boxes are not supported.
-- `GET cms/insights/graph/tags` (`cms.insights.tag-graph`) — returns the tag co-occurrence adjacency graph as `{ nodes, edges }`: nodes are tags weighted by how many contents use them; edges join two tags (undirected, `source < target`) weighted by how many contents they share (`Modules\CMS\Services\Graph\TagCoOccurrenceService`). Optional query params `minCoOccurrence` (default `1`) drops weak edges and `maxNodes` (default `200`) caps the busiest tags. Labels resolve from `cms_tags_translations`, preferring the active locale then the fallback locale, so a tag hidden by the model locale scope still gets a name.
+**Map — generic CRUD select, no bespoke endpoint.** The locations map is served by the ordinary list endpoint (`POST app/crud/select/cms/locations`) with a `contents` count aggregate: a column `{ "name": "contents", "type": "count" }` yields a `contents_count` on each row (via Core's dotless main-model relation-count aggregate), and the place-derived `latitude`/`longitude` accessors give the coordinates. The viewport is a `between` filter on `place.latitude`/`place.longitude`; "used" locations are those with a non-zero `contents_count` (filtered client-side). The count honours the related entity's read ACL, so it never counts contents the viewer cannot see. This is why there is no `insights/map/*` route — the CRUD layer already does it.
+
+**Tag graph — a real endpoint.** `GET cms/insights/graph/tags` (`cms.insights.tag-graph`) returns the tag co-occurrence adjacency graph as `{ nodes, edges }`: nodes are tags weighted by how many contents use them; edges join two tags (undirected, `source < target`) weighted by how many contents they share (`Modules\CMS\Services\Graph\TagCoOccurrenceService`). This cannot be a select — the edges are a self-join over the `cms_taggables` pivot producing tag pairs, not a per-row relation count. Optional query params `minCoOccurrence` (default `1`) drops weak edges and `maxNodes` (default `200`) caps the busiest tags. Labels resolve from `cms_tags_translations`, preferring the active locale then the fallback locale, so a tag hidden by the model locale scope still gets a name.
 
 ## Graph runtime benchmark
 
