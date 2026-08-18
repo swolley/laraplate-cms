@@ -78,6 +78,15 @@ it('facets locations by the country reached through the place relation', functio
         ->and($byKey['France']['count'])->toBe(1);
 });
 
+it('rejects a facet on a magic-accessor column with a clear error', function (): void {
+    location_in('Italy');
+
+    // `country` looks like a Location attribute but is a HasPlace accessor over the
+    // places table — not a real locations column, so faceting on it must fail fast.
+    expect(fn (): FacetPage => location_facet(new FacetQuery(groupBy: 'country')))
+        ->toThrow(InvalidArgumentException::class, 'does not exist');
+});
+
 it('searches the locations country facet', function (): void {
     location_in('Italy');
     location_in('France');
