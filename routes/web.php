@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Modules\CMS\Http\Controllers\ContentsController;
 use Modules\CMS\Http\Controllers\InsightsController;
 use Modules\CMS\Http\Controllers\LocationsController;
 
@@ -23,4 +24,10 @@ Route::middleware('auth')->prefix('cms/locations')->group(function (): void {
 
 Route::middleware('auth')->prefix('cms/insights')->group(function (): void {
     Route::get('/graph/tags', [InsightsController::class, 'tagGraph'])->name('insights.tag-graph');
+});
+
+Route::middleware('auth')->prefix('cms/contents')->group(function (): void {
+    Route::post('/{content}/relations', [ContentsController::class, 'syncRelations'])
+        ->whereNumber('content')
+        ->name('contents.relations');
 });

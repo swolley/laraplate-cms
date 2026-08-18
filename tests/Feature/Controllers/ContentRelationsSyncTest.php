@@ -58,7 +58,7 @@ it('syncs every relation of a content by id', function (): void {
     $tag = Tag::factory()->create();
 
     $response = $this->actingAs(relationsSyncSuperadmin())->postJson(
-        route('cms.api.contents.relations', ['content' => $content->id]),
+        route('cms.contents.relations', ['content' => $content->id]),
         [
             'categories' => $categories->pluck('id')->all(),
             'contributors' => [$contributor->id],
@@ -83,7 +83,7 @@ it('replaces an existing relation set rather than appending', function (): void 
     $content->categories()->sync([$old->id]);
 
     $response = $this->actingAs(relationsSyncSuperadmin())->postJson(
-        route('cms.api.contents.relations', ['content' => $content->id]),
+        route('cms.contents.relations', ['content' => $content->id]),
         ['categories' => [$new->id]],
     );
 
@@ -99,7 +99,7 @@ it('leaves an omitted relation untouched', function (): void {
     $content->categories()->sync([$category->id]);
 
     $response = $this->actingAs(relationsSyncSuperadmin())->postJson(
-        route('cms.api.contents.relations', ['content' => $content->id]),
+        route('cms.contents.relations', ['content' => $content->id]),
         ['contributors' => [$contributor->id]],
     );
 
@@ -115,7 +115,7 @@ it('clears a relation when an empty array is sent', function (): void {
     $content->categories()->sync([$category->id]);
 
     $response = $this->actingAs(relationsSyncSuperadmin())->postJson(
-        route('cms.api.contents.relations', ['content' => $content->id]),
+        route('cms.contents.relations', ['content' => $content->id]),
         ['categories' => []],
     );
 
@@ -129,7 +129,7 @@ it('denies syncing without the update permission on contents', function (): void
     $category = Category::factory()->create();
 
     $response = $this->actingAs(User::factory()->create())->postJson(
-        route('cms.api.contents.relations', ['content' => $content->id]),
+        route('cms.contents.relations', ['content' => $content->id]),
         ['categories' => [$category->id]],
     );
 
@@ -139,7 +139,7 @@ it('denies syncing without the update permission on contents', function (): void
 
 it('returns 404 for an unknown content', function (): void {
     $response = $this->actingAs(relationsSyncSuperadmin())->postJson(
-        route('cms.api.contents.relations', ['content' => 999999]),
+        route('cms.contents.relations', ['content' => 999999]),
         ['categories' => []],
     );
 
@@ -150,7 +150,7 @@ it('rejects non-integer relation ids', function (): void {
     $content = makeSyncableContent();
 
     $response = $this->actingAs(relationsSyncSuperadmin())->postJson(
-        route('cms.api.contents.relations', ['content' => $content->id]),
+        route('cms.contents.relations', ['content' => $content->id]),
         ['categories' => ['not-an-id']],
     );
 
