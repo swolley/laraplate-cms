@@ -40,6 +40,7 @@ function map_select(?array $filters = null): Illuminate\Testing\TestResponse
     return $test->postJson(route('core.crud.list', ['module' => 'cms', 'entity' => 'locations']), [
         'pagination' => 500,
         'page' => 1,
+        'relations' => ['place'],
         'columns' => [['name' => 'contents', 'type' => 'count']],
         ...($filters !== null ? ['filters' => $filters] : []),
     ]);
