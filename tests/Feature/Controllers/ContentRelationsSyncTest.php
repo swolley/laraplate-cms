@@ -16,6 +16,15 @@ use Symfony\Component\HttpFoundation\Response;
 
 uses(TestCase::class, RefreshDatabase::class);
 
+/**
+ * Content m2m relations are reassigned through the generic Core CRUD `update`
+ * (Content whitelists them via ProvidesSyncableRelations), not a bespoke route.
+ */
+function relationsUpdateUrl(): string
+{
+    return route('core.crud.replace', ['module' => 'cms', 'entity' => 'contents']);
+}
+
 function relationsSyncSuperadmin(): User
 {
     $user = User::factory()->create();
@@ -31,7 +40,7 @@ function makeSyncableContent(): Content
 
 /**
  * The attached related ids, ignoring the related models' locale/soft-delete
- * scopes — the endpoint syncs pivot rows, not locale-visible rows.
+ * scopes — the update syncs pivot rows, not locale-visible rows.
  *
  * @return list<int>
  */
@@ -57,15 +66,15 @@ it('syncs every relation of a content by id', function (): void {
     $location = Location::factory()->create();
     $tag = Tag::factory()->create();
 
-    $response = $this->actingAs(relationsSyncSuperadmin())->postJson(
-        route('cms.contents.relations', ['content' => $content->id]),
-        [
+    $response = $this->actingAs(relationsSyncSuperadmin())->patchJson(relationsUpdateUrl(), [
+        'id' => $content->id,
+        'relations' => [
             'categories' => $categories->pluck('id')->all(),
             'contributors' => [$contributor->id],
             'locations' => [$location->id],
             'tags' => [$tag->id],
         ],
-    );
+    ]);
 
     $response->assertOk();
 
@@ -82,10 +91,10 @@ it('replaces an existing relation set rather than appending', function (): void 
     $new = Category::factory()->create();
     $content->categories()->sync([$old->id]);
 
-    $response = $this->actingAs(relationsSyncSuperadmin())->postJson(
-        route('cms.contents.relations', ['content' => $content->id]),
-        ['categories' => [$new->id]],
-    );
+    $response = $this->actingAs(relationsSyncSuperadmin())->patchJson(relationsUpdateUrl(), [
+        'id' => $content->id,
+        'relations' => ['categories' => [$new->id]],
+    ]);
 
     $response->assertOk();
 
@@ -98,10 +107,10 @@ it('leaves an omitted relation untouched', function (): void {
     $contributor = Contributor::factory()->create();
     $content->categories()->sync([$category->id]);
 
-    $response = $this->actingAs(relationsSyncSuperadmin())->postJson(
-        route('cms.contents.relations', ['content' => $content->id]),
-        ['contributors' => [$contributor->id]],
-    );
+    $response = $this->actingAs(relationsSyncSuperadmin())->patchJson(relationsUpdateUrl(), [
+        'id' => $content->id,
+        'relations' => ['contributors' => [$contributor->id]],
+    ]);
 
     $response->assertOk();
 
@@ -114,10 +123,10 @@ it('clears a relation when an empty array is sent', function (): void {
     $category = Category::factory()->create();
     $content->categories()->sync([$category->id]);
 
-    $response = $this->actingAs(relationsSyncSuperadmin())->postJson(
-        route('cms.contents.relations', ['content' => $content->id]),
-        ['categories' => []],
-    );
+    $response = $this->actingAs(relationsSyncSuperadmin())->patchJson(relationsUpdateUrl(), [
+        'id' => $content->id,
+        'relations' => ['categories' => []],
+    ]);
 
     $response->assertOk();
 
@@ -128,20 +137,20 @@ it('denies syncing without the update permission on contents', function (): void
     $content = makeSyncableContent();
     $category = Category::factory()->create();
 
-    $response = $this->actingAs(User::factory()->create())->postJson(
-        route('cms.contents.relations', ['content' => $content->id]),
-        ['categories' => [$category->id]],
-    );
+    $response = $this->actingAs(User::factory()->create())->patchJson(relationsUpdateUrl(), [
+        'id' => $content->id,
+        'relations' => ['categories' => [$category->id]],
+    ]);
 
     $response->assertStatus(Response::HTTP_UNAUTHORIZED);
     expect($content->categories()->count())->toBe(0);
 });
 
 it('returns 404 for an unknown content', function (): void {
-    $response = $this->actingAs(relationsSyncSuperadmin())->postJson(
-        route('cms.contents.relations', ['content' => 999999]),
-        ['categories' => []],
-    );
+    $response = $this->actingAs(relationsSyncSuperadmin())->patchJson(relationsUpdateUrl(), [
+        'id' => 999999,
+        'relations' => ['categories' => []],
+    ]);
 
     $response->assertNotFound();
 });
@@ -149,10 +158,21 @@ it('returns 404 for an unknown content', function (): void {
 it('rejects non-integer relation ids', function (): void {
     $content = makeSyncableContent();
 
-    $response = $this->actingAs(relationsSyncSuperadmin())->postJson(
-        route('cms.contents.relations', ['content' => $content->id]),
-        ['categories' => ['not-an-id']],
-    );
+    $response = $this->actingAs(relationsSyncSuperadmin())->patchJson(relationsUpdateUrl(), [
+        'id' => $content->id,
+        'relations' => ['categories' => ['not-an-id']],
+    ]);
 
     $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+});
+
+it('rejects a relation that is not whitelisted on the content', function (): void {
+    $content = makeSyncableContent();
+
+    $response = $this->actingAs(relationsSyncSuperadmin())->patchJson(relationsUpdateUrl(), [
+        'id' => $content->id,
+        'relations' => ['comments' => [1]],
+    ]);
+
+    $response->assertStatus(Response::HTTP_BAD_REQUEST);
 });

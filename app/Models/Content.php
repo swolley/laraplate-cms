@@ -28,6 +28,7 @@ use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Observers\ContentObserver;
 use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Contracts\ProvidesFacetLabelSources;
+use Modules\Core\Contracts\ProvidesSyncableRelations;
 use Modules\Core\Enums\CoreTables;
 use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Locking\Traits\HasLocks;
@@ -40,26 +41,28 @@ use Modules\Core\Models\Concerns\SortableTrait;
 use Modules\Core\Models\RecordOrigin;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Search\Schema\FieldDefinition;
-use Modules\Core\Services\Crud\DTOs\FacetLabelSource;
 use Modules\Core\Search\Schema\FieldType;
 use Modules\Core\Search\Schema\IndexType;
 use Modules\Core\Search\Traits\Searchable;
+use Modules\Core\Services\Crud\DTOs\FacetLabelSource;
 use Override;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\MediaLibrary\HasMedia;
 
 /**
  * @property int|string $id
+ *
  * @phpstan-use HasMultimedia<Content>
  * @phpstan-use HasTranslatedDynamicContents<Content>
  * @phpstan-use HasValidity<Content>
  * @phpstan-use Searchable<Content>
+ *
  * @mixin \Illuminate\Database\Eloquent\Model
  * @mixin \Eloquent
  * @mixin IdeHelperContent
  */
 #[ObservedBy(ContentObserver::class)]
-final class Content extends Model implements HasMedia, ProvidesFacetLabelSources, Sortable, Taggable
+final class Content extends Model implements HasMedia, ProvidesFacetLabelSources, ProvidesSyncableRelations, Sortable, Taggable
 {
     // region Traits
     use HasApprovals {
@@ -196,6 +199,18 @@ final class Content extends Model implements HasMedia, ProvidesFacetLabelSources
         return [
             'entity' => new FacetLabelSource(relatedClass: Entity::class, foreignKey: 'entity_id'),
         ];
+    }
+
+    /**
+     * Relations the generic CRUD update may sync from lists of ids (authoring the
+     * content's tags, categories, locations and contributors from the SPA).
+     *
+     * @return list<string>
+     */
+    #[Override]
+    public function syncableRelations(): array
+    {
+        return ['tags', 'categories', 'locations', 'contributors'];
     }
 
     /**
@@ -551,6 +566,21 @@ final class Content extends Model implements HasMedia, ProvidesFacetLabelSources
         $this->setRelation('presettable', $presettable);
     }
 
+    /**
+     * Soft-keep approval modifications after vote (Chiara rejection trail / Marco history).
+     * Overrides Core HasApprovals which defaults deleteWhenDisapproved to true.
+     */
+    public function initializeHasApprovals(): void
+    {
+        if (preview()) {
+            $this->append('preview');
+            $this->makeHidden('preview');
+        }
+
+        $this->deleteWhenDisapproved = false;
+        $this->deleteWhenApproved = false;
+    }
+
     protected static function getEntityType(): IDynamicEntityTypable
     {
         return EntityType::Contents;
@@ -566,21 +596,6 @@ final class Content extends Model implements HasMedia, ProvidesFacetLabelSources
             /** @var Builder<Content> $query */
             $query->ordered();
         });
-    }
-
-    /**
-     * Soft-keep approval modifications after vote (Chiara rejection trail / Marco history).
-     * Overrides Core HasApprovals which defaults deleteWhenDisapproved to true.
-     */
-    public function initializeHasApprovals(): void
-    {
-        if (preview()) {
-            $this->append('preview');
-            $this->makeHidden('preview');
-        }
-
-        $this->deleteWhenDisapproved = false;
-        $this->deleteWhenApproved = false;
     }
 
     protected static function newFactory(): ContentFactory
@@ -649,7 +664,11 @@ final class Content extends Model implements HasMedia, ProvidesFacetLabelSources
     {
         return Attribute::make(
             get: function (): ReadingStatistics {
-                $raw = $this->getAttribute('content');
+                // `content` is merged into the array form only later by the dynamic-content
+                // trait, so during `toArray()` appends it may not be a loaded attribute yet.
+                // Guard the read so strict attribute access does not throw — an absent
+                // content simply yields empty reading statistics.
+                $raw = array_key_exists('content', $this->attributes) ? $this->getAttribute('content') : null;
                 $blocks = match (true) {
                     is_array($raw) => $raw['blocks'] ?? [],
                     is_object($raw) => $raw->blocks ?? [],
