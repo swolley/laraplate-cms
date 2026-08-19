@@ -588,14 +588,11 @@ final class Content extends Model implements HasMedia, ProvidesFacetLabelSources
 
     protected static function booted(): void
     {
-        self::addGlobalScope('global_filters', static function (Builder $query): void {
-            /** @var Builder<Content> $query */
-            // The authoring surface (session app CRUD) must see drafts, scheduled
-            // and expired contents; the public API keeps validity filtering.
-            if (! authoring_surface()) {
-                $query->valid();
-            }
-        });
+        // Validity (valid_from/valid_to) is no longer a global scope: publication
+        // filtering is a row-level authorization concern, enforced by a role-scoped
+        // ACL on `contents.select` seeded for the guest role (see CMSDatabaseSeeder).
+        // The anonymous/public reader is thus limited to published contents through
+        // the CRUD/ACL layer, while staff roles read every content.
         self::addGlobalScope('global_ordered', static function (Builder $query): void {
             /** @var Builder<Content> $query */
             $query->ordered();

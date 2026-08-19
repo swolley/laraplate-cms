@@ -7,13 +7,20 @@ namespace Modules\CMS\Database\Seeders;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Entity;
 use Modules\CMS\Models\Preset;
 use Modules\Core\Casts\ActionEnum;
 use Modules\Core\Casts\FieldType;
+use Modules\Core\Casts\Filter;
+use Modules\Core\Casts\FilterOperator;
+use Modules\Core\Casts\FiltersGroup;
 use Modules\Core\Casts\SettingTypeEnum;
+use Modules\Core\Casts\WhereClause;
 use Modules\Core\Database\Seeders\CoreDatabaseSeeder;
+use Modules\Core\Models\ACL;
 use Modules\Core\Models\Field;
+use Modules\Core\Models\Permission;
 use Modules\Core\Models\Role;
 use Modules\Core\Models\Setting;
 use Modules\Core\Overrides\Seeder;
@@ -22,6 +29,7 @@ use Modules\Core\Seeding\SeedReconciler;
 use Modules\Core\Services\DynamicContentsService;
 use Modules\Core\Services\PresetVersioningService;
 use Modules\Core\Services\SettingsCacheCoordinator;
+use Modules\Core\Support\PermissionName;
 
 final class CMSDatabaseSeeder extends Seeder
 {
@@ -62,6 +70,7 @@ final class CMSDatabaseSeeder extends Seeder
             $this->defaultFields();
             $this->defaultEntities();
             $this->defaultRoles();
+            $this->defaultContentAcls();
         });
 
         // The orchestrator already flushes the settings cache once after every node succeeds
@@ -70,22 +79,6 @@ final class CMSDatabaseSeeder extends Seeder
         // without the blanket `cache:clear` this used to call.
         app(SettingsCacheCoordinator::class)->flushAll();
         DynamicContentsService::getInstance()->clearAllCaches();
-    }
-
-    private function defaultSettings(): void
-    {
-        $outcome = app(SeedReconciler::class)->reconcile(
-            SeedDefinition::for(Setting::class)
-                ->identity(['name'])
-                ->structural(['type', 'group_name', 'description', 'choices'])
-                ->initial(['value'])
-                ->ownedBy('CMS')
-                ->rows(self::runtimeSettingDefinitions()),
-        );
-
-        $this->command?->line(
-            '    - created ' . count($outcome->created) . ', realigned ' . count($outcome->realigned) . ", unchanged {$outcome->unchanged}",
-        );
     }
 
     /**
@@ -102,6 +95,22 @@ final class CMSDatabaseSeeder extends Seeder
             'group_name' => $group,
             'description' => $description,
         ];
+    }
+
+    private function defaultSettings(): void
+    {
+        $outcome = app(SeedReconciler::class)->reconcile(
+            SeedDefinition::for(Setting::class)
+                ->identity(['name'])
+                ->structural(['type', 'group_name', 'description', 'choices'])
+                ->initial(['value'])
+                ->ownedBy('CMS')
+                ->rows(self::runtimeSettingDefinitions()),
+        );
+
+        $this->command?->line(
+            '    - created ' . count($outcome->created) . ', realigned ' . count($outcome->realigned) . ", unchanged {$outcome->unchanged}",
+        );
     }
 
     private function defaultFields(): void
@@ -296,6 +305,83 @@ final class CMSDatabaseSeeder extends Seeder
                 );
             }
         }
+    }
+
+    /**
+     * Seed the default row-level ACL that limits the anonymous/public reader (the
+     * `guest` role) to published contents. Validity (valid_from/valid_to) is no
+     * longer a global scope: this role-scoped ACL on `cms_contents.select` filters
+     * the guest to the current publication window via the `@now` placeholder, while
+     * staff roles (no ACL on that permission) read every content.
+     */
+    private function defaultContentAcls(): void
+    {
+        $this->logOperation(ACL::class);
+
+        /** @var class-string<Permission> $permission_class */
+        $permission_class = config('permission.models.permission');
+
+        /** @var class-string<Role> $role_class */
+        $role_class = config('permission.models.role');
+
+        $guest = $role_class::query()->where('name', config('permission.roles.guest'))->first(['id']);
+
+        if ($guest === null) {
+            $this->command?->line('    - guest role missing, skipping content ACL');
+
+            return;
+        }
+
+        $content = new Content;
+        $permission_name = PermissionName::build(
+            $content->getConnectionName() ?? 'default',
+            $content->getTable(),
+            ActionEnum::Select->value,
+        );
+
+        $permission = $permission_class::query()->where('name', $permission_name)->first(['id']);
+
+        if ($permission === null) {
+            $this->command?->line("    - permission {$permission_name} missing, skipping content ACL");
+
+            return;
+        }
+
+        if (ACL::query()->where('permission_id', $permission->id)->where('role_id', $guest->id)->exists()) {
+            $this->command?->line('    - content guest ACL already exists');
+
+            return;
+        }
+
+        $table = $content->getTable();
+        $filters = new FiltersGroup(
+            filters: [
+                new Filter("{$table}.valid_from", '@now', FilterOperator::LessEquals),
+                new FiltersGroup(
+                    filters: [
+                        new Filter("{$table}.valid_to", '@now', FilterOperator::GreatEquals),
+                        new Filter("{$table}.valid_to", null, FilterOperator::Equals),
+                    ],
+                    operator: WhereClause::Or,
+                ),
+            ],
+            operator: WhereClause::And,
+        );
+
+        $acl = new ACL;
+        $acl->setSkipValidation(true);
+        $acl->forceFill([
+            'permission_id' => $permission->id,
+            'role_id' => $guest->id,
+            'filters' => $filters,
+            'description' => 'Guests (anonymous/public) read only currently-published contents.',
+            'unrestricted' => false,
+            'priority' => 100,
+            'is_active' => true,
+        ]);
+        $acl->save();
+
+        $this->command?->line('    - content guest ACL <fg=green>created</>');
     }
 
     private function assignFieldToPreset(Preset $preset, Field $field, bool $is_required): void

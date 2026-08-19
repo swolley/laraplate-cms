@@ -61,11 +61,11 @@ it('resolves the referable back from the origin', function (): void {
 
 /*
  * Provenance is integrity data and must remain resolvable regardless of the
- * content publication window. The Content validity global scope is a display
- * concern: it hides scheduled/expired records from the reverse traversal, so
- * administrative/provenance lookups must opt out of global scopes explicitly.
+ * content publication window. Validity is no longer a global scope — it moved to
+ * a role-scoped ACL on `contents.select` (guests see only published; staff see
+ * everything) — so a reverse origin lookup resolves a scheduled content directly.
  */
-it('does not resolve a scheduled content through the validity global scope but resolves it unscoped', function (): void {
+it('resolves a scheduled content through its origin now that validity is not a global scope', function (): void {
     $content = Content::factory()->create([
         'valid_from' => now()->addWeek(),
         'valid_to' => null,
@@ -76,10 +76,6 @@ it('does not resolve a scheduled content through the validity global scope but r
         'external_id' => '77',
     ]);
 
-    expect($origin->referable)->toBeNull();
-
-    $resolved = $origin->referable()->withoutGlobalScopes()->first();
-
-    expect($resolved)->toBeInstanceOf(Content::class)
-        ->and($resolved->getKey())->toBe($content->getKey());
+    expect($origin->referable)->toBeInstanceOf(Content::class)
+        ->and($origin->referable->getKey())->toBe($content->getKey());
 });
