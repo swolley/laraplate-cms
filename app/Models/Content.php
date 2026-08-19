@@ -590,7 +590,11 @@ final class Content extends Model implements HasMedia, ProvidesFacetLabelSources
     {
         self::addGlobalScope('global_filters', static function (Builder $query): void {
             /** @var Builder<Content> $query */
-            $query->valid();
+            // The authoring surface (session app CRUD) must see drafts, scheduled
+            // and expired contents; the public API keeps validity filtering.
+            if (! authoring_surface()) {
+                $query->valid();
+            }
         });
         self::addGlobalScope('global_ordered', static function (Builder $query): void {
             /** @var Builder<Content> $query */
