@@ -57,7 +57,9 @@ function content_facet(FacetQuery $facet): FacetPage
     return app(CrudService::class)->facetValues(content_facet_list_data(new Content, $request), $facet);
 }
 
-/** Force a deterministic English label onto a factory-made category. */
+/**
+ * Force a deterministic English label onto a factory-made category.
+ */
 function named_category(string $name): Category
 {
     $category = Category::factory()->create();
@@ -133,7 +135,7 @@ it('facets contents by content type labelled from the entity accessor foreign ke
         sort: FacetSort::CountDesc,
     ));
 
-    $contentsEntity = Modules\CMS\Models\Content::query()->first()->entity_id;
+    $contentsEntity = Content::query()->first()->entity_id;
     $row = collect($page->values)->firstWhere('key', $contentsEntity);
 
     expect($row['count'])->toBe(2)
@@ -143,8 +145,12 @@ it('facets contents by content type labelled from the entity accessor foreign ke
 function named_contributor(string $name): Modules\CMS\Models\Contributor
 {
     $contributor = Modules\CMS\Models\Contributor::factory()->create();
-    // The current-locale translation must exist first so LocaleScope sees the row.
-    $contributor->translations()->create(['locale' => 'en', 'slug' => Illuminate\Support\Str::slug($name), 'components' => []]);
+    // ContributorFactory now seeds a current-locale translation, so update it in
+    // place with the desired slug instead of inserting a second row for the locale.
+    $contributor->translations()->updateOrCreate(
+        ['locale' => 'en'],
+        ['slug' => Illuminate\Support\Str::slug($name), 'components' => []],
+    );
     Modules\CMS\Models\Contributor::query()->whereKey($contributor->id)->update(['name' => $name]);
 
     return $contributor->refresh();

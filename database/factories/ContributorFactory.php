@@ -8,10 +8,11 @@ use function user_class;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use Modules\CMS\Models\Contributor;
 use Modules\Core\Database\Factories\Concerns\HasDynamicContentFactory;
-use Modules\Core\Models\Concerns\HasDynamicContents;
 use Modules\Core\Database\Factories\Concerns\HasUniqueFactoryValues;
+use Modules\Core\Models\Concerns\HasDynamicContents;
 use Override;
 
 /**
@@ -53,6 +54,18 @@ final class ContributorFactory extends Factory
             $this->fillDynamicContents($model, [
                 'public_email' => fake()->boolean() ? fake()->unique()->email() : ($model->user ? $model->user->email : null),
             ]);
+        })->afterCreating(function (Contributor $model): void {
+            // slug is a translated field, so a Contributor without a current-locale
+            // translation is invisible to the LocaleScope global scope. Seed one (as
+            // CategoryFactory does) so factory-made contributors are queryable.
+            $locale = (string) config('app.locale');
+
+            if (! $model->translations()->where('locale', $locale)->exists()) {
+                $model->setTranslation($locale, [
+                    'slug' => Str::slug((string) $model->name),
+                    'components' => [],
+                ]);
+            }
         });
     }
 }
