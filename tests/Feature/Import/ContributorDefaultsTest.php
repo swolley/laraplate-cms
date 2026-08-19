@@ -61,8 +61,8 @@ it('provisions the contributor preset from bindings when it is missing', functio
     $resolved_id = resolve(DefaultContributorProvisioner::class)->ensure();
 
     expect($resolved_id)->toBeInt()
-        ->and(\Modules\CMS\Models\Entity::query()->where('name', 'contributors')->exists())->toBeTrue()
-        ->and(\Modules\CMS\Models\Preset::query()
+        ->and(Modules\CMS\Models\Entity::query()->where('name', 'contributors')->exists())->toBeTrue()
+        ->and(Modules\CMS\Models\Preset::query()
             ->whereHas('entity', fn ($query) => $query->where('name', 'contributors'))
             ->where('name', 'default')
             ->exists())->toBeTrue();
@@ -70,12 +70,13 @@ it('provisions the contributor preset from bindings when it is missing', functio
 
 it('reuses an existing contributor imported from another source when slug matches', function (): void {
     config(['cms.import.locale' => 'it']);
+    app()->setLocale('it');
 
     $contributor = Contributor::factory()->create(['name' => 'Redazione']);
     $contributor->setTranslation('it', ['slug' => 'redazione', 'components' => []]);
     $contributor->save();
 
-    resolve(\Modules\CMS\Import\Support\ExternalReferenceLocator::class)
+    resolve(Modules\CMS\Import\Support\ExternalReferenceLocator::class)
         ->register($contributor, 'naxos_api', 74);
 
     $resolved_id = resolve(ContributorDefaults::class)->resolveContributorId();

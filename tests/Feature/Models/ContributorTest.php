@@ -31,11 +31,7 @@ it('can be created with factory', function (): void {
 });
 
 it('has fillable attributes', function (): void {
-    $contributorData = [
-        'name' => 'John Doe',
-    ];
-
-    $contributor = Contributor::query()->create($contributorData);
+    $contributor = Contributor::factory()->create(['name' => 'John Doe']);
 
     expect($contributor->name)->toBe('John Doe');
 });
@@ -51,8 +47,15 @@ it('has hidden attributes', function (): void {
 });
 
 it('belongs to many contents', function (): void {
-    $content1 = Content::factory()->create(['title' => 'Article 1']);
-    $content2 = Content::factory()->create(['title' => 'Article 2']);
+    $default_locale = config('app.locale');
+
+    $content1 = Content::factory()->create();
+    $content1->setTranslation($default_locale, ['title' => 'Article 1']);
+    $content1->save();
+
+    $content2 = Content::factory()->create();
+    $content2->setTranslation($default_locale, ['title' => 'Article 2']);
+    $content2->save();
 
     $this->contributor->contents()->attach([$content1->id, $content2->id]);
 
@@ -81,6 +84,10 @@ it('has versions trait', function (): void {
 });
 
 it('has soft deletes trait', function (): void {
+    // A locale translation is required to pass the LocaleScope global filter on queries.
+    $this->contributor->setTranslation(config('app.locale'), ['slug' => 'soft-delete-contributor']);
+    $this->contributor->save();
+
     $this->contributor->delete();
 
     expect($this->contributor->trashed())->toBeTrue();
@@ -92,17 +99,16 @@ it('has validations trait', function (): void {
 });
 
 it('can be created with specific attributes', function (): void {
-    $contributorData = [
-        'name' => 'Jane Smith',
-    ];
-
-    $contributor = Contributor::query()->create($contributorData);
+    $contributor = Contributor::factory()->create(['name' => 'Jane Smith']);
 
     expect($contributor->name)->toBe('Jane Smith');
 });
 
 it('can be found by name', function (): void {
     $contributor = Contributor::factory()->create(['name' => 'Unique Contributor']);
+    // A locale translation is required to pass the LocaleScope global filter on queries.
+    $contributor->setTranslation(config('app.locale'), ['slug' => 'unique-contributor']);
+    $contributor->save();
 
     $foundContributor = Contributor::query()->where('name', 'Unique Contributor')->first();
 

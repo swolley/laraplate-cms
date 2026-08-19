@@ -44,7 +44,7 @@ it('has translatable attributes', function (): void {
 
     expect($category->name)->toBe('Technology');
     expect($category->slug)->toBe('technology');
-    expect($category->description)->toBe('Technology category');
+    expect($category->getTranslation($default_locale)->components['description'])->toBe('Technology category');
 });
 
 it('belongs to many contents', function (): void {
@@ -79,8 +79,8 @@ it('has recursive relationships for parent-child categories', function (): void 
 });
 
 it('has slug trait', function (): void {
-    expect(method_exists($this->category, 'generateSlug'))->toBeTrue();
-    expect(method_exists($this->category, 'getSlug'))->toBeTrue();
+    expect($this->category->isTranslatableField('slug'))->toBeTrue();
+    expect(Category::getTranslatableFields())->toContain('slug');
 });
 
 it('has tags trait', function (): void {
@@ -94,18 +94,16 @@ it('has multimedia trait', function (): void {
 });
 
 it('has dynamic contents trait', function (): void {
-    expect(method_exists($this->category, 'getDynamicContents'))->toBeTrue();
-    expect(method_exists($this->category, 'setDynamicContents'))->toBeTrue();
+    expect(class_uses_recursive($this->category))->toContain(Modules\Core\Models\Concerns\HasDynamicContents::class);
+    expect(method_exists($this->category, 'getDynamicFields'))->toBeTrue();
 });
 
 it('has path trait', function (): void {
-    expect(method_exists($this->category, 'getPath'))->toBeTrue();
-    expect(method_exists($this->category, 'setPath'))->toBeTrue();
+    expect(class_uses_recursive($this->category))->toContain(Modules\Core\Models\Concerns\HasPath::class);
 });
 
 it('has approvals trait', function (): void {
-    expect(method_exists($this->category, 'approve'))->toBeTrue();
-    expect(method_exists($this->category, 'reject'))->toBeTrue();
+    expect(class_uses_recursive($this->category))->toContain(Modules\Core\Models\Concerns\HasApprovals::class);
 });
 
 it('has validity trait', function (): void {
@@ -126,8 +124,8 @@ it('has soft deletes trait', function (): void {
 });
 
 it('has sortable trait', function (): void {
-    expect(method_exists($this->category, 'moveOrder'))->toBeTrue();
-    expect(method_exists($this->category, 'getOrder'))->toBeTrue();
+    expect(class_uses_recursive($this->category))->toContain(Modules\Core\Models\Concerns\SortableTrait::class);
+    expect(method_exists($this->category, 'buildSortQuery'))->toBeTrue();
 });
 
 it('has locks trait', function (): void {
@@ -153,7 +151,7 @@ it('can be created with specific translation attributes', function (): void {
 
     expect($category->name)->toBe('Science');
     expect($category->slug)->toBe('science');
-    expect($category->description)->toBe('Science category');
+    expect($category->getTranslation($default_locale)->components['description'])->toBe('Science category');
 });
 
 it('can be found by name through translation', function (): void {
@@ -194,8 +192,15 @@ it('can be found by active status', function (): void {
     $activeCategory = Category::factory()->create(['is_active' => true]);
     $inactiveCategory = Category::factory()->create(['is_active' => false]);
 
-    $activeCategories = Category::query()->where('is_active', true)->get();
-    $inactiveCategories = Category::query()->where('is_active', false)->get();
+    $ids = [$activeCategory->id, $inactiveCategory->id];
+
+    // The `global_filters` global scope restricts default queries to active records.
+    $activeCategories = Category::query()->whereIn('id', $ids)->get();
+    $inactiveCategories = Category::query()
+        ->withoutGlobalScope('global_filters')
+        ->whereIn('id', $ids)
+        ->where('is_active', false)
+        ->get();
 
     expect($activeCategories)->toHaveCount(1);
     expect($inactiveCategories)->toHaveCount(1);

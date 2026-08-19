@@ -98,7 +98,9 @@ it('aggregates entity tab counts without hydrating eager-loaded presettable rela
 
     setupCMSEntities([EntityType::Contributors]);
 
-    Contributor::factory()->create();
+    $contributor = Contributor::factory()->create();
+    $contributor->setTranslation(app()->getLocale(), ['slug' => 'sample-contributor', 'components' => []]);
+    $contributor->save();
 
     $method = new ReflectionMethod(CMSHasRecordsTraitHarness::class, 'fetchEntityTabCounts');
     $method->setAccessible(true);

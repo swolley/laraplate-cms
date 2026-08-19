@@ -8,12 +8,12 @@
     "data_classification": "synthetic",
     "case_count": 30,
     "metrics": {
-        "hit_at_5": 0.7619,
-        "mean_reciprocal_rank": 0.7619,
+        "hit_at_5": 0.8095,
+        "mean_reciprocal_rank": 0.8095,
         "citation_precision": 1.0,
         "authorized_empty_accuracy": 1.0,
-        "supported_answer_rate": 0.7619,
-        "abstention_accuracy": 0.8333,
+        "supported_answer_rate": 0.8095,
+        "abstention_accuracy": 0.8667,
         "unavailable_rate": 0.0
     },
     "latency_ms": {
@@ -34,12 +34,12 @@
                 "unavailable_rate": 0.0
             },
             "it": {
-                "hit_at_5": 0.6667,
-                "mean_reciprocal_rank": 0.6667,
+                "hit_at_5": 1.0,
+                "mean_reciprocal_rank": 1.0,
                 "citation_precision": 1.0,
                 "authorized_empty_accuracy": 1.0,
-                "supported_answer_rate": 0.6667,
-                "abstention_accuracy": 0.8,
+                "supported_answer_rate": 1.0,
+                "abstention_accuracy": 1.0,
                 "unavailable_rate": 0.0
             }
         },
@@ -108,12 +108,12 @@
                 "unavailable_rate": 0.0
             },
             "locale": {
-                "hit_at_5": 0.75,
-                "mean_reciprocal_rank": 0.75,
+                "hit_at_5": 1.0,
+                "mean_reciprocal_rank": 1.0,
                 "citation_precision": 1.0,
                 "authorized_empty_accuracy": 1.0,
-                "supported_answer_rate": 0.75,
-                "abstention_accuracy": 0.8333,
+                "supported_answer_rate": 1.0,
+                "abstention_accuracy": 1.0,
                 "unavailable_rate": 0.0
             },
             "long_record": {
@@ -198,12 +198,12 @@
                 "unavailable_rate": 0.0
             },
             "translation_fallback": {
-                "hit_at_5": 0.0,
-                "mean_reciprocal_rank": 0.0,
-                "citation_precision": 0.0,
+                "hit_at_5": 1.0,
+                "mean_reciprocal_rank": 1.0,
+                "citation_precision": 1.0,
                 "authorized_empty_accuracy": 0.0,
-                "supported_answer_rate": 0.0,
-                "abstention_accuracy": 0.0,
+                "supported_answer_rate": 1.0,
+                "abstention_accuracy": 1.0,
                 "unavailable_rate": 0.0
             },
             "unicode": {

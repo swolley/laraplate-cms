@@ -29,12 +29,13 @@ beforeEach(function (): void {
 
 it('reuses an existing contributor from another source when slug matches', function (): void {
     config(['cms.import.locale' => 'it']);
+    app()->setLocale('it');
 
     $existing = Contributor::factory()->create(['name' => 'Redazione']);
     $existing->setTranslation('it', ['slug' => 'redazione', 'components' => []]);
     $existing->save();
 
-    resolve(\Modules\CMS\Import\Support\ExternalReferenceLocator::class)
+    resolve(Modules\CMS\Import\Support\ExternalReferenceLocator::class)
         ->register($existing, 'naxos_api', 74);
 
     $dto = new ImportContributorDto(
@@ -68,12 +69,13 @@ it('reuses an existing contributor from another source when name is configured f
         'cms.import.locale' => 'it',
         'cms.import.contributor_dedup_names' => ['Redazione'],
     ]);
+    app()->setLocale('it');
 
     $existing = Contributor::factory()->create(['name' => 'Redazione']);
     $existing->setTranslation('it', ['slug' => 'redazione-naxos', 'components' => []]);
     $existing->save();
 
-    resolve(\Modules\CMS\Import\Support\ExternalReferenceLocator::class)
+    resolve(Modules\CMS\Import\Support\ExternalReferenceLocator::class)
         ->register($existing, 'naxos_api', 74);
 
     $dto = new ImportContributorDto(
@@ -104,13 +106,14 @@ it('does not match contributors by name when they are not configured for dedup',
 
     Contributor::factory()->create(['name' => 'Mario Rossi']);
 
-    $matcher = resolve(\Modules\CMS\Import\Support\ContributorMatcher::class);
+    $matcher = resolve(Modules\CMS\Import\Support\ContributorMatcher::class);
 
     expect($matcher->findExisting('mario-rossi-b', 'Mario Rossi'))->toBeNull();
 });
 
 it('prefers slug identity over a stale origin mapping for the same external id', function (): void {
     config(['cms.import.locale' => 'it']);
+    app()->setLocale('it');
 
     $matteo = Contributor::factory()->create(['name' => 'Matteo Prati']);
     $matteo->setTranslation('it', ['slug' => 'matteo-prati', 'components' => []]);
@@ -120,7 +123,7 @@ it('prefers slug identity over a stale origin mapping for the same external id',
     $eugenio->setTranslation('it', ['slug' => 'eugenio-raimondi', 'components' => []]);
     $eugenio->save();
 
-    resolve(\Modules\CMS\Import\Support\ExternalReferenceLocator::class)
+    resolve(Modules\CMS\Import\Support\ExternalReferenceLocator::class)
         ->register($matteo, 'naxos_api@naxos-liberta-it', 100);
 
     $dto = new ImportContributorDto(
@@ -152,6 +155,7 @@ it('prefers slug identity over a stale origin mapping for the same external id',
 
 it('reassigns a stale origin mapping when the incoming name already belongs to another contributor', function (): void {
     config(['cms.import.locale' => 'it']);
+    app()->setLocale('it');
 
     $matteo = Contributor::factory()->create(['name' => 'Matteo Prati']);
     $matteo->setTranslation('it', ['slug' => 'matteo-prati', 'components' => []]);
@@ -161,7 +165,7 @@ it('reassigns a stale origin mapping when the incoming name already belongs to a
     $eugenio->setTranslation('it', ['slug' => 'eugenio-raimondi', 'components' => []]);
     $eugenio->save();
 
-    resolve(\Modules\CMS\Import\Support\ExternalReferenceLocator::class)
+    resolve(Modules\CMS\Import\Support\ExternalReferenceLocator::class)
         ->register($matteo, 'naxos_api@naxos-liberta-it', 100);
 
     $dto = new ImportContributorDto(

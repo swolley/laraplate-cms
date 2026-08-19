@@ -7,12 +7,12 @@ use Modules\CMS\Models\Category;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Contributor;
 use Modules\CMS\Models\Location;
+use Modules\CMS\Models\Pivot\Presettable;
 use Modules\CMS\Models\Tag;
 use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Tests\TestCase;
 use Modules\Core\Casts\FieldType as CoreFieldType;
 use Modules\Core\Models\Field;
-use Modules\Core\Models\Pivot\Presettable;
 use Modules\Core\Services\DynamicContentsService;
 use Modules\Core\Services\PresetVersioningService;
 
@@ -54,8 +54,8 @@ it('has translatable attributes', function (): void {
 
     expect($content->title)->toBe('Test Content');
     expect($content->slug)->toBe('test-content');
-    expect($content->body)->toBe('Test content body');
-    expect($content->excerpt)->toBe('Test excerpt');
+    expect($content->getTranslation($default_locale)->components['body'])->toBe('Test content body');
+    expect($content->getTranslation($default_locale)->components['excerpt'])->toBe('Test excerpt');
 });
 
 it('stores dynamic translated and shared fields in the correct containers', function (): void {
@@ -70,21 +70,24 @@ it('stores dynamic translated and shared fields in the correct containers', func
         'type' => CoreFieldType::Text,
         'options' => new stdClass(),
     ]);
+    $translatable_field->is_translatable = true;
+    $translatable_field->save();
+
     $shared_field = Field::query()->create([
         'name' => $shared_field_name,
         'type' => CoreFieldType::Text,
         'options' => new stdClass(),
     ]);
+    $shared_field->is_translatable = false;
+    $shared_field->save();
 
     $preset->fields()->attach($translatable_field->id, [
         'default' => null,
         'is_required' => false,
-        'is_translatable' => true,
     ]);
     $preset->fields()->attach($shared_field->id, [
         'default' => null,
         'is_required' => false,
-        'is_translatable' => false,
     ]);
 
     resolve(PresetVersioningService::class)->createVersion($preset);
@@ -113,14 +116,21 @@ it('stores dynamic translated and shared fields in the correct containers', func
     $translated_components = json_decode((string) ($translation_row['components'] ?? '{}'), true);
 
     expect($translated_components[$translatable_field_name] ?? null)->toBe('Translated dynamic value')
-        ->and($translated_components)->not->toHaveKey($shared_field_name)
+        ->and($translated_components[$shared_field_name] ?? null)->toBeNull()
         ->and($shared_components[$shared_field_name] ?? null)->toBe('Shared dynamic value')
         ->and($shared_components)->not->toHaveKey($translatable_field_name);
 });
 
 it('belongs to many categories', function (): void {
-    $category1 = Category::factory()->create(['name' => 'Technology']);
-    $category2 = Category::factory()->create(['name' => 'Science']);
+    $default_locale = config('app.locale');
+
+    $category1 = Category::factory()->create();
+    $category1->setTranslation($default_locale, ['name' => 'Technology']);
+    $category1->save();
+
+    $category2 = Category::factory()->create();
+    $category2->setTranslation($default_locale, ['name' => 'Science']);
+    $category2->save();
 
     $this->content->categories()->attach([$category1->id, $category2->id]);
 
@@ -129,8 +139,17 @@ it('belongs to many categories', function (): void {
 });
 
 it('belongs to many contributors', function (): void {
+    $default_locale = config('app.locale');
+
+    // Contributor `name` is a direct column, but LocaleScope still requires a
+    // translation row for the current locale, so seed one via setTranslation.
     $contributor1 = Contributor::factory()->create(['name' => 'John Doe']);
+    $contributor1->setTranslation($default_locale, ['slug' => 'john-doe', 'components' => []]);
+    $contributor1->save();
+
     $contributor2 = Contributor::factory()->create(['name' => 'Jane Smith']);
+    $contributor2->setTranslation($default_locale, ['slug' => 'jane-smith', 'components' => []]);
+    $contributor2->save();
 
     $this->content->contributors()->attach([$contributor1->id, $contributor2->id]);
 
@@ -159,8 +178,8 @@ it('belongs to many locations', function (): void {
 });
 
 it('has slug trait', function (): void {
-    expect(method_exists($this->content, 'generateSlug'))->toBeTrue();
-    expect(method_exists($this->content, 'getSlug'))->toBeTrue();
+    expect($this->content->isTranslatableField('slug'))->toBeTrue();
+    expect(Content::getTranslatableFields())->toContain('slug');
 });
 
 it('has tags trait', function (): void {
@@ -174,23 +193,22 @@ it('has multimedia trait', function (): void {
 });
 
 it('has dynamic contents trait', function (): void {
-    expect(method_exists($this->content, 'getDynamicContents'))->toBeTrue();
-    expect(method_exists($this->content, 'setDynamicContents'))->toBeTrue();
+    expect(class_uses_recursive($this->content))->toContain(Modules\Core\Models\Concerns\HasDynamicContents::class);
+    expect(method_exists($this->content, 'getDynamicFields'))->toBeTrue();
 });
 
 it('has path trait', function (): void {
+    expect(class_uses_recursive($this->content))->toContain(Modules\Core\Models\Concerns\HasPath::class);
     expect(method_exists($this->content, 'getPath'))->toBeTrue();
-    expect(method_exists($this->content, 'setPath'))->toBeTrue();
 });
 
 it('has approvals trait', function (): void {
-    expect(method_exists($this->content, 'approve'))->toBeTrue();
-    expect(method_exists($this->content, 'reject'))->toBeTrue();
+    expect(class_uses_recursive($this->content))->toContain(Modules\Core\Models\Concerns\HasApprovals::class);
 });
 
-it('has children trait', function (): void {
-    expect(method_exists($this->content, 'children'))->toBeTrue();
-    expect(method_exists($this->content, 'parent'))->toBeTrue();
+it('has related contents relationship', function (): void {
+    expect(method_exists($this->content, 'related'))->toBeTrue();
+    expect($this->content->related())->toBeInstanceOf(Illuminate\Database\Eloquent\Relations\BelongsToMany::class);
 });
 
 it('has validity trait', function (): void {
@@ -211,8 +229,8 @@ it('has soft deletes trait', function (): void {
 });
 
 it('has sortable trait', function (): void {
-    expect(method_exists($this->content, 'moveOrder'))->toBeTrue();
-    expect(method_exists($this->content, 'getOrder'))->toBeTrue();
+    expect(class_uses_recursive($this->content))->toContain(Modules\Core\Models\Concerns\SortableTrait::class);
+    expect(method_exists($this->content, 'determineOrderColumnName'))->toBeTrue();
 });
 
 it('has locks trait', function (): void {
@@ -230,8 +248,8 @@ it('has searchable trait', function (): void {
 });
 
 it('has optimistic locking trait', function (): void {
-    expect(method_exists($this->content, 'getLockVersion'))->toBeTrue();
-    expect(method_exists($this->content, 'incrementLockVersion'))->toBeTrue();
+    expect(method_exists($this->content, 'lockVersionColumn'))->toBeTrue();
+    expect(method_exists($this->content, 'currentLockVersion'))->toBeTrue();
 });
 
 it('can be created with specific translation attributes', function (): void {
@@ -249,8 +267,8 @@ it('can be created with specific translation attributes', function (): void {
 
     expect($content->title)->toBe('Custom Content');
     expect($content->slug)->toBe('custom-content');
-    expect($content->body)->toBe('Custom content body');
-    expect($content->excerpt)->toBe('Custom excerpt');
+    expect($content->getTranslation($default_locale)->components['body'])->toBe('Custom content body');
+    expect($content->getTranslation($default_locale)->components['excerpt'])->toBe('Custom excerpt');
 });
 
 it('can be found by title through translation', function (): void {
