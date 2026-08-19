@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Actions\Contents;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use Modules\CMS\Models\Content;
 use Modules\Core\Casts\FilterOperator;
@@ -74,22 +75,56 @@ final class GetContentsByRelationAction
 
         throw_unless(method_exists(Content::class, $relation), BadRequestException::class, 'Invalid relation');
 
+        $related_ids = $this->resolveRelatedIds($relation, $value);
+
         $filters[0]['filters'][] = [
-            'operator' => WhereClause::Or->value,
+            'operator' => WhereClause::And->value,
             'filters' => [
                 [
-                    'property' => sprintf('contents.%s.name', $relation),
-                    'value' => $value,
-                    'operator' => FilterOperator::Equals->value,
-                ],
-                [
-                    'property' => sprintf('contents.%s.slug', $relation),
-                    'value' => $value,
-                    'operator' => FilterOperator::Equals->value,
+                    'property' => sprintf('%s.id', $relation),
+                    'value' => $related_ids,
+                    'operator' => FilterOperator::In->value,
                 ],
             ],
         ];
 
         return $filters;
+    }
+
+    /**
+     * Resolve the related-model ids whose (possibly translated) name OR slug equals
+     * the requested value. Taxonomies, tags and contributors store name/slug in a
+     * translations table, so the Core QueryBuilder cannot resolve `contents.{relation}.name`
+     * to a real column; matching by id sidesteps that. An empty result restricts the
+     * outer `whereIn(...)` to no rows, so an unknown value yields an empty response
+     * instead of every content.
+     *
+     * @return list<int|string>
+     */
+    private function resolveRelatedIds(string $relation, string $value): array
+    {
+        $related = new Content()->{$relation}()->getRelated();
+
+        $translatable = method_exists($related, 'getTranslatableFields')
+            ? $related::getTranslatableFields()
+            : [];
+
+        /** @var list<int|string> $ids */
+        $ids = $related->newQuery()
+            ->where(static function (Builder $query) use ($value, $translatable): void {
+                foreach (['name', 'slug'] as $field) {
+                    if (in_array($field, $translatable, true)) {
+                        $query->orWhereHas('translations', static fn (Builder $translations): Builder => $translations->where($field, $value));
+
+                        continue;
+                    }
+
+                    $query->orWhere($field, $value);
+                }
+            })
+            ->pluck($related->getKeyName())
+            ->all();
+
+        return $ids;
     }
 }
