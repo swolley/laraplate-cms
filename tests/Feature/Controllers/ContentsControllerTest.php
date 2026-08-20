@@ -225,6 +225,9 @@ test('get contents by relation supports pagination', function (): void {
         'entity' => 'contents',
         'page' => 1,
         'pagination' => 3,
+        // Opt into the counted mode: the paginated list default is now look-ahead,
+        // which omits totalRecords/totalPages in favour of hasMore.
+        'totals' => true,
     ]));
 
     $response->assertStatus(200)
