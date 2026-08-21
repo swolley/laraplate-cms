@@ -288,7 +288,7 @@ test('stages a pending upload without an owner id and returns 201', function ():
     $token = Str::uuid()->toString();
 
     $response = $this->actingAs($editor)->postJson(
-        route('core.crud.media.pending.upload', pendingRouteParams()),
+        route('core.crud.media.upload', pendingRouteParams()),
         [
             'file' => UploadedFile::fake()->image('draft.jpg'),
             'collection' => 'images',
@@ -297,7 +297,8 @@ test('stages a pending upload without an owner id and returns 201', function ():
     );
 
     $response->assertStatus(Response::HTTP_CREATED)
-        ->assertJsonPath('data.collection_name', 'pending');
+        ->assertJsonPath('data.collection_name', 'pending')
+        ->assertJsonPath('data.draft_token', $token);
 
     $draft = MediaDraft::query()->where('token', $token)->first();
 
@@ -307,12 +308,42 @@ test('stages a pending upload without an owner id and returns 201', function ():
         ->and($draft->media()->first()->getCustomProperty('target_collection'))->toBe('images');
 });
 
+test('mints a draft token when the id-less upload omits one, and reuses it', function (): void {
+    $editor = User::factory()->create();
+    grantContentPermission($editor, 'insert');
+
+    $first = $this->actingAs($editor)->postJson(
+        route('core.crud.media.upload', pendingRouteParams()),
+        [
+            'file' => UploadedFile::fake()->image('a.jpg'),
+            'collection' => 'images',
+        ],
+    );
+
+    $first->assertStatus(Response::HTTP_CREATED);
+    $token = $first->json('data.draft_token');
+    expect($token)->toBeString()->not->toBe('');
+
+    // A second upload carrying the minted token lands in the same draft.
+    $this->actingAs($editor)->postJson(
+        route('core.crud.media.upload', pendingRouteParams()),
+        [
+            'file' => UploadedFile::fake()->image('b.jpg'),
+            'collection' => 'images',
+            'token' => $token,
+        ],
+    )->assertStatus(Response::HTTP_CREATED)->assertJsonPath('data.draft_token', $token);
+
+    expect(MediaDraft::query()->where('token', $token)->count())->toBe(1)
+        ->and(MediaDraft::query()->where('token', $token)->first()->media()->count())->toBe(2);
+});
+
 test('rejects a pending upload to an unregistered collection with 422', function (): void {
     $editor = User::factory()->create();
     grantContentPermission($editor, 'insert');
 
     $response = $this->actingAs($editor)->postJson(
-        route('core.crud.media.pending.upload', pendingRouteParams()),
+        route('core.crud.media.upload', pendingRouteParams()),
         [
             'file' => UploadedFile::fake()->image('draft.jpg'),
             'collection' => 'not-a-collection',
@@ -330,7 +361,7 @@ test('lists and deletes the user pending media', function (): void {
     $token = Str::uuid()->toString();
 
     $upload = $this->actingAs($editor)->postJson(
-        route('core.crud.media.pending.upload', pendingRouteParams()),
+        route('core.crud.media.upload', pendingRouteParams()),
         [
             'file' => UploadedFile::fake()->image('a.jpg'),
             'collection' => 'images',
@@ -361,7 +392,7 @@ test('claims pending media onto a freshly created content and empties the draft'
     $token = Str::uuid()->toString();
 
     $this->actingAs($editor)->postJson(
-        route('core.crud.media.pending.upload', pendingRouteParams()),
+        route('core.crud.media.upload', pendingRouteParams()),
         [
             'file' => UploadedFile::fake()->image('claim-me.jpg'),
             'collection' => 'images',
