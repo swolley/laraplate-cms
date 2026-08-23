@@ -9,11 +9,11 @@ use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphPivot;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection as SupportCollection;
 use InvalidArgumentException;
 use Modules\CMS\Contracts\Taggable;
+use Modules\CMS\Models\Pivot\Taggable as TaggablePivot;
 use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Tag;
 
@@ -75,13 +75,14 @@ trait HasTags
     }
 
     /**
-     * @return MorphToMany<Tag, $this, MorphPivot, 'pivot'>
+     * @return MorphToMany<Tag, $this, TaggablePivot, 'pivot'>
      */
     public function tags(): MorphToMany
     {
         return $this
             ->morphToMany(Tag::class, 'taggable', CMSTables::Taggables->value)
-            ->using(MorphPivot::class)
+            ->using(TaggablePivot::class)
+            ->withTimestamps()
             ->ordered();
     }
 

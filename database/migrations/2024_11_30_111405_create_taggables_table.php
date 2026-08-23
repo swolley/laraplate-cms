@@ -6,6 +6,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Modules\CMS\Enums\CMSTables;
+use Modules\Core\Helpers\MigrateUtils;
 
 return new class extends Migration
 {
@@ -18,6 +19,9 @@ return new class extends Migration
 
             $table->primary(['tag_id', 'taggable_id', 'taggable_type'], "{$table_name}_primary_idx");
             $table->index(['taggable_type', 'taggable_id'], "{$table_name}_inverse_idx");
+
+            // Records when a tag was attached to a taggable (see Pivot\Taggable).
+            MigrateUtils::timestamps($table, hasCreateUpdate: true);
         });
     }
 

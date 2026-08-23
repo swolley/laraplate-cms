@@ -13,6 +13,7 @@ use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Modules\CMS\Database\Factories\TagFactory;
 use Modules\CMS\Enums\CMSTables;
+use Modules\CMS\Models\Pivot\Taggable;
 use Modules\CMS\Models\Translations\TagTranslation;
 use Modules\Core\Models\Concerns\HasPath;
 use Modules\Core\Models\Concerns\HasTranslations;
@@ -166,7 +167,9 @@ final class Tag extends Model implements Sortable
      */
     public function contents(): MorphToMany
     {
-        return $this->morphedByMany(Content::class, 'taggable', CMSTables::Taggables->value);
+        return $this->morphedByMany(Content::class, 'taggable', CMSTables::Taggables->value)
+            ->using(Taggable::class)
+            ->withTimestamps();
     }
 
     /**
