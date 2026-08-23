@@ -7,10 +7,14 @@ namespace Modules\CMS\Providers;
 use Exception;
 use Modules\CMS\ApplicationContent\CmsApplicationContentRetrievalProvider;
 use Modules\CMS\Graph\CmsGraphProvider;
+use Modules\CMS\Import\CategoryImporter;
+use Modules\CMS\Import\ContributorImporter;
+use Modules\CMS\Import\TagImporter;
 use Modules\CMS\Observers\PlaceObserver;
 use Modules\CMS\Services\CommentModerationAdapter;
 use Modules\Core\ApplicationContent\Contracts\ApplicationContentRetrievalProviderRegistryInterface;
 use Modules\Core\Graph\Contracts\GraphProviderRegistryInterface;
+use Modules\Core\Import\Support\EntityImporterRegistry;
 use Modules\Core\Models\Place;
 use Modules\Core\Overrides\ModuleServiceProvider;
 use Modules\Core\Services\ModerationAdapterRegistry;
@@ -63,5 +67,10 @@ final class CMSServiceProvider extends ModuleServiceProvider
 
         $this->app->make(ModerationAdapterRegistry::class)
             ->register($this->app->make(CommentModerationAdapter::class));
+
+        $importers = $this->app->make(EntityImporterRegistry::class);
+        $importers->register($this->app->make(TagImporter::class));
+        $importers->register($this->app->make(ContributorImporter::class));
+        $importers->register($this->app->make(CategoryImporter::class));
     }
 }
