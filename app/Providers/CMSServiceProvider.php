@@ -8,6 +8,7 @@ use Exception;
 use Modules\CMS\ApplicationContent\CmsApplicationContentRetrievalProvider;
 use Modules\CMS\Graph\CmsGraphProvider;
 use Modules\CMS\Import\CategoryImporter;
+use Modules\CMS\Import\ContentImporter;
 use Modules\CMS\Import\ContributorImporter;
 use Modules\CMS\Import\TagImporter;
 use Modules\CMS\Observers\PlaceObserver;
@@ -72,5 +73,6 @@ final class CMSServiceProvider extends ModuleServiceProvider
         $importers->register($this->app->make(TagImporter::class));
         $importers->register($this->app->make(ContributorImporter::class));
         $importers->register($this->app->make(CategoryImporter::class));
+        $importers->register($this->app->make(ContentImporter::class));
     }
 }
