@@ -4,6 +4,51 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚀 Features
+
+- *(cms)* Declare Content facet label source for content type
+- *(cms)* Facet categories by parent with the translated parent name
+- *(cms)* Map-locations and tag co-occurrence insight endpoints
+- *(cms)* Geocode action on the Filament location form
+- *(cms)* Endpoint to sync a content's m2m relations by id
+- *(cms)* Content validity scope becomes authoring-surface aware
+- *(cms)* Validity via a guest-scoped ACL, not a global scope
+- *(cms)* Model the tag↔content morph pivot explicitly with timestamps
+- *(import)* Register cms.tag, cms.contributor, cms.category entities
+- *(cms/import)* Cms.content importer attaching relations by natural key
+
+### 🐛 Bug Fixes
+
+- *(cms)* Serve content relation-sync as a session web route
+- *(cms)* Actually filter contents by a relation's translated name or slug
+- *(cms)* Seed a locale translation in ContributorFactory so contributors are queryable
+
+### 🚜 Refactor
+
+- *(cms)* Consume the Core-owned media foundation
+- *(cms)* Serve the locations map via CRUD select, drop the bespoke endpoint
+- *(cms)* Sync content relations via Core CRUD update, drop bespoke route
+
+### ⚡ Performance
+
+- *(cms)* Parallelize dev content pivot relation creation
+- *(cms)* Skip versioning during dev content seeding
+
+### 🧪 Testing
+
+- *(cms)* Prove content category facet with translated labels end-to-end
+- *(cms)* Prove contributor and location relation facets on contents
+- *(cms)* Facet locations by place country via the to-one column facet
+- *(cms)* Assert a magic-accessor facet groupBy fails fast
+- *(cms)* Realign stale model/import tests with the translated-content model
+- *(cms)* Cover default-presettable resolution from the entity enum
+- *(cms)* Opt the relation pagination test into counted totals
+- *(cms)* Feature coverage for the generic media API against contents
+- *(cms)* Cover media pending-bucket, claim, prune and row-level ACL
+- *(cms)* Cover the unified media upload + server-minted draft token
+
+## [1.41.1] - 2026-08-07
+
 ### 🐛 Bug Fixes
 
 - *(cms)* Stop hiding created_at and updated_at on models
