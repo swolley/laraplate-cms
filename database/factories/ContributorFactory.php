@@ -37,8 +37,19 @@ final class ContributorFactory extends Factory
         $definition = $this->dynamicContentDefinition();
         $user = fake()->boolean() ? user_class()::query()->inRandomOrder()->first() : null;
 
-        $baseName = $user ? $user->name : (fake()->boolean() ? fake()->name() : fake()->userName());
-        $name = $baseName . '-' . fake()->unique()->numerify('########');
+        // uniqueValue checks the DB; PID keeps parallel BatchSeeder forks (which
+        // inherit the same Faker unique/RNG state) from generating identical names.
+        $name = $this->uniqueValue(
+            static function () use ($user): string {
+                $base_name = $user !== null
+                    ? $user->name
+                    : (fake()->boolean() ? fake()->name() : fake()->userName());
+
+                return $base_name . '-' . getmypid() . '-' . fake()->unique()->numerify('########');
+            },
+            $this->model,
+            'name',
+        );
 
         return $definition + [
             'name' => $name,

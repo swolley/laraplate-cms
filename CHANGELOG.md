@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🐛 Bug Fixes
+
+- *(factory)* Enhance ContributorFactory to generate unique contributor names
+
+## [1.42.0] - 2026-08-25
+
 ### 🚀 Features
 
 - *(cms)* Declare Content facet label source for content type
