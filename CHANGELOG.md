@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚜 Refactor
+
+- *(factory)* Streamline relation handling in ContentFactory
+
+## [1.42.1] - 2026-08-26
+
 ### 🐛 Bug Fixes
 
 - *(factory)* Enhance ContributorFactory to generate unique contributor names

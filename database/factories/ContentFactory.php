@@ -92,37 +92,32 @@ final class ContentFactory extends Factory
     }
 
     /**
-     * Resolve, once for the whole batch, which contents already have each
-     * relation — the batched replacement for a per-content `doesntHave()` call.
-     * Keeps the pivot phase idempotent (a re-run skips contents already related)
-     * while collapsing 4 existence queries per content into 4 per batch.
+     * Content ids that still need the required pivots (contributors and/or
+     * categories). Tags and related are probabilistic optional attaches, so they
+     * are not used as a gate — otherwise a re-run would keep revisiting the ~30%
+     * of contents that never rolled tags.
      *
-     * Global scopes are dropped on the outer query so the check covers exactly
-     * the given contents regardless of their own validity/ordering; each
-     * relation's own scopes still apply inside `has()`.
-     *
-     * @param  \Illuminate\Support\Collection<int, Content>  $contents
-     * @return array{contributors: array<int, true>, categories: array<int, true>, tags: array<int, true>, related: array<int, true>}
+     * @param  list<int>  $content_ids
+     * @return list<int>
      */
-    private function existingRelationSets(\Illuminate\Support\Collection $contents): array
+    public function idsMissingRequiredRelations(array $content_ids): array
     {
-        $ids = $contents->map(static fn (Content $content): int => $content->getKey())->all();
-
-        if ($ids === []) {
-            return ['contributors' => [], 'categories' => [], 'tags' => [], 'related' => []];
+        if ($content_ids === []) {
+            return [];
         }
 
         $with_relation = static fn (string $relation): array => array_fill_keys(
-            Content::withoutGlobalScopes()->whereKey($ids)->has($relation)->pluck('id')->all(),
+            Content::withoutGlobalScopes()->whereKey($content_ids)->has($relation)->pluck('id')->all(),
             true,
         );
 
-        return [
-            'contributors' => $with_relation('contributors'),
-            'categories' => $with_relation('categories'),
-            'tags' => $with_relation('tags'),
-            'related' => $with_relation('related'),
-        ];
+        $has_contributors = $with_relation('contributors');
+        $has_categories = $with_relation('categories');
+
+        return array_values(array_filter(
+            $content_ids,
+            static fn (int $id): bool => ! isset($has_contributors[$id]) || ! isset($has_categories[$id]),
+        ));
     }
 
     /**
@@ -142,35 +137,6 @@ final class ContentFactory extends Factory
             // does not change which ids are eligible (validity/soft-delete stay).
             'contents' => Content::query()->withoutGlobalScope('global_ordered')->pluck('id')->all(),
         ];
-    }
-
-    /**
-     * Pick up to $count distinct ids at random from $pool, optionally excluding
-     * one id (used to keep a content out of its own related set).
-     *
-     * @param  list<int>  $pool
-     * @return list<int>
-     */
-    private function pickRandomIds(array $pool, int $count, ?int $exclude = null): array
-    {
-        if ($pool === []) {
-            return [];
-        }
-
-        $count = min($count, count($pool));
-
-        if ($count < 1) {
-            return [];
-        }
-
-        $keys = (array) array_rand($pool, $count);
-        $ids = array_map(static fn (int $key): int => $pool[$key], $keys);
-
-        if ($exclude !== null) {
-            $ids = array_values(array_filter($ids, static fn (int $id): bool => $id !== $exclude));
-        }
-
-        return $ids;
     }
 
     /**
@@ -233,5 +199,68 @@ final class ContentFactory extends Factory
             'slug' => $model->slug,
             'components' => $model->components ?? [],
         ];
+    }
+
+    /**
+     * Resolve, once for the whole batch, which contents already have each
+     * relation — the batched replacement for a per-content `doesntHave()` call.
+     * Keeps the pivot phase idempotent (a re-run skips contents already related)
+     * while collapsing 4 existence queries per content into 4 per batch.
+     *
+     * Global scopes are dropped on the outer query so the check covers exactly
+     * the given contents regardless of their own validity/ordering; each
+     * relation's own scopes still apply inside `has()`.
+     *
+     * @param  \Illuminate\Support\Collection<int, Content>  $contents
+     * @return array{contributors: array<int, true>, categories: array<int, true>, tags: array<int, true>, related: array<int, true>}
+     */
+    private function existingRelationSets(\Illuminate\Support\Collection $contents): array
+    {
+        $ids = $contents->map(static fn (Content $content): int => $content->getKey())->all();
+
+        if ($ids === []) {
+            return ['contributors' => [], 'categories' => [], 'tags' => [], 'related' => []];
+        }
+
+        $with_relation = static fn (string $relation): array => array_fill_keys(
+            Content::withoutGlobalScopes()->whereKey($ids)->has($relation)->pluck('id')->all(),
+            true,
+        );
+
+        return [
+            'contributors' => $with_relation('contributors'),
+            'categories' => $with_relation('categories'),
+            'tags' => $with_relation('tags'),
+            'related' => $with_relation('related'),
+        ];
+    }
+
+    /**
+     * Pick up to $count distinct ids at random from $pool, optionally excluding
+     * one id (used to keep a content out of its own related set).
+     *
+     * @param  list<int>  $pool
+     * @return list<int>
+     */
+    private function pickRandomIds(array $pool, int $count, ?int $exclude = null): array
+    {
+        if ($pool === []) {
+            return [];
+        }
+
+        $count = min($count, count($pool));
+
+        if ($count < 1) {
+            return [];
+        }
+
+        $keys = (array) array_rand($pool, $count);
+        $ids = array_map(static fn (int $key): int => $pool[$key], $keys);
+
+        if ($exclude !== null) {
+            $ids = array_values(array_filter($ids, static fn (int $id): bool => $id !== $exclude));
+        }
+
+        return $ids;
     }
 }

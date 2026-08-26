@@ -124,3 +124,22 @@ it('checks existing relations once per chunk, not once per content', function ()
     // One existence check per relation (4), for the whole chunk — not 4 × 3 contents.
     expect($exists_queries)->toBe(4);
 });
+
+it('idsMissingRequiredRelations returns only contents lacking contributors or categories', function (): void {
+    setupCMSEntities([EntityType::Contents, EntityType::Contributors, EntityType::Categories]);
+    Category::factory()->count(2)->create();
+    Contributor::factory()->count(2)->create();
+
+    $related = Content::factory()->create(['valid_from' => now()->subDay(), 'valid_to' => null]);
+    $pending = Content::factory()->create(['valid_from' => now()->subDay(), 'valid_to' => null]);
+
+    $pools = Content::factory()->buildRelationIdPools();
+    Content::factory()->createRelations($related, null, $pools);
+
+    $ids = Content::factory()->idsMissingRequiredRelations([
+        (int) $related->id,
+        (int) $pending->id,
+    ]);
+
+    expect($ids)->toBe([(int) $pending->id]);
+});

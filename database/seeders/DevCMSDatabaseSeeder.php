@@ -85,13 +85,12 @@ final class DevCMSDatabaseSeeder extends BatchSeeder
 
     private function createPivotRelations(): void
     {
-        $this->command->info('Creating pivot relations...');
-
         // Build the candidate id pools once (picking from them in PHP avoids an
         // ORDER BY RAND() query per content), then relate contents in parallel:
         // one fork per chunk of content ids. The pools live in the parent and are
         // inherited by each fork through copy-on-write.
-        $pools = Content::factory()->buildRelationIdPools();
+        $factory = Content::factory();
+        $pools = $factory->buildRelationIdPools();
         $content_ids = $pools['contents'];
 
         if ($content_ids === []) {
@@ -100,15 +99,35 @@ final class DevCMSDatabaseSeeder extends BatchSeeder
             return;
         }
 
+        // Only queue contents that still lack required pivots (contributors /
+        // categories). createRelations() remains idempotent inside each chunk;
+        // this gate avoids a full re-walk that looks like "5000 created" on a
+        // re-run when everything was already related.
+        $pending_ids = $factory->idsMissingRequiredRelations($content_ids);
+        $already_related = count($content_ids) - count($pending_ids);
+
+        $this->command->info(sprintf(
+            'Pivot relations: %d contents, %d need relations, %d already related.',
+            count($content_ids),
+            count($pending_ids),
+            $already_related,
+        ));
+
+        if ($pending_ids === []) {
+            $this->command->info('All contents already have required pivot relations.');
+
+            return;
+        }
+
         $connection_name = Content::query()->getConnection()->getName();
         $tasks = [];
 
-        foreach (array_chunk($content_ids, self::PIVOT_CHUNK_SIZE) as $index => $chunk_ids) {
+        foreach (array_chunk($pending_ids, self::PIVOT_CHUNK_SIZE) as $index => $chunk_ids) {
             $tasks[] = new BatchTask(
                 id: "pivots_{$index}",
                 units: count($chunk_ids),
                 run: static function () use ($chunk_ids, $pools): int {
-                    $contents = Content::query()->whereKey($chunk_ids)->get();
+                    $contents = Content::query()->withoutGlobalScopes()->whereKey($chunk_ids)->get();
                     Content::factory()->createRelations($contents, null, $pools);
 
                     return count($chunk_ids);
