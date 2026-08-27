@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🐛 Bug Fixes
+
+- *(tests)* Pin cms.import.locale to en in import feature tests
+
+## [1.42.2] - 2026-08-26
+
 ### 🚜 Refactor
 
 - *(factory)* Streamline relation handling in ContentFactory

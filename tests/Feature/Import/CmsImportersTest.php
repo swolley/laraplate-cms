@@ -16,7 +16,7 @@ use Modules\Core\Models\ImportSession;
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    config(['scout.driver' => 'null', 'app.locale' => 'en']);
+    config(['scout.driver' => 'null', 'app.locale' => 'en', 'cms.import.locale' => 'en']);
     Storage::fake('local');
 });
 
