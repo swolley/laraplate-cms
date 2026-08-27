@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Once;
 use Illuminate\Support\Str;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Tests\TestCase;
@@ -18,7 +19,6 @@ use Modules\Core\Models\MediaDraft;
 use Modules\Core\Models\Permission;
 use Modules\Core\Models\Role;
 use Modules\Core\Models\User;
-use Modules\Core\Services\Authorization\AuthorizationService;
 use Modules\Core\Support\PermissionName;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -246,7 +246,7 @@ test('returns 404 for an entity whose model does not support media', function ()
 });
 
 test('hides an ACL-restricted content row on the per-id media endpoints', function (): void {
-    AuthorizationService::resetPermissionCache();
+    Once::flush();
 
     $visible = $this->content;
     $hidden = Content::factory()->create();
