@@ -3,18 +3,18 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Config;
 use Modules\CMS\Models\Comment;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Tag;
 use Modules\CMS\Tests\TestCase;
 use Modules\Core\Models\Role;
 use Modules\Core\Models\User;
+use Modules\Core\Support\CrudApiExposure;
 
 uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function (): void {
-    Config::set('core.expose_crud_api', true);
+    CrudApiExposure::enable();
     setupCMSEntities();
 });
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\ConnectionInterface;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Modules\CMS\Models\Category;
 use Modules\CMS\Models\Content;
@@ -13,6 +12,7 @@ use Modules\CMS\Models\Location;
 use Modules\CMS\Models\Tag;
 use Modules\CMS\Tests\TestCase;
 use Modules\Core\Models\Role;
+use Modules\Core\Support\CrudApiExposure;
 use Modules\Core\Models\User;
 
 uses(TestCase::class, RefreshDatabase::class);
@@ -70,7 +70,7 @@ it('measures cms graph runtime traversal on a realistic dataset', function (): v
         $this->markTestSkipped('Set CMS_GRAPH_BENCHMARK_ENABLED=true to run the CMS graph runtime benchmark.');
     }
 
-    Config::set('core.expose_crud_api', true);
+    CrudApiExposure::enable();
     setupCMSEntities();
 
     $user = User::factory()->create();

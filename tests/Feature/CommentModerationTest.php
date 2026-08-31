@@ -16,9 +16,10 @@ use Modules\CMS\Models\ContentRating;
 use Modules\Core\Models\Modification;
 use Modules\Core\Models\Role;
 use Modules\Core\Models\User;
+use Modules\Core\Support\CrudApiExposure;
 
 beforeEach(function (): void {
-    Config::set('core.expose_crud_api', true);
+    CrudApiExposure::enable();
     Config::set('app.locale', 'en');
     Modules\Core\Helpers\LocaleContext::set('en');
     $this->content = createMinimalTestContentForComments();
