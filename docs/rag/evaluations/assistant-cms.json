@@ -1,0 +1,52 @@
+{
+  "version": "1.0.0",
+  "corpus_revision": "2026-08-31",
+  "module": "cms",
+  "data_classification": "synthetic",
+  "cases": [
+    {
+      "id": "cms-publish-hit",
+      "query": "how do I publish?",
+      "locale": "en",
+      "module_key": "cms",
+      "expected_surface": "application_content",
+      "expected_citations": ["Publishing guide"],
+      "expect_clarification": false,
+      "expect_refusal": false,
+      "slices": ["publishing"]
+    },
+    {
+      "id": "cms-docs-required-terms",
+      "query": "how do I force a search term to be required?",
+      "locale": "en",
+      "module_key": null,
+      "expected_surface": "documentation",
+      "expected_citations": ["Core · Adaptive search matching · Required terms and exact phrases"],
+      "expect_clarification": false,
+      "expect_refusal": false,
+      "slices": ["search"]
+    },
+    {
+      "id": "cms-ambiguous-clarify",
+      "query": "How can I find the record?",
+      "locale": "en",
+      "module_key": null,
+      "expected_surface": "clarify",
+      "expected_citations": [],
+      "expect_clarification": true,
+      "expect_refusal": false,
+      "slices": ["ambiguous"]
+    },
+    {
+      "id": "cms-off-topic-refuse",
+      "query": "weather?",
+      "locale": "en",
+      "module_key": "cms",
+      "expected_surface": "refuse",
+      "expected_citations": [],
+      "expect_clarification": false,
+      "expect_refusal": true,
+      "slices": ["off_topic"]
+    }
+  ]
+}
