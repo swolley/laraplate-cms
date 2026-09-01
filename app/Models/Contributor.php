@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Modules\CMS\Casts\EntityType;
@@ -58,6 +57,16 @@ final class Contributor extends Model implements IMediable, Taggable
         'user_id',
         'user',
     ];
+
+    /**
+     * Bridged user always comes from User on serialize / search / path, so it is
+     * declared here rather than through a global scope: a closure scope is keyed by
+     * spl_object_hash and cannot be lifted per query, which silently defeats
+     * `->without('user')`. An always-loaded relation owned by a trait is declared the
+     * same way, from the trait initializer (see HasPlace::initializeHasPlace).
+     */
+    #[Override]
+    protected $with = ['user'];
 
     private ?User $tempUser = null;
 
@@ -141,11 +150,6 @@ final class Contributor extends Model implements IMediable, Taggable
     protected static function getEntityType(): IDynamicEntityTypable
     {
         return EntityType::Contributors;
-    }
-
-    protected static function booted(): void
-    {
-        self::addGlobalScope(static fn (Builder $query) => $query->with('user'));
     }
 
     protected static function newFactory(): ContributorFactory

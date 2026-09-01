@@ -67,14 +67,6 @@ final class Location extends Model implements Taggable
     protected $table = CMSTables::Locations->value;
 
     /**
-     * Bridged geography always comes from Place on serialize / search / path.
-     *
-     * @var list<string>
-     */
-    #[Override]
-    protected $with = ['place'];
-
-    /**
      * The attributes that are mass assignable.
      */
     #[Override]
