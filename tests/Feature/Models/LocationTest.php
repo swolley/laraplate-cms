@@ -3,9 +3,13 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use Modules\CMS\Models\Location;
 use Modules\CMS\Tests\TestCase;
+use Modules\Core\Casts\ListRequestData;
+use Modules\Core\Enums\CoreTables;
+use Modules\Core\Services\Crud\QueryBuilder;
 
 uses(TestCase::class, RefreshDatabase::class);
 
@@ -160,4 +164,55 @@ it('generates path from country', function (): void {
     $location = Location::factory()->create(['country' => 'Italy']);
 
     expect($location->getPath())->toBe('italy');
+});
+
+it('eager-loads place by default', function (): void {
+    $id = Location::factory()->create()->id;
+
+    $location = Location::query()->findOrFail($id);
+
+    expect($location->relationLoaded('place'))->toBeTrue();
+});
+
+it('caches place on the model after the first bridged read', function (): void {
+    $id = Location::factory()->create([
+        'address' => 'Via Roma 1',
+        'city' => 'Rome',
+    ])->id;
+
+    $location = Location::query()->without(['place'])->findOrFail($id);
+
+    expect($location->relationLoaded('place'))->toBeFalse();
+
+    $place_queries = 0;
+    DB::listen(static function (Illuminate\Database\Events\QueryExecuted $query) use (&$place_queries): void {
+        if (str_contains($query->sql, CoreTables::Places->value)) {
+            $place_queries++;
+        }
+    });
+
+    expect($location->address)->toBe('Via Roma 1');
+    expect($location->city)->toBe('Rome');
+    expect($location->relationLoaded('place'))->toBeTrue();
+    expect($place_queries)->toBe(1);
+});
+
+it('list prepareQuery eager-loads place for Location', function (): void {
+    $ref = new ReflectionClass(ListRequestData::class);
+    /** @var ListRequestData $data */
+    $data = $ref->newInstanceWithoutConstructor();
+    $set = static function (object $obj, string $prop, mixed $value): void {
+        $p = new ReflectionProperty($obj, $prop);
+        $p->setAccessible(true);
+        $p->setValue($obj, $value);
+    };
+    $set($data, 'columns', []);
+    $set($data, 'relations', []);
+    $set($data, 'sort', []);
+    $set($data, 'filters', null);
+
+    $query = Location::query();
+    (new QueryBuilder())->prepareQuery($query, $data);
+
+    expect($query->getEagerLoads())->toHaveKey('place');
 });

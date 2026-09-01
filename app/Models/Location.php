@@ -22,7 +22,6 @@ use Modules\Core\Models\Concerns\HasPlace;
 use Modules\Core\Models\Concerns\HasSlug;
 use Modules\CMS\Models\Content;
 use Modules\Core\Models\Place;
-use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Search\Schema\FieldDefinition;
 use Modules\Core\Search\Schema\FieldType;
@@ -66,6 +65,14 @@ final class Location extends Model implements Taggable
      */
     #[Override]
     protected $table = CMSTables::Locations->value;
+
+    /**
+     * Bridged geography always comes from Place on serialize / search / path.
+     *
+     * @var list<string>
+     */
+    #[Override]
+    protected $with = ['place'];
 
     /**
      * The attributes that are mass assignable.

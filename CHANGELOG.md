@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚀 Features
+
+- *(cms)* CMS assistant evaluation dataset
+
+### 🐛 Bug Fixes
+
+- *(cms)* Eager-load place on Location by default
+
+### 🧪 Testing
+
+- *(cms)* Enable the CRUD API via CrudApiExposure instead of Config::set
+
+## [1.42.3] - 2026-08-27
+
 ### 🐛 Bug Fixes
 
 - *(tests)* Pin cms.import.locale to en in import feature tests
