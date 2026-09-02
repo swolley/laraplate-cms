@@ -12,12 +12,14 @@ use Modules\CMS\Models\Translations\CommentTranslation;
 use Modules\CMS\Scopes\CommentTranslationScope;
 use Modules\CMS\Services\CommentApprovalCapture;
 use Modules\CMS\Services\ContentRatingService;
+use Modules\Core\Casts\ActionEnum;
 use Modules\Core\Events\ModificationApproved;
 use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Models\Concerns\HasApprovals;
 use Modules\Core\Models\Concerns\HasTranslations;
 use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
+use Modules\Core\Support\PermissionName;
 use Override;
 use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 
@@ -300,7 +302,9 @@ final class Comment extends Model
 
         $user = $this->modifier();
 
-        return ! ($user && ($user->isAdmin() || $user->isSuperAdmin() && $user->can('approve.' . $this->getTable())));
+        // `approve.{table}` predates the `{connection}.{table}.{operation}` convention
+        // and matched no registered permission.
+        return ! ($user && ($user->isAdmin() || $user->isSuperAdmin() && $user->can(PermissionName::forModel($this, ActionEnum::Approve->value))));
     }
 
     protected function modifier(): ?User

@@ -333,11 +333,7 @@ final class CMSDatabaseSeeder extends Seeder
         }
 
         $content = new Content;
-        $permission_name = PermissionName::build(
-            $content->getConnectionName() ?? 'default',
-            $content->getTable(),
-            ActionEnum::Select->value,
-        );
+        $permission_name = PermissionName::forModel($content, ActionEnum::Select->value);
 
         $permission = $permission_class::query()->where('name', $permission_name)->first(['id']);
 
