@@ -99,6 +99,8 @@ final class CMSDatabaseSeeder extends Seeder
 
     private function defaultSettings(): void
     {
+        $this->logOperation(Setting::class);
+
         $outcome = app(SeedReconciler::class)->reconcile(
             SeedDefinition::for(Setting::class)
                 ->identity(['name'])
