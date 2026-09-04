@@ -277,7 +277,7 @@ flowchart LR
 
 ### Lifecycle: validity, approvals, locking
 
-`Content` composes the cross-cutting Core lifecycle traits. `HasValidity` provides the `valid_from` / `valid_to` publication window and a `valid()` scope, but validity is **not** a global scope: it is a row-level authorization concern. A role-scoped ACL on `cms_contents.select`, seeded for the `guest` role (`CMSDatabaseSeeder::defaultContentAcls`), filters the anonymous/public reader to the current window using the `@now` ACL placeholder; staff roles carry no such ACL and read every content, so a direct `Content::query()` (Filament, imports) returns drafts too. `HasApprovals` requires explicit approval before persisting changes; `Content` overrides `requiresApprovalWhen()` so only validity-window edits demand approval. `HasLocks` and `HasOptimisticLocking` block concurrent edits and stale writes. `SortableTrait` sorts by `order_column` (renamed `scopeOrdered` to `scopePriorityOrdered` to avoid Searchable trait clashes). `Searchable` also indexes `valid_from`, `valid_to`, and `is_deleted` so the search layer reflects publication state.
+`Content` composes the cross-cutting Core lifecycle traits. `HasValidity` provides the `valid_from` / `valid_to` publication window and a `valid()` scope, but validity is **not** a global scope: it is a row-level authorization concern. A role-scoped ACL on `cms_contents.select`, seeded for the `guest` role (`CMSDatabaseSeeder::defaultContentAcls`), filters the anonymous/public reader to the current window using the `@now` ACL placeholder; staff roles carry no such ACL and read every content, so a direct `Content::query()` (Filament, imports) returns drafts too. `HasApprovals` requires explicit approval before persisting changes; `Content` overrides `requiresApprovalWhen()` so only validity-window edits demand approval. `HasLocks` and `HasOptimisticLocking` block concurrent edits and stale writes: opening a content for editing takes an owned, expiring **lease** and the lock guard refuses every other writer's save while it lasts, including `cms:import`, whose row is reported as a skip rather than overwriting work in progress. An ownerless lock is a **freeze** and closes the content to everybody. See Core's `RECORD_LOCKING_USER.md` and `RECORD_LOCKING_DEVELOPER.md`. `SortableTrait` sorts by `order_column` (renamed `scopeOrdered` to `scopePriorityOrdered` to avoid Searchable trait clashes). `Searchable` also indexes `valid_from`, `valid_to`, and `is_deleted` so the search layer reflects publication state.
 
 ```mermaid
 stateDiagram-v2
@@ -291,7 +291,7 @@ stateDiagram-v2
   Expired --> Published: extend valid_to (with approval)
   Archived --> [*]: hard delete after retention
   Published --> Locked: pessimistic / optimistic lock acquired
-  Locked --> Published: released
+  Locked --> Published: released by its holder, lifted with `unlock`, or lapsed at `locked_until`
 ```
 
 ### CMS graph provider

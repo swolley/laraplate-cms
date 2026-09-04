@@ -9,10 +9,13 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 use Modules\CMS\Filament\Resources\Contents\ContentResource;
+use Modules\Core\Filament\Utils\HasRecordLease;
 use Override;
 
 final class EditContent extends EditRecord
 {
+    use HasRecordLease;
+
     #[Override]
     protected static string $resource = ContentResource::class;
 

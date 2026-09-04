@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Filament\Resources\Entities\Schemas;
 
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -31,10 +30,10 @@ final class EntityForm
                     ->required(),
                 Toggle::make('is_active')
                     ->required(),
-                DateTimePicker::make('locked_at'),
-                DateTimePicker::make('locked_user_id'),
-                Toggle::make('is_locked')
-                    ->required(),
+                // Lock state is coordination metadata, not editable data: it is taken and
+                // released through the lock actions, never by typing. `locked_user_id` used to
+                // be rendered as a date picker because the column was wrongly declared a
+                // timestamp, and `is_locked` is now computed rather than stored.
             ]);
     }
 }

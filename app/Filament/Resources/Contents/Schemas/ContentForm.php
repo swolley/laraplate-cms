@@ -30,10 +30,10 @@ final class ContentForm
                     ->default(0),
                 Toggle::make('is_deleted')
                     ->required(),
-                DateTimePicker::make('locked_at'),
-                DateTimePicker::make('locked_user_id'),
-                Toggle::make('is_locked')
-                    ->required(),
+                // Lock state is coordination metadata, not editable data: it is taken and
+                // released through the lock actions, never by typing. `locked_user_id` used to
+                // be rendered as a date picker because the column was wrongly declared a
+                // timestamp, and `is_locked` is now computed rather than stored.
                 DateTimePicker::make('valid_from'),
                 DateTimePicker::make('valid_to'),
             ]),
