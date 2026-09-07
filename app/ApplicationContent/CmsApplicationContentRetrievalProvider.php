@@ -7,6 +7,7 @@ namespace Modules\CMS\ApplicationContent;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\CMS\Models\Content;
 use Modules\Core\ApplicationContent\Contracts\ApplicationContentRetrievalProviderInterface;
+use Modules\Core\ApplicationContent\Contracts\ProvidesPermissionModel;
 use Modules\Core\ApplicationContent\Data\ApplicationContentAuthorization;
 use Modules\Core\ApplicationContent\Data\ApplicationContentQuery;
 use Modules\Core\ApplicationContent\Data\ApplicationContentResult;
@@ -20,7 +21,7 @@ use Modules\Core\Services\Crud\QueryBuilder;
 use Override;
 use Throwable;
 
-final readonly class CmsApplicationContentRetrievalProvider implements ApplicationContentRetrievalProviderInterface
+final readonly class CmsApplicationContentRetrievalProvider implements ApplicationContentRetrievalProviderInterface, ProvidesPermissionModel
 {
     public function __construct(
         private AdvancedSearchService $search,
@@ -28,6 +29,12 @@ final readonly class CmsApplicationContentRetrievalProvider implements Applicati
         private QueryBuilder $queryBuilder,
         private CmsContentEvidenceProjector $projector,
     ) {}
+
+    #[Override]
+    public function permissionModel(): string
+    {
+        return Content::class;
+    }
 
     #[Override]
     public function descriptor(): ApplicationContentSourceDescriptor
