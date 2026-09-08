@@ -51,10 +51,12 @@ use Spatie\MediaLibrary\HasMedia;
 
 /**
  * @property int|string $id
+ *
  * @phpstan-use HasMultimedia<Content>
  * @phpstan-use HasTranslatedDynamicContents<Content>
  * @phpstan-use HasValidity<Content>
  * @phpstan-use Searchable<Content>
+ *
  * @mixin \Illuminate\Database\Eloquent\Model
  * @mixin \Eloquent
  * @mixin IdeHelperContent
@@ -443,7 +445,7 @@ final class Content extends Model implements HasMedia, ProvidesFacetLabelSources
         $schema->addField(new FieldDefinition('valid_from', FieldType::Date, [IndexType::Searchable, IndexType::Filterable, IndexType::Sortable]));
         $schema->addField(new FieldDefinition('valid_to', FieldType::Date, [IndexType::Searchable, IndexType::Filterable, IndexType::Sortable]));
         $schema->addField(new FieldDefinition('is_deleted', FieldType::Boolean, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
-        $schema->addField(new FieldDefinition('embedding', FieldType::Vector, [IndexType::Searchable, IndexType::Vector]));
+        $schema->addField(new FieldDefinition('embedding', FieldType::Vector, [IndexType::Searchable, IndexType::Vector], ['dimensions' => (int) config('search.vector_search.dimension', 384)]));
 
         // Base fields with default translation (for compatibility/fallback)
         $schema->addField(new FieldDefinition('slug', FieldType::Keyword, [IndexType::Searchable, IndexType::Prefix]));
