@@ -15,6 +15,18 @@ The command name selects CMS as the destination. `--importer` selects the source
 
 `--importer`, `--bootstrap`, repeatable `--arg`, `--dry-run`, `--limit`, and `--no-search` are inherited from Core. Concrete CMS commands declare `$name`, not `$signature`.
 
+## Which entity an import writes into
+
+An import DTO names an entity **type** — `contents`, `categories`, `contributors` — never an entity. Singular aliases (post, event, content, multimedia, category, section, folder, contributor) normalize to those three types. Which entity of that type a project uses is the project's own naming, so `EntityPresetResolver` looks it up by type and picks, in order:
+
+1. the only entity of that type, when the project has one;
+2. the entity the importer named through the DTO's `preferredEntityName`;
+3. the entity flagged as the default for that type.
+
+The import creates no entity. A type with no entity stops the run, and so does an ambiguous type where nothing is named or default: the message lists the candidates. `ImportPresetProvisioner` resolves the same way and provisions only presets, their fields, and the presettable version, which do belong to the import.
+
+An importer supplies `preferredEntityName` when the destination project told it which entity to use. The Naxos importer reads it per type from `--arg entityContents=`, `--arg entityCategories=` and `--arg entityContributors=`, and leaves it null otherwise.
+
 ## Provenance recorded per record
 
 Every upserted record gets a row in `core_record_origins`, written through `ExternalReferenceLocator::register()`. Identity is the pair source key plus external id, which is what makes a repeated import update instead of duplicate. Alongside it the row carries four descriptive fields, all optional and all supplied by the importer through the DTO:

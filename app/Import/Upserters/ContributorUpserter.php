@@ -50,8 +50,8 @@ final class ContributorUpserter
             $context,
         );
 
-        $entity_id = $this->entity_preset_resolver->entityId($dto->entityName, $context);
-        $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName, $context);
+        $entity_id = $this->entity_preset_resolver->entityId($dto->entityName, $context, $dto->preferredEntityName);
+        $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName, $context, $dto->preferredEntityName);
 
         if ($existing_id !== null) {
             $contributor = $contributor_model->newQueryWithoutScopes()->findOrFail($existing_id);

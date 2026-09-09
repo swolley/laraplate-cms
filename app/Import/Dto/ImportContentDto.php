@@ -47,6 +47,10 @@ final readonly class ImportContentDto
         public ?string $originUrl = null,
         public array $translations = [],
         public array $familyExternalIds = [],
+        /**
+         * Entity of that type the importer asks for by name; null lets the project decide.
+         */
+        public ?string $preferredEntityName = null,
     ) {}
 
     /**
@@ -124,6 +128,7 @@ final readonly class ImportContentDto
             originUrl: $originUrl ?? $this->originUrl,
             translations: $translations ?? $this->translations,
             familyExternalIds: $familyExternalIds ?? $this->familyExternalIds,
+            preferredEntityName: $this->preferredEntityName,
         );
     }
 }

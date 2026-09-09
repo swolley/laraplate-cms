@@ -33,5 +33,9 @@ final readonly class ImportCategoryDto
         public string $presetName = 'default',
         public ?string $originLabel = null,
         public ?string $originUrl = null,
+        /**
+         * Entity of that type the importer asks for by name; null lets the project decide.
+         */
+        public ?string $preferredEntityName = null,
     ) {}
 }

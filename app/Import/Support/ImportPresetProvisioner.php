@@ -17,20 +17,21 @@ final class ImportPresetProvisioner
 {
     public function __construct(
         private readonly PresetVersioningService $preset_versioning_service,
+        private readonly EntityPresetResolver $entity_preset_resolver,
     ) {}
 
     public function provisionFromGraph(ImportGraphDto $graph, ?ImportConnectionContext $context = null): void
     {
         $context ??= new ImportConnectionContext(new Entity);
         $this->assertContext($context);
-        $this->ensurePreset($graph->content->entityName, $graph->content->presetName, $context);
+        $this->ensurePreset($graph->content->entityName, $graph->content->presetName, $context, $graph->content->preferredEntityName);
 
         foreach ($graph->categories as $category) {
-            $this->ensurePreset($category->entityName, $category->presetName, $context);
+            $this->ensurePreset($category->entityName, $category->presetName, $context, $category->preferredEntityName);
         }
 
         foreach ($graph->contributors as $contributor) {
-            $this->ensurePreset($contributor->entityName, $contributor->presetName, $context);
+            $this->ensurePreset($contributor->entityName, $contributor->presetName, $context, $contributor->preferredEntityName);
         }
     }
 
@@ -47,23 +48,26 @@ final class ImportPresetProvisioner
         return [Entity::class, Preset::class, CmsPresettable::class, Field::class];
     }
 
-    public function ensurePreset(string $entityName, string $presetName, ?ImportConnectionContext $context = null): CmsPresettable
+    /**
+     * Provisions the preset an import needs on an entity that already exists.
+     *
+     * Entities are the project's own vocabulary, so the import never creates one:
+     * {@see EntityPresetResolver} picks the entity of the requested type, and a
+     * missing or ambiguous type stops the run. Presets and their fields, on the
+     * other hand, belong to the import and are created on demand.
+     */
+    public function ensurePreset(string $entityName, string $presetName, ?ImportConnectionContext $context = null, ?string $preferredEntityName = null): CmsPresettable
     {
         $context ??= new ImportConnectionContext(new Entity);
-        $entity = $context->model(Entity::class)->newQuery()->firstOrCreate(
-            ['name' => $entityName],
-            [
-                'slug' => $entityName,
-                'type' => $this->entityTypeForName($entityName),
-            ],
-        );
+        $entity_id = $this->entity_preset_resolver->entityId($entityName, $context, $preferredEntityName);
+        $entity = $context->model(Entity::class)->newQuery()->findOrFail($entity_id);
 
         $preset = $context->model(Preset::class)->newQuery()->firstOrCreate(
             ['entity_id' => $entity->id, 'name' => $presetName],
             ['entity_id' => $entity->id, 'name' => $presetName],
         );
 
-        $definitions = $this->fieldDefinitions($entityName, $presetName);
+        $definitions = $this->fieldDefinitions(ImportEntityNames::normalize($entityName), $presetName);
 
         if ($definitions !== []) {
             $this->syncFields($preset, $definitions, $context);
@@ -165,14 +169,5 @@ final class ImportPresetProvisioner
         }
 
         return $field;
-    }
-
-    private function entityTypeForName(string $entityName): \Modules\CMS\Casts\EntityType
-    {
-        return match ($entityName) {
-            'contributors', 'contributor' => \Modules\CMS\Casts\EntityType::Contributors,
-            'categories', 'category', 'section', 'folder' => \Modules\CMS\Casts\EntityType::Categories,
-            default => \Modules\CMS\Casts\EntityType::Contents,
-        };
     }
 }
