@@ -11,6 +11,7 @@ use Modules\CMS\Import\Support\ImportConnectionContext;
 use Modules\CMS\Import\Support\ImportReferenceResolver;
 use Modules\CMS\Import\Support\LocationMatcher;
 use Modules\CMS\Models\Location;
+use Modules\Core\Import\Support\ImportFingerprint;
 
 final class LocationUpserter
 {
@@ -60,7 +61,14 @@ final class LocationUpserter
 
         if ($dto->externalId !== null) {
             $this->reference_resolver->remember('locations', $dto->externalId, $location_id, $dto->sourceType, $context);
-            $this->locator->register($location, $dto->sourceType, $dto->externalId);
+            $this->locator->register(
+                $location,
+                $dto->sourceType,
+                $dto->externalId,
+                $dto->originLabel,
+                $dto->originUrl,
+                ImportFingerprint::of($dto),
+            );
         }
 
         return $location_id;

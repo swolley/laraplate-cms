@@ -15,6 +15,16 @@ The command name selects CMS as the destination. `--importer` selects the source
 
 `--importer`, `--bootstrap`, repeatable `--arg`, `--dry-run`, `--limit`, and `--no-search` are inherited from Core. Concrete CMS commands declare `$name`, not `$signature`.
 
+## Provenance recorded per record
+
+Every upserted record gets a row in `core_record_origins`, written through `ExternalReferenceLocator::register()`. Identity is the pair source key plus external id, which is what makes a repeated import update instead of duplicate. Alongside it the row carries four descriptive fields, all optional and all supplied by the importer through the DTO:
+
+- `source_label` and `url`, from `originLabel` and `originUrl`. Every import DTO declares them: contents, categories, tags, contributors and locations.
+- `fingerprint`, a SHA-256 over the mapped payload, computed by `Modules\Core\Import\Support\ImportFingerprint` from the DTO itself. Key order never affects it, so only a changed value changes the hash.
+- `source_updated_at`, taken from the DTO's `updatedAt`, which is the source system's own modification timestamp. A string the source sends that cannot be parsed leaves the column empty rather than failing the row.
+
+An importer that has no url for a taxonomy leaves `originUrl` null; the origin row is still written and the record stays identifiable.
+
 ## Compatibility and boundaries
 
 The CMS marker extends Core's neutral `import(?OutputInterface $output = null): int` contract, preserving existing Naxos importer namespaces. When the console output is passed (from `cms:import`), CMS forwards it to `ImportPipeline` / `ImportProgressLogger` for per-content progress lines; omitting it keeps pipeline-only runs quiet. CMS still owns content DTOs, mapping contracts, `ImportPipeline`, upserters, preset provisioning, reference resolution, and post-processing. External packages own source clients, credentials, readers, normalization, and source-specific mappings.

@@ -31,5 +31,7 @@ final readonly class ImportCategoryDto
         public string $sourceKind = 'section',
         public string $entityName = ImportEntityNames::CATEGORIES,
         public string $presetName = 'default',
+        public ?string $originLabel = null,
+        public ?string $originUrl = null,
     ) {}
 }

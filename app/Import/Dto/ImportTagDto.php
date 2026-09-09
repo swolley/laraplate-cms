@@ -16,5 +16,7 @@ final readonly class ImportTagDto
         public ?string $updatedAt,
         public ?string $deletedAt,
         public string $sourceType,
+        public ?string $originLabel = null,
+        public ?string $originUrl = null,
     ) {}
 }

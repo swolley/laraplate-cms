@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Import\Support;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use LogicException;
 use Modules\CMS\Models\Category;
@@ -17,6 +18,7 @@ use Modules\CMS\Models\Translations\TagTranslation;
 use Modules\Core\Import\Support\RecordOriginRegistry;
 use Modules\Core\Import\ValueObjects\ExternalRecordIdentity;
 use Modules\Core\Models\Translations\TaxonomyTranslation;
+use Throwable;
 
 /**
  * Resolves and registers import identity/provenance through the generic
@@ -116,12 +118,19 @@ final class ExternalReferenceLocator
         ?int $external_id,
         ?string $source_label = null,
         ?string $url = null,
+        ?string $fingerprint = null,
+        ?string $source_updated_at = null,
     ): void {
         $external = $external_id !== null ? (string) $external_id : null;
 
         $this->registry->register(
             $referable,
-            new ExternalRecordIdentity($source_key, $external),
+            new ExternalRecordIdentity(
+                $source_key,
+                $external,
+                $fingerprint,
+                self::parseSourceTimestamp($source_updated_at),
+            ),
             $source_label,
             $url,
         );
@@ -130,6 +139,23 @@ final class ExternalReferenceLocator
     public function importSlug(int $external_id, string $source_type): string
     {
         return 'import-' . preg_replace('/[^a-z0-9_-]+/i', '-', $source_type) . '-' . $external_id;
+    }
+
+    /**
+     * Source timestamps arrive as whatever string the source system prints. One that
+     * cannot be read leaves the column empty instead of failing the row.
+     */
+    private static function parseSourceTimestamp(?string $value): ?CarbonImmutable
+    {
+        if ($value === null || mb_trim($value) === '') {
+            return null;
+        }
+
+        try {
+            return CarbonImmutable::parse($value);
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     private function findByOrigin(Model $referable, int $external_id, string $source_type): ?int
@@ -158,5 +184,4 @@ final class ExternalReferenceLocator
 
         return $local_id !== null ? (int) $local_id : null;
     }
-
 }

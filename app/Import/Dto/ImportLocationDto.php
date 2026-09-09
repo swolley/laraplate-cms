@@ -15,5 +15,7 @@ final readonly class ImportLocationDto
         public ?int $externalId = null,
         public string $sourceType = 'cms_import',
         public ?string $country = null,
+        public ?string $originLabel = null,
+        public ?string $originUrl = null,
     ) {}
 }

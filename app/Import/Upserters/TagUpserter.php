@@ -9,6 +9,7 @@ use Modules\CMS\Import\Support\ExternalReferenceLocator;
 use Modules\CMS\Import\Support\ImportConnectionContext;
 use Modules\CMS\Import\Support\ImportReferenceResolver;
 use Modules\CMS\Models\Tag;
+use Modules\Core\Import\Support\ImportFingerprint;
 
 final class TagUpserter
 {
@@ -74,7 +75,15 @@ final class TagUpserter
         $tag_id = (int) $tag->id;
         $this->reference_resolver->remember('tags', $dto->externalId, $tag_id, $dto->sourceType, $context);
 
-        $this->locator->register($tag, $dto->sourceType, $dto->externalId);
+        $this->locator->register(
+            $tag,
+            $dto->sourceType,
+            $dto->externalId,
+            $dto->originLabel,
+            $dto->originUrl,
+            ImportFingerprint::of($dto),
+            $dto->updatedAt,
+        );
 
         return $tag_id;
     }

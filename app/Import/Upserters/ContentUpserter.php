@@ -12,6 +12,7 @@ use Modules\CMS\Import\Support\ImportProgressLogger;
 use Modules\CMS\Import\Support\ImportReferenceResolver;
 use Modules\CMS\Import\Support\RelatedContentResolver;
 use Modules\CMS\Models\Content;
+use Modules\Core\Import\Support\ImportFingerprint;
 use Symfony\Component\Console\Output\OutputInterface;
 
 final class ContentUpserter
@@ -146,6 +147,8 @@ final class ContentUpserter
             $dto->externalId,
             $dto->originLabel,
             $dto->originUrl,
+            ImportFingerprint::of($dto),
+            $dto->updatedAt,
         );
 
         $this->progress_logger->contentImported($dto, $created, $output);

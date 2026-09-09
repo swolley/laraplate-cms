@@ -116,9 +116,14 @@ trait HasTable
                     ->label('Preset')
                     ->multiple()
                     ->options(fn (): array => self::presetSelectFilterOptions($entity_type))
+                    // `preset_id` lives on the presettable pivot, never on the entity table:
+                    // filtering has to go through the relation.
                     ->query(static fn (Builder $query, array $data): Builder => $query->when(
                         $data['values'],
-                        static fn (Builder $query, $values): Builder => $query->whereIn('preset_id', $values),
+                        static fn (Builder $query, $values): Builder => $query->whereHas(
+                            'presettable',
+                            static fn (Builder $query): Builder => $query->whereIn('preset_id', $values),
+                        ),
                     )),
             ]);
         }

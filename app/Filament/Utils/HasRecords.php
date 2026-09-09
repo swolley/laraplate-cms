@@ -74,7 +74,7 @@ trait HasRecords
                 );
         }
 
-        $this->groups[] = Group::make('preset_id')
+        $this->groups[] = Group::make('presettable.preset_id')
             ->label('Preset')
             ->getTitleFromRecordUsing(fn (Model $record): string => $this->presetGroupTitle($record));
 

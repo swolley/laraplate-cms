@@ -11,6 +11,7 @@ use Modules\CMS\Import\Support\ExternalReferenceLocator;
 use Modules\CMS\Import\Support\ImportConnectionContext;
 use Modules\CMS\Import\Support\ImportReferenceResolver;
 use Modules\CMS\Models\Contributor;
+use Modules\Core\Import\Support\ImportFingerprint;
 
 final class ContributorUpserter
 {
@@ -89,7 +90,15 @@ final class ContributorUpserter
         $contributor_id = (int) $contributor->id;
         $this->reference_resolver->remember('contributors', $dto->externalId, $contributor_id, $dto->sourceType, $context);
 
-        $this->locator->register($contributor, $dto->sourceType, $dto->externalId);
+        $this->locator->register(
+            $contributor,
+            $dto->sourceType,
+            $dto->externalId,
+            $dto->originLabel,
+            $dto->originUrl,
+            ImportFingerprint::of($dto),
+            $dto->updatedAt,
+        );
 
         return $contributor_id;
     }

@@ -10,6 +10,7 @@ use Modules\CMS\Import\Support\ExternalReferenceLocator;
 use Modules\CMS\Import\Support\ImportConnectionContext;
 use Modules\CMS\Import\Support\ImportReferenceResolver;
 use Modules\CMS\Models\Category;
+use Modules\Core\Import\Support\ImportFingerprint;
 
 final class CategoryUpserter
 {
@@ -90,7 +91,15 @@ final class CategoryUpserter
         $category_id = (int) $category->id;
         $this->reference_resolver->remember('categories', $dto->externalId, $category_id, $dto->sourceType, $context);
 
-        $this->locator->register($category, $dto->sourceType, $dto->externalId);
+        $this->locator->register(
+            $category,
+            $dto->sourceType,
+            $dto->externalId,
+            $dto->originLabel,
+            $dto->originUrl,
+            ImportFingerprint::of($dto),
+            $dto->updatedAt,
+        );
 
         return $category_id;
     }

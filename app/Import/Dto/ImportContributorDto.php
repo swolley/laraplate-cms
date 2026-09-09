@@ -27,5 +27,7 @@ final readonly class ImportContributorDto
         public string $sourceType,
         public string $entityName = ImportEntityNames::CONTRIBUTORS,
         public string $presetName = 'default',
+        public ?string $originLabel = null,
+        public ?string $originUrl = null,
     ) {}
 }
