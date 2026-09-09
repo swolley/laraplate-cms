@@ -54,9 +54,9 @@ it('renders the contents validity column html for published rows', function (): 
     $column = $table->getColumns()['validity']->record($content->fresh());
 
     expect($column->toEmbeddedHtml())
-        ->toContain('Valid from:')
+        ->toContain('From:')
         ->toContain($valid_from->format('Y-m-d H:i:s'))
-        ->toContain('Valid until:')
+        ->toContain('Until:')
         ->toContain($valid_to->format('Y-m-d H:i:s'));
 });
 
@@ -79,8 +79,8 @@ it('formats validity through the shared table helper', function (): void {
     ]);
 
     expect(HasTableTrait::formatValidityColumnState($content->fresh()))
-        ->toContain('Valid from:')
-        ->not->toContain('Valid until:');
+        ->toContain('From:')
+        ->not->toContain('Until:');
 });
 
 it('filters contents by preset through the presettable pivot', function (): void {
