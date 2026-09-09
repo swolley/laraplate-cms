@@ -92,6 +92,11 @@ it('reproduces the committed record-level baseline from generated CMS records', 
         static fn ($query, $authorization) => $provider->retrieve($query, $authorization),
     );
     $artifact_path = module_path('CMS', 'docs/evaluations/application-content/2026-07-record-baseline.json');
+
+    if (getenv('APP_CONTENT_BASELINE_REGEN') === '1') {
+        file_put_contents($artifact_path, json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION) . "\n");
+    }
+
     $artifact = json_decode((string) file_get_contents($artifact_path), true, flags: JSON_THROW_ON_ERROR);
 
     expect($report)->toBe($artifact)

@@ -14,7 +14,16 @@
         "authorized_empty_accuracy": 1.0,
         "supported_answer_rate": 0.8095,
         "abstention_accuracy": 0.8667,
-        "unavailable_rate": 0.0
+        "unavailable_rate": 0.0,
+        "precision_at_1": 0.8095,
+        "precision_at_3": 0.2698,
+        "precision_at_5": 0.1619,
+        "recall_at_1": 0.8095,
+        "recall_at_3": 0.8095,
+        "recall_at_5": 0.8095,
+        "ndcg_at_1": 0.8095,
+        "ndcg_at_3": 0.8095,
+        "ndcg_at_5": 0.8095
     },
     "latency_ms": {
         "average": 10.0,
@@ -31,7 +40,16 @@
                 "authorized_empty_accuracy": 1.0,
                 "supported_answer_rate": 0.7778,
                 "abstention_accuracy": 0.84,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 0.7778,
+                "precision_at_3": 0.2593,
+                "precision_at_5": 0.1556,
+                "recall_at_1": 0.7778,
+                "recall_at_3": 0.7778,
+                "recall_at_5": 0.7778,
+                "ndcg_at_1": 0.7778,
+                "ndcg_at_3": 0.7778,
+                "ndcg_at_5": 0.7778
             },
             "it": {
                 "hit_at_5": 1.0,
@@ -40,7 +58,16 @@
                 "authorized_empty_accuracy": 1.0,
                 "supported_answer_rate": 1.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 1.0,
+                "precision_at_3": 0.3333,
+                "precision_at_5": 0.2,
+                "recall_at_1": 1.0,
+                "recall_at_3": 1.0,
+                "recall_at_5": 1.0,
+                "ndcg_at_1": 1.0,
+                "ndcg_at_3": 1.0,
+                "ndcg_at_5": 1.0
             }
         },
         "category": {
@@ -51,7 +78,16 @@
                 "authorized_empty_accuracy": 1.0,
                 "supported_answer_rate": 0.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 0.0,
+                "precision_at_3": 0.0,
+                "precision_at_5": 0.0,
+                "recall_at_1": 0.0,
+                "recall_at_3": 0.0,
+                "recall_at_5": 0.0,
+                "ndcg_at_1": 0.0,
+                "ndcg_at_3": 0.0,
+                "ndcg_at_5": 0.0
             },
             "acl_visible": {
                 "hit_at_5": 1.0,
@@ -60,7 +96,16 @@
                 "authorized_empty_accuracy": 0.0,
                 "supported_answer_rate": 1.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 1.0,
+                "precision_at_3": 0.3333,
+                "precision_at_5": 0.2,
+                "recall_at_1": 1.0,
+                "recall_at_3": 1.0,
+                "recall_at_5": 1.0,
+                "ndcg_at_1": 1.0,
+                "ndcg_at_3": 1.0,
+                "ndcg_at_5": 1.0
             },
             "authorized_empty": {
                 "hit_at_5": 0.0,
@@ -69,7 +114,16 @@
                 "authorized_empty_accuracy": 1.0,
                 "supported_answer_rate": 0.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 0.0,
+                "precision_at_3": 0.0,
+                "precision_at_5": 0.0,
+                "recall_at_1": 0.0,
+                "recall_at_3": 0.0,
+                "recall_at_5": 0.0,
+                "ndcg_at_1": 0.0,
+                "ndcg_at_3": 0.0,
+                "ndcg_at_5": 0.0
             },
             "bounds": {
                 "hit_at_5": 1.0,
@@ -78,7 +132,16 @@
                 "authorized_empty_accuracy": 0.0,
                 "supported_answer_rate": 1.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 1.0,
+                "precision_at_3": 0.3333,
+                "precision_at_5": 0.2,
+                "recall_at_1": 1.0,
+                "recall_at_3": 1.0,
+                "recall_at_5": 1.0,
+                "ndcg_at_1": 1.0,
+                "ndcg_at_3": 1.0,
+                "ndcg_at_5": 1.0
             },
             "citation": {
                 "hit_at_5": 1.0,
@@ -87,7 +150,16 @@
                 "authorized_empty_accuracy": 0.0,
                 "supported_answer_rate": 1.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 1.0,
+                "precision_at_3": 0.3333,
+                "precision_at_5": 0.2,
+                "recall_at_1": 1.0,
+                "recall_at_3": 1.0,
+                "recall_at_5": 1.0,
+                "ndcg_at_1": 1.0,
+                "ndcg_at_3": 1.0,
+                "ndcg_at_5": 1.0
             },
             "degraded": {
                 "hit_at_5": 1.0,
@@ -96,7 +168,16 @@
                 "authorized_empty_accuracy": 0.0,
                 "supported_answer_rate": 1.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 1.0,
+                "precision_at_3": 0.3333,
+                "precision_at_5": 0.2,
+                "recall_at_1": 1.0,
+                "recall_at_3": 1.0,
+                "recall_at_5": 1.0,
+                "ndcg_at_1": 1.0,
+                "ndcg_at_3": 1.0,
+                "ndcg_at_5": 1.0
             },
             "exact": {
                 "hit_at_5": 1.0,
@@ -105,7 +186,16 @@
                 "authorized_empty_accuracy": 0.0,
                 "supported_answer_rate": 1.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 1.0,
+                "precision_at_3": 0.3333,
+                "precision_at_5": 0.2,
+                "recall_at_1": 1.0,
+                "recall_at_3": 1.0,
+                "recall_at_5": 1.0,
+                "ndcg_at_1": 1.0,
+                "ndcg_at_3": 1.0,
+                "ndcg_at_5": 1.0
             },
             "locale": {
                 "hit_at_5": 1.0,
@@ -114,7 +204,16 @@
                 "authorized_empty_accuracy": 1.0,
                 "supported_answer_rate": 1.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 1.0,
+                "precision_at_3": 0.3333,
+                "precision_at_5": 0.2,
+                "recall_at_1": 1.0,
+                "recall_at_3": 1.0,
+                "recall_at_5": 1.0,
+                "ndcg_at_1": 1.0,
+                "ndcg_at_3": 1.0,
+                "ndcg_at_5": 1.0
             },
             "long_record": {
                 "hit_at_5": 0.5,
@@ -123,7 +222,16 @@
                 "authorized_empty_accuracy": 0.0,
                 "supported_answer_rate": 0.5,
                 "abstention_accuracy": 0.5,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 0.5,
+                "precision_at_3": 0.1667,
+                "precision_at_5": 0.1,
+                "recall_at_1": 0.5,
+                "recall_at_3": 0.5,
+                "recall_at_5": 0.5,
+                "ndcg_at_1": 0.5,
+                "ndcg_at_3": 0.5,
+                "ndcg_at_5": 0.5
             },
             "normalization": {
                 "hit_at_5": 1.0,
@@ -132,7 +240,16 @@
                 "authorized_empty_accuracy": 0.0,
                 "supported_answer_rate": 1.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 1.0,
+                "precision_at_3": 0.3333,
+                "precision_at_5": 0.2,
+                "recall_at_1": 1.0,
+                "recall_at_3": 1.0,
+                "recall_at_5": 1.0,
+                "ndcg_at_1": 1.0,
+                "ndcg_at_3": 1.0,
+                "ndcg_at_5": 1.0
             },
             "paraphrase": {
                 "hit_at_5": 0.0,
@@ -141,7 +258,16 @@
                 "authorized_empty_accuracy": 0.0,
                 "supported_answer_rate": 0.0,
                 "abstention_accuracy": 0.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 0.0,
+                "precision_at_3": 0.0,
+                "precision_at_5": 0.0,
+                "recall_at_1": 0.0,
+                "recall_at_3": 0.0,
+                "recall_at_5": 0.0,
+                "ndcg_at_1": 0.0,
+                "ndcg_at_3": 0.0,
+                "ndcg_at_5": 0.0
             },
             "passage_candidate": {
                 "hit_at_5": 0.0,
@@ -150,7 +276,16 @@
                 "authorized_empty_accuracy": 0.0,
                 "supported_answer_rate": 0.0,
                 "abstention_accuracy": 0.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 0.0,
+                "precision_at_3": 0.0,
+                "precision_at_5": 0.0,
+                "recall_at_1": 0.0,
+                "recall_at_3": 0.0,
+                "recall_at_5": 0.0,
+                "ndcg_at_1": 0.0,
+                "ndcg_at_3": 0.0,
+                "ndcg_at_5": 0.0
             },
             "ranking": {
                 "hit_at_5": 1.0,
@@ -159,7 +294,16 @@
                 "authorized_empty_accuracy": 0.0,
                 "supported_answer_rate": 1.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 1.0,
+                "precision_at_3": 0.3333,
+                "precision_at_5": 0.2,
+                "recall_at_1": 1.0,
+                "recall_at_3": 1.0,
+                "recall_at_5": 1.0,
+                "ndcg_at_1": 1.0,
+                "ndcg_at_3": 1.0,
+                "ndcg_at_5": 1.0
             },
             "semantic": {
                 "hit_at_5": 0.0,
@@ -168,7 +312,16 @@
                 "authorized_empty_accuracy": 0.0,
                 "supported_answer_rate": 0.0,
                 "abstention_accuracy": 0.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 0.0,
+                "precision_at_3": 0.0,
+                "precision_at_5": 0.0,
+                "recall_at_1": 0.0,
+                "recall_at_3": 0.0,
+                "recall_at_5": 0.0,
+                "ndcg_at_1": 0.0,
+                "ndcg_at_3": 0.0,
+                "ndcg_at_5": 0.0
             },
             "soft_delete": {
                 "hit_at_5": 0.0,
@@ -177,7 +330,16 @@
                 "authorized_empty_accuracy": 1.0,
                 "supported_answer_rate": 0.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 0.0,
+                "precision_at_3": 0.0,
+                "precision_at_5": 0.0,
+                "recall_at_1": 0.0,
+                "recall_at_3": 0.0,
+                "recall_at_5": 0.0,
+                "ndcg_at_1": 0.0,
+                "ndcg_at_3": 0.0,
+                "ndcg_at_5": 0.0
             },
             "tenant_exclusion": {
                 "hit_at_5": 0.0,
@@ -186,7 +348,16 @@
                 "authorized_empty_accuracy": 1.0,
                 "supported_answer_rate": 0.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 0.0,
+                "precision_at_3": 0.0,
+                "precision_at_5": 0.0,
+                "recall_at_1": 0.0,
+                "recall_at_3": 0.0,
+                "recall_at_5": 0.0,
+                "ndcg_at_1": 0.0,
+                "ndcg_at_3": 0.0,
+                "ndcg_at_5": 0.0
             },
             "tenant_visible": {
                 "hit_at_5": 1.0,
@@ -195,7 +366,16 @@
                 "authorized_empty_accuracy": 0.0,
                 "supported_answer_rate": 1.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 1.0,
+                "precision_at_3": 0.3333,
+                "precision_at_5": 0.2,
+                "recall_at_1": 1.0,
+                "recall_at_3": 1.0,
+                "recall_at_5": 1.0,
+                "ndcg_at_1": 1.0,
+                "ndcg_at_3": 1.0,
+                "ndcg_at_5": 1.0
             },
             "translation_fallback": {
                 "hit_at_5": 1.0,
@@ -204,7 +384,16 @@
                 "authorized_empty_accuracy": 0.0,
                 "supported_answer_rate": 1.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 1.0,
+                "precision_at_3": 0.3333,
+                "precision_at_5": 0.2,
+                "recall_at_1": 1.0,
+                "recall_at_3": 1.0,
+                "recall_at_5": 1.0,
+                "ndcg_at_1": 1.0,
+                "ndcg_at_3": 1.0,
+                "ndcg_at_5": 1.0
             },
             "unicode": {
                 "hit_at_5": 1.0,
@@ -213,7 +402,16 @@
                 "authorized_empty_accuracy": 0.0,
                 "supported_answer_rate": 1.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 1.0,
+                "precision_at_3": 0.3333,
+                "precision_at_5": 0.2,
+                "recall_at_1": 1.0,
+                "recall_at_3": 1.0,
+                "recall_at_5": 1.0,
+                "ndcg_at_1": 1.0,
+                "ndcg_at_3": 1.0,
+                "ndcg_at_5": 1.0
             },
             "unsupported": {
                 "hit_at_5": 0.0,
@@ -222,7 +420,16 @@
                 "authorized_empty_accuracy": 0.0,
                 "supported_answer_rate": 0.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 0.0,
+                "precision_at_3": 0.0,
+                "precision_at_5": 0.0,
+                "recall_at_1": 0.0,
+                "recall_at_3": 0.0,
+                "recall_at_5": 0.0,
+                "ndcg_at_1": 0.0,
+                "ndcg_at_3": 0.0,
+                "ndcg_at_5": 0.0
             },
             "validity": {
                 "hit_at_5": 0.0,
@@ -231,7 +438,16 @@
                 "authorized_empty_accuracy": 1.0,
                 "supported_answer_rate": 0.0,
                 "abstention_accuracy": 1.0,
-                "unavailable_rate": 0.0
+                "unavailable_rate": 0.0,
+                "precision_at_1": 0.0,
+                "precision_at_3": 0.0,
+                "precision_at_5": 0.0,
+                "recall_at_1": 0.0,
+                "recall_at_3": 0.0,
+                "recall_at_5": 0.0,
+                "ndcg_at_1": 0.0,
+                "ndcg_at_3": 0.0,
+                "ndcg_at_5": 0.0
             }
         }
     }
