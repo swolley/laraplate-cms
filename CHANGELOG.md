@@ -6,6 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
+- *(cms)* Surface the corrected lock state on contents and entities
+
+### 🚜 Refactor
+
+- *(cms)* Declare always-loaded relations with $with
+
+## [1.43.0] - 2026-09-01
+
+### 🚀 Features
+
 - *(cms)* CMS assistant evaluation dataset
 
 ### 🐛 Bug Fixes
