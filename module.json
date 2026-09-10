@@ -3,6 +3,7 @@
     "laraplate_owned": true,
     "alias": "cms",
     "description": "Content Management System Module",
+    "color": "cyan",
     "keywords": [
         "cms",
         "content",

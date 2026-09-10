@@ -40,7 +40,8 @@ final class CMSStatsWidget extends BaseWidget
             Stat::make('Contents', $data['contents'])
                 ->description('Total contents')
                 ->descriptionIcon('heroicon-o-pencil')
-                ->color('info'),
+                ->color('info')
+                ->descriptionColor('cms'),
             // Stat::make('Categories', Category::query()->count())
             //     ->description('Content categories')
             //     ->descriptionIcon('heroicon-o-folder')
@@ -48,7 +49,8 @@ final class CMSStatsWidget extends BaseWidget
             Stat::make('Contributors', $data['contributors'])
                 ->description('Total contributors')
                 ->descriptionIcon('heroicon-o-users')
-                ->color('info'),
+                ->color('info')
+                ->descriptionColor('cms'),
             // Stat::make('Locations', Location::query()->count())
             //     ->description('Geographic locations')
             //     ->descriptionIcon('heroicon-o-map-pin')
