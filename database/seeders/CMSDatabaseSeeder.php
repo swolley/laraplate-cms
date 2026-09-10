@@ -236,7 +236,7 @@ final class CMSDatabaseSeeder extends Seeder
             foreach ($entities as $entity) {
                 if (! $this->entities->has($entity['name'])) {
                     /** @var Entity $entity */
-                    $new_entity = $this->create(Entity::class, ['name' => $entity['name'], 'type' => $entity['type']]);
+                    $new_entity = $this->create(Entity::class, ['name' => $entity['name'], 'type' => $entity['type'], 'is_default' => $entity['is_default']]);
                     $this->entities->put($entity['name'], $new_entity);
 
                     /** @var Preset $preset */
