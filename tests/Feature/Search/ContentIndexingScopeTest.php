@@ -75,7 +75,14 @@ it('indexes mono-language content that the runtime LocaleScope would otherwise h
         'components' => [],
     ]);
 
-    $importQuery = (new Content)->makeAllSearchableUsing(Content::query());
+    // Exercise the real Scout bulk-import path (Laravel\Scout\Searchable::makeAllSearchableQuery(),
+    // public static, not overridden anywhere in this app) rather than re-invoking the
+    // makeAllSearchableUsing() hook directly. Scout builds the query via
+    // newQuery()->when(true, fn ($query) => $self->makeAllSearchableUsing($query))->orderBy(...),
+    // discarding the closure's return value and relying on withoutGlobalScope() mutating the
+    // builder in place — so this proves the hook still takes effect through that exact call
+    // shape, not just when its return value is used directly.
+    $importQuery = Content::makeAllSearchableQuery();
 
     expect($importQuery->pluck('id'))->toContain($monoLanguage->id)
         ->and($importQuery->pluck('id'))->toContain($bilingual->id)
