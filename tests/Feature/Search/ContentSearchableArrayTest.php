@@ -87,6 +87,7 @@ it('declares the Content search mapping with locale-keyed title/slug objects, a 
     expect($properties['title']['type'])->toBe('object')
         ->and($properties['title']['properties']['it'])->toBe(['type' => 'text', 'analyzer' => 'italian'])
         ->and($properties['title']['properties']['en'])->toBe(['type' => 'text', 'analyzer' => 'english'])
+        ->and($properties['title']['properties']['de'])->toBe(['type' => 'text', 'analyzer' => 'standard'])
         ->and($properties['slug']['type'])->toBe('object')
         ->and($properties['locales']['type'])->toBe('keyword')
         ->and($properties['embeddings']['type'])->toBe('nested')

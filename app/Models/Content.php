@@ -463,13 +463,13 @@ final class Content extends Model implements HasMedia, ProvidesFacetLabelSources
             $component_fields = array_keys($default_translation->components);
         }
 
-        // Task 5 provides the shared analyzer map; keep it inline here for now.
-        $analyzers = ['it' => 'italian', 'en' => 'english'];
+        $analyzerMap = is_array(config('search.analyzers')) ? config('search.analyzers') : [];
+        $analyzers = fn (string $locale): string => (string) ($analyzerMap[$locale] ?? 'standard');
         $localeText = [];
         $localeKeyword = [];
 
         foreach ($available_locales as $locale) {
-            $localeText[$locale] = ['analyzer' => $analyzers[$locale] ?? 'standard'];
+            $localeText[$locale] = ['analyzer' => $analyzers($locale)];
             $localeKeyword[$locale] = ['analyzer' => 'keyword'];
         }
 
