@@ -357,33 +357,39 @@ final class Content extends Model implements HasMedia, ProvidesFacetLabelSources
         ]))->values()->all();
         $document['type'] = $this->type;
 
-        // Load all translations for indexing
-        $default_locale = is_string(config('app.locale')) ? config('app.locale') : 'en';
-        $available_locales = LocaleContext::getAvailable();
+        // Load all translations for indexing: title/slug/components become
+        // locale-keyed objects instead of flat title_<locale>/slug_<locale> keys,
+        // and `locales` records which translations actually exist.
+        $available = LocaleContext::getAvailable();
+        $title = [];
+        $slug = [];
+        $components = [];
+        $locales = [];
 
-        // Add base fields with default translation (for compatibility/fallback)
-        $default_translation = $this->findContentTranslation($default_locale);
+        foreach ($available as $locale) {
+            $translation = $this->findContentTranslation($locale);
 
-        if ($default_translation instanceof ContentTranslation) {
-            $document['slug'] = $default_translation->slug;
-            $document['title'] = $default_translation->title;
+            if (! $translation instanceof ContentTranslation) {
+                continue;
+            }
 
-            // Add default components
-            if ($default_translation->components !== null) {
-                foreach ($default_translation->components as $field => $value) {
-                    $document[$field] = gettype($value) === 'string' ? Str::replaceMatches('/\\n|\\r|\\t/', '', $value) : $value;
-                }
+            $locales[] = $locale;
+            $title[$locale] = $translation->title;
+            $slug[$locale] = $translation->slug;
+
+            foreach (($translation->components ?? []) as $field => $value) {
+                $components[$field][$locale] = is_string($value)
+                    ? Str::replaceMatches('/\\n|\\r|\\t/', '', $value)
+                    : $value;
             }
         }
 
-        // Add fields for each locale (title_locale, slug_locale, components_locale)
-        foreach ($available_locales as $locale) {
-            $translation = $this->findContentTranslation($locale);
+        $document['title'] = $title;
+        $document['slug'] = $slug;
+        $document['locales'] = $locales;
 
-            if ($translation instanceof ContentTranslation) {
-                $document['title_' . $locale] = $translation->title;
-                $document['slug_' . $locale] = $translation->slug;
-            }
+        foreach ($components as $field => $byLocale) {
+            $document[$field] = $byLocale;
         }
 
         return $document;
@@ -443,11 +449,6 @@ final class Content extends Model implements HasMedia, ProvidesFacetLabelSources
         $schema->addField(new FieldDefinition('valid_from', FieldType::Date, [IndexType::Searchable, IndexType::Filterable, IndexType::Sortable]));
         $schema->addField(new FieldDefinition('valid_to', FieldType::Date, [IndexType::Searchable, IndexType::Filterable, IndexType::Sortable]));
         $schema->addField(new FieldDefinition('is_deleted', FieldType::Boolean, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
-        $schema->addField(new FieldDefinition('embedding', FieldType::Vector, [IndexType::Searchable, IndexType::Vector], ['dimensions' => (int) config('search.vector_search.dimension', 384)]));
-
-        // Base fields with default translation (for compatibility/fallback)
-        $schema->addField(new FieldDefinition('slug', FieldType::Keyword, [IndexType::Searchable, IndexType::Prefix]));
-        $schema->addField(new FieldDefinition('title', FieldType::Text, [IndexType::Searchable, IndexType::Filterable, IndexType::Fuzzy]));
 
         // Add fields for each locale
         $available_locales = LocaleContext::getAvailable();
@@ -462,15 +463,26 @@ final class Content extends Model implements HasMedia, ProvidesFacetLabelSources
             $component_fields = array_keys($default_translation->components);
         }
 
+        // Task 5 provides the shared analyzer map; keep it inline here for now.
+        $analyzers = ['it' => 'italian', 'en' => 'english'];
+        $localeText = [];
+        $localeKeyword = [];
+
         foreach ($available_locales as $locale) {
-            // Add title and slug for each locale
-            $schema->addField(new FieldDefinition('title_' . $locale, FieldType::Text, [IndexType::Searchable, IndexType::Filterable, IndexType::Fuzzy]));
-            $schema->addField(new FieldDefinition('slug_' . $locale, FieldType::Keyword, [IndexType::Searchable, IndexType::Prefix]));
+            $localeText[$locale] = ['analyzer' => $analyzers[$locale] ?? 'standard'];
+            $localeKeyword[$locale] = ['analyzer' => 'keyword'];
         }
 
-        // Add base component fields (from default translation)
+        $schema->addField(new FieldDefinition('title', FieldType::Object, [IndexType::Searchable, IndexType::Fuzzy], ['locale_properties' => $localeText]));
+        $schema->addField(new FieldDefinition('slug', FieldType::Object, [IndexType::Searchable], ['locale_properties' => $localeKeyword]));
+        $schema->addField(new FieldDefinition('locales', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
+        $schema->addField(new FieldDefinition('embeddings', FieldType::Array, [IndexType::Searchable, IndexType::Vector], [
+            'vector' => ['dimensions' => (int) config('search.vector.dimensions', 384), 'similarity' => config('search.vector.similarity', 'cosine')],
+        ]));
+
+        // Add base component fields, locale-keyed like title
         foreach ($component_fields as $field) {
-            $schema->addField(new FieldDefinition($field, FieldType::Text, [IndexType::Searchable, IndexType::FullText]));
+            $schema->addField(new FieldDefinition($field, FieldType::Object, [IndexType::Searchable, IndexType::FullText], ['locale_properties' => $localeText]));
         }
 
         return $this->getSearchMappingTrait($schema);
