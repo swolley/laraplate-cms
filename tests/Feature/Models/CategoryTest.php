@@ -263,3 +263,57 @@ it('has translations trait', function (): void {
     expect(method_exists($this->category, 'hasTranslation'))->toBeTrue();
     expect(method_exists($this->category, 'getTranslatableFields'))->toBeTrue();
 });
+
+it('builds path, ids and full_name correctly from ancestors', function (): void {
+    $reflection = new ReflectionClass(Category::class);
+
+    /** @var Category $root */
+    $root = $reflection->newInstanceWithoutConstructor();
+    $attributesProperty = $reflection->getProperty('attributes');
+    $attributesProperty->setValue($root, [
+        'id' => 1,
+        'slug' => 'root',
+        'name' => 'Root',
+    ]);
+
+    /** @var Category $child */
+    $child = $reflection->newInstanceWithoutConstructor();
+    $attributesProperty->setValue($child, [
+        'id' => 2,
+        'slug' => 'child',
+        'name' => 'Child',
+    ]);
+
+    /** @var Category $grandchild */
+    $grandchild = $reflection->newInstanceWithoutConstructor();
+    $attributesProperty->setValue($grandchild, [
+        'id' => 3,
+        'slug' => 'grandchild',
+        'name' => 'Grandchild',
+    ]);
+
+    // Simulate ancestors relation: [immediate parent, then root]
+    $grandchild->setRelation('ancestors', collect([$child, $root]));
+
+    expect($grandchild->getPath())->toBe('root/child/grandchild')
+        ->and($grandchild->ids)->toBe('1.2.3')
+        ->and($grandchild->full_name)->toBe('Root > Child > Grandchild');
+});
+
+it('falls back to current node data when no ancestors are present', function (): void {
+    $reflection = new ReflectionClass(Category::class);
+
+    /** @var Category $category */
+    $category = $reflection->newInstanceWithoutConstructor();
+    $attributesProperty = $reflection->getProperty('attributes');
+    $attributesProperty->setValue($category, [
+        'id' => 10,
+        'slug' => 'single',
+        'name' => 'Single',
+    ]);
+
+    // No ancestors relation set
+    expect($category->getPath())->toBe('single')
+        ->and($category->ids)->toBe('10')
+        ->and($category->full_name)->toBe('Single');
+});
