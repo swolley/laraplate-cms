@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Observers;
 
-use Modules\AI\Jobs\GenerateEmbeddingsJob;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Translations\ContentTranslation;
+use Modules\Core\Events\TranslationRequiresReembedding;
 use Modules\Core\Overrides\LocaleScope;
 
 /**
@@ -56,7 +56,7 @@ final class ContentTranslationObserver
             return;
         }
 
-        GenerateEmbeddingsJob::dispatch($content, $translation->locale);
+        event(new TranslationRequiresReembedding($content, $translation->locale));
     }
 
     /**

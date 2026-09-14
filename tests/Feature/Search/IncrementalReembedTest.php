@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
-use Modules\AI\Jobs\GenerateEmbeddingsJob;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Enums\AiAssistance;
 use Modules\CMS\Models\Content;
@@ -17,15 +16,20 @@ use Modules\CMS\Models\Preset;
 use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Tests\TestCase;
 use Modules\Core\Events\ModelRequiresIndexing;
+use Modules\Core\Events\TranslationRequiresReembedding;
 
 uses(TestCase::class, RefreshDatabase::class);
 
-// GenerateEmbeddingsJob is dispatched synchronously under the test suite's
-// QUEUE_CONNECTION=sync: fake the queue for every test in this file up front so
-// that setup helpers (which create/update ContentTranslation rows and thus
-// trigger the observer) never execute the job for real. Tests that need to
-// isolate the action under test re-fake (discarding the setup noise) right
-// before that action, mirroring LocationObserverTest's convention.
+// The observer fires Modules\Core\Events\TranslationRequiresReembedding, which
+// Modules\AI's HandleTranslationReembeddingListener turns into a real
+// GenerateEmbeddingsJob::dispatch() — executed synchronously under the test
+// suite's QUEUE_CONNECTION=sync. Fake the queue for every test in this file up
+// front so that setup helpers (which create/update ContentTranslation rows and
+// thus trigger the observer) never execute that job for real. Tests that need
+// to isolate the action under test additionally fake TranslationRequiresReembedding
+// itself right before that action (discarding the setup noise and asserting CMS's
+// side of the contract directly, independent of AI's listener), mirroring
+// LocationObserverTest's convention.
 //
 // The observer only dispatches when Content::isEmbeddable() is true, which
 // requires search.vector_search.enabled (off by default, mirroring
@@ -92,31 +96,11 @@ function reembedTestTextualFieldName(): string
     return $preset->fields()->firstOrFail()->name;
 }
 
-/**
- * Pull the private constructor-promoted $model/$locale out of a dispatched
- * GenerateEmbeddingsJob (it has no public accessors) so tests can assert what
- * it was scoped to.
- *
- * @return array{0: \Illuminate\Database\Eloquent\Model, 1: ?string}
- */
-function reembedJobArgs(GenerateEmbeddingsJob $job): array
-{
-    $reflection = new ReflectionClass($job);
-
-    $model_property = $reflection->getProperty('model');
-    $model_property->setAccessible(true);
-
-    $locale_property = $reflection->getProperty('locale');
-    $locale_property->setAccessible(true);
-
-    return [$model_property->getValue($job), $locale_property->getValue($job)];
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // saved(): new translation always re-embeds (wasRecentlyCreated)
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('dispatches GenerateEmbeddingsJob scoped to the new locale when a translation is created', function (): void {
+it('dispatches TranslationRequiresReembedding scoped to the new locale when a translation is created', function (): void {
     setupCMSEntities([EntityType::Contents]);
 
     $entity = Entity::query()->where('name', 'contents')->firstOrFail();
@@ -134,7 +118,7 @@ it('dispatches GenerateEmbeddingsJob scoped to the new locale when a translation
         'valid_from' => now(),
     ]);
 
-    Queue::fake();
+    Event::fake([TranslationRequiresReembedding::class]);
 
     ContentTranslation::query()->create([
         'content_id' => $content->id,
@@ -144,31 +128,23 @@ it('dispatches GenerateEmbeddingsJob scoped to the new locale when a translation
         'components' => [],
     ]);
 
-    Queue::assertPushed(GenerateEmbeddingsJob::class, 1);
-    Queue::assertPushed(GenerateEmbeddingsJob::class, function (GenerateEmbeddingsJob $job) use ($content): bool {
-        [$model, $locale] = reembedJobArgs($job);
-
-        return $model->is($content) && $locale === 'it';
-    });
+    Event::assertDispatched(TranslationRequiresReembedding::class, 1);
+    Event::assertDispatched(TranslationRequiresReembedding::class, fn (TranslationRequiresReembedding $event): bool => $event->model->is($content) && $event->locale === 'it');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // saved(): title change re-embeds only that locale
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('dispatches GenerateEmbeddingsJob scoped to only the changed locale when a translation title changes', function (): void {
+it('dispatches TranslationRequiresReembedding scoped to only the changed locale when a translation title changes', function (): void {
     $content = createReembedTestContent('Titolo di prova', 'Test title');
 
-    Queue::fake();
+    Event::fake([TranslationRequiresReembedding::class]);
 
     $content->translations()->where('locale', 'it')->first()->update(['title' => 'Titolo aggiornato']);
 
-    Queue::assertPushed(GenerateEmbeddingsJob::class, 1);
-    Queue::assertPushed(GenerateEmbeddingsJob::class, function (GenerateEmbeddingsJob $job) use ($content): bool {
-        [$model, $locale] = reembedJobArgs($job);
-
-        return $model->is($content) && $locale === 'it';
-    });
+    Event::assertDispatched(TranslationRequiresReembedding::class, 1);
+    Event::assertDispatched(TranslationRequiresReembedding::class, fn (TranslationRequiresReembedding $event): bool => $event->model->is($content) && $event->locale === 'it');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -177,11 +153,11 @@ it('dispatches GenerateEmbeddingsJob scoped to only the changed locale when a tr
 // though `getChanges()` never lists "textual_only" itself.
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('dispatches GenerateEmbeddingsJob when only components change (feeds the derived textual_only embed field)', function (): void {
+it('dispatches TranslationRequiresReembedding when only components change (feeds the derived textual_only embed field)', function (): void {
     $content = createReembedTestContent('Titolo di prova', 'Test title');
     $field_name = reembedTestTextualFieldName();
 
-    Queue::fake();
+    Event::fake([TranslationRequiresReembedding::class]);
 
     $translation = $content->translations()->where('locale', 'it')->first();
     $translation->update(['components' => [$field_name => 'Nuovo contenuto testuale']]);
@@ -189,27 +165,23 @@ it('dispatches GenerateEmbeddingsJob when only components change (feeds the deri
     expect($translation->wasChanged('components'))->toBeTrue()
         ->and($translation->wasChanged('title'))->toBeFalse();
 
-    Queue::assertPushed(GenerateEmbeddingsJob::class, 1);
-    Queue::assertPushed(GenerateEmbeddingsJob::class, function (GenerateEmbeddingsJob $job) use ($content): bool {
-        [$model, $locale] = reembedJobArgs($job);
-
-        return $model->is($content) && $locale === 'it';
-    });
+    Event::assertDispatched(TranslationRequiresReembedding::class, 1);
+    Event::assertDispatched(TranslationRequiresReembedding::class, fn (TranslationRequiresReembedding $event): bool => $event->model->is($content) && $event->locale === 'it');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // saved(): unrelated field changes must NOT dispatch a re-embed
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('does not dispatch GenerateEmbeddingsJob when only a non-embeddable field changes', function (): void {
+it('does not dispatch TranslationRequiresReembedding when only a non-embeddable field changes', function (): void {
     $content = createReembedTestContent('Titolo di prova', 'Test title');
 
-    Queue::fake();
+    Event::fake([TranslationRequiresReembedding::class]);
 
     $translation = $content->translations()->where('locale', 'it')->first();
     $translation->update(['ai_assistance' => AiAssistance::Edited]);
 
-    Queue::assertNotPushed(GenerateEmbeddingsJob::class);
+    Event::assertNotDispatched(TranslationRequiresReembedding::class);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -220,15 +192,15 @@ it('does not dispatch GenerateEmbeddingsJob when only a non-embeddable field cha
 // suite's synchronous queue connection.
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('does not dispatch GenerateEmbeddingsJob when vector search is disabled, even on a title change', function (): void {
+it('does not dispatch TranslationRequiresReembedding when vector search is disabled, even on a title change', function (): void {
     $content = createReembedTestContent('Titolo di prova', 'Test title');
 
     Config::set('search.vector_search.enabled', false);
-    Queue::fake();
+    Event::fake([TranslationRequiresReembedding::class]);
 
     $content->translations()->where('locale', 'it')->first()->update(['title' => 'Titolo aggiornato']);
 
-    Queue::assertNotPushed(GenerateEmbeddingsJob::class);
+    Event::assertNotDispatched(TranslationRequiresReembedding::class);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -251,13 +223,12 @@ it('deletes only the deleted translation locale embeddings and reindexes the par
     Event::assertDispatched(ModelRequiresIndexing::class, fn (ModelRequiresIndexing $event): bool => $event->model->is($content));
 });
 
-it('does not dispatch a re-embed job when a translation is deleted', function (): void {
+it('does not dispatch a re-embed event when a translation is deleted', function (): void {
     $content = createReembedTestContent('Titolo di prova', 'Test title');
 
-    Queue::fake();
-    Event::fake(ModelRequiresIndexing::class);
+    Event::fake([ModelRequiresIndexing::class, TranslationRequiresReembedding::class]);
 
     $content->translations()->where('locale', 'it')->first()->delete();
 
-    Queue::assertNotPushed(GenerateEmbeddingsJob::class);
+    Event::assertNotDispatched(TranslationRequiresReembedding::class);
 });
