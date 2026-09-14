@@ -11,6 +11,8 @@ use Modules\CMS\Import\CategoryImporter;
 use Modules\CMS\Import\ContentImporter;
 use Modules\CMS\Import\ContributorImporter;
 use Modules\CMS\Import\TagImporter;
+use Modules\CMS\Models\Translations\ContentTranslation;
+use Modules\CMS\Observers\ContentTranslationObserver;
 use Modules\CMS\Observers\PlaceObserver;
 use Modules\CMS\Services\CommentModerationAdapter;
 use Modules\Core\ApplicationContent\Contracts\ApplicationContentRetrievalProviderRegistryInterface;
@@ -65,6 +67,10 @@ final class CMSServiceProvider extends ModuleServiceProvider
         // Address fields (address, city, province, country) are stored on Place via HasPlace,
         // so we must watch Place saves rather than Location saves.
         Place::observe(PlaceObserver::class);
+
+        // Observe ContentTranslation to incrementally re-embed the changed locale only
+        // (or drop and reindex it on delete), instead of regenerating every locale.
+        ContentTranslation::observe(ContentTranslationObserver::class);
 
         $this->app->make(ModerationAdapterRegistry::class)
             ->register($this->app->make(CommentModerationAdapter::class));
