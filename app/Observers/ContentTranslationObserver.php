@@ -93,11 +93,9 @@ final class ContentTranslationObserver
     private function resolveContent(ContentTranslation $translation): ?Content
     {
         /** @var Content|null $content */
-        $content = Content::query()
+        return Content::query()
             ->withoutGlobalScope(LocaleScope::class)
             ->find($translation->content_id);
-
-        return $content;
     }
 
     /**

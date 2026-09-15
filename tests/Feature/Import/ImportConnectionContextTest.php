@@ -14,8 +14,8 @@ use Modules\CMS\Models\Location;
 use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Models\Translations\ContributorTranslation;
 use Modules\CMS\Tests\TestCase;
-use Modules\Core\Models\RecordOrigin;
 use Modules\Core\Import\Support\RecordOriginRegistry;
+use Modules\Core\Models\RecordOrigin;
 
 uses(TestCase::class);
 

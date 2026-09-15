@@ -9,7 +9,6 @@ use Modules\CMS\Tests\TestCase;
 uses(TestCase::class, RefreshDatabase::class);
 
 use Modules\CMS\Models\Comment;
-use Modules\CMS\Models\Content;
 use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Models\Modification;
 use Modules\Core\Models\User;

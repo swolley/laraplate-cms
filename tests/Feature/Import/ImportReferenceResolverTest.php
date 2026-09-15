@@ -12,8 +12,8 @@ use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Contributor;
 use Modules\CMS\Models\Tag;
 use Modules\CMS\Tests\TestCase;
-use Modules\Core\Models\RecordOrigin;
 use Modules\Core\Import\Support\RecordOriginRegistry;
+use Modules\Core\Models\RecordOrigin;
 use Modules\Core\Services\DynamicContentsService;
 
 uses(TestCase::class, RefreshDatabase::class);

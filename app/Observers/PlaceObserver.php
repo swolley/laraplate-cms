@@ -40,7 +40,7 @@ final class PlaceObserver
         Location::query()
             ->where('place_id', $place->getKey())
             ->each(static function (Location $location): void {
-                dispatch(new \Modules\CMS\Jobs\GeocodeLocationJob($location));
+                dispatch(new GeocodeLocationJob($location));
             });
     }
 }

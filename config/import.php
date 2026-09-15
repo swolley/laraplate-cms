@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 return [
-
     'locale' => env('CMS_IMPORT_LOCALE', env('APP_LOCALE', 'en')),
 
     'default_contributor' => [
@@ -42,5 +41,4 @@ return [
             ],
         ],
     ],
-
 ];

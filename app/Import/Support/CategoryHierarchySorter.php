@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\CMS\Import\Support;
 
 use Modules\CMS\Import\Dto\ImportCategoryDto;
-use Modules\CMS\Models\Category;
 
 final class CategoryHierarchySorter
 {

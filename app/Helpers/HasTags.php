@@ -13,8 +13,8 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection as SupportCollection;
 use InvalidArgumentException;
 use Modules\CMS\Contracts\Taggable;
-use Modules\CMS\Models\Pivot\Taggable as TaggablePivot;
 use Modules\CMS\Enums\CMSTables;
+use Modules\CMS\Models\Pivot\Taggable as TaggablePivot;
 use Modules\CMS\Models\Tag;
 
 /**

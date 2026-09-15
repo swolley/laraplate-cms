@@ -51,10 +51,12 @@ use Spatie\MediaLibrary\HasMedia;
 
 /**
  * @property int|string $id
+ *
  * @phpstan-use HasMultimedia<Content>
  * @phpstan-use HasTranslatedDynamicContents<Content>
  * @phpstan-use HasValidity<Content>
  * @phpstan-use Searchable<Content>
+ *
  * @mixin \Illuminate\Database\Eloquent\Model
  * @mixin \Eloquent
  * @mixin IdeHelperContent

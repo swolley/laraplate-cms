@@ -17,6 +17,13 @@ final class ContentReferenceFactory extends Factory
     #[Override]
     protected $model = ContentReference::class;
 
+    public function withoutUrl(): static
+    {
+        return $this->state(fn (): array => [
+            'url' => null,
+        ]);
+    }
+
     #[Override]
     protected function definitionsArray(): array
     {
@@ -26,12 +33,5 @@ final class ContentReferenceFactory extends Factory
             'url' => fake()->optional()->url(),
             'order_column' => 0,
         ];
-    }
-
-    public function withoutUrl(): static
-    {
-        return $this->state(fn (): array => [
-            'url' => null,
-        ]);
     }
 }

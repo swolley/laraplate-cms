@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\CMS\Database\Seeders\CMSDatabaseSeeder;
-use Modules\Core\Models\Setting;
 use Modules\CMS\Tests\TestCase;
+use Modules\Core\Models\Setting;
 
 uses(TestCase::class, RefreshDatabase::class);
 

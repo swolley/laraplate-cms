@@ -28,6 +28,7 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  * @property int|null $user_id
  * @property int|null $parent_id
  * @property string|null $body
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperComment
  */
@@ -169,6 +170,7 @@ final class Comment extends Model
         }
 
         $this->setForcedApprovalUpdate(true);
+
         /** @var array<string, array{original: mixed, modified: mixed}> $changes */
         $changes = $modification->modifications ?? [];
 

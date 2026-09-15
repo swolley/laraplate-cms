@@ -19,7 +19,7 @@ beforeEach(function (): void {
 it('returns current locale body when translation exists', function (): void {
     $comment = Comment::query()->create([
         'content_id' => createMinimalTestContentForComments()->id,
-        'user_id' => \Modules\Core\Models\User::factory()->create()->id,
+        'user_id' => Modules\Core\Models\User::factory()->create()->id,
     ]);
 
     CommentTranslation::query()->create([
@@ -36,7 +36,7 @@ it('returns current locale body when translation exists', function (): void {
 it('falls back to oldest created translation when current locale missing', function (): void {
     $comment = Comment::query()->create([
         'content_id' => createMinimalTestContentForComments()->id,
-        'user_id' => \Modules\Core\Models\User::factory()->create()->id,
+        'user_id' => Modules\Core\Models\User::factory()->create()->id,
     ]);
 
     $italian = new CommentTranslation([
@@ -58,7 +58,7 @@ it('does not fall back to config app locale when older original is another local
 
     $comment = Comment::query()->create([
         'content_id' => createMinimalTestContentForComments()->id,
-        'user_id' => \Modules\Core\Models\User::factory()->create()->id,
+        'user_id' => Modules\Core\Models\User::factory()->create()->id,
     ]);
 
     $french = new CommentTranslation([

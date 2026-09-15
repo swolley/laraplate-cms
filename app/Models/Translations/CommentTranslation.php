@@ -15,6 +15,7 @@ use Override;
  * @property int|string $id
  * @property string $locale
  * @property string|null $body
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperCommentTranslation
  */

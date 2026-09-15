@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\ConnectionInterface;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Modules\CMS\Models\Category;
 use Modules\CMS\Models\Content;
@@ -12,8 +12,8 @@ use Modules\CMS\Models\Location;
 use Modules\CMS\Models\Tag;
 use Modules\CMS\Tests\TestCase;
 use Modules\Core\Models\Role;
-use Modules\Core\Support\CrudApiExposure;
 use Modules\Core\Models\User;
+use Modules\Core\Support\CrudApiExposure;
 
 uses(TestCase::class, RefreshDatabase::class);
 

@@ -159,7 +159,7 @@ it('toSearchableArray does not trigger lazy loading when all relations are eager
 
     try {
         // Create a content record with all required relations
-        $content = Modules\CMS\Models\Content::factory()->create();
+        $content = Content::factory()->create();
 
         // Attach at least one of each relation
         $category = Modules\CMS\Models\Category::factory()->create();
@@ -173,14 +173,14 @@ it('toSearchableArray does not trigger lazy loading when all relations are eager
         $content->locations()->attach($location);
 
         // Reload the model with all relations eager-loaded (as toSearchableWith() specifies)
-        $loaded = Modules\CMS\Models\Content::query()
+        $loaded = Content::query()
             ->withoutGlobalScopes()
             ->with($content->toSearchableWith())
             ->findOrFail($content->id);
 
         // toSearchableArray() must not trigger any lazy loading
         expect(fn () => $loaded->toSearchableArray())->not->toThrow(
-            Illuminate\Database\LazyLoadingViolationException::class
+            Illuminate\Database\LazyLoadingViolationException::class,
         );
     } finally {
         // Always restore the original state to avoid affecting other tests

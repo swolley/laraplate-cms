@@ -9,10 +9,10 @@ use Modules\CMS\Tests\TestCase;
 uses(TestCase::class, RefreshDatabase::class);
 
 use Illuminate\Support\Facades\Event;
-use Modules\Core\Events\ModificationApproved;
-use Modules\Core\Events\ModificationRequiresModeration;
 use Modules\CMS\Models\Comment;
 use Modules\CMS\Models\ContentRating;
+use Modules\Core\Events\ModificationApproved;
+use Modules\Core\Events\ModificationRequiresModeration;
 use Modules\Core\Models\Modification;
 use Modules\Core\Models\Role;
 use Modules\Core\Models\User;

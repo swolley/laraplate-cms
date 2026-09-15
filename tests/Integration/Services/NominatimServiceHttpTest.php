@@ -250,8 +250,8 @@ it('does not cache a failed HTTP response and returns null', function (): void {
 
     // Verify nothing was written to cache for this key
     $params = ['query' => 'uncacheable-failure-query', 'city' => null, 'province' => null, 'country' => null, 'limit' => 1];
-    $cache_key = \Modules\Core\Cache\CacheManager::key('geocoding', md5(serialize($params)));
-    expect(\Illuminate\Support\Facades\Cache::get($cache_key))->toBeNull();
+    $cache_key = Modules\Core\Cache\CacheManager::key('geocoding', md5(serialize($params)));
+    expect(Cache::get($cache_key))->toBeNull();
 
     // Second call: API now succeeds — must hit the API again (not return cached null)
     $retry = $service->search('uncacheable-failure-query');

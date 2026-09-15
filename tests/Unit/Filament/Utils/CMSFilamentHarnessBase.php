@@ -8,6 +8,7 @@ use Filament\Tables\Table;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Support\Collection;
+use RuntimeException;
 
 abstract class CMSFilamentHarnessBase
 {
@@ -18,7 +19,6 @@ abstract class CMSFilamentHarnessBase
 
     protected function makeTable(): Table
     {
-        throw new \RuntimeException('Not implemented in test harness');
+        throw new RuntimeException('Not implemented in test harness');
     }
 }
-

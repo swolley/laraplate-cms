@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use Modules\CMS\Models\Location;
-use Modules\CMS\Services\Contracts\GeocodingServiceSingleton;
 use Throwable;
 
 /**
@@ -18,6 +17,19 @@ use Throwable;
 abstract class AbstractGeocodingService
 {
     use GeocodingServiceSingleton;
+
+    /**
+     * @return array<int, Location>|Location|null
+     */
+    abstract protected function performSearch(string $query, ?string $city, ?string $province, ?string $country, int $limit): array|Location|null;
+
+    /**
+     * @param  array<string, mixed>  $result
+     */
+    abstract protected function getAddressDetails(array $result): Location;
+
+    abstract protected function getSearchUrl(string $search_string): string;
+
     public function url(Location $location): string
     {
         return $this->getSearchUrl($this->buildSearchStringFromLocation($location));
@@ -87,18 +99,6 @@ abstract class AbstractGeocodingService
             return $resolver();
         }
     }
-
-    /**
-     * @return array<int, Location>|Location|null
-     */
-    abstract protected function performSearch(string $query, ?string $city, ?string $province, ?string $country, int $limit): array|Location|null;
-
-    /**
-     * @param  array<string, mixed>  $result
-     */
-    abstract protected function getAddressDetails(array $result): Location;
-
-    abstract protected function getSearchUrl(string $search_string): string;
 
     private function buildSearchStringFromLocation(Location $location): string
     {

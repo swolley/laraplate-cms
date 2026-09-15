@@ -131,7 +131,7 @@ final readonly class CommentModerationAdapter implements ModerationAdapter
         $text = preg_replace('/\s+/u', ' ', $text) ?? $text;
         $text = mb_trim($text);
 
-        if (mb_strlen($text) <= $maxChars) {
+        if ($maxChars >= mb_strlen($text)) {
             return $text;
         }
 

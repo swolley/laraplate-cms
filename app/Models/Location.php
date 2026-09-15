@@ -20,7 +20,6 @@ use Modules\CMS\Observers\LocationObserver;
 use Modules\Core\Models\Concerns\HasPath;
 use Modules\Core\Models\Concerns\HasPlace;
 use Modules\Core\Models\Concerns\HasSlug;
-use Modules\CMS\Models\Content;
 use Modules\Core\Models\Place;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Search\Schema\FieldDefinition;
@@ -35,6 +34,7 @@ use Override;
  * @property-read float|null $longitude
  * @property string|null $name
  * @property int|string|null $place_id
+ *
  * @method static whereDistance(Point $point, float $distance)
  * @method static orderByDistance(Point $point, string $direction = 'asc')
  * @method static whereDistanceSphere(Point $point, float $distance)
@@ -44,6 +44,7 @@ use Override;
  * @method static whereContains(Polygon $polygon)
  * @method static whereNotContains(Polygon $polygon)
  * @method static whereEquals(Point $point)
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperLocation
  */

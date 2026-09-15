@@ -169,6 +169,11 @@ final readonly class ContentImporter implements EntityImporterInterface
         return $outcome;
     }
 
+    private static function intOrNull(mixed $value): ?int
+    {
+        return $value === null ? null : (int) $value;
+    }
+
     /**
      * The relation columns this importer resolves by natural key.
      *
@@ -215,11 +220,6 @@ final readonly class ContentImporter implements EntityImporterInterface
         } catch (RuntimeException $exception) {
             throw RowImportException::withErrors(['_' => [$exception->getMessage()]]);
         }
-    }
-
-    private static function intOrNull(mixed $value): ?int
-    {
-        return $value === null ? null : (int) $value;
     }
 
     private function locale(): string

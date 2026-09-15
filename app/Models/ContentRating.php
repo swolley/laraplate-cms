@@ -17,6 +17,7 @@ use Override;
  * @property int $user_id
  * @property int|null $comment_id
  * @property int $score
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperContentRating
  */

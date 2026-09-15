@@ -82,7 +82,7 @@ final class TagCoOccurrenceService
         /** @var Collection<int, object> $rows */
         $rows = (new Tag)->getConnection()->query()
             ->from("{$taggables} as t1")
-            ->join("{$taggables} as t2", static function ($join) use ($taggables): void {
+            ->join("{$taggables} as t2", static function ($join): void {
                 $join->on('t1.taggable_id', '=', 't2.taggable_id')
                     ->whereColumn('t1.taggable_type', '=', 't2.taggable_type')
                     ->whereColumn('t1.tag_id', '<', 't2.tag_id');
@@ -132,12 +132,14 @@ final class TagCoOccurrenceService
             ->get();
 
         $byTag = [];
+
         foreach ($rows as $row) {
             $tagId = (int) $row->tag_id;
             $byTag[$tagId][(string) $row->locale] = (string) $row->name;
         }
 
         $labels = [];
+
         foreach ($byTag as $tagId => $names) {
             $labels[$tagId] = $names[$locale] ?? $names[$fallback] ?? (string) reset($names);
         }

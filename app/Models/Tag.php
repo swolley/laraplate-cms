@@ -28,6 +28,7 @@ use Spatie\EloquentSortable\Sortable;
  * @property int|null $order_column
  * @property-read string|null $name
  * @property-read string|null $slug
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperTag
  */
@@ -65,7 +66,7 @@ final class Tag extends Model implements Sortable
      * @return ($values is string ? self : ($values is Tag ? self : Collection<int, self>))
      */
     public static function findOrCreate(
-        string|Tag|array|ArrayAccess $values,
+        string|self|array|ArrayAccess $values,
         ?string $type = null,
     ): Collection|self {
         if ($values instanceof self) {
@@ -290,7 +291,7 @@ final class Tag extends Model implements Sortable
      * @param  array<int|string, string|Tag>|ArrayAccess<int|string, string|Tag>|string|Tag  $values
      * @return list<string|Tag>
      */
-    private static function normalizeFindOrCreateInput(array|ArrayAccess|string|Tag $values): array
+    private static function normalizeFindOrCreateInput(array|ArrayAccess|string|self $values): array
     {
         if ($values instanceof self || is_string($values)) {
             return [$values];

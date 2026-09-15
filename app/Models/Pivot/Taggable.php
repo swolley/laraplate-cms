@@ -19,6 +19,7 @@ use Override;
  * @property int $tag_id
  * @property int $taggable_id
  * @property string $taggable_type
+ *
  * @mixin \Eloquent
  * @mixin IdeHelperTaggable
  */
@@ -36,6 +37,16 @@ final class Taggable extends MorphPivot
     #[Override]
     protected $table = CMSTables::Taggables->value;
 
+    public function tag(): BelongsTo
+    {
+        return $this->belongsTo(Tag::class);
+    }
+
+    public function taggable(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -46,15 +57,5 @@ final class Taggable extends MorphPivot
             'tag_id' => 'integer',
             'taggable_id' => 'integer',
         ];
-    }
-
-    public function tag(): BelongsTo
-    {
-        return $this->belongsTo(Tag::class);
-    }
-
-    public function taggable(): MorphTo
-    {
-        return $this->morphTo();
     }
 }

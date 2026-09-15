@@ -20,6 +20,7 @@ use Override;
  * @property string $slug
  * @property array<string, mixed>|null $components
  * @property AiAssistance $ai_assistance
+ *
  * @mixin \Illuminate\Database\Eloquent\Model
  * @mixin \Eloquent
  * @mixin IdeHelperContentTranslation

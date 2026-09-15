@@ -199,6 +199,7 @@ it('caches place on the model after the first bridged read', function (): void {
 
 it('list prepareQuery eager-loads place for Location', function (): void {
     $ref = new ReflectionClass(ListRequestData::class);
+
     /** @var ListRequestData $data */
     $data = $ref->newInstanceWithoutConstructor();
     $set = static function (object $obj, string $prop, mixed $value): void {

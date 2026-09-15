@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use Modules\CMS\Import\Dto\ImportCategoryDto;
-use Modules\CMS\Import\Dto\ImportContributorDto;
 use Modules\CMS\Import\Dto\ImportContentDto;
+use Modules\CMS\Import\Dto\ImportContributorDto;
 use Modules\CMS\Import\Dto\ImportGraphDto;
 use Modules\CMS\Import\Dto\ImportTagDto;
 
@@ -21,9 +21,7 @@ function loadImportFixture(string $filename = 'sample-graph.json'): array
     }
 
     /** @var array{content: array<string, mixed>, category: array<string, mixed>, contributor: array<string, mixed>, tag: array<string, mixed>} $data */
-    $data = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
-
-    return $data;
+    return json_decode($json, true, flags: JSON_THROW_ON_ERROR);
 }
 
 function buildImportGraphFromFixture(string $filename = 'sample-graph.json'): ImportGraphDto
