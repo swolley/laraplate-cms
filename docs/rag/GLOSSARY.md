@@ -54,6 +54,14 @@ Canonical English names for CMS entities in this module. Use these terms in code
 | **CommentModerationContextBuilder** | Registers with Core; supplies article + body context for AI moderation. |
 
 
+## Provenance and disclosure
+
+| Term                  | Meaning                                                                                      |
+| --------------------- | -------------------------------------------------------------------------------------------- |
+| **RecordOrigin**      | Core record on `core_record_origins`, reached from `Content::origin()`, naming the source a record came from. Shared with the import framework. |
+| **ContentReference**  | One entry of a content's bibliography on `cms_contents_references`; `label` required, `url` optional, sorted per content. |
+| **AiAssistance**      | Per-translation disclosure of machine involvement: `none`, `generated`, `translated`, `edited`, `summarized`. Recorded for EU AI Act Article 50. |
+
 ## Core traits reused by CMS
 
 

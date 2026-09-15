@@ -275,6 +275,27 @@ flowchart LR
   end
 ```
 
+### Provenance, references and AI-assistance disclosure
+
+Three separate answers to "where did this come from", none of which is a column on `cms_contents`.
+
+**Provenance** is `Content::origin()`, a `MorphOne` onto `Core\Models\RecordOrigin`
+(`core_record_origins`), carrying `source_key`, `source_label`, `external_id`, `fingerprint`, `url`
+and `source_updated_at`. It is a platform record rather than a CMS one, so any model can carry an
+origin; `Content` is the only one that does today. The same table is what the import framework
+writes through `RecordOriginRegistry` to dedupe by external identity, so an imported content and a
+manually attributed one describe their source in one place and one shape.
+
+**References** are the bibliography: `ContentReference` on `cms_contents_references`, a scoped
+`HasMany` from `Content::references()`, with `label` required, `url` optional and validated, and
+`order_column` sorted per content through `buildSortQuery()`. Soft-deleted like the rest of CMS.
+
+**AI-assistance disclosure** lives per translation, not per content, because a piece can be written
+by a person and machine-translated. `ContentTranslation.ai_assistance` is an indexed, non-nullable
+column defaulting to `none`, cast to `CMS\Enums\AiAssistance`: `none`, `generated`, `translated`,
+`edited`, `summarized`. It exists to satisfy EU AI Act Article 50 disclosure, so treat it as a
+record of fact rather than a hint: whoever writes the translation is responsible for setting it.
+
 ### Lifecycle: validity, approvals, locking
 
 `Content` composes the cross-cutting Core lifecycle traits. `HasValidity` provides the `valid_from` / `valid_to` publication window and a `valid()` scope, but validity is **not** a global scope: it is a row-level authorization concern. A role-scoped ACL on `cms_contents.select`, seeded for the `guest` role (`CMSDatabaseSeeder::defaultContentAcls`), filters the anonymous/public reader to the current window using the `@now` ACL placeholder; staff roles carry no such ACL and read every content, so a direct `Content::query()` (Filament, imports) returns drafts too. `HasApprovals` requires explicit approval before persisting changes; `Content` overrides `requiresApprovalWhen()` so only validity-window edits demand approval. `HasLocks` and `HasOptimisticLocking` block concurrent edits and stale writes: opening a content for editing takes an owned, expiring **lease** and the lock guard refuses every other writer's save while it lasts, including `cms:import`, whose row is reported as a skip rather than overwriting work in progress. An ownerless lock is a **freeze** and closes the content to everybody. See Core's `RECORD_LOCKING_USER.md` and `RECORD_LOCKING_DEVELOPER.md`. `SortableTrait` sorts by `order_column` (renamed `scopeOrdered` to `scopePriorityOrdered` to avoid Searchable trait clashes). `Searchable` also indexes `valid_from`, `valid_to`, and `is_deleted` so the search layer reflects publication state.
