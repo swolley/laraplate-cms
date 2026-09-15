@@ -394,6 +394,18 @@ CMS registers panel resources through `CMSPlugin` (`Modules/CMS/app/Filament/CMS
 - Querying tags by `name` directly skips translations: use `Tag::findFromString()` / scopes that JOIN `tags_translations`.
 - Calling Nominatim without the User-Agent or above its rate limits is a fast way to get blocked.
 
+## Releases
+
+This module is released from the application, not from its own repository: it carries no release scripts and no `cliff.toml`. From the `laraplate` root, `scripts/version.sh` bumps the `version` field of `Modules/CMS/composer.json`, regenerates `Modules/CMS/CHANGELOG.md` with the application's `cliff.toml`, commits `chore(release): vX.Y.Z` in the module repository, tags it and pushes both.
+
+```bash
+composer run version:dry CMS      # print the plan, write nothing
+composer run version:minor CMS    # release with a forced level (also version:major, version:patch)
+composer run version:all             # every module with pending commits, then the application
+```
+
+Without a forced level, git-cliff infers it from the conventional commits since the module's last tag. `CHANGELOG.md` lists released versions only. Releasing the module alone does not touch the application; `version:all` records the module in the application with a commit typed after the module's release level. Full reference: `docs/releasing.md` in the application.
+
 ## FAQ prompts for RAG
 
 - Which content features are still owned by CMS versus moved to Core?
