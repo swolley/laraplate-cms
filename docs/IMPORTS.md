@@ -49,7 +49,7 @@ Return the number of imported root records. When `$output` is provided (as `cms:
 
 The command implementation is deliberately thin: `Modules\CMS\Console\ImportCommand` declares `cms:import`, adds the colored CMS suffix, and injects the CMS resolver and plugin discovery adapter into Core's `AbstractImportCommand`. CMS retains `BulkImportRunner` as a compatibility adapter because existing Naxos importers call its static `limitReached()` helper.
 
-`Naxos\Importers\NaxosApiImporter` and `Naxos\Importers\NaxosSqlImporter` remain compatible with the retained CMS namespace.
+`Naxos\Importers\NaxosApiImporter` remains compatible with the retained CMS namespace. The Naxos SQL dump importer was removed on 2026-09-15; Naxos is imported from its REST API only.
 
 ## Import is not synchronization
 
