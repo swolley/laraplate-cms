@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [1.45.0] - 2026-09-15
 
 ### 🚀 Features
 
@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 
 - *(cms)* Document provenance, references and AI-assistance disclosure
 - *(imports)* The Naxos SQL dump importer no longer exists
+- *(changelog)* Regenerate with the corrected git-cliff configuration
 
 ### 🎨 Styling
 
