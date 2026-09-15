@@ -50,6 +50,62 @@ final class NominatimService extends AbstractGeocodingService implements IGeocod
     }
 
     /**
+     * @param  array<string, mixed>  $result
+     */
+    #[Override]
+    protected function getAddressDetails(array $result): Location
+    {
+        $address = is_array($result['address'] ?? null) ? $result['address'] : [];
+
+        $road = $this->nominatimString($address['road'] ?? null);
+        $house_number = $this->nominatimString($address['house_number'] ?? null);
+        $line = mb_trim($road . ' ' . $house_number);
+
+        $city = $this->nominatimString($address['city'] ?? null);
+
+        if ($city === '') {
+            $city = $this->nominatimString($address['town'] ?? null);
+        }
+
+        if ($city === '') {
+            $city = $this->nominatimString($address['village'] ?? null);
+        }
+
+        $province = $this->nominatimString($address['state'] ?? null);
+
+        if ($province === '') {
+            $province = $this->nominatimString($address['county'] ?? null);
+        }
+
+        $country = $this->nominatimString($address['country'] ?? null);
+        $postcode = $this->nominatimString($address['postcode'] ?? null);
+        $zone = $this->nominatimString($address['suburb'] ?? null);
+
+        $latitude = is_numeric($result['lat'] ?? null) ? (float) $result['lat'] : 0.0;
+        $longitude = is_numeric($result['lon'] ?? null) ? (float) $result['lon'] : 0.0;
+
+        return new Location()->fill([
+            'address' => $line,
+            'city' => $city,
+            'province' => $province,
+            'country' => $country,
+            'postcode' => $postcode,
+            'zone' => $zone,
+            'geolocation' => new Point($latitude, $longitude),
+        ]);
+    }
+
+    #[Override]
+    protected function getSearchUrl(string $search_string): string
+    {
+        $query = preg_match('/^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/', $search_string) === 1
+            ? $search_string
+            : rawurlencode($search_string);
+
+        return self::BASE_URL . '/search?q=' . $query;
+    }
+
+    /**
      * Perform the actual HTTP request to the Nominatim API.
      *
      * Returns null on HTTP failure (result must NOT be cached).
@@ -118,59 +174,6 @@ final class NominatimService extends AbstractGeocodingService implements IGeocod
         }
 
         return $locations;
-    }
-
-    /**
-     * @param  array<string, mixed>  $result
-     */
-    #[Override]
-    protected function getAddressDetails(array $result): Location
-    {
-        $address = is_array($result['address'] ?? null) ? $result['address'] : [];
-
-        $road = $this->nominatimString($address['road'] ?? null);
-        $house_number = $this->nominatimString($address['house_number'] ?? null);
-        $line = trim($road . ' ' . $house_number);
-
-        $city = $this->nominatimString($address['city'] ?? null);
-        if ($city === '') {
-            $city = $this->nominatimString($address['town'] ?? null);
-        }
-        if ($city === '') {
-            $city = $this->nominatimString($address['village'] ?? null);
-        }
-
-        $province = $this->nominatimString($address['state'] ?? null);
-        if ($province === '') {
-            $province = $this->nominatimString($address['county'] ?? null);
-        }
-
-        $country = $this->nominatimString($address['country'] ?? null);
-        $postcode = $this->nominatimString($address['postcode'] ?? null);
-        $zone = $this->nominatimString($address['suburb'] ?? null);
-
-        $latitude = is_numeric($result['lat'] ?? null) ? (float) $result['lat'] : 0.0;
-        $longitude = is_numeric($result['lon'] ?? null) ? (float) $result['lon'] : 0.0;
-
-        return new Location()->fill([
-            'address' => $line,
-            'city' => $city,
-            'province' => $province,
-            'country' => $country,
-            'postcode' => $postcode,
-            'zone' => $zone,
-            'geolocation' => new Point($latitude, $longitude),
-        ]);
-    }
-
-    #[Override]
-    protected function getSearchUrl(string $search_string): string
-    {
-        $query = preg_match('/^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/', $search_string) === 1
-            ? $search_string
-            : rawurlencode($search_string);
-
-        return self::BASE_URL . '/search?q=' . $query;
     }
 
     private function cacheTtlSeconds(): int

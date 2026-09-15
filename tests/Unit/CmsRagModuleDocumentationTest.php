@@ -9,8 +9,8 @@ it('CMS RAG MODULE.md includes mermaid diagrams for core flows', function (): vo
 
     $content = (string) file_get_contents($path);
 
-    expect(substr_count($content, '```mermaid'))->toBeGreaterThanOrEqual(8)
-        ->and(substr_count($content, '```mermaid'))->toEqual(substr_count($content, "```\n"))
+    expect(mb_substr_count($content, '```mermaid'))->toBeGreaterThanOrEqual(8)
+        ->and(mb_substr_count($content, '```mermaid'))->toEqual(mb_substr_count($content, "```\n"))
         ->and($content)->toContain('### Module boundaries')
         ->and($content)->toContain('### Dynamic content model')
         ->and($content)->toContain('Content relationships and morph pivots')

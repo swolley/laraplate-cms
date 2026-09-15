@@ -47,6 +47,34 @@ final class LocationForm
     }
 
     /**
+     * Map a geocoded (non-persisted) Location to the location form's geographic fields,
+     * dropping empty values. Geolocation is flattened to a "lat, lng" string for the
+     * text input. Shared by the Filament action and covered by its own test.
+     *
+     * @return array<string, string>
+     */
+    public static function geocodedFormState(Location $location): array
+    {
+        $state = [];
+
+        foreach (['address', 'city', 'province', 'country', 'postcode', 'zone'] as $field) {
+            $value = $location->getAttribute($field);
+
+            if ($value !== null && $value !== '') {
+                $state[$field] = (string) $value;
+            }
+        }
+
+        $point = $location->geolocation;
+
+        if ($point !== null) {
+            $state['geolocation'] = sprintf('%s, %s', $point->latitude, $point->longitude);
+        }
+
+        return $state;
+    }
+
+    /**
      * A geocode affordance on the address field: resolves the geographic fields from
      * the current name/address/city/province/country input and fills them into the form.
      * Uses the same {@see GeocodeLocationAction} as the SPA form and the geocode endpoint.
@@ -62,7 +90,7 @@ final class LocationForm
                     $get('name'),
                     $get('city'),
                     $get('country'),
-                ], static fn ($value): bool => is_string($value) && trim($value) !== ''));
+                ], static fn ($value): bool => is_string($value) && mb_trim($value) !== ''));
 
                 $query = implode(', ', $parts);
 
@@ -87,31 +115,5 @@ final class LocationForm
                     $set($field, $value);
                 }
             });
-    }
-
-    /**
-     * Map a geocoded (non-persisted) Location to the location form's geographic fields,
-     * dropping empty values. Geolocation is flattened to a "lat, lng" string for the
-     * text input. Shared by the Filament action and covered by its own test.
-     *
-     * @return array<string, string>
-     */
-    public static function geocodedFormState(Location $location): array
-    {
-        $state = [];
-
-        foreach (['address', 'city', 'province', 'country', 'postcode', 'zone'] as $field) {
-            $value = $location->getAttribute($field);
-            if ($value !== null && $value !== '') {
-                $state[$field] = (string) $value;
-            }
-        }
-
-        $point = $location->geolocation;
-        if ($point !== null) {
-            $state['geolocation'] = sprintf('%s, %s', $point->latitude, $point->longitude);
-        }
-
-        return $state;
     }
 }
