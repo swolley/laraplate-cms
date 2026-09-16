@@ -37,6 +37,8 @@ return new class extends Migration
 
             $table->unique(['content_id', 'user_id'], "{$table_name}_content_user_UN");
             $table->index(['content_id', 'score'], "{$table_name}_content_score_IDX");
+            MigrateUtils::prefixIndex($table, 'user_id');
+            MigrateUtils::prefixIndex($table, 'comment_id');
         });
     }
 

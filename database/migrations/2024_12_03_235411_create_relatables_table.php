@@ -23,6 +23,7 @@ return new class extends Migration
             MigrateUtils::timestamps($table);
 
             $table->primary(['content_id', 'related_content_id'], "{$table_name}_primary_idx");
+            MigrateUtils::prefixIndex($table, 'related_content_id');
         });
     }
 

@@ -34,6 +34,8 @@ return new class extends Migration
             $table->foreign('user_id')->references('id')->on(CoreTables::Users->value)->onDelete('set null');
             $table->unique(['user_id', 'name', 'deleted_at'], "{$table_name}_UN");
             $table->unique(['id', 'entity_id'], "{$table_name}_entity_UN");
+            MigrateUtils::prefixIndex($table, 'entity_id');
+            MigrateUtils::prefixIndex($table, 'presettable_id');
         });
 
         MigrateUtils::fuzzyIndex($table_name, 'name');

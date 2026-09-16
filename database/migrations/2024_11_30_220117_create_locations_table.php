@@ -36,6 +36,7 @@ return new class extends Migration
 
             $table->unique(['name', 'deleted_at'], "{$table_name}_name_UN");
             $table->unique(['slug', 'deleted_at'], "{$table_name}_slug_UN");
+            MigrateUtils::prefixIndex($table, 'place_id');
         });
 
         MigrateUtils::fuzzyIndex($table_name, 'name');

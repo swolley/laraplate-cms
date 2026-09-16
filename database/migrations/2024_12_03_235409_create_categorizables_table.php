@@ -32,6 +32,7 @@ return new class extends Migration
                 ->references(['id'])
                 ->on(CoreTables::Taxonomies->value)
                 ->cascadeOnDelete();
+            MigrateUtils::prefixIndex($table, 'taxonomy_id');
         });
     }
 

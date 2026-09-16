@@ -31,6 +31,8 @@ return new class extends Migration
             );
 
             $table->index(['content_id', 'created_at'], "{$table_name}_content_created_IDX");
+            MigrateUtils::prefixIndex($table, 'user_id');
+            MigrateUtils::prefixIndex($table, 'parent_id');
         });
 
         $translations_table = CMSTables::CommentsTranslations->value;

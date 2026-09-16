@@ -36,6 +36,8 @@ return new class extends Migration
             );
 
             $table->unique(['id', 'entity_id'], "{$table_name}_entity_UN");
+            MigrateUtils::prefixIndex($table, 'entity_id');
+            MigrateUtils::prefixIndex($table, 'presettable_id');
         });
     }
 
