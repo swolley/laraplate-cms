@@ -83,11 +83,6 @@ final class Content extends Model implements HasMedia, ProvidesFacetLabelSources
     }
 
     /**
-     * @var array<int|string, class-string<static>>
-     */
-    public static array $childTypes = [];
-
-    /**
      * @var string
      */
     #[Override]
@@ -128,46 +123,6 @@ final class Content extends Model implements HasMedia, ProvidesFacetLabelSources
     public static function getEntityModelClass(): string
     {
         return Entity::class;
-    }
-
-    public static function makeFromEntity(Entity|string|int $entity): static
-    {
-        $entity_id = null;
-
-        if (is_int($entity)) {
-            $entity_id = self::fetchAvailableEntities(EntityType::Contents)->firstWhere('id', $entity)?->id;
-        } elseif (is_string($entity)) {
-            $entity_id = self::fetchAvailableEntities(EntityType::Contents)->firstWhere('slug', $entity)?->id;
-        } else {
-            $entity_id = array_key_exists($entity->id, self::$childTypes) ? $entity->id : null;
-        }
-
-        if (in_array($entity_id, ['', '0', 0, null], true)) {
-            throw new InvalidArgumentException('Invalid entity: ' . json_encode($entity));
-        }
-
-        $normalized_entity_id = is_int($entity_id) ? $entity_id : (int) $entity_id;
-
-        if ($entity instanceof Entity && $entity->type !== EntityType::Contents) {
-            throw new InvalidArgumentException('Invalid entity type for content: ' . $entity->type->toScalar());
-        }
-
-        $presettable = self::fetchAvailablePresettables(EntityType::Contents)->firstWhere('entity_id', $normalized_entity_id);
-
-        throw_unless($presettable, InvalidArgumentException::class, 'No presettable found for entity: ' . $entity);
-
-        $child_class = self::$childTypes[$normalized_entity_id]
-            ?? self::$childTypes[(string) $normalized_entity_id]
-            ?? null;
-
-        if ($child_class === null) {
-            throw new InvalidArgumentException('No content class registered for entity id: ' . $normalized_entity_id);
-        }
-
-        return new $child_class([
-            'presettable_id' => $presettable->id,
-            'entity_id' => $normalized_entity_id,
-        ]);
     }
 
     /**
