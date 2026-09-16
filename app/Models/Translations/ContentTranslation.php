@@ -13,18 +13,6 @@ use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
-/**
- * @property int|string $id
- * @property string $locale
- * @property string $title
- * @property string $slug
- * @property array<string, mixed>|null $components
- * @property AiAssistance $ai_assistance
- *
- * @mixin \Illuminate\Database\Eloquent\Model
- * @mixin \Eloquent
- * @mixin IdeHelperContentTranslation
- */
 final class ContentTranslation extends Model implements ITranslated
 {
     use HasSlug;

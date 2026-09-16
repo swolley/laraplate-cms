@@ -22,12 +22,7 @@ use Spatie\EloquentSortable\Sortable;
 use Spatie\MediaLibrary\HasMedia as IMediable;
 
 /**
- * @property-read string|null $name
- *
  * @phpstan-use HasMultimedia<Category>
- *
- * @mixin \Eloquent
- * @mixin IdeHelperCategory
  */
 final class Category extends Taxonomy implements IMediable, ProvidesFacetLabelSources, Sortable, Taggable
 {

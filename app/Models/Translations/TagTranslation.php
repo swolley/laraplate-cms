@@ -12,15 +12,6 @@ use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
-/**
- * @property int|string $id
- * @property string $locale
- * @property string $name
- * @property string $slug
- *
- * @mixin \Eloquent
- * @mixin IdeHelperTagTranslation
- */
 final class TagTranslation extends Model implements ITranslated
 {
     use HasSlug;

@@ -11,14 +11,6 @@ use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
-/**
- * @property int|string $id
- * @property string $locale
- * @property string|null $body
- *
- * @mixin \Eloquent
- * @mixin IdeHelperCommentTranslation
- */
 final class CommentTranslation extends Model implements ITranslated
 {
     /**

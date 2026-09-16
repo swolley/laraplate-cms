@@ -13,16 +13,6 @@ use Modules\Core\Overrides\Model;
 use Override;
 use Spatie\EloquentSortable\Sortable;
 
-/**
- * @property int|string $id
- * @property int $content_id
- * @property string $label
- * @property string|null $url
- * @property int $order_column
- *
- * @mixin \Eloquent
- * @mixin IdeHelperContentReference
- */
 final class ContentReference extends Model implements Sortable
 {
     use SortableTrait;

@@ -12,10 +12,6 @@ use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
-/**
- * @mixin \Eloquent
- * @mixin IdeHelperContributorTranslation
- */
 final class ContributorTranslation extends Model implements ITranslated
 {
     use HasSlug;

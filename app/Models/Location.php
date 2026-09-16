@@ -28,26 +28,6 @@ use Modules\Core\Search\Schema\IndexType;
 use Modules\Core\Search\Traits\Searchable;
 use Override;
 
-/**
- * @property Point|null $geolocation
- * @property-read float|null $latitude
- * @property-read float|null $longitude
- * @property string|null $name
- * @property int|string|null $place_id
- *
- * @method static whereDistance(Point $point, float $distance)
- * @method static orderByDistance(Point $point, string $direction = 'asc')
- * @method static whereDistanceSphere(Point $point, float $distance)
- * @method static orderByDistanceSphere(Point $point, string $direction = 'asc')
- * @method static whereWithin(Polygon $polygon)
- * @method static whereNotWithin(Polygon $polygon)
- * @method static whereContains(Polygon $polygon)
- * @method static whereNotContains(Polygon $polygon)
- * @method static whereEquals(Point $point)
- *
- * @mixin \Eloquent
- * @mixin IdeHelperLocation
- */
 #[ObservedBy(LocationObserver::class)]
 final class Location extends Model implements Taggable
 {

@@ -22,16 +22,6 @@ use Modules\Core\Overrides\Model;
 use Override;
 use Spatie\EloquentSortable\Sortable;
 
-/**
- * @property int|null $id
- * @property string|null $type
- * @property int|null $order_column
- * @property-read string|null $name
- * @property-read string|null $slug
- *
- * @mixin \Eloquent
- * @mixin IdeHelperTag
- */
 final class Tag extends Model implements Sortable
 {
     use HasPath;

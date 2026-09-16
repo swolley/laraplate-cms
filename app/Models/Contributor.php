@@ -22,14 +22,8 @@ use Override;
 use Spatie\MediaLibrary\HasMedia as IMediable;
 
 /**
- * @property int|null $user_id
- * @property-read string|null $name
- *
  * @phpstan-use HasMultimedia<Contributor>
  * @phpstan-use HasTranslatedDynamicContents<Contributor>
- *
- * @mixin \Eloquent
- * @mixin IdeHelperContributor
  */
 final class Contributor extends Model implements IMediable, Taggable
 {
