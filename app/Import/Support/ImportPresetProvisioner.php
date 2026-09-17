@@ -60,7 +60,7 @@ final class ImportPresetProvisioner
     {
         $context ??= new ImportConnectionContext(new Entity);
         $entity_id = $this->entity_preset_resolver->entityId($entityName, $context, $preferredEntityName);
-        $entity = $context->model(Entity::class)->newQuery()->findOrFail($entity_id);
+        $entity = $context->model(Entity::class)->newQuery()->whereKey($entity_id)->firstOrFail();
 
         $preset = $context->model(Preset::class)->newQuery()->firstOrCreate(
             ['entity_id' => $entity->id, 'name' => $presetName],

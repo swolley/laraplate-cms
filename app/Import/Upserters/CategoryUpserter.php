@@ -54,7 +54,7 @@ final class CategoryUpserter
             : null;
 
         if ($existing_id !== null) {
-            $category = $category_model->newQueryWithoutScopes()->with('presettable')->findOrFail($existing_id);
+            $category = $category_model->newQueryWithoutScopes()->with('presettable')->whereKey($existing_id)->firstOrFail();
             $category->parent_id = $parent_id;
         } else {
             $category = $category_model->newInstance([

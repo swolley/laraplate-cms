@@ -43,7 +43,7 @@ final class TagUpserter
             // Bypass the soft-delete global scope: an id resolved from the origin
             // registry or a translation slug may point to a soft-deleted tag, which
             // must still be found (and reused) rather than crashing the import.
-            $tag = $tag_model->newQueryWithoutScopes()->findOrFail($existing_id);
+            $tag = $tag_model->newQueryWithoutScopes()->whereKey($existing_id)->firstOrFail();
         } else {
             $tag = $tag_model->newInstance([
                 'type' => $dto->type,

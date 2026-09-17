@@ -45,7 +45,7 @@ final class LocationUpserter
             ?? $this->location_matcher->findExisting($dto->slug, $dto->name, $context);
 
         if ($existing_id !== null) {
-            $location = $location_model->newQuery()->findOrFail($existing_id);
+            $location = $location_model->newQuery()->whereKey($existing_id)->firstOrFail();
             $location->name = $dto->name;
             $location->slug = $dto->slug;
             $location->save();

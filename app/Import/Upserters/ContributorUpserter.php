@@ -54,7 +54,7 @@ final class ContributorUpserter
         $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName, $context, $dto->preferredEntityName);
 
         if ($existing_id !== null) {
-            $contributor = $contributor_model->newQueryWithoutScopes()->findOrFail($existing_id);
+            $contributor = $contributor_model->newQueryWithoutScopes()->whereKey($existing_id)->firstOrFail();
         } else {
             $contributor = $contributor_model->newInstance([
                 'entity_id' => $entity_id,

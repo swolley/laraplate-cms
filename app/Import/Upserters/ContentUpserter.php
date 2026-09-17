@@ -63,7 +63,7 @@ final class ContentUpserter
         $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName, $context, $dto->preferredEntityName);
 
         if ($existing_id !== null) {
-            $content = $content_model->newQueryWithoutScopes()->findOrFail($existing_id);
+            $content = $content_model->newQueryWithoutScopes()->whereKey($existing_id)->firstOrFail();
         } else {
             $content = $content_model->newInstance([
                 'entity_id' => $entity_id,

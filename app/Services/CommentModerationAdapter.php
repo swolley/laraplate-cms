@@ -35,7 +35,7 @@ final readonly class CommentModerationAdapter implements ModerationAdapter
         $content = Content::query()
             ->withoutGlobalScopes()
             ->with(['translations', 'presettable.entity'])
-            ->findOrFail($content_id);
+            ->whereKey($content_id)->firstOrFail();
 
         $entity = $content->presettable?->entity;
         $entity_name = $entity !== null ? $entity->name : '';
