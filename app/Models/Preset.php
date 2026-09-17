@@ -15,7 +15,6 @@ use Override;
 
 /**
  * CMS preset model; behaviour lives in Core — this class exists for the CMS namespace and Filament resources.
- *
  */
 final class Preset extends CorePreset
 {

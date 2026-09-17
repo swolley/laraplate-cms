@@ -15,7 +15,6 @@ use Override;
  * The assignment of a tag to any taggable model (content, …). Modelled
  * explicitly so the moment a tag was attached (or last touched) is recorded and
  * observable, rather than living in an anonymous polymorphic pivot row.
- *
  */
 final class Taggable extends MorphPivot
 {

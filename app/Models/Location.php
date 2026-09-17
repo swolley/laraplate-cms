@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use MatanYadaev\EloquentSpatial\Objects\Point;
-use MatanYadaev\EloquentSpatial\Objects\Polygon;
 use MatanYadaev\EloquentSpatial\Traits\HasSpatial;
 use Modules\CMS\Contracts\Taggable;
 use Modules\CMS\Database\Factories\LocationFactory;
@@ -17,6 +16,7 @@ use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Helpers\HasTags;
 use Modules\CMS\Models\Pivot\Locatable;
 use Modules\CMS\Observers\LocationObserver;
+use Modules\Core\Contracts\ISearchableModel;
 use Modules\Core\Models\Concerns\HasPath;
 use Modules\Core\Models\Concerns\HasPlace;
 use Modules\Core\Models\Concerns\HasSlug;
@@ -29,7 +29,7 @@ use Modules\Core\Search\Traits\Searchable;
 use Override;
 
 #[ObservedBy(LocationObserver::class)]
-final class Location extends Model implements Taggable
+final class Location extends Model implements ISearchableModel, Taggable
 {
     use HasPath;
     use HasPlace;

@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use InvalidArgumentException;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Casts\ReadingStatistics;
 use Modules\CMS\Contracts\Taggable;
@@ -28,6 +27,7 @@ use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Observers\ContentObserver;
 use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Contracts\ILockableModel;
+use Modules\Core\Contracts\ISearchableModel;
 use Modules\Core\Contracts\IValidatableModel;
 use Modules\Core\Contracts\ProvidesFacetLabelSources;
 use Modules\Core\Contracts\ProvidesSyncableRelations;
@@ -58,7 +58,7 @@ use Spatie\MediaLibrary\HasMedia;
  * @phpstan-use Searchable<Content>
  */
 #[ObservedBy(ContentObserver::class)]
-final class Content extends Model implements HasMedia, ProvidesFacetLabelSources, ProvidesSyncableRelations, Sortable, Taggable, ILockableModel, IValidatableModel
+final class Content extends Model implements HasMedia, ILockableModel, ISearchableModel, IValidatableModel, ProvidesFacetLabelSources, ProvidesSyncableRelations, Sortable, Taggable
 {
     // region Traits
     use HasApprovals {
