@@ -23,6 +23,7 @@ use Spatie\MediaLibrary\HasMedia as IMediable;
 
 /**
  * @phpstan-use HasMultimedia<Category>
+ * @mixin IdeHelperCategory
  */
 final class Category extends Taxonomy implements IMediable, ProvidesFacetLabelSources, Sortable, Taggable
 {

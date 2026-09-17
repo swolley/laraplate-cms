@@ -8,6 +8,9 @@ use Modules\CMS\Enums\CMSTables;
 use Modules\Core\Overrides\Pivot;
 use Override;
 
+/**
+ * @mixin IdeHelperContributable
+ */
 final class Contributable extends Pivot
 {
     /**

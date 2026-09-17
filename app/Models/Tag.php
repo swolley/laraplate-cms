@@ -22,6 +22,9 @@ use Modules\Core\Overrides\Model;
 use Override;
 use Spatie\EloquentSortable\Sortable;
 
+/**
+ * @mixin IdeHelperTag
+ */
 final class Tag extends Model implements Sortable
 {
     use HasPath;

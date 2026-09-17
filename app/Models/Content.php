@@ -54,6 +54,7 @@ use Spatie\MediaLibrary\HasMedia;
  * @phpstan-use HasTranslatedDynamicContents<Content>
  * @phpstan-use HasValidity<Content>
  * @phpstan-use Searchable<Content>
+ * @mixin IdeHelperContent
  */
 #[ObservedBy(ContentObserver::class)]
 final class Content extends Model implements HasMedia, ProvidesFacetLabelSources, ProvidesSyncableRelations, Sortable, Taggable

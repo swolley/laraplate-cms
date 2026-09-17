@@ -10,6 +10,9 @@ use Modules\CMS\Models\Pivot\Presettable;
 use Modules\Core\Models\Entity as CoreEntity;
 use Override;
 
+/**
+ * @mixin IdeHelperEntity
+ */
 final class Entity extends CoreEntity
 {
     /**

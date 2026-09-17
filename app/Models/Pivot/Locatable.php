@@ -8,6 +8,9 @@ use Modules\CMS\Enums\CMSTables;
 use Modules\Core\Overrides\Pivot;
 use Override;
 
+/**
+ * @mixin IdeHelperLocatable
+ */
 final class Locatable extends Pivot
 {
     /**
