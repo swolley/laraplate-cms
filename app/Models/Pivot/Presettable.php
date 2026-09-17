@@ -9,9 +9,6 @@ use Modules\CMS\Models\Preset;
 use Modules\Core\Models\Pivot\Presettable as CorePresettable;
 use Override;
 
-/**
- * @mixin IdeHelperPresettable
- */
 final class Presettable extends CorePresettable
 {
     #[Override]

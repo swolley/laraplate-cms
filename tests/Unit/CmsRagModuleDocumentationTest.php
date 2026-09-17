@@ -9,8 +9,14 @@ it('CMS RAG MODULE.md includes mermaid diagrams for core flows', function (): vo
 
     $content = (string) file_get_contents($path);
 
+    // Every fenced block must close, and the document is not only mermaid: it also
+    // carries a shell block. Comparing the mermaid count against the closing fences
+    // broke the moment that block arrived, while the fences were balanced.
+    $opening_fences = preg_match_all('/^```[a-z]+$/m', $content);
+    $closing_fences = preg_match_all('/^```$/m', $content);
+
     expect(mb_substr_count($content, '```mermaid'))->toBeGreaterThanOrEqual(8)
-        ->and(mb_substr_count($content, '```mermaid'))->toEqual(mb_substr_count($content, "```\n"))
+        ->and($opening_fences)->toEqual($closing_fences)
         ->and($content)->toContain('### Module boundaries')
         ->and($content)->toContain('### Dynamic content model')
         ->and($content)->toContain('Content relationships and morph pivots')

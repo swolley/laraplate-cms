@@ -11,9 +11,6 @@ use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
-/**
- * @mixin IdeHelperCommentTranslation
- */
 final class CommentTranslation extends Model implements ITranslated
 {
     /**

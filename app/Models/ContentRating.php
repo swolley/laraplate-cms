@@ -12,9 +12,6 @@ use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
 use Override;
 
-/**
- * @mixin IdeHelperContentRating
- */
 final class ContentRating extends Model
 {
     /**

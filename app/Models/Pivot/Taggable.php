@@ -16,7 +16,6 @@ use Override;
  * explicitly so the moment a tag was attached (or last touched) is recorded and
  * observable, rather than living in an anonymous polymorphic pivot row.
  *
- * @mixin IdeHelperTaggable
  */
 final class Taggable extends MorphPivot
 {

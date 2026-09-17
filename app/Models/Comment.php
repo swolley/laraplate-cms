@@ -23,9 +23,6 @@ use Modules\Core\Support\PermissionName;
 use Override;
 use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 
-/**
- * @mixin IdeHelperComment
- */
 final class Comment extends Model
 {
     use HasApprovals, HasRecursiveRelationships, HasTranslations {

@@ -13,9 +13,6 @@ use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
-/**
- * @mixin IdeHelperContentTranslation
- */
 final class ContentTranslation extends Model implements ITranslated
 {
     use HasSlug;

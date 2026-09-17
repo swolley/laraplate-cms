@@ -24,7 +24,6 @@ use Spatie\MediaLibrary\HasMedia as IMediable;
 /**
  * @phpstan-use HasMultimedia<Contributor>
  * @phpstan-use HasTranslatedDynamicContents<Contributor>
- * @mixin IdeHelperContributor
  */
 final class Contributor extends Model implements IMediable, Taggable
 {

@@ -13,9 +13,6 @@ use Modules\Core\Overrides\Model;
 use Override;
 use Spatie\EloquentSortable\Sortable;
 
-/**
- * @mixin IdeHelperContentReference
- */
 final class ContentReference extends Model implements Sortable
 {
     use SortableTrait;

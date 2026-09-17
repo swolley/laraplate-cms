@@ -27,6 +27,8 @@ use Modules\CMS\Models\Pivot\Relatable;
 use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Observers\ContentObserver;
 use Modules\Core\Contracts\IDynamicEntityTypable;
+use Modules\Core\Contracts\ILockableModel;
+use Modules\Core\Contracts\IValidatableModel;
 use Modules\Core\Contracts\ProvidesFacetLabelSources;
 use Modules\Core\Contracts\ProvidesSyncableRelations;
 use Modules\Core\Enums\CoreTables;
@@ -54,10 +56,9 @@ use Spatie\MediaLibrary\HasMedia;
  * @phpstan-use HasTranslatedDynamicContents<Content>
  * @phpstan-use HasValidity<Content>
  * @phpstan-use Searchable<Content>
- * @mixin IdeHelperContent
  */
 #[ObservedBy(ContentObserver::class)]
-final class Content extends Model implements HasMedia, ProvidesFacetLabelSources, ProvidesSyncableRelations, Sortable, Taggable
+final class Content extends Model implements HasMedia, ProvidesFacetLabelSources, ProvidesSyncableRelations, Sortable, Taggable, ILockableModel, IValidatableModel
 {
     // region Traits
     use HasApprovals {

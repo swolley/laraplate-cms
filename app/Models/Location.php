@@ -28,9 +28,6 @@ use Modules\Core\Search\Schema\IndexType;
 use Modules\Core\Search\Traits\Searchable;
 use Override;
 
-/**
- * @mixin IdeHelperLocation
- */
 #[ObservedBy(LocationObserver::class)]
 final class Location extends Model implements Taggable
 {
