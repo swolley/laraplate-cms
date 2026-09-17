@@ -10,7 +10,7 @@ it('maps field types to validation rule fragments', function (): void {
     expect(FieldType::Switch->getRule())->toBe('boolean');
     expect(FieldType::Checkbox->getRule())->toBe('array');
     expect(FieldType::Datetime->getRule())->toBe('date');
-    expect(FieldType::Number->getRule())->toBe('number');
+    expect(FieldType::Number->getRule())->toBe('numeric');
     expect(FieldType::Object->getRule())->toBe('json');
     expect(FieldType::Editor->getRule())->toBe('json');
     expect(FieldType::Array->getRule())->toBe('array');
