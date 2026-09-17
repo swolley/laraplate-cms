@@ -129,7 +129,7 @@ final class ExternalReferenceLocator
                 $source_key,
                 $external,
                 $fingerprint,
-                self::parseSourceTimestamp($source_updated_at),
+                $this->parseSourceTimestamp($source_updated_at),
             ),
             $source_label,
             $url,
@@ -145,7 +145,7 @@ final class ExternalReferenceLocator
      * Source timestamps arrive as whatever string the source system prints. One that
      * cannot be read leaves the column empty instead of failing the row.
      */
-    private static function parseSourceTimestamp(?string $value): ?CarbonImmutable
+    private function parseSourceTimestamp(?string $value): ?CarbonImmutable
     {
         if ($value === null || mb_trim($value) === '') {
             return null;
