@@ -56,7 +56,13 @@ final class TagFactory extends Factory
         }
 
         try {
-            $name = $this->uniqueValue(static fn () => fake()->words(fake()->numberBetween(1, 3), true), $this->model, 'name', 50);
+            // words(..., true) is declared array|string by Faker even though the
+            // second argument is what makes it a string; implode covers both.
+            $name = $this->uniqueValue(static function (): string {
+                $words = fake()->words(fake()->numberBetween(1, 3), true);
+
+                return is_array($words) ? implode(' ', $words) : $words;
+            }, $this->model, 'name', 50);
         } catch (Exception) {
             $name = fake()->words(fake()->numberBetween(1, 3), true) . '_' . uniqid();
         }
