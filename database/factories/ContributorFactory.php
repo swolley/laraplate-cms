@@ -42,7 +42,7 @@ final class ContributorFactory extends Factory
         $name = $this->uniqueValue(
             static function () use ($user): string {
                 $base_name = $user !== null
-                    ? $user->name
+                    ? (string) $user->getAttribute('name')
                     : (fake()->boolean() ? fake()->name() : fake()->userName());
 
                 return $base_name . '-' . getmypid() . '-' . fake()->unique()->numerify('########');

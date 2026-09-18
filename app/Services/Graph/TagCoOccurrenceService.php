@@ -47,7 +47,7 @@ final class TagCoOccurrenceService
     {
         $taggables = CMSTables::Taggables->value;
 
-        /** @var Collection<int, object> $rows */
+        /** @var Collection<int, object{tag_id: int|string, weight: int|string}> $rows */
         $rows = (new Tag)->getConnection()->query()
             ->from($taggables)
             ->where("{$taggables}.taggable_type", Content::class)
@@ -79,7 +79,7 @@ final class TagCoOccurrenceService
     {
         $taggables = CMSTables::Taggables->value;
 
-        /** @var Collection<int, object> $rows */
+        /** @var Collection<int, object{source: int|string, target: int|string, weight: int|string}> $rows */
         $rows = (new Tag)->getConnection()->query()
             ->from("{$taggables} as t1")
             ->join("{$taggables} as t2", static function ($join): void {
@@ -124,7 +124,7 @@ final class TagCoOccurrenceService
         $locale = (string) app()->getLocale();
         $fallback = (string) config('app.fallback_locale', 'en');
 
-        /** @var Collection<int, object> $rows */
+        /** @var Collection<int, object{tag_id: int|string, locale: string, name: string}> $rows */
         $rows = (new Tag)->getConnection()->query()
             ->from($translations)
             ->whereIn("{$translations}.tag_id", $tagIds)
