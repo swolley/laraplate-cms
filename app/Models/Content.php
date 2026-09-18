@@ -26,7 +26,9 @@ use Modules\CMS\Models\Pivot\Relatable;
 use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Observers\ContentObserver;
 use Modules\Core\Contracts\IDynamicEntityTypable;
+use Modules\Core\Contracts\IDynamicContentModel;
 use Modules\Core\Contracts\ILockableModel;
+use Modules\Core\Contracts\IOptimisticLockableModel;
 use Modules\Core\Contracts\ISearchableModel;
 use Modules\Core\Contracts\IValidatableModel;
 use Modules\Core\Contracts\ProvidesFacetLabelSources;
@@ -58,7 +60,7 @@ use Spatie\MediaLibrary\HasMedia;
  * @phpstan-use Searchable<Content>
  */
 #[ObservedBy(ContentObserver::class)]
-final class Content extends Model implements HasMedia, ILockableModel, ISearchableModel, IValidatableModel, ProvidesFacetLabelSources, ProvidesSyncableRelations, Sortable, Taggable
+final class Content extends Model implements HasMedia, IDynamicContentModel, ILockableModel, IOptimisticLockableModel, ISearchableModel, IValidatableModel, ProvidesFacetLabelSources, ProvidesSyncableRelations, Sortable, Taggable
 {
     // region Traits
     use HasApprovals {
@@ -544,7 +546,12 @@ final class Content extends Model implements HasMedia, ILockableModel, ISearchab
         $this->deleteWhenApproved = false;
     }
 
-    protected static function getEntityType(): IDynamicEntityTypable
+    /**
+     * Public because five callers outside this class ask for it, and because
+     * HasDynamicContents declares it abstract public: protected here was a
+     * narrowing PHP tolerates from a trait and refuses from an interface.
+     */
+    public static function getEntityType(): IDynamicEntityTypable
     {
         return EntityType::Contents;
     }
