@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CMS\Contracts\ExtendsContent;
 use Modules\CMS\Models\Concerns\ExtendsContentTrait;
+use Modules\Core\Search\Schema\FieldType;
+use Override;
 
 /**
  * Test-only content extender exercising the seam generically, before any real consumer exists.
@@ -34,13 +36,13 @@ final class StubExtendedThing extends Model implements ExtendsContent
      */
     protected $fillable = ['content_id', 'brand', 'sku'];
 
-    #[\Override]
+    #[Override]
     public function contentAlias(): string
     {
         return 'cms.stub_extended';
     }
 
-    #[\Override]
+    #[Override]
     public function searchableExtension(): array
     {
         return [
@@ -49,12 +51,12 @@ final class StubExtendedThing extends Model implements ExtendsContent
         ];
     }
 
-    #[\Override]
+    #[Override]
     public function searchableExtensionMapping(): array
     {
         return [
-            'brand' => ['type' => 'keyword'],
-            'sku' => ['type' => 'keyword'],
+            'brand' => FieldType::Keyword,
+            'sku' => FieldType::Keyword,
         ];
     }
 }

@@ -481,6 +481,17 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
             $schema->addField(new FieldDefinition($field, FieldType::Object, [IndexType::Searchable, IndexType::FullText], ['locale_properties' => $localeText]));
         }
 
+        // Content-extension seam (C11, C14): a filterable extended_type, and a nested extension object
+        // whose mapping is composed from every registered extender. Absent when no extender is
+        // registered, so a plain CMS install maps neither.
+        $schema->addField(new FieldDefinition('extended_type', FieldType::Keyword, [IndexType::Filterable]));
+
+        $extension_properties = $this->composeExtensionMapping();
+
+        if ($extension_properties !== []) {
+            $schema->addField(new FieldDefinition('extension', FieldType::Object, [IndexType::Searchable, IndexType::Filterable], ['properties' => $extension_properties]));
+        }
+
         return $this->getSearchMappingTrait($schema);
     }
 
@@ -703,6 +714,34 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
                 return ReadingStatistics::fromBlocks($blocks);
             },
         );
+    }
+
+    /**
+     * Union of every registered extender's `searchableExtensionMapping()` under the nested
+     * `extension` object, plus the alias `type`. Empty when no extender is registered (C13, C14).
+     *
+     * @return array<string, mixed>
+     */
+    private function composeExtensionMapping(): array
+    {
+        $registry = app(ContentExtenderRegistry::class);
+        $aliases = $registry->aliases();
+
+        if ($aliases === []) {
+            return [];
+        }
+
+        $properties = ['type' => ['type' => FieldType::Keyword, 'filterable' => true]];
+
+        foreach ($aliases as $alias) {
+            $extender = $registry->resolve($alias);
+
+            foreach ((new $extender())->searchableExtensionMapping() as $field => $definition) {
+                $properties[$field] ??= $definition;
+            }
+        }
+
+        return $properties;
     }
 
     /**

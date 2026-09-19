@@ -46,7 +46,9 @@ interface ExtendsContent
     public function searchableExtension(): array;
 
     /**
-     * The mapping fragment CMS composes into the `contents` index for this extender's `extension`.
+     * The mapping fragment CMS composes into the `contents` index under the nested `extension`
+     * object. Keyed by field name, each value in the Core search-schema `properties` format:
+     * a `FieldType` (e.g. `FieldType::Keyword`) or `['type' => FieldType, 'filterable' => bool]`.
      *
      * @return array<string, mixed>
      */

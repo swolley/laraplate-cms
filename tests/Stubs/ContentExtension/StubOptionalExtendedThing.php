@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CMS\Contracts\ExtendsContent;
 use Modules\CMS\Models\Concerns\ExtendsContentTrait;
+use Modules\Core\Search\Schema\FieldType;
 use Override;
 
 /**
@@ -51,6 +52,6 @@ final class StubOptionalExtendedThing extends Model implements ExtendsContent
     #[Override]
     public function searchableExtensionMapping(): array
     {
-        return ['label' => ['type' => 'keyword']];
+        return ['label' => FieldType::Keyword];
     }
 }
