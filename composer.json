@@ -55,7 +55,8 @@
   "autoload-dev": {
     "psr-4": {
       "Modules\\CMS\\Tests\\Unit\\": "tests/Unit",
-      "Modules\\CMS\\Tests\\Feature\\": "tests/Feature"
+      "Modules\\CMS\\Tests\\Feature\\": "tests/Feature",
+      "Modules\\CMS\\Tests\\Stubs\\": "tests/Stubs"
     },
     "classmap": [
       "tests/TestCase.php"

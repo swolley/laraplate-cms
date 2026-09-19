@@ -15,6 +15,7 @@ use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Observers\ContentTranslationObserver;
 use Modules\CMS\Observers\PlaceObserver;
 use Modules\CMS\Services\CommentModerationAdapter;
+use Modules\CMS\Services\ContentExtenderRegistry;
 use Modules\Core\ApplicationContent\Contracts\ApplicationContentRetrievalProviderRegistryInterface;
 use Modules\Core\Graph\Contracts\GraphProviderRegistryInterface;
 use Modules\Core\Import\Support\EntityImporterRegistry;
@@ -43,6 +44,8 @@ final class CMSServiceProvider extends ModuleServiceProvider
     public function register(): void
     {
         parent::register();
+
+        $this->app->singleton(ContentExtenderRegistry::class);
 
         $this->app->register(ImportServiceProvider::class);
     }
