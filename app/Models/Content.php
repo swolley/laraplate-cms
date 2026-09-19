@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\CMS\Models;
 
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -15,6 +16,7 @@ use Illuminate\Support\Str;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Casts\ReadingStatistics;
 use Modules\CMS\Contracts\Taggable;
+use Modules\CMS\Scopes\HidesExtendedContent;
 use Modules\CMS\Database\Factories\ContentFactory;
 use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Helpers\HasMultimedia;
@@ -567,6 +569,25 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
             /** @var Builder<Content> $query */
             $query->ordered();
         });
+
+        // Extended contents (the body of a module extender) are hidden by default; opt back in
+        // with withExtended(). See the content-extension seam (Modules/CMS/app/Scopes).
+        self::addGlobalScope(new HidesExtendedContent());
+    }
+
+    /**
+     * Include contents that are extended by a module (see {@see \Modules\CMS\Contracts\ExtendsContent}).
+     *
+     * Removes only the {@see HidesExtendedContent} scope; soft-delete and every other global scope
+     * stay applied. On its own it yields plain `Content` rows; upcasting to the extender is a separate
+     * explicit step.
+     *
+     * @param  Builder<Content>  $query
+     */
+    #[Scope]
+    protected function withExtended(Builder $query): void
+    {
+        $query->withoutGlobalScope(HidesExtendedContent::class);
     }
 
     protected static function newFactory(): ContentFactory
