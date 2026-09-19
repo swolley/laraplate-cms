@@ -35,6 +35,7 @@ use Modules\Core\Contracts\ILockableModel;
 use Modules\Core\Contracts\IOptimisticLockableModel;
 use Modules\Core\Contracts\ISearchableModel;
 use Modules\Core\Contracts\IValidatableModel;
+use Modules\Core\Contracts\ProvidesDefaultSearchFilters;
 use Modules\Core\Contracts\ProvidesFacetLabelSources;
 use Modules\Core\Contracts\ProvidesSyncableRelations;
 use Modules\Core\Enums\CoreTables;
@@ -64,7 +65,7 @@ use Spatie\MediaLibrary\HasMedia;
  * @phpstan-use Searchable<Content>
  */
 #[ObservedBy(ContentObserver::class)]
-final class Content extends Model implements HasMedia, IDynamicContentModel, ILockableModel, IOptimisticLockableModel, ISearchableModel, IValidatableModel, ProvidesFacetLabelSources, ProvidesSyncableRelations, Sortable, Taggable
+final class Content extends Model implements HasMedia, IDynamicContentModel, ILockableModel, IOptimisticLockableModel, ISearchableModel, IValidatableModel, ProvidesDefaultSearchFilters, ProvidesFacetLabelSources, ProvidesSyncableRelations, Sortable, Taggable
 {
     // region Traits
     use HasApprovals {
@@ -166,6 +167,20 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
         return [
             'entity' => new FacetLabelSource(relatedClass: Entity::class, foreignKey: 'entity_id'),
         ];
+    }
+
+    /**
+     * Generic content search excludes extended contents by filtering `extended_type IS NULL` at the
+     * engine (`= null` becomes `IS NULL` in the query builder), so they never come back from the
+     * engine only to be dropped at rehydration by the hide scope. An opt-in surface (e.g. a shop
+     * search) can query them via the per-alias `extended_type` value.
+     *
+     * @return array<string, scalar|null>
+     */
+    #[Override]
+    public function defaultSearchFilters(): array
+    {
+        return ['extended_type' => null];
     }
 
     /**
