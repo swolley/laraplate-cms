@@ -52,11 +52,16 @@ C1–C18).
 6. Provide `searchableExtension()` (data) and `searchableExtensionMapping()` (Core `FieldType`
    schema properties) for the `extension` search section.
 
-## Known limitation — generic-search index filter (deferred)
+## Generic search excludes extended contents
 
-Extended contents are now **indexed**. The generic content search does **not yet** filter
-`extended_type = null` at the engine, so once a consumer starts creating extended contents, a generic
-content search would receive them from the engine while the hide scope drops them at rehydration —
-producing short pages. Closing this requires a filter in the shared Core `CrudService` / Scout query
-path and is deferred to the first consumer's integration (no impact while no extended content exists).
-Tracked as "point 4" in the plan.
+Extended contents are **indexed** (for a future opt-in shop search) but kept out of the **generic**
+content search. `Content` implements `Modules\Core\Contracts\ProvidesDefaultSearchFilters`, returning
+`['extended_type' => null]`; `CrudService` applies it to the Scout query, and `= null` compiles to
+`IS NULL`, so the engine never returns extended contents for a generic search (no short pages at
+rehydration). On the database engine the hide global scope already excludes them; the filter is what
+keeps the separate-index engines (Elasticsearch/Typesense) hole-free, where `extended_type` is a real
+indexed field. An opt-in surface (e.g. a shop search) queries extended contents via the per-alias
+`extended_type` value instead.
+
+End-to-end ES/Typesense verification is left to the first consumer's integration (the database engine's
+own `search('*')` over `Content` has a pre-existing, unrelated column-set limitation in tests).
