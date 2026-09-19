@@ -15,8 +15,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Casts\ReadingStatistics;
+use Modules\CMS\Contracts\ExtendsContent;
 use Modules\CMS\Contracts\Taggable;
-use Modules\CMS\Scopes\HidesExtendedContent;
 use Modules\CMS\Database\Factories\ContentFactory;
 use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Helpers\HasMultimedia;
@@ -27,8 +27,10 @@ use Modules\CMS\Models\Pivot\Locatable;
 use Modules\CMS\Models\Pivot\Relatable;
 use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Observers\ContentObserver;
-use Modules\Core\Contracts\IDynamicEntityTypable;
+use Modules\CMS\Scopes\HidesExtendedContent;
+use Modules\CMS\Services\ContentExtenderRegistry;
 use Modules\Core\Contracts\IDynamicContentModel;
+use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Contracts\ILockableModel;
 use Modules\Core\Contracts\IOptimisticLockableModel;
 use Modules\Core\Contracts\ISearchableModel;
@@ -140,6 +142,16 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
         $model->setDefaultEntityAndPreset();
 
         return $model;
+    }
+
+    /**
+     * Public because five callers outside this class ask for it, and because
+     * HasDynamicContents declares it abstract public: protected here was a
+     * narrowing PHP tolerates from a trait and refuses from an interface.
+     */
+    public static function getEntityType(): IDynamicEntityTypable
+    {
+        return EntityType::Contents;
     }
 
     /**
@@ -349,7 +361,34 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
             $document[$field] = $byLocale;
         }
 
+        // Content-extension seam (C11): a filterable extended_type plus a nested, typed extension
+        // section the extender contributes. null for a normal content, so generic search can filter
+        // extended_type = null without result holes.
+        $document['extended_type'] = $this->extended_type;
+
+        $extension = $this->extensionSearchDocument();
+
+        if ($extension !== null) {
+            $document['extension'] = $extension;
+        }
+
         return $document;
+    }
+
+    /**
+     * Include extended contents in the bulk search import (they are hidden by the default scope).
+     * Per-save indexing already sees them, since it uses the model instance rather than a query.
+     *
+     * @param  Builder<Content>  $query
+     * @return Builder<Content>
+     */
+    public function makeAllSearchableUsing(Builder $query): Builder
+    {
+        // Mirror the Searchable trait default (drop LocaleScope) and additionally include extended
+        // contents, which the HidesExtendedContent scope removes from the import query.
+        return $query
+            ->withoutGlobalScope(\Modules\Core\Overrides\LocaleScope::class)
+            ->withoutGlobalScope(HidesExtendedContent::class);
     }
 
     /**
@@ -548,16 +587,6 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
         $this->deleteWhenApproved = false;
     }
 
-    /**
-     * Public because five callers outside this class ask for it, and because
-     * HasDynamicContents declares it abstract public: protected here was a
-     * narrowing PHP tolerates from a trait and refuses from an interface.
-     */
-    public static function getEntityType(): IDynamicEntityTypable
-    {
-        return EntityType::Contents;
-    }
-
     protected static function booted(): void
     {
         // Validity (valid_from/valid_to) is no longer a global scope: publication
@@ -575,8 +604,13 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
         self::addGlobalScope(new HidesExtendedContent());
     }
 
+    protected static function newFactory(): ContentFactory
+    {
+        return ContentFactory::new();
+    }
+
     /**
-     * Include contents that are extended by a module (see {@see \Modules\CMS\Contracts\ExtendsContent}).
+     * Include contents that are extended by a module (see {@see ExtendsContent}).
      *
      * Removes only the {@see HidesExtendedContent} scope; soft-delete and every other global scope
      * stay applied. On its own it yields plain `Content` rows; upcasting to the extender is a separate
@@ -588,11 +622,6 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
     protected function withExtended(Builder $query): void
     {
         $query->withoutGlobalScope(HidesExtendedContent::class);
-    }
-
-    protected static function newFactory(): ContentFactory
-    {
-        return ContentFactory::new();
     }
 
     /**
@@ -674,6 +703,39 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
                 return ReadingStatistics::fromBlocks($blocks);
             },
         );
+    }
+
+    /**
+     * The extender's `searchableExtension()` payload for this content, keyed by its alias `type`,
+     * or null when the content is not extended. Resolved through the {@see ContentExtenderRegistry}
+     * so CMS never references the concrete extender class (C11).
+     *
+     * @return array<string, mixed>|null
+     */
+    private function extensionSearchDocument(): ?array
+    {
+        $alias = $this->extended_type;
+
+        if ($alias === null) {
+            return null;
+        }
+
+        $registry = app(ContentExtenderRegistry::class);
+
+        if (! $registry->has($alias)) {
+            return null;
+        }
+
+        /** @var class-string<\Illuminate\Database\Eloquent\Model> $class */
+        $class = $registry->resolve($alias);
+
+        $extender = $class::query()->whereIn('content_id', [$this->getKey()])->first();
+
+        if (! $extender instanceof ExtendsContent) {
+            return null;
+        }
+
+        return ['type' => $alias, ...$extender->searchableExtension()];
     }
 
     private function findContentTranslation(string $locale): ?ContentTranslation
