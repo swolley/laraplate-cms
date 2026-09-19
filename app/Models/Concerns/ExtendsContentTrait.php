@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Models\Concerns;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Scopes\HidesExtendedContent;
+use Modules\CMS\Services\ContentExtensionCascade;
 use Override;
 
 /**
@@ -23,11 +25,58 @@ use Override;
  * @property int|string|null $content_id
  *
  * @phpstan-require-extends \Illuminate\Database\Eloquent\Model
+ *
  * @phpstan-require-implements \Modules\CMS\Contracts\ExtendsContent
  */
 trait ExtendsContentTrait
 {
     private ?Content $tempContent = null;
+
+    /**
+     * Cascade the extender's own lifecycle to its content (C9): soft/force delete and restore travel
+     * to the content, guarded so the reverse handler does not re-fire (C10).
+     */
+    public static function bootExtendsContentTrait(): void
+    {
+        static::deleting(static function (Model $model): void {
+            ContentExtensionCascade::guard(static function () use ($model): void {
+                $content = $model->getRelationValue('content');
+
+                if (! $content instanceof Content) {
+                    return;
+                }
+
+                if (method_exists($model, 'isForceDeleting') && $model->isForceDeleting()) {
+                    $content->forceDelete();
+
+                    return;
+                }
+
+                $content->delete();
+            });
+        });
+
+        static::restoring(static function (Model $model): void {
+            ContentExtensionCascade::guard(static function () use ($model): void {
+                $contentId = $model->getAttribute('content_id');
+
+                if ($contentId === null) {
+                    return;
+                }
+
+                $content = Content::withExtended()->withTrashed()->find($contentId);
+
+                if ($content === null) {
+                    return;
+                }
+
+                // reviveInMemory() + save() is Core's restore path for optimistic-locked models;
+                // a bare restore() trips the "cannot update a softdeleted model" guard.
+                $content->reviveInMemory();
+                $content->save();
+            });
+        });
+    }
 
     /**
      * Always eager-load the extended content alongside the extender.
@@ -37,6 +86,15 @@ trait ExtendsContentTrait
         if (! in_array('content', $this->with, true)) {
             $this->with[] = 'content';
         }
+    }
+
+    /**
+     * Whether this extender cannot exist without its content (C9). Extenders whose content is
+     * optional override this to `false`.
+     */
+    public function contentIsMandatory(): bool
+    {
+        return true;
     }
 
     /**

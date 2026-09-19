@@ -7,6 +7,7 @@ namespace Modules\CMS\Tests\Stubs\ContentExtension;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use LogicException;
 use Modules\CMS\Contracts\ExtendsContent;
+use Override;
 
 /**
  * Minimal non-model stub implementing {@see ExtendsContent}, used to exercise the
@@ -15,25 +16,31 @@ use Modules\CMS\Contracts\ExtendsContent;
  */
 final class FakeContentExtender implements ExtendsContent
 {
-    #[\Override]
+    #[Override]
     public function contentAlias(): string
     {
         return 'cms.fake_extender';
     }
 
-    #[\Override]
+    #[Override]
+    public function contentIsMandatory(): bool
+    {
+        return true;
+    }
+
+    #[Override]
     public function content(): BelongsTo
     {
         throw new LogicException('FakeContentExtender::content() is not used by the registry.');
     }
 
-    #[\Override]
+    #[Override]
     public function searchableExtension(): array
     {
         return [];
     }
 
-    #[\Override]
+    #[Override]
     public function searchableExtensionMapping(): array
     {
         return [];

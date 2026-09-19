@@ -23,6 +23,15 @@ interface ExtendsContent
     public function contentAlias(): string;
 
     /**
+     * Whether the extender cannot exist without its content.
+     *
+     * `true` (the common case): deleting the content cascades to delete the extender — there is no
+     * bodiless-orphan state. `false`: deleting the content orphans the extender (its `content_id` is
+     * nulled) rather than deleting it. See seam decision C9.
+     */
+    public function contentIsMandatory(): bool;
+
+    /**
      * The back-relation to the extended content, with the hide scope removed so it resolves.
      *
      * @return BelongsTo<Content, Model>
