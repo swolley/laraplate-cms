@@ -8,6 +8,7 @@ use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 use Modules\CMS\Filament\Resources\Presets\PresetResource;
 use Modules\CMS\Filament\Utils\HasRecords;
 use Modules\CMS\Models\Entity;
@@ -66,7 +67,7 @@ final class ListPresets extends ListRecords
                 continue;
             }
 
-            $entity_name = ucfirst($entity->name);
+            $entity_name =  Str::studly($entity->name);
             $tabs[(string) $entity_id] = Tab::make($entity_name)
                 ->badge($count)
                 ->modifyQueryUsing(
@@ -79,7 +80,7 @@ final class ListPresets extends ListRecords
             ->getTitleFromRecordUsing(function (Preset $record): string {
                 $entity = $record->entity;
 
-                return ucfirst($entity !== null ? $entity->name : '');
+                return Str::studly($entity !== null ? $entity->name : '');
             });
 
         return $tabs;

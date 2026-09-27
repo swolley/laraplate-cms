@@ -9,6 +9,7 @@ use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Modules\Core\Filament\Utils\HasRecords as BaseHasRecords;
 use Modules\Core\Models\Concerns\HasDynamicContents;
 use Modules\Core\Models\Entity;
@@ -132,6 +133,6 @@ trait HasRecords
 
         $name = $preset->name;
 
-        return ucfirst(is_string($name) ? $name : '');
+        return Str::studly(is_string($name) ? $name : '');
     }
 }

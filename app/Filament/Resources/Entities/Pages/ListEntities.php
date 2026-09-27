@@ -8,6 +8,7 @@ use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Filament\Resources\Entities\EntityResource;
 use Modules\CMS\Filament\Utils\HasRecords;
@@ -59,7 +60,7 @@ final class ListEntities extends ListRecords
                 continue;
             }
 
-            $label = ucfirst($type->value);
+            $label = Str::studly($type->value);
 
             $tabs[$type->value] = Tab::make($label)
                 ->badge($totals)
@@ -70,7 +71,7 @@ final class ListEntities extends ListRecords
 
         $this->groups[] = Group::make('type')
             ->label('Type')
-            ->getTitleFromRecordUsing(fn (Entity $record): string => ucfirst($record->type->toScalar()));
+            ->getTitleFromRecordUsing(fn (Entity $record): string => Str::studly($record->type->toScalar()));
 
         return $tabs;
     }
