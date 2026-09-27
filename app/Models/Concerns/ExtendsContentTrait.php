@@ -6,7 +6,6 @@ namespace Modules\CMS\Models\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\DB;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Scopes\HidesExtendedContent;
 use Modules\CMS\Services\ContentExtensionCascade;
@@ -129,7 +128,7 @@ trait ExtendsContentTrait
             return parent::save($options);
         }
 
-        return DB::transaction(function () use ($options): bool {
+        return $this->getConnection()->transaction(function () use ($options): bool {
             $content = $this->tempContent;
 
             // extended_type is guarded; set it directly so it is written only through this path (C17).
