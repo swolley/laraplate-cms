@@ -24,13 +24,13 @@ it('is idempotent and leaves an operator-changed value untouched on a second run
     $this->seed(CMSDatabaseSeeder::class);
 
     Setting::query()->withoutGlobalScopes()
-        ->where('name', 'cms.geocoding.cache_ttl')
+        ->where('name', 'geocoding.cache_ttl')
         ->update(['value' => json_encode(1), 'description' => 'drifted']);
 
     $this->seed(CMSDatabaseSeeder::class);
 
     $setting = Setting::query()->withoutGlobalScopes()
-        ->where('name', 'cms.geocoding.cache_ttl')->sole();
+        ->where('name', 'geocoding.cache_ttl')->sole();
 
     expect($setting->value)->toBe(1)
         ->and($setting->description)->toBe('Geocoding cache TTL in seconds');

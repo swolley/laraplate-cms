@@ -53,7 +53,7 @@ final class CMSDatabaseSeeder extends Seeder
     public static function runtimeSettingDefinitions(): array
     {
         return [
-            self::setting('cms.geocoding.cache_ttl', 604800, SettingTypeEnum::Integer, 'cms', 'Geocoding cache TTL in seconds'),
+            self::setting('geocoding.cache_ttl', 604800, SettingTypeEnum::Integer, 'cms', 'Geocoding cache TTL in seconds'),
         ];
     }
 
