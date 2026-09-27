@@ -53,6 +53,7 @@ final class Preset extends CorePreset
             $entities_table = CoreTables::Entities->value;
             $query->select(DB::raw('1'))
                 ->from($entities_table)
+                ->whereColumn("{$entities_table}.id", CoreTables::Presets->value . '.entity_id')
                 ->whereIn("{$entities_table}.type", EntityType::values());
         });
     }
