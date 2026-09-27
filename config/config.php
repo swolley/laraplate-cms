@@ -32,13 +32,4 @@ return [
          */
         'skip_existing' => (bool) env('CMS_IMPORT_SKIP_EXISTING', true),
     ],
-
-    // 'locale' => [
-    //     'auto_translate' => env('LOCALE_AUTO_TRANSLATE', false),
-    // ],
-
-    // 'geocoding' => [
-    //     /** TTL in seconds for geocoding cache results. Default: 7 days (604800 seconds). */
-    //     'cache_ttl' => (int) env('CMS_GEOCODING_CACHE_TTL', 604800),
-    // ],
 ];
