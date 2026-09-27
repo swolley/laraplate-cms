@@ -7,15 +7,23 @@ namespace Modules\CMS\Filament\Widgets;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Cache;
-use Modules\CMS\Models\Category;
+use Modules\CMS\Models\Comment;
 use Modules\CMS\Models\Content;
-use Modules\CMS\Models\Contributor;
-use Modules\CMS\Models\Location;
-use Modules\CMS\Models\Tag;
+use Modules\Core\Models\Modification;
 use Override;
 
+/**
+ * Editorial work waiting for someone: changes and comments to moderate, contents
+ * about to go live and contents about to expire.
+ */
 final class CMSStatsWidget extends BaseWidget
 {
+    #[Override]
+    protected static ?int $sort = 20;
+
+    #[Override]
+    protected ?string $heading = 'CMS';
+
     #[Override]
     protected static bool $isLazy = true;
 
@@ -25,40 +33,48 @@ final class CMSStatsWidget extends BaseWidget
     public function getColumns(): array
     {
         return [
-            'md' => 2,
+            'md' => 4,
         ];
     }
 
     protected function getStats(): array
     {
         $data = Cache::remember('filament.dashboard.cms_stats', 60, static fn (): array => [
-            'contents' => Content::query()->count(),
-            'contributors' => Contributor::query()->count(),
+            'pending_contents' => self::pendingModifications(new Content()),
+            'pending_comments' => self::pendingModifications(new Comment()),
+            'scheduled' => Content::query()->scheduled()->count(),
+            'expiring' => Content::query()->expiring()->count(),
         ]);
 
         return [
-            Stat::make('Contents', $data['contents'])
-                ->description('Total contents')
-                ->descriptionIcon('heroicon-o-pencil')
+            Stat::make('Contents to approve', $data['pending_contents'])
+                ->description('Changes awaiting moderation')
+                ->descriptionIcon('heroicon-o-shield-check')
+                ->color($data['pending_contents'] > 0 ? 'warning' : 'gray')
+                ->descriptionColor('cms'),
+            Stat::make('Comments to moderate', $data['pending_comments'])
+                ->description('Comments awaiting moderation')
+                ->descriptionIcon('heroicon-o-chat-bubble-left-right')
+                ->color($data['pending_comments'] > 0 ? 'warning' : 'gray')
+                ->descriptionColor('cms'),
+            Stat::make('Scheduled', $data['scheduled'])
+                ->description('Contents waiting to go live')
+                ->descriptionIcon('heroicon-o-calendar-days')
                 ->color('info')
                 ->descriptionColor('cms'),
-            // Stat::make('Categories', Category::query()->count())
-            //     ->description('Content categories')
-            //     ->descriptionIcon('heroicon-o-folder')
-            //     ->color('success'),
-            Stat::make('Contributors', $data['contributors'])
-                ->description('Total contributors')
-                ->descriptionIcon('heroicon-o-users')
-                ->color('info')
+            Stat::make('Expiring soon', $data['expiring'])
+                ->description('Published contents about to expire')
+                ->descriptionIcon('heroicon-o-clock')
+                ->color($data['expiring'] > 0 ? 'warning' : 'gray')
                 ->descriptionColor('cms'),
-            // Stat::make('Locations', Location::query()->count())
-            //     ->description('Geographic locations')
-            //     ->descriptionIcon('heroicon-o-map-pin')
-            //     ->color('warning'),
-            // Stat::make('Tags', Tag::query()->count())
-            //     ->description('Content tags')
-            //     ->descriptionIcon('heroicon-o-tag')
-            //     ->color('gray'),
         ];
+    }
+
+    private static function pendingModifications(Content|Comment $model): int
+    {
+        return Modification::query()
+            ->activeOnly()
+            ->where('modifiable_type', $model->getMorphClass())
+            ->count();
     }
 }
