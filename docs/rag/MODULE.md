@@ -190,7 +190,7 @@ flowchart LR
 
 ### Multimedia pipeline
 
-The `HasMultimedia` helper wires Spatie MediaLibrary on `Content`, `Contributor`, and `Category`. It registers the standard collections `cover` (single file), `images`, `videos`, `audios`, `files`, and three image quality conversions (`thumb-high|mid|low`) plus matching video conversions extracting a frame at second 2. `cover` is exposed as an accessor returning the first media entry. The `Modules/CMS/app/Models/Media.php` model extends Spatie's base media adding `HasVersions` and `SoftDeletes`, and exposes an `expires_at` accessor that, while trashed, projects a future expiration timestamp using `core.soft_deletes_expiration_days`.
+The `HasMultimedia` helper wires Spatie MediaLibrary on `Content`, `Contributor`, and `Category`. It registers the standard collections `cover` (single file), `images`, `videos`, `audios`, `files`, and three image quality conversions (`thumb-high|mid|low`) plus matching video conversions extracting a frame at second 2. `cover` is exposed as an accessor returning the first media entry. The `Modules/CMS/app/Models/Media.php` model extends Spatie's base media adding `HasVersions` and `SoftDeletes`, and exposes an `expires_at` accessor that, while trashed, projects a future expiration timestamp using `core.soft_deletes.expiration_days`.
 
 ```mermaid
 flowchart LR

@@ -34,7 +34,7 @@ final class CategoryResource extends Resource
     protected static string|UnitEnum|null $navigationGroup = 'CMS';
 
     #[Override]
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     public static function getSlug(?Panel $panel = null): string
     {

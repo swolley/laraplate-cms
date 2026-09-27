@@ -36,7 +36,7 @@ final class PresetResource extends Resource
     protected static string|UnitEnum|null $navigationGroup = 'CMS';
 
     #[Override]
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 6;
 
     public static function getSlug(?Panel $panel = null): string
     {
