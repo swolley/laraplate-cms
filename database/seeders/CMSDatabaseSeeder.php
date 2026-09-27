@@ -24,7 +24,6 @@ use Modules\Core\Models\Permission;
 use Modules\Core\Models\Role;
 use Modules\Core\Models\Setting;
 use Modules\Core\Overrides\Seeder;
-use Modules\Core\Seeding\SeedDefinition;
 use Modules\Core\Seeding\SeedReconciler;
 use Modules\Core\Services\DynamicContentsService;
 use Modules\Core\Services\PresetVersioningService;
@@ -54,7 +53,6 @@ final class CMSDatabaseSeeder extends Seeder
     public static function runtimeSettingDefinitions(): array
     {
         return [
-            self::setting('cms.locale.auto_translate', false, SettingTypeEnum::Boolean, 'cms', 'Enable CMS locale auto-translation'),
             self::setting('cms.geocoding.cache_ttl', 604800, SettingTypeEnum::Integer, 'cms', 'Geocoding cache TTL in seconds'),
         ];
     }
@@ -102,12 +100,7 @@ final class CMSDatabaseSeeder extends Seeder
         $this->logOperation(Setting::class);
 
         $outcome = app(SeedReconciler::class)->reconcile(
-            SeedDefinition::for(Setting::class)
-                ->identity(['name'])
-                ->structural(['type', 'group_name', 'description', 'choices'])
-                ->initial(['value'])
-                ->ownedBy('CMS')
-                ->rows(self::runtimeSettingDefinitions()),
+            self::internalSettingsDefinition('CMS', self::runtimeSettingDefinitions()),
         );
 
         $this->command?->line(

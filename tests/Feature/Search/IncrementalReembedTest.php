@@ -32,12 +32,12 @@ uses(TestCase::class, RefreshDatabase::class);
 // LocationObserverTest's convention.
 //
 // The observer only dispatches when Content::isEmbeddable() is true, which
-// requires search.vector_search.enabled (off by default, mirroring
+// requires core.search.vector.enabled (off by default, mirroring
 // HandleModelIndexingListenerTest's own setup) — enable it here so the
 // saved()-path tests exercise real behavior instead of the disabled no-op.
 beforeEach(function (): void {
     Queue::fake();
-    Config::set('search.vector_search.enabled', true);
+    Config::set('core.search.vector.enabled', true);
 });
 
 /**
@@ -195,7 +195,7 @@ it('does not dispatch TranslationRequiresReembedding when only a non-embeddable 
 it('does not dispatch TranslationRequiresReembedding when vector search is disabled, even on a title change', function (): void {
     $content = createReembedTestContent('Titolo di prova', 'Test title');
 
-    Config::set('search.vector_search.enabled', false);
+    Config::set('core.search.vector.enabled', false);
     Event::fake([TranslationRequiresReembedding::class]);
 
     $content->translations()->where('locale', 'it')->first()->update(['title' => 'Titolo aggiornato']);

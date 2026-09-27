@@ -488,7 +488,7 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
         $schema->addField(new FieldDefinition('slug', FieldType::Object, [IndexType::Searchable], ['locale_properties' => $localeKeyword]));
         $schema->addField(new FieldDefinition('locales', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
         $schema->addField(new FieldDefinition('embeddings', FieldType::Array, [IndexType::Searchable, IndexType::Vector], [
-            'vector' => ['dimensions' => (int) config('search.vector.dimensions', 384), 'similarity' => config('search.vector.similarity', 'cosine')],
+            'vector' => ['dimensions' => (int) config('core.search.vector.dimensions', 384), 'similarity' => config('core.search.vector.similarity', 'cosine')],
         ]));
 
         // Add base component fields, locale-keyed like title

@@ -18,6 +18,11 @@ final readonly class CommentModerationAdapter implements ModerationAdapter
 {
     public const string PROFILE = 'cms.comment';
 
+    public function modelClass(): string
+    {
+        return Comment::class;
+    }
+
     public function supports(Modification $modification): bool
     {
         return $modification->modifiable_type === Comment::class;

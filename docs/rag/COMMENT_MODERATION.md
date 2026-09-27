@@ -24,7 +24,7 @@ See also: `Modules/Core/docs/rag/EVENT_ORCHESTRATION.md`, `Modules/AI/docs/rag/M
 
 1. User saves comment → `CommentApprovalCapture::captureSave()` creates active `Modification` with diff (`body`, `locale`, `content_id`, optional `rating_score`).
 2. Core saves modification → `ModificationRequiresModeration` (first save, `wasRecentlyCreated`).
-3. AI may run if `ai_moderation_comments` (setting `ai_moderation_{table}`) and global moderation enabled.
+3. AI may run if `ai.features.moderation.entities.cms_comments` (declared by the AI module) and global moderation are enabled.
 4. Comment hidden from public queries until approved.
 5. Human approves in Filament → `applyModificationChanges()` → public comment + `ModificationApproved`.
 
@@ -52,7 +52,7 @@ $this->app->make(ModerationAdapterRegistry::class)
 
 | Setting | Group | Effect |
 |---------|-------|--------|
-| `ai_moderation_comments` | `moderation` | Enables AI vote for comments (`HasApprovals::aiModerationEnabledBySettings()`) |
+| `ai.features.moderation.entities.cms_comments` | `moderation` | Enables AI vote for comments (declared by the AI module) |
 | `auto_translate_comments` | `translations` | Post-approve `TranslateModelJob` via `ModificationApproved` |
 
 Seeded via Core settings; cache flushed on `Setting` save (`PerModelSettingResolver`).
@@ -68,7 +68,7 @@ Seeded via Core settings; cache flushed on `Setting` save (`PerModelSettingResol
 | Symptom | Check |
 |---------|--------|
 | Modification without `modifiable_id` on create | Expected for pending comments; builder uses diff JSON |
-| AI never runs for comments | `ai_moderation_comments`, AI moderation enabled, builder registered |
+| AI never runs for comments | `ai.features.moderation.entities.cms_comments`, AI moderation enabled, builder registered |
 | Comment stuck pending | Human approval in Filament, modification active |
 
 ## FAQPrompts

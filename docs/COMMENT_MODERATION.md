@@ -111,7 +111,7 @@ AI may react with translation if `auto_translate_cms_comments` is enabled.
 
 | Setting | Group | Default | Purpose |
 |---------|-------|---------|---------|
-| `ai_moderation_cms_comments` | `moderation` | `false` | Enable AI moderation for comments |
+| `ai.features.moderation.entities.cms_comments` | `moderation` | `false` | Enable AI moderation for comments |
 | `auto_translate_cms_comments` | `translations` | `false` | Auto-translate after approval |
 | `translation_fallback_cms_comments` | `translations` | `true` | Locale fallback for comment translations |
 
