@@ -9,6 +9,7 @@ use Modules\CMS\Filament\Widgets\CMSStatsWidget;
 use Modules\CMS\Models\Comment;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Tests\TestCase;
+use Modules\Core\Approvals\Operation;
 use Modules\Core\Models\Modification;
 use Modules\Core\Models\User;
 
@@ -24,7 +25,7 @@ it('counts pending moderation, scheduled and expiring contents', function (): vo
         'modifier_id' => $user->id,
         'modifier_type' => User::class,
         'active' => $active,
-        'is_update' => true,
+        'operation' => Operation::Update,
         'approvers_required' => 1,
         'disapprovers_required' => 1,
         'md5' => md5($seed),

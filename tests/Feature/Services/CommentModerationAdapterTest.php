@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\CMS\Models\Comment;
 use Modules\CMS\Services\CommentModerationAdapter;
 use Modules\CMS\Tests\TestCase;
+use Modules\Core\Approvals\Operation;
 use Modules\Core\Models\Modification;
 use Modules\Core\Models\User;
 
@@ -23,7 +24,7 @@ it('builds moderation request from modification payload', function (): void {
         'modifier_id' => $this->user->id,
         'modifier_type' => User::class,
         'active' => true,
-        'is_update' => false,
+        'operation' => Operation::Create,
         'approvers_required' => 1,
         'disapprovers_required' => 1,
         'md5' => md5('comment-mod'),
@@ -59,7 +60,7 @@ it('includes parent comment context when parent_id is in the modification', func
         'modifier_id' => $this->user->id,
         'modifier_type' => User::class,
         'active' => true,
-        'is_update' => false,
+        'operation' => Operation::Create,
         'approvers_required' => 1,
         'disapprovers_required' => 1,
         'md5' => md5('reply-mod'),
@@ -86,7 +87,7 @@ it('falls back to available title and skips missing parent context', function ()
         'modifier_id' => $this->user->id,
         'modifier_type' => User::class,
         'active' => true,
-        'is_update' => false,
+        'operation' => Operation::Create,
         'approvers_required' => 1,
         'disapprovers_required' => 1,
         'md5' => md5('missing-parent-mod'),
@@ -126,7 +127,7 @@ it('supports comment modifications only', function (): void {
         'modifier_id' => $this->user->id,
         'modifier_type' => User::class,
         'active' => true,
-        'is_update' => false,
+        'operation' => Operation::Create,
         'md5' => md5('x'),
         'modifications' => [],
     ]);

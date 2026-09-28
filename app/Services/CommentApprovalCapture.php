@@ -9,6 +9,7 @@ use JsonException;
 use Modules\CMS\Models\Comment;
 use Modules\CMS\Models\ContentRating;
 use Modules\CMS\Models\Translations\CommentTranslation;
+use Modules\Core\Approvals\Operation;
 use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Models\Modification;
 
@@ -112,9 +113,7 @@ final class CommentApprovalCapture
             $modification->modifier_type = $modifier_class;
         }
 
-        if ($comment->getKey() === null) {
-            $modification->is_update = false;
-        }
+        $modification->operation = $comment->getKey() === null ? Operation::Create : Operation::Update;
 
         $modification->save();
 
