@@ -14,7 +14,6 @@ use Modules\CMS\Services\CommentApprovalCapture;
 use Modules\CMS\Services\ContentRatingService;
 use Modules\Core\Approvals\Operation;
 use Modules\Core\Casts\ActionEnum;
-use Modules\Core\Events\ModificationApproved;
 use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Models\Concerns\HasApprovals;
 use Modules\Core\Models\Concerns\HasTranslations;
@@ -203,8 +202,6 @@ final class Comment extends Model
             : (is_numeric($modified_rating) ? (int) $modified_rating : null);
 
         resolve(ContentRatingService::class)->syncFromApprovedComment($this, $rating_score);
-
-        event(new ModificationApproved($modification, $this));
 
         $modification->active = false;
         $modification->save();
