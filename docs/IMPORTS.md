@@ -27,7 +27,10 @@ When the sibling `laraplate-importers` checkout is available, running `php artis
 | `--arg=*` | Repeatable importer constructor argument in `key=value` form |
 | `--dry-run` | Roll back writes made on the importer-declared connection, or the default connection |
 | `--limit=` | Non-negative limit passed to the importer |
-| `--no-search` | Disable Scout indexing for the import process |
+| `--no-search` | Import without search indexing: no document written, no embedding generated |
+| `--index-batch=` | Distinct records indexed per bulk search flush (default `scout.chunk.searchable`, 500) |
+
+Imported records are indexed in deferred bulk flushes, not one by one: every `--index-batch` distinct records and at the end, with the embeddings of all locales generated in one batched pass. `CMS_IMPORT_REINDEX` is therefore not needed to index the imported records; when enabled it reindexes every `Content`. Pressing Ctrl+C asks whether to index the records imported so far before quitting (the default), quit at once, or resume; the content being imported at that moment is rolled back. See `Modules/Core/docs/IMPORT_FRAMEWORK.md`, "Search indexing during an import".
 
 The command injects `dryRun` and `limit` as named constructor parameters. Source-specific arguments are intentionally not part of the common command contract.
 

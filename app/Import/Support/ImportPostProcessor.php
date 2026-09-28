@@ -17,7 +17,8 @@ final class ImportPostProcessor
             DynamicEntityService::getInstance()->clearAllCaches();
         }
 
-        if ($reindex && config('scout.driver') !== null) {
+        // `--no-search` and dry-run select Scout's null engine by name, the string 'null'.
+        if ($reindex && ! in_array(config('scout.driver'), [null, 'null'], true)) {
             Content::makeAllSearchable();
         }
     }

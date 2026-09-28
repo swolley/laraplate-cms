@@ -13,7 +13,7 @@ The command name selects CMS as the destination. `--importer` selects the source
 
 ## Options
 
-`--importer`, `--bootstrap`, repeatable `--arg`, `--dry-run`, `--limit`, and `--no-search` are inherited from Core. Concrete CMS commands declare `$name`, not `$signature`.
+`--importer`, `--bootstrap`, repeatable `--arg`, `--dry-run`, `--limit`, `--no-search`, and `--index-batch` are inherited from Core. Imported contents are indexed in deferred bulk flushes of `--index-batch` records (default 500), embeddings included; `--no-search` imports without indexing or embedding. Ctrl+C offers to index the contents imported so far before quitting. Concrete CMS commands declare `$name`, not `$signature`.
 
 ## Which entity an import writes into
 
