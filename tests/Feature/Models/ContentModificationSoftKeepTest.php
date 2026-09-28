@@ -58,3 +58,19 @@ it('keeps inactive modification after disapprove with readable reason', function
         ->and((bool) $modification->active)->toBeFalse()
         ->and($modification->disapprovals()->latest('id')->value('reason'))->toBe('Needs clearer lead');
 });
+
+it('deletes a draft directly and sends the deletion of a live content for approval', function (): void {
+    $live = createMinimalTestContentForComments();
+    $draft = createMinimalTestContentForComments();
+    $draft->valid_from = null;
+    $draft->save();
+
+    Modules\Core\Tests\Support\HttpContext::pretendHttpRequest();
+    $this->actingAs(User::factory()->create());
+
+    expect($draft->delete())->toBeTrue()
+        ->and($draft->pendingModification())->toBeNull()
+        ->and($live->delete())->toBeFalse()
+        ->and($live->pendingModification()?->operation)->toBe(Operation::Delete)
+        ->and(Content::query()->whereKey($live->id)->exists())->toBeTrue();
+});

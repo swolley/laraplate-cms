@@ -176,3 +176,16 @@ it('dispatches ModificationApproved after human approval', function (): void {
             && $event->modifiable->body === 'Approved body';
     });
 });
+
+it('lets the author delete a comment without approval', function (): void {
+    $comment = Comment::factory()->approved()->create([
+        'content_id' => $this->content->id,
+        'user_id' => $this->author->id,
+    ]);
+    Modules\Core\Tests\Support\HttpContext::pretendHttpRequest();
+
+    expect($comment->delete())->toBeTrue()
+        ->and($comment->pendingModification())->toBeNull()
+        ->and(Comment::query()->whereKey($comment->id)->exists())->toBeFalse()
+        ->and(Modification::query()->where('modifiable_type', Comment::class)->where('modifiable_id', $comment->id)->exists())->toBeFalse();
+});

@@ -12,6 +12,7 @@ use Modules\CMS\Models\Translations\CommentTranslation;
 use Modules\CMS\Scopes\CommentTranslationScope;
 use Modules\CMS\Services\CommentApprovalCapture;
 use Modules\CMS\Services\ContentRatingService;
+use Modules\Core\Approvals\Operation;
 use Modules\Core\Casts\ActionEnum;
 use Modules\Core\Events\ModificationApproved;
 use Modules\Core\Helpers\LocaleContext;
@@ -50,6 +51,16 @@ final class Comment extends Model
     public static function captureSave(self $item): bool
     {
         return CommentApprovalCapture::capture($item);
+    }
+
+    /**
+     * A comment author deletes their own comment; only its text goes through moderation.
+     *
+     * @return list<Operation>
+     */
+    public function approvalOperations(): array
+    {
+        return [Operation::Create, Operation::Update];
     }
 
     /**

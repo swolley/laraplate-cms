@@ -29,6 +29,7 @@ use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\CMS\Observers\ContentObserver;
 use Modules\CMS\Scopes\HidesExtendedContent;
 use Modules\CMS\Services\ContentExtenderRegistry;
+use Modules\Core\Approvals\Operation;
 use Modules\Core\Contracts\IDynamicContentModel;
 use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Contracts\ILockableModel;
@@ -71,6 +72,7 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
     use HasApprovals {
         HasApprovals::toArray as private approvalsToArray;
         HasApprovals::requiresApprovalWhen as private requiresApprovalWhenTrait;
+        HasApprovals::requiresApprovalForOperation as private requiresApprovalForOperationTrait;
     }
     use HasLocks;
     use HasMultimedia;
@@ -685,6 +687,19 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
     {
         // Use title from translation
         return array_values([...array_map(fn (string $field): string => '{' . $field . '}', $this->dynamicSlugFields()), '{title}']);
+    }
+
+    /**
+     * Unpublished (draft) and expired contents are written directly, so they are deleted and
+     * restored directly too; live and scheduled ones go through the shared rule.
+     */
+    protected function requiresApprovalForOperation(Operation $operation): bool
+    {
+        if (! $this->isPublished() && ! $this->isScheduled()) {
+            return false;
+        }
+
+        return $this->requiresApprovalForOperationTrait($operation);
     }
 
     /**
