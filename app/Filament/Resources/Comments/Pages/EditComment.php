@@ -9,6 +9,7 @@ use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 use Modules\CMS\Filament\Resources\Comments\CommentResource;
 use Modules\CMS\Models\Comment;
+use Modules\Core\Filament\Utils\HasCloseOrCancelFormAction;
 use Override;
 
 /**
@@ -17,6 +18,8 @@ use Override;
  */
 final class EditComment extends EditRecord
 {
+    use HasCloseOrCancelFormAction;
+
     #[Override]
     protected static string $resource = CommentResource::class;
 

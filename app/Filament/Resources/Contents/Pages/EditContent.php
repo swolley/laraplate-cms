@@ -9,12 +9,14 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 use Modules\CMS\Filament\Resources\Contents\ContentResource;
+use Modules\Core\Filament\Utils\HasCloseOrCancelFormAction;
 use Modules\Core\Filament\Utils\HasFilamentFormDataSanitizer;
 use Modules\Core\Filament\Utils\HasRecordLease;
 use Override;
 
 final class EditContent extends EditRecord
 {
+    use HasCloseOrCancelFormAction;
     use HasFilamentFormDataSanitizer;
     use HasRecordLease;
 
