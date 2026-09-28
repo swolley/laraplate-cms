@@ -18,7 +18,7 @@ See also: `Modules/Core/docs/rag/EVENT_ORCHESTRATION.md`, `Modules/AI/docs/rag/M
 | LLM context + prompts | CMS | `CommentModerationAdapter`, `CommentModerationPrompt` |
 | AI analysis + vote | AI | `ApproveModificationJob` (via registry) |
 | Publish approved comment | CMS | `Comment::applyModificationChanges()` |
-| Post-approve translate | Core + AI | `ModificationApproved` |
+| Post-approve translate | Core + AI | `ModificationApproved`, fired by `ModificationVoteService` |
 
 ## InternalFlow
 
@@ -26,9 +26,11 @@ See also: `Modules/Core/docs/rag/EVENT_ORCHESTRATION.md`, `Modules/AI/docs/rag/M
 2. Core saves modification → `ModificationRequiresModeration` (first save, `wasRecentlyCreated`).
 3. AI may run if `ai.features.moderation.entities.cms_comments` (declared by the AI module) and global moderation are enabled.
 4. Comment hidden from public queries until approved.
-5. Human approves in Filament → `applyModificationChanges()` → public comment + `ModificationApproved`.
+5. Human approves in Filament → `ModificationVoteService::cast()` → `Comment::applyModificationChanges()` in the vote's transaction → public comment; the service fires `ModificationApproved` after the commit.
 
-`CommentApprovalCapture` does **not** dispatch events; Core emitter handles that.
+`CommentApprovalCapture` and `Comment` do **not** dispatch events; Core's emitter and `ModificationVoteService` handle that.
+
+Only creations and updates of a comment go through moderation (`Comment::approvalOperations()`): its author deletes their own comment directly, and a comment's deletion never becomes a request. The author may also withdraw a pending comment request from Modifications before it is decided.
 
 ## HowToUse — CommentModerationAdapter
 
@@ -60,6 +62,7 @@ Seeded via Core settings; cache flushed on `Setting` save (`PerModelSettingResol
 ## PermissionsAndSecurity
 
 - Pending comments: not visible in public listings until modification approved.
+- Comment deletions are never captured: the author deletes their own comment directly.
 - AI vote is additive; human approval still required per `approvers_required`.
 - Audit trail in `approvals.meta` / `disapprovals.meta` (AI module writes JSON).
 
