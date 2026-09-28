@@ -600,21 +600,6 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
         $this->setRelation('presettable', $presettable);
     }
 
-    /**
-     * Soft-keep approval modifications after vote (Chiara rejection trail / Marco history).
-     * Overrides Core HasApprovals which defaults deleteWhenDisapproved to true.
-     */
-    public function initializeHasApprovals(): void
-    {
-        if (preview()) {
-            $this->append('preview');
-            $this->makeHidden('preview');
-        }
-
-        $this->deleteWhenDisapproved = false;
-        $this->deleteWhenApproved = false;
-    }
-
     protected static function booted(): void
     {
         // Validity (valid_from/valid_to) is no longer a global scope: publication

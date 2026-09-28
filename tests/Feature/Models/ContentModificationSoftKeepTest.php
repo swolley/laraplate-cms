@@ -12,16 +12,27 @@ use Modules\Core\Models\User;
 
 uses(TestCase::class, RefreshDatabase::class);
 
-it('configures soft-keep flags so content modifications are not deleted', function (): void {
-    $content = new Content;
+it('keeps inactive modification after approve', function (): void {
+    $user = User::factory()->create();
+    $content = createMinimalTestContentForComments();
 
-    $delete_when_disapproved = new ReflectionProperty($content, 'deleteWhenDisapproved');
-    $delete_when_disapproved->setAccessible(true);
-    $delete_when_approved = new ReflectionProperty($content, 'deleteWhenApproved');
-    $delete_when_approved->setAccessible(true);
+    $modification = Modification::query()->create([
+        'modifiable_type' => Content::class,
+        'modifiable_id' => $content->id,
+        'modifier_id' => $user->id,
+        'modifier_type' => User::class,
+        'active' => true,
+        'operation' => Operation::Update,
+        'approvers_required' => 1,
+        'disapprovers_required' => 1,
+        'md5' => md5('content-soft-keep-approve'),
+        'modifications' => [],
+    ]);
 
-    expect($delete_when_disapproved->getValue($content))->toBeFalse()
-        ->and($delete_when_approved->getValue($content))->toBeFalse();
+    $content->applyModificationChanges($modification, true);
+
+    expect(Modification::query()->whereKey($modification->id)->exists())->toBeTrue()
+        ->and((bool) $modification->fresh()->active)->toBeFalse();
 });
 
 it('keeps inactive modification after disapprove with readable reason', function (): void {
