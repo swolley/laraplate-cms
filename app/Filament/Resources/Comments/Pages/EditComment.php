@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Filament\Resources\Comments\Pages;
 
-use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 use Modules\CMS\Filament\Resources\Comments\CommentResource;
 use Modules\CMS\Models\Comment;
 use Modules\Core\Filament\Utils\HasCloseOrCancelFormAction;
+use Modules\Core\Filament\Utils\ReportsApprovalOutcome;
 use Override;
 
 /**
@@ -19,6 +19,7 @@ use Override;
 final class EditComment extends EditRecord
 {
     use HasCloseOrCancelFormAction;
+    use ReportsApprovalOutcome;
 
     #[Override]
     protected static string $resource = CommentResource::class;
@@ -26,7 +27,7 @@ final class EditComment extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            self::approvalAwareDeleteAction(),
         ];
     }
 
@@ -51,7 +52,7 @@ final class EditComment extends EditRecord
     {
         /** @var Comment $record */
         $record->body = (string) ($data['body'] ?? '');
-        $record->save();
+        $this->saveReportingApprovalOutcome($record);
 
         return $record;
     }
