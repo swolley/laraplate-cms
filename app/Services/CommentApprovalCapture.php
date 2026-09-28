@@ -95,11 +95,8 @@ final class CommentApprovalCapture
 
         $modifier = auth()->user();
 
-        /** @var class-string<Modification> $modification_class */
-        $modification_class = config('approval.models.modification', Modification::class);
-
         /** @var Modification $modification */
-        $modification = $has_modification_pending ?? new $modification_class();
+        $modification = $has_modification_pending ?? new Modification();
         $modification->active = true;
         $modification->modifications = $diff;
         $modification->approvers_required = 1;
