@@ -3,8 +3,12 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Models\Category;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Tests\TestCase;
+use Modules\Core\Overrides\LocaleScope;
 
 uses(TestCase::class, RefreshDatabase::class);
 
@@ -118,11 +122,45 @@ it('toSearchableWith returns all required relations for indexing', function (): 
 
     expect($relations)->toContain('contributors')
         ->toContain('categories')
+        ->toContain('categories.translations')
+        // Ancestors (with their translations) back the hierarchical `path` field,
+        // eager-loaded so serialization does not run a recursive query per category.
+        ->toContain('categories.ancestors.translations')
         ->toContain('tags')
         ->toContain('locations')
         ->toContain('translations')
         ->toContain('presettable.entity')
         ->toContain('presettable.preset');
+});
+
+it('serializes a content without a recursive ancestor query per category', function (): void {
+    setupCMSEntities([EntityType::Contents, EntityType::Categories]);
+
+    $parent = Category::factory()->create();
+    $parent->parent_id = null;
+    $parent->save();
+
+    $child = Category::factory()->create();
+    $child->parent_id = $parent->id;
+    $child->save();
+
+    $content = Content::factory()->create();
+    $content->categories()->attach($child->id);
+
+    // Fetch and eager-load exactly as the bulk indexing path does.
+    $models = Content::query()->withoutGlobalScope(LocaleScope::class)->whereKey($content->id)->get();
+    $models->first()->makeSearchableUsing($models);
+
+    DB::enableQueryLog();
+    $models->each(fn (Content $model) => $model->toSearchableArray());
+    $recursive = collect(DB::getQueryLog())
+        ->filter(static fn (array $q): bool => str_contains($q['query'], 'recursive'))
+        ->count();
+    DB::disableQueryLog();
+
+    // The hierarchical `path` reads the eager-loaded ancestor chain, so no
+    // recursive-ancestor CTE fires while building the document.
+    expect($recursive)->toBe(0);
 });
 
 it('declares filterable indexed relation fields in the content search schema', function (): void {
@@ -149,9 +187,9 @@ it('declares filterable indexed relation fields in the content search schema', f
 it('toSearchableArray does not trigger lazy loading when all relations are eager-loaded', function (): void {
     // Feature: performance-optimization, Property 6: Content toSearchableArray does not trigger lazy loading
     setupCMSEntities([
-        Modules\CMS\Casts\EntityType::Contents,
-        Modules\CMS\Casts\EntityType::Contributors,
-        Modules\CMS\Casts\EntityType::Categories,
+        EntityType::Contents,
+        EntityType::Contributors,
+        EntityType::Categories,
     ]);
 
     // Enable lazy loading guard for this test
@@ -162,7 +200,7 @@ it('toSearchableArray does not trigger lazy loading when all relations are eager
         $content = Content::factory()->create();
 
         // Attach at least one of each relation
-        $category = Modules\CMS\Models\Category::factory()->create();
+        $category = Category::factory()->create();
         $contributor = Modules\CMS\Models\Contributor::factory()->create();
         $tag = Modules\CMS\Models\Tag::factory()->create();
         $location = Modules\CMS\Models\Location::factory()->create();

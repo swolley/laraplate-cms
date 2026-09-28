@@ -306,6 +306,12 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
         return [
             'contributors',
             'categories',
+            // Categories are hierarchical: the `path` field serialized below walks
+            // each category's ancestors (translated slugs). Eager-load them here so
+            // building the document reads the loaded chain instead of firing one
+            // recursive-ancestor query per category per content.
+            'categories.translations',
+            'categories.ancestors.translations',
             'tags',
             'locations',
             'translations',
