@@ -239,33 +239,9 @@ final class Comment extends Model
         });
     }
 
-    protected static function booted(): void
-    {
-        self::bootRequiresApproval();
-    }
-
     protected static function newFactory(): CommentFactory
     {
         return CommentFactory::new();
-    }
-
-    protected static function bootRequiresApproval(): void
-    {
-        self::saving(function (self $comment): ?bool {
-            if ($comment->isForcedApprovalUpdate()) {
-                $comment->setForcedApprovalUpdate(false);
-
-                return null;
-            }
-
-            $dirty = $comment->getDirtyForApproval();
-
-            if ($comment->requiresApprovalWhen($dirty)) {
-                return self::captureSave($comment);
-            }
-
-            return null;
-        });
     }
 
     protected function getTranslatableFieldValue(string $key): mixed
@@ -318,7 +294,13 @@ final class Comment extends Model
     /**
      * @return array<string, mixed>
      */
-    private function getDirtyForApproval(): array
+    /**
+     * Fold the pending translated body and the pending rating into the change set the
+     * capture decides on: both are staged off the attribute bag, so getDirty() misses them.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getDirtyForApproval(): array
     {
         $dirty = $this->getDirty();
 
