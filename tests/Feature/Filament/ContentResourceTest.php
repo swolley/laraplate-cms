@@ -7,10 +7,12 @@ use Filament\Tables\Table;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Filament\Resources\Contents\ContentResource;
 use Modules\CMS\Filament\Resources\Contents\Pages\EditContent;
 use Modules\CMS\Filament\Resources\Contents\Tables\ContentsTable;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Tests\TestCase;
+use Modules\Core\Filament\RelationManagers\MediaRelationManager;
 use Modules\Core\Filament\Utils\HasTable as HasTableTrait;
 use Modules\Core\Models\Role;
 use Modules\Core\Models\User;
@@ -113,4 +115,8 @@ it('returns no content when filtering by a preset nothing uses', function (): vo
     $table->getFilters()['preset']->apply($query, ['values' => [$unused_preset_id]]);
 
     expect($query->count())->toBe(0);
+});
+
+it('registers the media curation relation manager', function (): void {
+    expect(ContentResource::getRelations())->toContain(MediaRelationManager::class);
 });

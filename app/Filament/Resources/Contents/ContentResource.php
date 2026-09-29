@@ -19,6 +19,7 @@ use Modules\CMS\Filament\Resources\Contents\Pages\ListContents;
 use Modules\CMS\Filament\Resources\Contents\Schemas\ContentForm;
 use Modules\CMS\Filament\Resources\Contents\Tables\ContentsTable;
 use Modules\CMS\Models\Content;
+use Modules\Core\Filament\RelationManagers\MediaRelationManager;
 use Override;
 use UnitEnum;
 
@@ -65,7 +66,7 @@ final class ContentResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            MediaRelationManager::class,
         ];
     }
 
