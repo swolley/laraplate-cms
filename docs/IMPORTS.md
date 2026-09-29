@@ -30,7 +30,7 @@ When the sibling `laraplate-importers` checkout is available, running `php artis
 | `--no-search` | Import without search indexing: no document written, no embedding generated |
 | `--index-batch=` | Distinct records indexed per bulk search flush (default `scout.chunk.searchable`, 500) |
 
-Imported records are indexed in deferred bulk flushes, not one by one: every `--index-batch` distinct records and at the end, with the embeddings of all locales generated in one batched pass. `CMS_IMPORT_REINDEX` is therefore not needed to index the imported records; when enabled it reindexes every `Content`. Pressing Ctrl+C asks whether to index the records imported so far before quitting (the default), quit at once, or resume; the content being imported at that moment is rolled back. See `Modules/Core/docs/IMPORT_FRAMEWORK.md`, "Search indexing during an import".
+Imported records are indexed in deferred bulk flushes, not one by one: every `--index-batch` distinct records and at the end, with the embeddings of all locales generated in one batched pass. With `scout.queue` on, each flush is queued on the `indexing` queue and a worker does the embeddings and engine writes; the command prints one `Search: ...` line per flushed chunk. `CMS_IMPORT_REINDEX` is therefore not needed to index the imported records; when enabled it reindexes every `Content`. Pressing Ctrl+C asks whether to index the records imported so far before quitting (the default), quit at once, or resume; the content being imported at that moment is rolled back. See `Modules/Core/docs/IMPORT_FRAMEWORK.md`, "Search indexing during an import".
 
 The command injects `dryRun` and `limit` as named constructor parameters. Source-specific arguments are intentionally not part of the common command contract.
 
