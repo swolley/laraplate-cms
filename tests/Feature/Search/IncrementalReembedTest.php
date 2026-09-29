@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
@@ -201,6 +202,39 @@ it('does not dispatch TranslationRequiresReembedding when vector search is disab
     $content->translations()->where('locale', 'it')->first()->update(['title' => 'Titolo aggiornato']);
 
     Event::assertNotDispatched(TranslationRequiresReembedding::class);
+});
+
+it('reads no content on a translation save when vector search is disabled', function (): void {
+    $content = createReembedTestContent('Titolo di prova', 'Test title');
+    Config::set('core.search.vector.enabled', false);
+    $translation = $content->translations()->where('locale', 'it')->firstOrFail();
+    $reads = [];
+    DB::listen(static function ($query) use (&$reads): void {
+        if (str_starts_with($query->sql, 'select') && (str_contains($query->sql, '"cms_contents"') || str_contains($query->sql, 'core_presettables'))) {
+            $reads[] = $query->sql;
+        }
+    });
+
+    $translation->update(['title' => 'Titolo aggiornato']);
+
+    expect($reads)->toBe([]);
+});
+
+it('reads the content but not its preset to decide a re-embed', function (): void {
+    $content = createReembedTestContent('Titolo di prova', 'Test title');
+    $translation = $content->translations()->where('locale', 'it')->firstOrFail();
+    Event::fake([TranslationRequiresReembedding::class]);
+    $preset_reads = [];
+    DB::listen(static function ($query) use (&$preset_reads): void {
+        if (str_contains($query->sql, 'core_presettables')) {
+            $preset_reads[] = $query->sql;
+        }
+    });
+
+    $translation->update(['title' => 'Titolo aggiornato']);
+
+    Event::assertDispatched(TranslationRequiresReembedding::class, 1);
+    expect($preset_reads)->toBe([]);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

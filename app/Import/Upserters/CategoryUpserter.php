@@ -42,7 +42,8 @@ final class CategoryUpserter
         );
 
         $entity_id = $this->entity_preset_resolver->entityId($dto->entityName, $context, $dto->preferredEntityName);
-        $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName, $context, $dto->preferredEntityName);
+        $presettable = $this->entity_preset_resolver->presettable($dto->entityName, $dto->presetName, $context, $dto->preferredEntityName);
+        $presettable_id = (int) $presettable->id;
         $parent_id = $dto->parentExternalId !== null
             ? $this->reference_resolver->resolve(
                 'categories',
@@ -54,10 +55,21 @@ final class CategoryUpserter
             : null;
 
         if ($existing_id !== null) {
-            $category = $category_model->newQueryWithoutScopes()->with('presettable')->whereKey($existing_id)->firstOrFail();
+            $category = $category_model->newQueryWithoutScopes()->without('presettable')->whereKey($existing_id)->firstOrFail();
+
+            // An existing category keeps its own preset version; only the one
+            // the resolver already holds can be reused without a query. It is
+            // set before any attribute, which would otherwise load it to tell
+            // dynamic fields apart.
+            if ($presettable_id === (int) $category->presettable_id) {
+                $category->setRelation('presettable', $presettable);
+            }
+
             $category->parent_id = $parent_id;
         } else {
-            $category = $category_model->newInstance([
+            $category = $category_model->newInstance();
+            $category->setRelation('presettable', $presettable);
+            $category->fill([
                 'entity_id' => $entity_id,
                 'presettable_id' => $presettable_id,
                 'parent_id' => $parent_id,

@@ -60,16 +60,18 @@ final class ContentUpserter
         );
 
         $entity_id = $this->entity_preset_resolver->entityId($dto->entityName, $context, $dto->preferredEntityName);
-        $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName, $context, $dto->preferredEntityName);
+        $presettable = $this->entity_preset_resolver->presettable($dto->entityName, $dto->presetName, $context, $dto->preferredEntityName);
+        $presettable_id = (int) $presettable->id;
 
         if ($existing_id !== null) {
-            $content = $content_model->newQueryWithoutScopes()->whereKey($existing_id)->firstOrFail();
+            $content = $content_model->newQueryWithoutScopes()->without('presettable')->whereKey($existing_id)->firstOrFail();
         } else {
-            $content = $content_model->newInstance([
-                'entity_id' => $entity_id,
-                'presettable_id' => $presettable_id,
-            ]);
+            $content = $content_model->newInstance();
         }
+
+        // Set before any attribute, which would otherwise load the presettable to
+        // tell dynamic fields apart: the resolver already holds it.
+        $content->setRelation('presettable', $presettable);
 
         $created = $existing_id === null;
 

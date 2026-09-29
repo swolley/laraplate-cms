@@ -32,14 +32,17 @@ final class EntityPresetResolver
     private array $entity_ids = [];
 
     /**
-     * @var array<string, int>
+     * Active presettables, loaded with their preset and entity, so the upserters
+     * can hand them to the models they save instead of each reloading them.
+     *
+     * @var array<string, CmsPresettable>
      */
-    private array $presettable_ids = [];
+    private array $presettables = [];
 
     public function reset(): void
     {
         $this->entity_ids = [];
-        $this->presettable_ids = [];
+        $this->presettables = [];
     }
 
     public function entityId(string $entityName, ?ImportConnectionContext $context = null, ?string $preferredEntityName = null): int
@@ -84,12 +87,17 @@ final class EntityPresetResolver
 
     public function presettableId(string $entityName, string $presetName, ?ImportConnectionContext $context = null, ?string $preferredEntityName = null): int
     {
+        return (int) $this->presettable($entityName, $presetName, $context, $preferredEntityName)->id;
+    }
+
+    public function presettable(string $entityName, string $presetName, ?ImportConnectionContext $context = null, ?string $preferredEntityName = null): CmsPresettable
+    {
         $entityName = ImportEntityNames::normalize($entityName);
 
         $cache_key = "{$entityName}:{$presetName}:" . ($preferredEntityName ?? '');
 
-        if (isset($this->presettable_ids[$cache_key])) {
-            return $this->presettable_ids[$cache_key];
+        if (isset($this->presettables[$cache_key])) {
+            return $this->presettables[$cache_key];
         }
 
         $context ??= new ImportConnectionContext(new Entity);
@@ -115,9 +123,7 @@ final class EntityPresetResolver
             throw new RuntimeException("No active presettable for preset: {$entityName}/{$presetName}");
         }
 
-        $this->presettable_ids[$cache_key] = (int) $presettable->id;
-
-        return (int) $presettable->id;
+        return $this->presettables[$cache_key] = $presettable;
     }
 
     /**

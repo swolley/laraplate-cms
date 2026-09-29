@@ -51,12 +51,23 @@ final class ContributorUpserter
         );
 
         $entity_id = $this->entity_preset_resolver->entityId($dto->entityName, $context, $dto->preferredEntityName);
-        $presettable_id = $this->entity_preset_resolver->presettableId($dto->entityName, $dto->presetName, $context, $dto->preferredEntityName);
+        $presettable = $this->entity_preset_resolver->presettable($dto->entityName, $dto->presetName, $context, $dto->preferredEntityName);
+        $presettable_id = (int) $presettable->id;
 
         if ($existing_id !== null) {
-            $contributor = $contributor_model->newQueryWithoutScopes()->whereKey($existing_id)->firstOrFail();
+            $contributor = $contributor_model->newQueryWithoutScopes()->without('presettable')->whereKey($existing_id)->firstOrFail();
+
+            // An existing contributor keeps its own preset version; only the one
+            // the resolver already holds can be reused without a query. It is set
+            // before any attribute, which would otherwise load it to tell dynamic
+            // fields apart.
+            if ($presettable_id === (int) $contributor->presettable_id) {
+                $contributor->setRelation('presettable', $presettable);
+            }
         } else {
-            $contributor = $contributor_model->newInstance([
+            $contributor = $contributor_model->newInstance();
+            $contributor->setRelation('presettable', $presettable);
+            $contributor->fill([
                 'entity_id' => $entity_id,
                 'presettable_id' => $presettable_id,
                 'name' => $dto->name,

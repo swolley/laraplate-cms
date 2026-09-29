@@ -17,6 +17,7 @@ use Modules\CMS\Models\Pivot\Presettable;
 use Modules\CMS\Models\Tag;
 use Modules\CMS\Tests\TestCase;
 use Modules\Core\Models\Field;
+use Modules\Core\Search\DeferredSearchIndexing;
 use Modules\Core\Services\DynamicContentsService;
 
 uses(TestCase::class, RefreshDatabase::class);
@@ -128,6 +129,30 @@ it('provisions the configured preset fields once per run, not for every graph', 
     $pipeline->import(buildImportGraphFromFixture());
 
     expect($field_queries)->toBe([]);
+});
+
+it('reuses the resolved presettable instead of reloading it for every graph', function (): void {
+    $pipeline = resolve(ImportPipeline::class);
+    $pipeline->import(buildImportGraphFromFixture());
+    $presettable_reads = [];
+    DB::listen(static function ($query) use (&$presettable_reads): void {
+        // Relation loads only: the update validation's exists rule is a separate check.
+        if (str_starts_with($query->sql, 'select * from "core_presettables"')) {
+            $presettable_reads[] = $query->sql;
+        }
+    });
+
+    $content_id = app(DeferredSearchIndexing::class)->run(
+        static fn (): int => $pipeline->import(buildImportGraphFromFixture()),
+        batchSize: 100,
+        discard: true,
+    );
+    $reads_during_import = $presettable_reads;
+
+    $content = Content::query()->withoutGlobalScopes()->findOrFail($content_id);
+    expect($reads_during_import)->toBe([])
+        ->and($content->presettable->preset->name)->toBe('default')
+        ->and($content->categories->first()->presettable_id)->not->toBeNull();
 });
 
 it('provisions the preset fields again after a graph that failed rolled them back', function (): void {

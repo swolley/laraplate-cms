@@ -41,6 +41,12 @@ final class ContentTranslationObserver
      */
     public function saved(ContentTranslation $translation): void
     {
+        // Whether contents are embeddable depends on configuration and the class,
+        // not on the row: answer it before reading the content.
+        if (! (new Content)->isEmbeddable()) {
+            return;
+        }
+
         $content = $this->resolveContent($translation);
 
         // isEmbeddable() covers both "does this model declare $embed" and "is vector
@@ -95,6 +101,7 @@ final class ContentTranslationObserver
         /** @var Content|null $content */
         return Content::query()
             ->withoutGlobalScope(LocaleScope::class)
+            ->without('presettable')
             ->find($translation->content_id);
     }
 
