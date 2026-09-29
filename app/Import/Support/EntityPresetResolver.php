@@ -36,6 +36,12 @@ final class EntityPresetResolver
      */
     private array $presettable_ids = [];
 
+    public function reset(): void
+    {
+        $this->entity_ids = [];
+        $this->presettable_ids = [];
+    }
+
     public function entityId(string $entityName, ?ImportConnectionContext $context = null, ?string $preferredEntityName = null): int
     {
         $entity_type = ImportEntityNames::normalize($entityName);

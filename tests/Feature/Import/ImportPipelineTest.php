@@ -13,8 +13,10 @@ use Modules\CMS\Import\Support\ImportIdMap;
 use Modules\CMS\Models\Category;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Contributor;
+use Modules\CMS\Models\Pivot\Presettable;
 use Modules\CMS\Models\Tag;
 use Modules\CMS\Tests\TestCase;
+use Modules\Core\Models\Field;
 use Modules\Core\Services\DynamicContentsService;
 
 uses(TestCase::class, RefreshDatabase::class);
@@ -110,6 +112,42 @@ it('is idempotent when importing the same graph twice', function (): void {
 
     expect($second_id)->toBe($first_id)
         ->and(Content::query()->withoutGlobalScopes()->count())->toBe(1);
+});
+
+it('provisions the configured preset fields once per run, not for every graph', function (): void {
+    config(['cms.import.presets' => ['contents' => ['default' => ['subtitle' => ['type' => 'text']]]]]);
+    $pipeline = resolve(ImportPipeline::class);
+    $pipeline->import(buildImportGraphFromFixture());
+    $field_queries = [];
+    DB::listen(static function ($query) use (&$field_queries): void {
+        if (str_contains($query->sql, 'core_fields')) {
+            $field_queries[] = $query->sql;
+        }
+    });
+
+    $pipeline->import(buildImportGraphFromFixture());
+
+    expect($field_queries)->toBe([]);
+});
+
+it('provisions the preset fields again after a graph that failed rolled them back', function (): void {
+    config(['cms.import.presets' => ['contents' => ['default' => ['subtitle' => ['type' => 'text']]]]]);
+    $pipeline = resolve(ImportPipeline::class);
+    $fail_once = true;
+    Content::saving(static function () use (&$fail_once): void {
+        if ($fail_once) {
+            $fail_once = false;
+
+            throw new RuntimeException('source record rejected');
+        }
+    });
+    expect(fn (): int => $pipeline->import(buildImportGraphFromFixture()))->toThrow(RuntimeException::class, 'source record rejected');
+
+    $content_id = $pipeline->import(buildImportGraphFromFixture());
+
+    $content = Content::query()->withoutGlobalScopes()->findOrFail($content_id);
+    expect(Field::query()->where('name', 'subtitle')->exists())->toBeTrue()
+        ->and(Presettable::query()->whereKey($content->presettable_id)->exists())->toBeTrue();
 });
 
 it('reuses a soft-deleted tag on re-import instead of failing', function (): void {

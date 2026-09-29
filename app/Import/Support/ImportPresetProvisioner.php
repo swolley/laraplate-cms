@@ -15,6 +15,17 @@ use RuntimeException;
 
 final class ImportPresetProvisioner
 {
+    /**
+     * Presets already provisioned in this run, keyed by connection, entity type,
+     * preset and preferred entity. Every graph of a run names the same few
+     * presets, so checking them and their fields again for each graph only
+     * repeats the same queries. {@see reset()} drops them when a graph fails,
+     * because its rollback may have removed what they point at.
+     *
+     * @var array<string, CmsPresettable>
+     */
+    private array $provisioned = [];
+
     public function __construct(
         private readonly PresetVersioningService $preset_versioning_service,
         private readonly EntityPresetResolver $entity_preset_resolver,
@@ -33,6 +44,12 @@ final class ImportPresetProvisioner
         foreach ($graph->contributors as $contributor) {
             $this->ensurePreset($contributor->entityName, $contributor->presetName, $context, $contributor->preferredEntityName);
         }
+    }
+
+    public function reset(): void
+    {
+        $this->provisioned = [];
+        $this->entity_preset_resolver->reset();
     }
 
     public function assertContext(ImportConnectionContext $context): void
@@ -54,11 +71,18 @@ final class ImportPresetProvisioner
      * Entities are the project's own vocabulary, so the import never creates one:
      * {@see EntityPresetResolver} picks the entity of the requested type, and a
      * missing or ambiguous type stops the run. Presets and their fields, on the
-     * other hand, belong to the import and are created on demand.
+     * other hand, belong to the import and are created on demand, once per run.
      */
     public function ensurePreset(string $entityName, string $presetName, ?ImportConnectionContext $context = null, ?string $preferredEntityName = null): CmsPresettable
     {
         $context ??= new ImportConnectionContext(new Entity);
+        $memo_key = implode('|', [$context->connectionName(), ImportEntityNames::normalize($entityName), $presetName, $preferredEntityName ?? '']);
+
+        return $this->provisioned[$memo_key] ??= $this->provisionPreset($entityName, $presetName, $context, $preferredEntityName);
+    }
+
+    private function provisionPreset(string $entityName, string $presetName, ImportConnectionContext $context, ?string $preferredEntityName): CmsPresettable
+    {
         $entity_id = $this->entity_preset_resolver->entityId($entityName, $context, $preferredEntityName);
         $entity = $context->model(Entity::class)->newQuery()->whereKey($entity_id)->firstOrFail();
 

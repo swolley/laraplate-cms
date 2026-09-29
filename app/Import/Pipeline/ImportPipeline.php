@@ -18,6 +18,7 @@ use Modules\CMS\Import\Upserters\LocationUpserter;
 use Modules\CMS\Import\Upserters\TagUpserter;
 use Modules\CMS\Models\Content;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 final class ImportPipeline
 {
@@ -43,15 +44,23 @@ final class ImportPipeline
 
         $context->preflight($this->participantModelClasses($graph));
 
-        return $context->connection()->transaction(
-            fn (): int => $this->importGraph($graph, $context, $output),
-        );
+        try {
+            return $context->connection()->transaction(
+                fn (): int => $this->importGraph($graph, $context, $output),
+            );
+        } catch (Throwable $exception) {
+            // The rollback may have removed rows the run state points at.
+            $this->resetState();
+
+            throw $exception;
+        }
     }
 
     public function resetState(): void
     {
         $this->id_map->reset();
         $this->contributor_defaults->reset();
+        $this->preset_provisioner->reset();
     }
 
     private function importGraph(
