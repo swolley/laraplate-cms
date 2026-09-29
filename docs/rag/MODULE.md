@@ -384,7 +384,7 @@ CMS registers panel resources through `CMSPlugin` (`Modules/CMS/app/Filament/CMS
 
 - Depends on `Core` for identity, permissions, lifecycle traits, dynamic entities/presets/translations, and shared CRUD infrastructure.
 - Should not duplicate cross-cutting capabilities already provided by `Core` (approvals, locking, versioning, ACL mechanics).
-- `Tag` and `Media` are CMS-owned but conceptually cross-cutting: see the embryonic `ecommerce` plan for the long-term ownership decision (`Product` as anchor with FKs to `Content` and ERP `Item`, no duplication of fields).
+- `Tag` and `Media` are CMS-owned but conceptually cross-cutting: see the Shop module design spec (`docs/superpowers/specs/2026-09-17-shop-module-design.md`) for the long-term ownership decision (`Product` as anchor with FKs to `Content` and ERP `Item`, no duplication of fields).
 
 ## Common pitfalls
 

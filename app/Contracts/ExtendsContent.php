@@ -18,7 +18,7 @@ use Modules\CMS\Models\Content;
 interface ExtendsContent
 {
     /**
-     * The stable morph alias for this extender (convention `module.model`, e.g. `ecommerce.product`).
+     * The stable morph alias for this extender (convention `module.model`, e.g. `shop.product`).
      */
     public function contentAlias(): string;
 
