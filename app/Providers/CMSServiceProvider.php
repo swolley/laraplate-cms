@@ -18,11 +18,13 @@ use Modules\CMS\Observers\ContentTranslationObserver;
 use Modules\CMS\Observers\PlaceObserver;
 use Modules\CMS\Services\CommentModerationAdapter;
 use Modules\CMS\Services\ContentExtenderRegistry;
+use Modules\CMS\Services\ContentOwnerAuthorizer;
 use Modules\Core\ApplicationContent\Contracts\ApplicationContentRetrievalProviderRegistryInterface;
 use Modules\Core\Graph\Contracts\GraphProviderRegistryInterface;
 use Modules\Core\Import\Support\EntityImporterRegistry;
 use Modules\Core\Models\Place;
 use Modules\Core\Overrides\ModuleServiceProvider;
+use Modules\Core\Search\OwnerAuthorizerRegistry;
 use Modules\Core\Services\ModerationAdapterRegistry;
 use Override;
 
@@ -67,6 +69,10 @@ final class CMSServiceProvider extends ModuleServiceProvider
         $this->app
             ->make(ApplicationContentRetrievalProviderRegistryInterface::class)
             ->register($this->app->make(CmsApplicationContentRetrievalProvider::class));
+
+        $this->app
+            ->make(OwnerAuthorizerRegistry::class)
+            ->register($this->app->make(ContentOwnerAuthorizer::class));
 
         // Observe Place model to dispatch geocoding jobs when address fields change.
         // Address fields (address, city, province, country) are stored on Place via HasPlace,
