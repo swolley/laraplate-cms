@@ -2,6 +2,82 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.46.0] - 2026-09-29
+
+### 🚀 Features
+
+- *(content-extension)* Add nullable extended_type column to contents (C1, C3)
+- *(content-extension)* ContentExtenderRegistry + ExtendsContent contract (C2, C7, C13)
+- *(content-extension)* Default-hide scope + withExtended() on Content (C3, C4, C16)
+- *(content-extension)* ExtendsContentTrait + stub extender (C2, C8, C15, C17)
+- *(content-extension)* Batched upcast resolver (C5, C6, C12, C15)
+- *(content-extension)* Both-direction lifecycle with cascade guard (C9, C10)
+- *(content-extension)* Index extended contents with an extension section (C11)
+- *(content-extension)* Compose the extension index mapping from extenders (C11, C14)
+- *(content-extension)* Filter extended contents out of generic search (point 4, C11)
+- *(contents)* Add extended_type column to contents table for content extension support
+- *(cms)* Dashboard shows editorial work waiting for someone
+- *(cms)* Comments resource right after contents
+- *(cms)* Drafts are deleted directly, comment deletes skip moderation
+- *(cms)* Create and edit pages say Close until something is unsaved
+- *(cms)* Content, comment and preset pages report writes sent for approval
+- *(search)* Media attached to a content follow the content's visibility (M16)
+- *(readme)* Update README with new logo and PHP version badge
+- *(filament)* Attach media curation relation manager to Content (media analysis Task 13b, M22)
+
+### 🐛 Bug Fixes
+
+- *(cms)* Content::getEntityType() is public, as the trait declares it
+- *(cms)* Run the content extender save on the model connection
+- *(cms)* Scope presets to their own entity's type
+- *(cms)* The post-import reindex honours the null search driver
+- *(cms)* Index Editor.js components as plain text
+
+### 🚜 Refactor
+
+- *(Content)* Remove unused childTypes property and makeFromEntity method
+- *(models)* Drop the IdeHelper mixins, declare the validity contract
+- *(models)* Declare the search contract on the indexed models
+- Narrow findOrFail to a single record with whereKey()->firstOrFail()
+- *(cms)* Spell out the row shapes the graph queries return
+- *(cms)* Comment adapter exposes its model, drop unread locale setting
+- *(cms)* Seed settings without the module prefix
+- *(cms)* Replace ucfirst with Str::studly for consistent naming conventions
+- *(cms)* Comment capture rides the shared listener
+- *(cms)* Comment captures record their operation
+- *(cms)* Content no longer overrides the decided-modification flags
+- *(cms)* Comments leave the approved event to the vote service
+
+### 📚 Documentation
+
+- *(rag)* Describe how the module is released from the application
+- *(content-extension)* Developer doc for the content-extension seam
+- *(content-extension)* Generic search now filters extended contents (point 4 built)
+- Add work in progress caution to README
+- Approvals cover deletes and restores
+- *(cms)* Imports queue their search flushes and report them
+
+### ⚡ Performance
+
+- *(migrations)* Index all foreign-key and row-scoping columns
+- *(cms)* Eager-load category ancestors for the search document
+- *(cms)* Provision import presets and fields once per run
+- *(cms)* Imports reuse the resolved presettable instead of reloading it
+
+### 🧪 Testing
+
+- *(casts)* Expect the validation rule Laravel actually has
+- Move the last UnitShell file to Integration and drop the directory
+
+### ⚙️ Miscellaneous Tasks
+
+- Rimuove docblock ide-helper generati dai model
+- Add IdeHelper mixin annotations to various models for improved IDE support
+- Instance call for a locally used static method, and docblock trim
+- *(cms)* TagFactory returns a string to uniqueValue()
+- *(cms)* Drop commented config entries moved to runtime settings
+- *(cms)* Comment capture no longer reads the approval package config
+
 ## [1.45.0] - 2026-09-15
 
 ### 🚀 Features
