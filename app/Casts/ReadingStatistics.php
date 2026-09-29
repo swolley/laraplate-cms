@@ -100,6 +100,33 @@ final readonly class ReadingStatistics implements JsonSerializable
         );
     }
 
+    /**
+     * The readable text of Editor.js blocks as one plain string: the same
+     * text-bearing parts the metrics count (text, caption, list items, table
+     * cells, raw html), tags removed, entities decoded, whitespace collapsed.
+     * Punctuation is kept, unlike {@see cleanText()}.
+     *
+     * @param  iterable<int, mixed>  $blocks
+     */
+    public static function plainText(iterable $blocks): string
+    {
+        $chunks = [];
+
+        foreach (self::normalizeBlocksList($blocks) as $block) {
+            foreach (self::collectMetricSegments($block) as $segment) {
+                $plain = preg_replace('/<[^>]*>/u', ' ', self::stripFindMarksFromHtmlString($segment)) ?? '';
+                $plain = html_entity_decode($plain, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                $plain = mb_trim(preg_replace('/\s+/u', ' ', $plain) ?? '');
+
+                if ($plain !== '') {
+                    $chunks[] = $plain;
+                }
+            }
+        }
+
+        return implode(' ', $chunks);
+    }
+
     public static function stripFindMarksFromHtmlString(string $html): string
     {
         if ($html === '') {

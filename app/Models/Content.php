@@ -370,9 +370,7 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
             $slug[$locale] = $translation->slug;
 
             foreach (($translation->components ?? []) as $field => $value) {
-                $components[$field][$locale] = is_string($value)
-                    ? Str::replaceMatches('/\\n|\\r|\\t/', '', $value)
-                    : $value;
+                $components[$field][$locale] = $this->searchableComponentValue($value);
             }
         }
 
@@ -735,6 +733,27 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
                 return ReadingStatistics::fromBlocks($blocks);
             },
         );
+    }
+
+    /**
+     * An Editor.js document is indexed as its plain text: its blocks differ in
+     * shape (the same `data` key is a string in one block type and an object in
+     * another), so indexing them as they are breaks the engine's field mapping,
+     * and only their text is worth searching.
+     */
+    private function searchableComponentValue(mixed $value): mixed
+    {
+        if (is_string($value)) {
+            return Str::replaceMatches('/\\n|\\r|\\t/', '', $value);
+        }
+
+        $blocks = match (true) {
+            is_array($value) && array_key_exists('blocks', $value) => $value['blocks'],
+            is_object($value) && property_exists($value, 'blocks') => $value->blocks,
+            default => null,
+        };
+
+        return is_iterable($blocks) ? ReadingStatistics::plainText($blocks) : $value;
     }
 
     /**

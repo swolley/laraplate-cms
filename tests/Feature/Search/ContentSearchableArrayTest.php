@@ -73,6 +73,22 @@ it('indexes Content title/slug as locale-keyed objects with a locales list, not 
         ->and($document['locales'])->toEqualCanonicalizing(['it', 'en']);
 });
 
+it('indexes an Editor.js component as its plain text, whatever blocks it holds', function (): void {
+    $content = createBilingualSearchableContent('Titolo di prova', 'Test title');
+    $content->translations()->where('locale', 'it')->firstOrFail()->forceFill(['components' => [
+        'content' => ['blocks' => [
+            ['type' => 'paragraph', 'data' => ['text' => 'Primo <i>paragrafo</i>']],
+            ['type' => 'quote', 'data' => ['text' => 'Una citazione', 'caption' => 'Autore', 'source' => ['url' => null, 'name' => null]]],
+        ]],
+        'subtitle' => 'Sottotitolo',
+    ]])->save();
+
+    $document = $content->fresh(['translations'])->toSearchableArray();
+
+    expect($document['content']['it'])->toBe('Primo paragrafo Una citazione Autore')
+        ->and($document['subtitle']['it'])->toBe('Sottotitolo');
+});
+
 it('declares the Content search mapping with locale-keyed title/slug objects, a locales field, and the nested embeddings vector', function (): void {
     $content = createBilingualSearchableContent('Titolo di prova', 'Test title');
 
