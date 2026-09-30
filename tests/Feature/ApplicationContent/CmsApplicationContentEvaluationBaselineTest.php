@@ -34,7 +34,14 @@ function createCmsEvaluationContent(
     return $content->fresh();
 }
 
-it('reproduces the committed record-level baseline from generated CMS records', function (): void {
+/**
+ * Seeds the generated CMS corpus and evaluates the committed fixture dataset through the
+ * registered `cms.contents` provider, with a deterministic clock.
+ *
+ * @return array<string, mixed>
+ */
+function cmsBaselineEvaluationReport(): array
+{
     setupCMSEntities([EntityType::Contents]);
     $exact = [
         9101 => ['account setup guide', 'en'],
@@ -85,12 +92,17 @@ it('reproduces the committed record-level baseline from generated CMS records', 
             return $current;
         },
     );
-    $report = $evaluation->evaluate(
+
+    return $evaluation->evaluate(
         $dataset,
         'cms.contents',
         'database-generated-fixture',
         static fn ($query, $authorization) => $provider->retrieve($query, $authorization),
     );
+}
+
+it('reproduces the committed record-level baseline from generated CMS records', function (): void {
+    $report = cmsBaselineEvaluationReport();
     $artifact_path = module_path('CMS', 'docs/evaluations/application-content/2026-07-record-baseline.json');
 
     if (getenv('APP_CONTENT_BASELINE_REGEN') === '1') {
@@ -102,4 +114,33 @@ it('reproduces the committed record-level baseline from generated CMS records', 
     expect($report)->toBe($artifact)
         ->and($report['metrics']['unavailable_rate'])->toBe(0.0)
         ->and($report['slices']['category']['passage_candidate']['supported_answer_rate'])->toBe(0.0);
+});
+
+/**
+ * Retrieval tuning profile regression gate (measured retrieval tuning L1).
+ *
+ * With `core.search.adaptive_tuning` on, the committed `Modules/Core/config/search_tuning.php`
+ * profile must not score below the committed baseline on `ndcg_at_5` or `recall_at_5`, within
+ * one rounding unit of the 4-decimal report. With the switch off
+ * the test above already asserts the baseline artifact byte for byte.
+ *
+ * The test suite runs Scout on the `collection` driver, so the provider answers through its
+ * lexical fallback and a profile change cannot move these numbers here: the gate guards the
+ * wiring, and the measurement that justifies a profile is `php artisan ai:tune-retrieval` against
+ * a real engine. When a new profile legitimately changes this fixture's ordering, regenerate the
+ * baseline as for the test above (`APP_CONTENT_BASELINE_REGEN=1`), review the diff, and commit it
+ * together with the profile.
+ */
+it('does not regress the committed baseline with the retrieval tuning profile applied', function (): void {
+    $tolerance = 0.0001;
+    config()->set('core.search.adaptive_tuning', true);
+
+    $report = cmsBaselineEvaluationReport();
+    $artifact = json_decode((string) file_get_contents(
+        module_path('CMS', 'docs/evaluations/application-content/2026-07-record-baseline.json'),
+    ), true, flags: JSON_THROW_ON_ERROR);
+
+    foreach (['ndcg_at_5', 'recall_at_5'] as $metric) {
+        expect($report['metrics'][$metric])->toBeGreaterThanOrEqual($artifact['metrics'][$metric] - $tolerance);
+    }
 });
