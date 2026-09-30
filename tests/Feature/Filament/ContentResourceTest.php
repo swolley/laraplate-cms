@@ -9,6 +9,7 @@ use Livewire\Livewire;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Filament\Resources\Contents\ContentResource;
 use Modules\CMS\Filament\Resources\Contents\Pages\EditContent;
+use Modules\CMS\Filament\Resources\Contents\Pages\ListContents;
 use Modules\CMS\Filament\Resources\Contents\Tables\ContentsTable;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Tests\TestCase;
@@ -119,4 +120,38 @@ it('returns no content when filtering by a preset nothing uses', function (): vo
 
 it('registers the media curation relation manager', function (): void {
     expect(ContentResource::getRelations())->toContain(MediaRelationManager::class);
+});
+
+it('renders the contents list with a query count that does not grow with the rows', function (): void {
+    $superadmin_role = Role::query()->firstOrCreate(['name' => config('permission.roles.superadmin'), 'guard_name' => 'web']);
+    auth()->user()->roles()->attach($superadmin_role);
+    auth()->user()->load('roles');
+
+    $connection = (new Content)->getConnection();
+    $count_list_queries = static function (int $expected_rows) use ($connection): int {
+        $component = Livewire::test(ListContents::class)->set('tableRecordsPerPage', 25);
+        $connection->flushQueryLog();
+        $connection->enableQueryLog();
+
+        try {
+            $component->call('loadTable')
+                ->assertSuccessful()
+                ->assertCanSeeTableRecords(Content::query()->get())
+                ->assertCountTableRecords($expected_rows);
+
+            return count($connection->getQueryLog());
+        } finally {
+            $connection->disableQueryLog();
+            $connection->flushQueryLog();
+        }
+    };
+
+    Content::factory()->create();
+    $count_list_queries(1);
+    $queries_with_one_row = $count_list_queries(1);
+
+    Content::factory()->count(24)->create();
+    $queries_with_25_rows = $count_list_queries(25);
+
+    expect($queries_with_25_rows)->toBeLessThanOrEqual($queries_with_one_row);
 });
