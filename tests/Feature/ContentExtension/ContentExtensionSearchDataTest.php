@@ -3,12 +3,14 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Services\ContentExtenderRegistry;
 use Modules\CMS\Tests\Stubs\ContentExtension\StubExtendedThing;
 use Modules\CMS\Tests\TestCase;
+use Modules\Core\Events\ModelRequiresIndexing;
 
 uses(TestCase::class, RefreshDatabase::class);
 
@@ -59,4 +61,22 @@ it('includes extended contents in the bulk search import query', function (): vo
     $ids = (new Content())->makeAllSearchableUsing(Content::query())->pluck('id')->all();
 
     expect($ids)->toContain($stub->content_id);
+});
+
+it('re-sends the content to the index when its extender changes', function (): void {
+    $stub = new StubExtendedThing(['brand' => 'Acme', 'sku' => 'SKU-9']);
+    $stub->setTempContent(Content::factory()->make());
+    $stub->save();
+
+    Event::fake([ModelRequiresIndexing::class]);
+
+    $stub->refresh();
+    $stub->brand = 'Globex';
+    $stub->save();
+
+    Event::assertDispatched(
+        ModelRequiresIndexing::class,
+        static fn (ModelRequiresIndexing $event): bool => $event->model instanceof Content && $stub->content_id === $event->model->getKey(),
+    );
+    expect(Content::withExtended()->findOrFail($stub->content_id)->toSearchableArray()['extension']['brand'])->toBe('Globex');
 });

@@ -37,7 +37,11 @@ C1–C18).
   `getSearchMapping()` composes the `extension` mapping from every registered extender's
   `searchableExtensionMapping()`. No ERP/external data is indexed. A module reindex is document-scoped
   (`Content::withExtended()->where('extended_type', $alias)->searchable()`), never an index-lifecycle
-  command against `contents`.
+  command against `contents`: only Core's search engines and commands create or drop an index, which
+  `Modules/Core/tests/Unit/Architecture/SearchIndexLifecycleOwnershipTest.php` enforces. An extender
+  never has to reindex its content by hand: `ExtendsContentTrait` re-sends the content to the index after
+  every extender save, since the content is saved before its extender and an extender edit alone never
+  touches the content.
 
 ## Becoming a consumer
 

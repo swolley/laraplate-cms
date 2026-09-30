@@ -37,6 +37,18 @@ trait ExtendsContentTrait
      */
     public static function bootExtendsContentTrait(): void
     {
+        // The content's search document carries the extender's `searchableExtension()` fields, but
+        // the content is saved (and indexed) before its extender in `save()`, and an extender edit
+        // alone never touches the content. Re-send the content after every extender save so its
+        // document never lags behind the extension.
+        static::saved(static function (Model $model): void {
+            $content = $model->getRelationValue('content');
+
+            if ($content instanceof Content && ! $content->trashed()) {
+                $content->searchable();
+            }
+        });
+
         static::deleting(static function (Model $model): void {
             ContentExtensionCascade::guard(static function () use ($model): void {
                 $content = $model->getRelationValue('content');
