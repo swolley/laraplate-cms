@@ -68,7 +68,11 @@ final class CommentApprovalCapture
         return $diff;
     }
 
-    public static function capture(Comment $comment): bool
+    /**
+     * Turn a comment write into a pending modification. Returns that modification, or null when the
+     * comment has nothing to capture and may be saved directly.
+     */
+    public static function capture(Comment $comment): ?Modification
     {
         $diff = Collection::make($comment->getDirty())
             ->transform(static fn (mixed $value, string $key): array => [
@@ -80,7 +84,7 @@ final class CommentApprovalCapture
         $diff = self::enrichDiff($comment, $diff);
 
         if ($diff === []) {
-            return true;
+            return null;
         }
 
         $encoded_diff = self::encodeDiff($diff);
@@ -118,7 +122,7 @@ final class CommentApprovalCapture
             $comment->modifications()->save($modification);
         }
 
-        return false;
+        return $modification;
     }
 
     /**

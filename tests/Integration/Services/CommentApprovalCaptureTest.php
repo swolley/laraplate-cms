@@ -22,7 +22,7 @@ it('enriches diffs with parent id changes', function (): void {
 });
 
 it('allows capture when there are no modifications', function (): void {
-    expect(CommentApprovalCapture::capture(new Comment()))->toBeTrue();
+    expect(CommentApprovalCapture::capture(new Comment()))->toBeNull();
 });
 
 it('enriches diffs with pending rating score changes', function (): void {

@@ -38,7 +38,8 @@ it('does not list pending comments until approved', function (): void {
     $comment->save();
 
     expect(Comment::query()->count())->toBe(0)
-        ->and(Modification::query()->where('modifiable_type', Comment::class)->where('active', true)->exists())->toBeTrue();
+        ->and(Modification::query()->where('modifiable_type', Comment::class)->where('active', true)->exists())->toBeTrue()
+        ->and($comment->pendingModification()?->modifications['body']['modified'] ?? null)->toBe('Awaiting approval');
 });
 
 it('dispatches ModificationRequiresModeration when modification is created', function (): void {

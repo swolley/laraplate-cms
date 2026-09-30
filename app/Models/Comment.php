@@ -47,9 +47,21 @@ final class Comment extends Model
         'user_id',
     ];
 
+    /**
+     * The captured request is kept on the instance, so callers such as the CRUD API report the
+     * comment as sent for moderation rather than as created.
+     */
     public static function captureSave(self $item): bool
     {
-        return CommentApprovalCapture::capture($item);
+        $modification = CommentApprovalCapture::capture($item);
+
+        if ($modification === null) {
+            return true;
+        }
+
+        $item->pendingModification = $modification;
+
+        return false;
     }
 
     /**
