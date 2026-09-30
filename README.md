@@ -70,7 +70,7 @@ The map and tag-graph surfaces (dashboard widgets and the facet alternative-sele
 
 ## Graph runtime benchmark
 
-CMS includes an opt-in benchmark for Core Graph runtime traversal over realistic content relations. The benchmark is intentionally outside the normal PHPUnit suites and is skipped unless explicitly enabled. Run it when changing Core Graph traversal/search behavior, CMS graph provider defaults, or before deciding whether Phase 5 materialized edges are justified.
+CMS includes an opt-in benchmark for Core Graph runtime traversal over realistic content relations. The benchmark is intentionally outside the normal PHPUnit suites and is skipped unless explicitly enabled. Run it when changing Core Graph traversal/search behavior, CMS graph provider defaults, or before reopening the question of materialized graph edges, which were evaluated and not built (see `Modules/Core/docs/GRAPH_SYSTEM.md`).
 
 ```bash
 CMS_GRAPH_BENCHMARK_ENABLED=true rtk php artisan test --compact Modules/CMS/tests/Benchmark/CmsGraphRuntimeBenchmarkTest.php
