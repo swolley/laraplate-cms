@@ -17,7 +17,7 @@
         "comments",
         "content_ratings"
     ],
-    "priority": 99,
+    "priority": 10,
     "providers": [
         "Modules\\CMS\\Providers\\CMSServiceProvider"
     ],
