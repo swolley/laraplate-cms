@@ -32,6 +32,8 @@ When the sibling `laraplate-importers` checkout is available, running `php artis
 
 Imported records are indexed in deferred bulk flushes, not one by one: every `--index-batch` distinct records and at the end, with the embeddings of all locales generated in one batched pass. With `scout.queue` on, each flush is queued on the `indexing` queue and a worker does the embeddings and engine writes; the command prints one `Search: ...` line per flushed chunk. `CMS_IMPORT_REINDEX` is therefore not needed to index the imported records; when enabled it reindexes every `Content`. Pressing Ctrl+C asks whether to index the records imported so far before quitting (the default), quit at once, or resume; the content being imported at that moment is rolled back. See `Modules/Core/docs/IMPORT_FRAMEWORK.md`, "Search indexing during an import".
 
+Within one run the pipeline writes each category, contributor and tag once: a later article that carries the same entity with an identical payload reuses the local id already in the run's `ImportIdMap` instead of loading, saving and registering it again. A changed payload is written again, and a graph that rolls back clears the map, so the next article writes its entities afresh. Nothing is carried between runs.
+
 The command injects `dryRun` and `limit` as named constructor parameters. Source-specific arguments are intentionally not part of the common command contract.
 
 ## Dry-run boundary

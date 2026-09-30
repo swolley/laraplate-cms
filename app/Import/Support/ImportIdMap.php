@@ -13,6 +13,11 @@ final class ImportIdMap
      */
     private array $map = [];
 
+    /**
+     * @var array<string, string>
+     */
+    private array $upserted = [];
+
     public function remember(
         string $entity,
         int $externalId,
@@ -72,9 +77,40 @@ final class ImportIdMap
         return array_values(array_unique($resolved));
     }
 
+    /**
+     * Records the payload fingerprint an entity was last written with in this run.
+     */
+    public function markUpserted(
+        string $entity,
+        int $externalId,
+        ?string $connectionName,
+        ?string $sourceType,
+        string $fingerprint,
+    ): void {
+        $this->upserted[$this->key($entity, $externalId, $connectionName, $sourceType)] = $fingerprint;
+    }
+
+    /**
+     * Whether the entity was already written in this run with exactly this payload,
+     * so writing it again would change nothing. It also needs a remembered local
+     * id, because that is what the caller resolves instead of upserting.
+     */
+    public function isUpserted(
+        string $entity,
+        int $externalId,
+        ?string $connectionName,
+        ?string $sourceType,
+        string $fingerprint,
+    ): bool {
+        $key = $this->key($entity, $externalId, $connectionName, $sourceType);
+
+        return ($this->upserted[$key] ?? null) === $fingerprint && isset($this->map[$key]);
+    }
+
     public function reset(): void
     {
         $this->map = [];
+        $this->upserted = [];
     }
 
     private function key(string $entity, int $externalId, ?string $connectionName, ?string $sourceType): string

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Import\Pipeline;
 
+use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Modules\CMS\Import\Dto\ImportGraphDto;
 use Modules\CMS\Import\Support\CategoryHierarchySorter;
@@ -17,6 +18,7 @@ use Modules\CMS\Import\Upserters\ContributorUpserter;
 use Modules\CMS\Import\Upserters\LocationUpserter;
 use Modules\CMS\Import\Upserters\TagUpserter;
 use Modules\CMS\Models\Content;
+use Modules\Core\Import\Support\ImportFingerprint;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -71,15 +73,36 @@ final class ImportPipeline
         $this->preset_provisioner->provisionFromGraph($graph, $context);
 
         foreach ($this->category_sorter->sort($graph->categories) as $category) {
-            $this->category_upserter->upsert($category, $context);
+            $this->upsertUnlessWritten(
+                'categories',
+                $category->externalId,
+                $category->sourceType,
+                $category,
+                $context,
+                fn (): int => $this->category_upserter->upsert($category, $context),
+            );
         }
 
         foreach ($graph->contributors as $contributor) {
-            $this->contributor_upserter->upsert($contributor, $context);
+            $this->upsertUnlessWritten(
+                'contributors',
+                $contributor->externalId,
+                $contributor->sourceType,
+                $contributor,
+                $context,
+                fn (): int => $this->contributor_upserter->upsert($contributor, $context),
+            );
         }
 
         foreach ($graph->tags as $tag) {
-            $this->tag_upserter->upsert($tag, $context);
+            $this->upsertUnlessWritten(
+                'tags',
+                $tag->externalId,
+                $tag->sourceType,
+                $tag,
+                $context,
+                fn (): int => $this->tag_upserter->upsert($tag, $context),
+            );
         }
 
         $location_ids = [];
@@ -125,6 +148,38 @@ final class ImportPipeline
             $context,
             $output,
         );
+    }
+
+    /**
+     * The source repeats the same categories, contributors and tags on most articles,
+     * and writing an unchanged one again costs a dozen queries. An entity already
+     * written in this run with the same payload is left alone: its local id is in the
+     * run's id map, and a rolled-back graph clears that map with {@see resetState()}.
+     *
+     * @param  Closure(): int  $upsert
+     */
+    private function upsertUnlessWritten(
+        string $entity,
+        int $external_id,
+        string $source_type,
+        object $dto,
+        ImportConnectionContext $context,
+        Closure $upsert,
+    ): void {
+        $fingerprint = ImportFingerprint::of($dto);
+
+        if ($fingerprint === null) {
+            $upsert();
+
+            return;
+        }
+
+        if ($this->id_map->isUpserted($entity, $external_id, $context->connectionName(), $source_type, $fingerprint)) {
+            return;
+        }
+
+        $upsert();
+        $this->id_map->markUpserted($entity, $external_id, $context->connectionName(), $source_type, $fingerprint);
     }
 
     /**

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\CMS\Import\Dto\ImportContentDto;
 use Modules\CMS\Import\Dto\ImportGraphDto;
 use Modules\CMS\Import\Dto\ImportRelatedContentDto;
+use Modules\CMS\Import\Dto\ImportTagDto;
 use Modules\CMS\Import\Pipeline\ImportPipeline;
 use Modules\CMS\Import\Support\ImportIdMap;
 use Modules\CMS\Models\Category;
@@ -317,4 +318,83 @@ it('imports related contents into cms_relatables within the same graph', functio
 
     expect($parent->related)->toHaveCount(1)
         ->and($parent->related->first()?->slug)->toBe('related-story');
+});
+
+/**
+ * A second article of the same run: new content, same category, contributor and tag payloads.
+ */
+function secondArticleGraph(ImportGraphDto $first, ?ImportTagDto $tag = null): ImportGraphDto
+{
+    $vars = get_object_vars($first->content);
+    $vars['title'] = 'Second imported article';
+    $vars['slug'] = 'second-imported-article';
+    $vars['externalId'] = 999001;
+    $vars['familyExternalIds'] = [];
+
+    return new ImportGraphDto(
+        content: new ImportContentDto(...$vars),
+        categories: $first->categories,
+        contributors: $first->contributors,
+        tags: $tag instanceof ImportTagDto ? [$tag] : $first->tags,
+    );
+}
+
+it('does not rewrite categories, contributors and tags already written with the same payload in the run', function (): void {
+    $pipeline = resolve(ImportPipeline::class);
+    $first = buildImportGraphFromFixture();
+    $pipeline->import($first);
+    $shared_writes = [];
+    DB::listen(static function ($query) use (&$shared_writes): void {
+        $shared_tables = '"(cms_tags|cms_tags_translations|cms_contributors|cms_contributors_translations|core_taxonomies|core_taxonomies_translations)"';
+
+        if (preg_match('/^(insert|update|delete)\b[^(]*' . $shared_tables . '/i', $query->sql) === 1) {
+            $shared_writes[] = $query->sql;
+        }
+    });
+
+    $content_id = $pipeline->import(secondArticleGraph($first));
+
+    $content = Content::query()->withoutGlobalScopes()->findOrFail($content_id);
+    expect($shared_writes)->toBe([])
+        ->and($content->categories)->toHaveCount(1)
+        ->and($content->contributors)->toHaveCount(1)
+        ->and($content->tags)->toHaveCount(1)
+        ->and(Category::query()->withoutGlobalScopes()->count())->toBe(1)
+        ->and(Contributor::query()->withoutGlobalScopes()->count())->toBe(1)
+        ->and(Tag::query()->withoutGlobalScopes()->count())->toBe(1);
+});
+
+it('writes a tag again when its payload changed between two articles of the run', function (): void {
+    $pipeline = resolve(ImportPipeline::class);
+    $first = buildImportGraphFromFixture();
+    $pipeline->import($first);
+    $renamed = new ImportTagDto(...[...get_object_vars($first->tags[0]), 'name' => 'Renamed tag']);
+
+    $content_id = $pipeline->import(secondArticleGraph($first, $renamed));
+
+    $content = Content::query()->withoutGlobalScopes()->findOrFail($content_id);
+    expect(Tag::query()->withoutGlobalScopes()->count())->toBe(1)
+        ->and($content->tags->first()?->name)->toBe('Renamed tag');
+});
+
+it('writes the shared entities again after a graph that failed rolled them back', function (): void {
+    $pipeline = resolve(ImportPipeline::class);
+    $first = buildImportGraphFromFixture();
+    $fail_once = true;
+    Content::saving(static function () use (&$fail_once): void {
+        if ($fail_once) {
+            $fail_once = false;
+
+            throw new RuntimeException('source record rejected');
+        }
+    });
+    expect(fn (): int => $pipeline->import($first))->toThrow(RuntimeException::class, 'source record rejected');
+    expect(Tag::query()->withoutGlobalScopes()->count())->toBe(0);
+
+    $content_id = $pipeline->import(secondArticleGraph($first));
+
+    $content = Content::query()->withoutGlobalScopes()->findOrFail($content_id);
+    expect($content->categories)->toHaveCount(1)
+        ->and($content->contributors)->toHaveCount(1)
+        ->and($content->tags)->toHaveCount(1);
 });
