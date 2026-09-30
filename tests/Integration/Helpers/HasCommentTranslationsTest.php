@@ -17,10 +17,13 @@ beforeEach(function (): void {
 });
 
 it('returns current locale body when translation exists', function (): void {
-    $comment = Comment::query()->create([
+    // A bare comment: these tests add its translations by hand.
+    $comment = new Comment([
         'content_id' => createMinimalTestContentForComments()->id,
         'user_id' => Modules\Core\Models\User::factory()->create()->id,
     ]);
+    $comment->setSkipValidation(true);
+    $comment->save();
 
     CommentTranslation::query()->create([
         'comment_id' => $comment->id,
@@ -34,10 +37,13 @@ it('returns current locale body when translation exists', function (): void {
 });
 
 it('falls back to oldest created translation when current locale missing', function (): void {
-    $comment = Comment::query()->create([
+    // A bare comment: these tests add its translations by hand.
+    $comment = new Comment([
         'content_id' => createMinimalTestContentForComments()->id,
         'user_id' => Modules\Core\Models\User::factory()->create()->id,
     ]);
+    $comment->setSkipValidation(true);
+    $comment->save();
 
     $italian = new CommentTranslation([
         'comment_id' => $comment->id,
@@ -56,10 +62,13 @@ it('falls back to oldest created translation when current locale missing', funct
 it('does not fall back to config app locale when older original is another locale', function (): void {
     Config::set('app.locale', 'en');
 
-    $comment = Comment::query()->create([
+    // A bare comment: these tests add its translations by hand.
+    $comment = new Comment([
         'content_id' => createMinimalTestContentForComments()->id,
         'user_id' => Modules\Core\Models\User::factory()->create()->id,
     ]);
+    $comment->setSkipValidation(true);
+    $comment->save();
 
     $french = new CommentTranslation([
         'comment_id' => $comment->id,

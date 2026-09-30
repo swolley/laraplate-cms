@@ -32,6 +32,19 @@ See also: `Modules/Core/docs/rag/EVENT_ORCHESTRATION.md`, `Modules/AI/docs/rag/M
 
 Only creations and updates of a comment go through moderation (`Comment::approvalOperations()`): its author deletes their own comment directly, and a comment's deletion never becomes a request. The author may also withdraw a pending comment request from Modifications before it is decided.
 
+## HowToUse — posting and moderating over the API
+
+The application creates comments through the generic CRUD API: `POST /app/crud/insert/cms/comments`
+with `content_id`, `body`, and optionally `parent_id` (a reply) and `rating_score` (1-5). The author is
+the authenticated user unless `user_id` is given. The comment is validated before it is captured
+(`Comment::getRules()`: the content and the parent must exist, the text is required, the rating is
+1-5), so an invalid comment answers 422 and never becomes a request. A valid one answers `202` with
+`{modification, operation: "create"}`: it is not visible until approved.
+
+A moderator approves or rejects it with `PATCH /app/crud/approve|disapprove/cms/comments` and
+`modification` set to that id, with no `id`: a pending comment has no record yet. On approval the
+comment is created with its text and author and becomes visible.
+
 ## HowToUse — CommentModerationAdapter
 
 **Path:** `Modules/CMS/app/Services/CommentModerationAdapter.php`

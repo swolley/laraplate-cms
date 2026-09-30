@@ -9,6 +9,7 @@ use Modules\CMS\Models\Comment;
 use Modules\CMS\Models\Content;
 use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Models\User;
+use Override;
 
 /**
  * @extends Factory<Comment>
@@ -25,7 +26,20 @@ final class CommentFactory extends Factory
         return [
             'content_id' => Content::factory(),
             'user_id' => User::factory(),
+            'body' => fake()->sentence(),
         ];
+    }
+
+    /**
+     * A factory comment is a published one: it carries its text and skips moderation, the way an
+     * approved comment is written.
+     */
+    #[Override]
+    public function configure(): static
+    {
+        return $this->afterMaking(static function (Comment $comment): void {
+            $comment->setForcedApprovalUpdate(true);
+        });
     }
 
     public function withBody(string $body, ?string $locale = null): static

@@ -14,6 +14,7 @@ use Modules\CMS\Services\CommentApprovalCapture;
 use Modules\CMS\Services\ContentRatingService;
 use Modules\Core\Approvals\Operation;
 use Modules\Core\Casts\ActionEnum;
+use Modules\Core\Enums\CoreTables;
 use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Models\Concerns\HasApprovals;
 use Modules\Core\Models\Concerns\HasTranslations;
@@ -45,6 +46,9 @@ final class Comment extends Model
     protected $fillable = [
         'content_id',
         'user_id',
+        'parent_id',
+        'body',
+        'rating_score',
     ];
 
     /**
@@ -53,6 +57,7 @@ final class Comment extends Model
      */
     public static function captureSave(self $item): bool
     {
+        $item->defaultAuthor();
         $modification = CommentApprovalCapture::capture($item);
 
         if ($modification === null) {
@@ -62,6 +67,71 @@ final class Comment extends Model
         $item->pendingModification = $modification;
 
         return false;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    #[Override]
+    public function getRules(): array
+    {
+        $rules = parent::getRules();
+        $contents = 'exists:' . CMSTables::Contents->value . ',id';
+        $comments = 'exists:' . CMSTables::Comments->value . ',id';
+        $users = 'exists:' . CoreTables::Users->value . ',id';
+
+        $rules['create'] = array_merge($rules['create'], [
+            'content_id' => ['required', 'integer', $contents],
+            'user_id' => ['nullable', 'integer', $users],
+            'parent_id' => ['nullable', 'integer', $comments],
+            'body' => ['required', 'string', 'max:10000'],
+            'rating_score' => ['nullable', 'integer', 'min:1', 'max:5'],
+        ]);
+        $rules['update'] = array_merge($rules['update'], [
+            'content_id' => ['sometimes', 'integer', $contents],
+            'parent_id' => ['sometimes', 'nullable', 'integer', $comments],
+            'body' => ['sometimes', 'string', 'max:10000'],
+            'rating_score' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:5'],
+        ]);
+
+        return $rules;
+    }
+
+    /**
+     * The text and the rating are not columns: the text is a translation and the rating is kept
+     * until approval. Both are validated as they will be written.
+     *
+     * @return array<string, mixed>
+     */
+    #[Override]
+    public function getAttributesForValidation(): array
+    {
+        $attributes = parent::getAttributesForValidation();
+        $locale = LocaleContext::get();
+
+        if (isset($this->pending_translations[$locale]['body'])) {
+            $attributes['body'] = $this->pending_translations[$locale]['body'];
+        } elseif (! $this->exists) {
+            $attributes['body'] = null;
+        }
+
+        if ($this->pending_rating_score !== null) {
+            $attributes['rating_score'] = $this->pending_rating_score;
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * Set the author to the authenticated user when none was given.
+     */
+    public function defaultAuthor(): void
+    {
+        $user_id = auth()->id();
+
+        if ($this->user_id === null && $user_id !== null) {
+            $this->user_id = (int) $user_id;
+        }
     }
 
     /**
@@ -256,6 +326,16 @@ final class Comment extends Model
 
         self::saved(function (self $comment): void {
             $comment->savePendingTranslations();
+        });
+    }
+
+    /**
+     * The comment's author is whoever posts it, unless the caller names one explicitly.
+     */
+    protected static function booted(): void
+    {
+        self::creating(static function (self $comment): void {
+            $comment->defaultAuthor();
         });
     }
 

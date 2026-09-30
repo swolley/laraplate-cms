@@ -190,3 +190,57 @@ it('lets the author delete a comment without approval', function (): void {
         ->and(Comment::query()->whereKey($comment->id)->exists())->toBeFalse()
         ->and(Modification::query()->where('modifiable_type', Comment::class)->where('modifiable_id', $comment->id)->exists())->toBeFalse();
 });
+
+/**
+ * The application posts and moderates comments through the CRUD API: an author inserts one and
+ * gets a pending request back, a moderator approves the request, and only then is it published.
+ */
+it('moderates a comment end to end through the CRUD API', function (): void {
+    foreach (['select', 'insert'] as $action) {
+        $permission = Modules\Core\Support\PermissionName::forModel(new Comment, $action);
+        Modules\Core\Models\Permission::findOrCreate($permission, 'web');
+        $this->author->givePermissionTo($permission);
+    }
+
+    $pending = $this->postJson(route('core.crud.insert', ['module' => 'cms', 'entity' => 'comments']), [
+        'content_id' => $this->content->id,
+        'body' => 'Posted through the API',
+    ])->assertStatus(202)->assertJsonPath('data.operation', 'create');
+
+    $modification = Modification::query()->findOrFail($pending->json('data.modification'));
+
+    expect(Comment::query()->count())->toBe(0)
+        ->and($modification->modifications['body']['modified'])->toBe('Posted through the API')
+        ->and($modification->modifications['user_id']['modified'])->toBe($this->author->id);
+
+    $this->flushSession();
+    $this->actingAs($this->moderator)
+        ->patchJson(route('core.crud.approve', ['module' => 'cms', 'entity' => 'comments']), ['modification' => $modification->id])
+        ->assertOk();
+
+    $comment = Comment::query()->sole();
+
+    expect($comment->body)->toBe('Posted through the API')
+        ->and($comment->user_id)->toBe($this->author->id)
+        ->and($modification->fresh()->active)->toBeFalse();
+});
+
+it('refuses a comment the rules reject before it reaches moderation', function (array $override): void {
+    $permission = Modules\Core\Support\PermissionName::forModel(new Comment, 'insert');
+    Modules\Core\Models\Permission::findOrCreate($permission, 'web');
+    $this->author->givePermissionTo($permission);
+
+    $payload = array_filter(
+        [...['content_id' => $this->content->id, 'body' => 'Hello'], ...$override],
+        static fn (mixed $value): bool => $value !== null,
+    );
+
+    $this->postJson(route('core.crud.insert', ['module' => 'cms', 'entity' => 'comments']), $payload)
+        ->assertUnprocessable();
+
+    expect(Modification::query()->where('modifiable_type', Comment::class)->exists())->toBeFalse();
+})->with([
+    'no text' => [['body' => null]],
+    'unknown content' => [['content_id' => 999999]],
+    'rating out of range' => [['rating_score' => 9]],
+]);
