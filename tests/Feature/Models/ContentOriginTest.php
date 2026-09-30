@@ -79,3 +79,10 @@ it('resolves a scheduled content through its origin now that validity is not a g
     expect($origin->referable)->toBeInstanceOf(Content::class)
         ->and($origin->referable->getKey())->toBe($content->getKey());
 });
+
+it('rejects a malformed origin url', function (): void {
+    $content = Content::factory()->create();
+
+    expect(fn () => $content->origin()->create(['source_key' => 'manual', 'url' => 'not-a-url']))
+        ->toThrow(Illuminate\Validation\ValidationException::class);
+});

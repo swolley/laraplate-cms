@@ -284,7 +284,9 @@ Three separate answers to "where did this come from", none of which is a column 
 and `source_updated_at`. It is a platform record rather than a CMS one, so any model can carry an
 origin; `Content` is the only one that does today. The same table is what the import framework
 writes through `RecordOriginRegistry` to dedupe by external identity, so an imported content and a
-manually attributed one describe their source in one place and one shape.
+manually attributed one describe their source in one place and one shape. The `url` must be a
+well-formed link (`nullable|url|max:2048`): a manual attribution with a malformed one is rejected,
+while an import drops a malformed link from its source and keeps the record.
 
 **References** are the bibliography: `ContentReference` on `cms_contents_references`, a scoped
 `HasMany` from `Content::references()`, with `label` required, `url` optional and validated, and
