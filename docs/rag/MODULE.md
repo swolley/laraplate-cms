@@ -331,7 +331,7 @@ The provider sends the natural-language query and Core-supplied ACL filters thro
 
 `CmsContentEvidenceProjector` emits only an allowlisted title, normalized plain-text component fields, locale, revision, and canonical `/app/cms/contents/{id}` reference. Unknown components, media, hidden relations, raw search payloads, persistence metadata, and authorization internals remain excluded by default.
 
-The reproducible record-level baseline uses 30 synthetic cases in `tests/Fixtures/application-content/cms-contents.json`; the report is `docs/evaluations/application-content/2026-07-record-baseline.json`. Aggregate hit@5 is `0.7619`, citation precision and authorized-empty accuracy are `1.0`, while semantic/paraphrase and the passage-candidate slice are `0.0`. This is evidence for a separate passage-index evaluation, not permission to add another index automatically.
+The reproducible record-level baseline uses 30 synthetic cases in `tests/Fixtures/application-content/cms-contents.json` over the corpus seeded by `tests/Stubs/ApplicationContent/EvaluationContentCorpus.php`; the report is `docs/evaluations/application-content/2026-07-record-baseline.json`. CMS tests only its provider over the dataset (`CmsApplicationContentDatasetTest`); the scored baseline gate needs AI too, so it lives in the application's `tests/Integration/ApplicationContent/CmsApplicationContentEvaluationBaselineTest.php` and skips itself when either module is missing. Aggregate hit@5 is `0.7619`, citation precision and authorized-empty accuracy are `1.0`, while semantic/paraphrase and the passage-candidate slice are `0.0`. This is evidence for a separate passage-index evaluation, not permission to add another index automatically.
 
 ### Graph runtime benchmark
 
