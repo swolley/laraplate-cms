@@ -32,3 +32,10 @@ it('returns the latest version once a new one is created', function (): void {
     expect($this->preset->activePresettable()->getKey())->toBe($latest->getKey())
         ->and($latest->version)->toBeGreaterThan($previous->version);
 });
+
+it('creates versions with the CMS presettable class', function (): void {
+    $version = resolve(PresetVersioningService::class)->createVersion($this->preset);
+
+    expect($version)->toBeInstanceOf(Presettable::class)
+        ->and($version->preset_id)->toBe($this->preset->id);
+});
