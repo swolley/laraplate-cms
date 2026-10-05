@@ -50,6 +50,7 @@ use Modules\Core\Models\Concerns\HasValidity;
 use Modules\Core\Models\Concerns\SortableTrait;
 use Modules\Core\Models\RecordOrigin;
 use Modules\Core\Overrides\Model;
+use Modules\Core\Search\Contracts\IProvidesRerankerText;
 use Modules\Core\Search\Schema\FieldDefinition;
 use Modules\Core\Search\Schema\FieldType;
 use Modules\Core\Search\Schema\IndexType;
@@ -66,7 +67,7 @@ use Spatie\MediaLibrary\HasMedia;
  * @phpstan-use Searchable<Content>
  */
 #[ObservedBy(ContentObserver::class)]
-final class Content extends Model implements HasMedia, IDynamicContentModel, ILockableModel, IOptimisticLockableModel, ISearchableModel, IValidatableModel, ProvidesDefaultSearchFilters, ProvidesFacetLabelSources, ProvidesSyncableRelations, Sortable, Taggable
+final class Content extends Model implements HasMedia, IDynamicContentModel, ILockableModel, IOptimisticLockableModel, IProvidesRerankerText, ISearchableModel, IValidatableModel, ProvidesDefaultSearchFilters, ProvidesFacetLabelSources, ProvidesSyncableRelations, Sortable, Taggable
 {
     // region Traits
     use HasApprovals {
@@ -92,6 +93,11 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
     use SortableTrait {
         SortableTrait::scopeOrdered as private scopePriorityOrdered;
     }
+
+    /**
+     * Characters of a content's text handed to a reranker: its model reads a few hundred tokens at most.
+     */
+    private const int RERANKER_TEXT_LIMIT = 2000;
 
     /**
      * @var string
@@ -155,6 +161,48 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
     public static function getEntityType(): IDynamicEntityTypable
     {
         return EntityType::Contents;
+    }
+
+    /**
+     * The title and the text components of the translation in the language asked: all a reranker has to read,
+     * since a search hit carries the content's own columns and the text lives in its translations. A content
+     * with no translation in that language is left out, and the text is cut to a length a reranker can use.
+     *
+     * @param  list<int|string>  $keys
+     * @return array<int|string, string>
+     */
+    #[Override]
+    public static function rerankerTexts(array $keys, string $locale): array
+    {
+        $texts = [];
+
+        $contents = self::query()
+            ->withoutGlobalScope(\Modules\Core\Overrides\LocaleScope::class)
+            ->whereKey($keys)
+            ->with('translations')
+            ->get();
+
+        foreach ($contents as $content) {
+            $translation = $content->findContentTranslation($locale);
+
+            if (! $translation instanceof ContentTranslation) {
+                continue;
+            }
+
+            $parts = [$translation->title];
+
+            foreach (($translation->components ?? []) as $value) {
+                $parts[] = $content->searchableComponentValue($value);
+            }
+
+            $text = mb_trim(implode(' ', array_filter($parts, static fn (mixed $part): bool => is_string($part) && $part !== '')));
+
+            if ($text !== '') {
+                $texts[$content->getKey()] = mb_substr($text, 0, self::RERANKER_TEXT_LIMIT);
+            }
+        }
+
+        return $texts;
     }
 
     /**

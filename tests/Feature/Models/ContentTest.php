@@ -362,3 +362,47 @@ it('can be permanently deleted', function (): void {
 
     expect(Content::withTrashed()->find($contentId))->toBeNull();
 });
+
+/**
+ * A search hit carries the content's own columns and the text lives in its translations, so a reranker
+ * was given an empty text for every content until the content said what to read.
+ */
+it('provides the text a reranker reads: the title and the text components in the language asked', function (): void {
+    $content = Content::factory()->create();
+    $content->setTranslation('it', [
+        'title' => 'Titolo italiano',
+        'slug' => 'titolo-italiano',
+        'components' => ['short_content' => 'Sommario breve', 'content' => 'Corpo in italiano'],
+    ]);
+    $content->setTranslation('en', [
+        'title' => 'English title',
+        'slug' => 'english-title',
+        'components' => ['content' => 'English body'],
+    ]);
+    $content->save();
+
+    $text = Content::rerankerTexts([$content->id], 'it')[$content->id] ?? null;
+
+    expect($text)->toContain('Titolo italiano')
+        ->toContain('Sommario breve')
+        ->toContain('Corpo in italiano')
+        ->not->toContain('English');
+});
+
+it('leaves out the contents with no translation in the language asked', function (): void {
+    $kept = Content::factory()->create();
+    $without = Content::factory()->create();
+    $without->translations()->where('locale', 'it')->delete();
+
+    $texts = Content::rerankerTexts([$kept->id, $without->id], 'it');
+
+    expect(array_keys($texts))->toBe([$kept->id]);
+});
+
+it('limits the text it provides, so a long article does not make a heavy request', function (): void {
+    $content = Content::factory()->create();
+    $content->setTranslation('it', ['title' => 'Lungo', 'slug' => 'lungo', 'components' => ['content' => str_repeat('parola ', 2000)]]);
+    $content->save();
+
+    expect(mb_strlen(Content::rerankerTexts([$content->id], 'it')[$content->id]))->toBeLessThanOrEqual(2000);
+});
