@@ -7,6 +7,8 @@ namespace Modules\CMS\Database\Seeders;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Modules\CMS\Casts\EntityType;
+use Modules\CMS\Models\Category;
+use Modules\CMS\Models\Comment;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Entity;
 use Modules\CMS\Models\Preset;
@@ -69,6 +71,7 @@ final class CMSDatabaseSeeder extends Seeder
             $this->defaultEntities();
             $this->defaultRoles();
             $this->defaultContentAcls();
+            $this->defaultSharedTableAcls();
         });
 
         // The orchestrator already flushes the settings cache once after every node succeeds
@@ -278,12 +281,20 @@ final class CMSDatabaseSeeder extends Seeder
 
         $all_roles = $role_class::query()->get(['id', 'name'])->keyBy('name');
 
+        // Permissions are named after the model table, so the CMS models must be the source:
+        // categories and presets live in the shared `core_taxonomies` / `core_presets` tables,
+        // which are narrowed to the CMS entities by `defaultSharedTableAcls()`.
+        $cms_tables = array_map(
+            static fn (string $model): string => (new $model)->getTable(),
+            [Content::class, Category::class, Preset::class, Comment::class],
+        );
+
         $name = 'publisher';
 
         if (! $all_roles->has($name)) {
             $this->create($role_class, [
                 'name' => $name,
-                'permissions' => fn () => $permission_class::whereIn('table_name', ['contents', 'categories', 'presets', 'cms_comments'])
+                'permissions' => fn () => $permission_class::whereIn('table_name', $cms_tables)
                     ->where(static fn ($query) => $query->where('name', 'like', '%.' . ActionEnum::Approve->value)
                         ->orWhere('name', 'like', '%.' . ActionEnum::Select->value))
                     ->get(),
@@ -298,7 +309,7 @@ final class CMSDatabaseSeeder extends Seeder
 
             if ($key === 'admin' && $role !== null) {
                 $role->permissions()->syncWithoutDetaching(
-                    $permission_class::where(static fn ($query) => $query->whereIn('table_name', ['contents', 'categories', 'presets', 'cms_comments'])
+                    $permission_class::where(static fn ($query) => $query->whereIn('table_name', $cms_tables)
                         ->orWhere('name', 'like', '%.' . ActionEnum::Select->value))
                         ->whereNot('name', 'like', '%.' . ActionEnum::Lock->value)->pluck('id'),
                 );
@@ -377,6 +388,70 @@ final class CMSDatabaseSeeder extends Seeder
         $acl->save();
 
         $this->command?->line('    - content guest ACL <fg=green>created</>');
+    }
+
+    /**
+     * Seed the row-level ACLs that keep the CMS roles inside the CMS entities on the tables
+     * every module shares (`core_taxonomies`, `core_presets`). Their permissions are not
+     * CMS-specific, so granting `select` to the `publisher` role alone would expose the
+     * taxonomies and presets of ERP and every other module; the ACL narrows the role to rows
+     * whose entity type is a CMS one.
+     */
+    private function defaultSharedTableAcls(): void
+    {
+        $this->logOperation(ACL::class);
+
+        /** @var class-string<Permission> $permission_class */
+        $permission_class = config('permission.models.permission');
+
+        /** @var class-string<Role> $role_class */
+        $role_class = config('permission.models.role');
+
+        $publisher = $role_class::query()->where('name', 'publisher')->first(['id']);
+
+        if ($publisher === null) {
+            $this->command?->line('    - publisher role missing, skipping shared-table ACLs');
+
+            return;
+        }
+
+        $path = [Category::class => 'presettable.entity.type', Preset::class => 'entity.type'];
+
+        foreach ($path as $model_class => $property) {
+            $model = new $model_class;
+            $permission_name = PermissionName::forModel($model, ActionEnum::Select->value);
+            $permission = $permission_class::query()->where('name', $permission_name)->first(['id']);
+
+            if ($permission === null) {
+                $this->command?->line("    - permission {$permission_name} missing, skipping its ACL");
+
+                continue;
+            }
+
+            if (ACL::query()->where('permission_id', $permission->id)->where('role_id', $publisher->id)->exists()) {
+                $this->command?->line("    - {$permission_name} publisher ACL already exists");
+
+                continue;
+            }
+
+            $acl = new ACL;
+            $acl->setSkipValidation(true);
+            $acl->forceFill([
+                'permission_id' => $permission->id,
+                'role_id' => $publisher->id,
+                'filters' => new FiltersGroup(
+                    filters: [new Filter($property, EntityType::values(), FilterOperator::In)],
+                    operator: WhereClause::And,
+                ),
+                'description' => 'Publishers read only the CMS rows of a table shared with other modules.',
+                'unrestricted' => false,
+                'priority' => 100,
+                'is_active' => true,
+            ]);
+            $acl->save();
+
+            $this->command?->line("    - {$permission_name} publisher ACL <fg=green>created</>");
+        }
     }
 
     private function assignFieldToPreset(Preset $preset, Field $field, bool $is_required): void
