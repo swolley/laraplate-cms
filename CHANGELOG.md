@@ -2,6 +2,58 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.47.0] - 2026-10-07
+
+### 🚀 Features
+
+- *(cms)* Comments validate their content, text and rating and can be posted and moderated through the CRUD API
+- *(cms)* Content provides the text a reranker reads
+- *(cms)* Domain interface labels in lang/{locale}/cms.php
+
+### 🐛 Bug Fixes
+
+- *(cms)* An extender save reindexes its content
+- *(cms)* A captured comment carries its pending request
+- *(seeder)* Publisher permissions on real tables, CMS-only ACL on shared tables
+
+### 💼 Other
+
+- Own CMS plugin, translation fallback and runtime setting tests
+
+Moved from Core so Core tests no longer depend on CMS.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016bQ9UWLJjnRQA6sGEYNGPL
+- Test preset versioning resolves the CMS presettable
+
+Moved from Core, which can no longer use CMS classes in its tests.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016bQ9UWLJjnRQA6sGEYNGPL
+
+### 📚 Documentation
+
+- *(cms)* Align content-extension seam references to the Shop module
+- *(cms)* The graph benchmark now informs a closed decision
+
+### ⚡ Performance
+
+- *(cms)* Imports write each shared category, contributor and tag once per run
+
+### 🧪 Testing
+
+- *(cms)* A content origin rejects a malformed url
+- *(cms)* Content list query count does not grow with rows
+- *(cms)* Tuning profile regression gate on the application content baseline
+- *(cms)* Test the content provider over its dataset without the AI module
+- *(cms)* Cover Core's model:create-entity on CMS entities
+- *(cms)* Cover Preset::activePresettable() on a CMS preset
+- *(locations)* A location can be saved with its own unique name
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cms)* Module priority 10, first tier after Core
+
 ## [1.46.0] - 2026-09-29
 
 ### 🚀 Features
