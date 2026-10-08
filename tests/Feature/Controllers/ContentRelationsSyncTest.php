@@ -142,7 +142,7 @@ it('denies syncing without the update permission on contents', function (): void
         'relations' => ['categories' => [$category->id]],
     ]);
 
-    $response->assertStatus(Response::HTTP_UNAUTHORIZED);
+    $response->assertStatus(Response::HTTP_FORBIDDEN);
     expect($content->categories()->count())->toBe(0);
 });
 
