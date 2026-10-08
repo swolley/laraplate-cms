@@ -29,6 +29,10 @@ it('composes the extension mapping from registered extenders', function (): void
 });
 
 it('maps extended_type but no extension object when no extender is registered', function (): void {
+    // Isolate from any production extender registered at boot (e.g. shop.product) so this exercises
+    // the genuinely-empty-registry case.
+    app()->instance(ContentExtenderRegistry::class, new ContentExtenderRegistry());
+
     $mapping = json_encode((new Content())->getSearchMapping());
 
     expect($mapping)->toContain('extended_type')

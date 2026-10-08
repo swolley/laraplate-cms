@@ -29,10 +29,12 @@ it('fails loud when resolving an unregistered alias', function (): void {
     $registry->resolve('cms.unknown');
 })->throws(InvalidArgumentException::class, 'No content extender registered for alias [cms.unknown].');
 
-it('is a container singleton and starts empty', function (): void {
+it('is a container singleton with no built-in defaults', function (): void {
     $first = app(ContentExtenderRegistry::class);
     $second = app(ContentExtenderRegistry::class);
 
+    // The container binds one shared instance; modules register their extenders into it at boot
+    // (e.g. shop.product), so assert the class ships no hard-coded aliases via a fresh instance.
     expect($first)->toBe($second)
-        ->and($first->aliases())->toBe([]);
+        ->and((new ContentExtenderRegistry())->aliases())->toBe([]);
 });
