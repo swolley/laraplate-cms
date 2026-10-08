@@ -9,6 +9,7 @@ use Modules\CMS\Models\Contributor;
 use Modules\CMS\Models\Location;
 use Modules\CMS\Tests\TestCase;
 use Modules\Core\Models\Role;
+use Modules\Core\Support\CrudApiExposure;
 
 uses(TestCase::class, RefreshDatabase::class);
 
@@ -20,6 +21,7 @@ beforeEach(function (): void {
     }
 
     setupCMSEntities();
+    CrudApiExposure::enable();
 
     $role = Role::factory()->create(['name' => config('permission.roles.superadmin'), 'guard_name' => 'web']);
     $this->user = user_class()::factory()->create();
