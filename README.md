@@ -54,6 +54,8 @@ CMS content search indexes relation data for contributors, categories, tags, and
 
 These filters target indexed relation fields, not arbitrary Eloquent traversal. Core translates them to Elasticsearch nested queries, Typesense nested-field filters, or database `whereHas` / `whereDoesntHave` depending on the active search driver.
 
+A content's references (bibliography) are indexed in the content's search document as the `references` text field: each label and the URL host with the leading `www.` stripped, so searching a cited source (`Nature`, `nature.com`) finds the contents that cite it. Adding, changing or removing a reference re-sends its content. Existing indexes need a rebuild to gain the field: run `php artisan scout:sync-mapping` then `php artisan scout:reindex` for `Modules\CMS\Models\Content`.
+
 ## Graph provider
 
 CMS registers `Modules\CMS\Graph\CmsGraphProvider` as a Core Graph provider. Core still owns graph routes, traversal, authorization, request validation, and response shape. CMS only contributes content-oriented defaults: `contents` expand to `tags`, `categories`, `contributors`, and `locations` when no `relations[]` are requested; summary fields prefer editorial identifiers such as title, slug, path, status, type, and timestamps; edge labels map CMS relations to names such as `tagged_as`, `categorized_as`, `contributed_by`, and `located_at`.

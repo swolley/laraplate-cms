@@ -363,6 +363,7 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
             'categories.ancestors.translations',
             'tags',
             'locations',
+            'references',
             'translations',
             'presettable.entity',
             'presettable.preset',
@@ -397,6 +398,7 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
             'zone',
         ]))->values()->all();
         $document['type'] = $this->type;
+        $document['references'] = $this->referencesSearchText();
 
         // Load all translations for indexing: title/slug/components become
         // locale-keyed objects instead of flat title_<locale>/slug_<locale> keys,
@@ -512,6 +514,7 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
             ],
         ]));
         $schema->addField(new FieldDefinition('type', FieldType::Keyword, [IndexType::Searchable, IndexType::Filterable]));
+        $schema->addField(new FieldDefinition('references', FieldType::Text, [IndexType::Searchable]));
         $schema->addField(new FieldDefinition('valid_from', FieldType::Date, [IndexType::Searchable, IndexType::Filterable, IndexType::Sortable]));
         $schema->addField(new FieldDefinition('valid_to', FieldType::Date, [IndexType::Searchable, IndexType::Filterable, IndexType::Sortable]));
         $schema->addField(new FieldDefinition('is_deleted', FieldType::Boolean, [IndexType::Searchable, IndexType::Filterable, IndexType::Facetable]));
@@ -782,6 +785,26 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
                 return ReadingStatistics::fromBlocks($blocks);
             },
         );
+    }
+
+    /**
+     * The cited sources as one text: each reference's label and URL host (the leading `www.` stripped, no
+     * path or query), so a search for a source finds the contents that cite it.
+     */
+    private function referencesSearchText(): string
+    {
+        $terms = [];
+
+        foreach ($this->references as $reference) {
+            $terms[] = $reference->label;
+            $host = is_string($reference->url) ? parse_url($reference->url, PHP_URL_HOST) : null;
+
+            if (is_string($host) && $host !== '') {
+                $terms[] = (string) preg_replace('/^www\./', '', mb_strtolower($host));
+            }
+        }
+
+        return mb_trim(implode(' ', array_unique(array_filter($terms, static fn (string $term): bool => $term !== ''))));
     }
 
     /**
