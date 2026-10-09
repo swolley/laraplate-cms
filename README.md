@@ -56,6 +56,24 @@ These filters target indexed relation fields, not arbitrary Eloquent traversal. 
 
 A content's references (bibliography) are indexed in the content's search document as the `references` text field: each label and the URL host with the leading `www.` stripped, so searching a cited source (`Nature`, `nature.com`) finds the contents that cite it. Adding, changing or removing a reference re-sends its content. Existing indexes need a rebuild to gain the field: run `php artisan scout:sync-mapping` then `php artisan scout:reindex` for `Modules\CMS\Models\Content`.
 
+## Public API access (anonymous reader)
+
+The CMS `/api/v1` surface is read-only for the anonymous user once the Core `expose_api` switch is on. The `guest` role of the **`api` guard** holds `select` on exactly these CMS entities (the `guest` role of `web` holds no permission, so anonymous `/app` reads are refused):
+
+| Entity | Default ACL | Hidden from anonymous |
+|---|---|---|
+| `cms_contents` | published: `valid_from <= @now` and (`valid_to >= @now` or no `valid_to`) | |
+| `cms_contents_references` | relation filter: the owner content is published | |
+| `vend_media` | relation filter: the owner is a CMS content that is published (morph type `Content`), so media of unpublished contents and other modules' attachments are never public | returned in the safe media projection |
+| `cms_tags`, `cms_locations` | none | |
+| `cms_contributors` | none | `user_id`, `user`, `shared_components` |
+| `cms_comments` | none (only approved comments exist as rows) | `user_id` |
+| `cms_contents_ratings` | none | `user_id` |
+
+`CMSDatabaseSeeder::defaultGuestApiGrants()` grants these and creates the ACLs only when none exists for the role and permission, so a re-seed never overwrites an ACL an operator changed. Staff roles keep their `web` permissions and read contents without a publication window. The `publisher` role (on `web`) also reads `core_settings` (public settings only) and `core_entities` (CMS types only), because related records obey their own permission and the content screens load them with a content.
+
+A content's `cover` (the first media of the `cover` collection) is an appended attribute loaded once per result set under the media permission and ACL of the caller: on the `api` guard it is the safe media projection (URLs, dimensions, alt text; no storage details), and it is `null` when the caller may not read media or the ACL hides it. A role that reads contents and holds no `vend_media` permission sees contents without their media. Anonymous responses are cached per user and shared; CMS contents do not use the response cache, so a content that stops being valid disappears at once. See `Modules/Core/docs/rag/API_ACCESS_CONTROL.md`.
+
 ## Graph provider
 
 CMS registers `Modules\CMS\Graph\CmsGraphProvider` as a Core Graph provider. Core still owns graph routes, traversal, authorization, request validation, and response shape. CMS only contributes content-oriented defaults: `contents` expand to `tags`, `categories`, `contributors`, and `locations` when no `relations[]` are requested; summary fields prefer editorial identifiers such as title, slug, path, status, type, and timestamps; edge labels map CMS relations to names such as `tagged_as`, `categorized_as`, `contributed_by`, and `located_at`.

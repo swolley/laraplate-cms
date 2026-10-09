@@ -291,6 +291,10 @@ while an import drops a malformed link from its source and keeps the record.
 **References** are the bibliography: `ContentReference` on `cms_contents_references`, a scoped
 `HasMany` from `Content::references()`, with `label` required, `url` optional and validated, and
 `order_column` sorted per content through `buildSortQuery()`. Soft-deleted like the rest of CMS.
+References are part of their content (`ContentReference` implements Core's `IsPartOfParent`) and are indexed in the
+content's search document as the `references` text field (each label and the URL host with `www.` stripped); a reference
+change re-sends its content through `ContentReferenceObserver`. Existing indexes need a rebuild to gain the field
+(`php artisan scout:sync-mapping` then `php artisan scout:reindex` for `Modules\CMS\Models\Content`).
 
 **AI-assistance disclosure** lives per translation, not per content, because a piece can be written
 by a person and machine-translated. `ContentTranslation.ai_assistance` is an indexed, non-nullable
@@ -300,7 +304,7 @@ record of fact rather than a hint: whoever writes the translation is responsible
 
 ### Lifecycle: validity, approvals, locking
 
-`Content` composes the cross-cutting Core lifecycle traits. `HasValidity` provides the `valid_from` / `valid_to` publication window and a `valid()` scope, but validity is **not** a global scope: it is a row-level authorization concern. A role-scoped ACL on `cms_contents.select`, seeded for the `guest` role (`CMSDatabaseSeeder::defaultContentAcls`), filters the anonymous/public reader to the current window using the `@now` ACL placeholder; staff roles carry no such ACL and read every content, so a direct `Content::query()` (Filament, imports) returns drafts too. `HasApprovals` requires explicit approval before persisting changes; `Content` overrides `requiresApprovalWhen()` so only validity-window edits demand approval. `HasLocks` and `HasOptimisticLocking` block concurrent edits and stale writes: opening a content for editing takes an owned, expiring **lease** and the lock guard refuses every other writer's save while it lasts, including `cms:import`, whose row is reported as a skip rather than overwriting work in progress. An ownerless lock is a **freeze** and closes the content to everybody. See Core's `RECORD_LOCKING_USER.md` and `RECORD_LOCKING_DEVELOPER.md`. `SortableTrait` sorts by `order_column` (renamed `scopeOrdered` to `scopePriorityOrdered` to avoid Searchable trait clashes). `Searchable` also indexes `valid_from`, `valid_to`, and `is_deleted` so the search layer reflects publication state.
+`Content` composes the cross-cutting Core lifecycle traits. `HasValidity` provides the `valid_from` / `valid_to` publication window and a `valid()` scope, but validity is **not** a global scope: it is a row-level authorization concern. A role-scoped ACL on `cms_contents.select`, seeded for the `guest` role of the `api` guard (`CMSDatabaseSeeder::defaultGuestApiGrants`), filters the anonymous/public reader to the current window using the `@now` ACL placeholder; staff roles carry no such ACL and read every content, so a direct `Content::query()` (Filament, imports) returns drafts too. `HasApprovals` requires explicit approval before persisting changes; `Content` overrides `requiresApprovalWhen()` so only validity-window edits demand approval. `HasLocks` and `HasOptimisticLocking` block concurrent edits and stale writes: opening a content for editing takes an owned, expiring **lease** and the lock guard refuses every other writer's save while it lasts, including `cms:import`, whose row is reported as a skip rather than overwriting work in progress. An ownerless lock is a **freeze** and closes the content to everybody. See Core's `RECORD_LOCKING_USER.md` and `RECORD_LOCKING_DEVELOPER.md`. `SortableTrait` sorts by `order_column` (renamed `scopeOrdered` to `scopePriorityOrdered` to avoid Searchable trait clashes). `Searchable` also indexes `valid_from`, `valid_to`, and `is_deleted` so the search layer reflects publication state.
 
 ```mermaid
 stateDiagram-v2
@@ -359,6 +363,25 @@ flowchart LR
   Schema --> Engine
   Map --> Engine
 ```
+
+### Public API access
+
+CMS grants the anonymous reader of `/api/v1` (the `guest` role of the `api` guard) `select` on contents, references,
+media, tags, locations, contributors, comments and ratings, through `CMSDatabaseSeeder::defaultGuestApiGrants()`.
+Contents are narrowed by the published window ACL (`valid_from <= @now`, `valid_to >= @now` or null); references and
+media are narrowed by relation filters on their owner content (media with the morph type `Content`), so a media of an
+unpublished content or another module's attachment is never public. Contributors hide `user_id`, `user` and
+`shared_components`, comments and ratings hide `user_id`, from the anonymous user
+(`IHidesAttributesFromAnonymous`). The `guest` role of `web` holds no permission. A re-seed creates an ACL only when none
+exists for the role and permission. The `publisher` role (on `web`) also reads public settings and the CMS entity
+types, because related records obey their own permission.
+
+`Content`, `Contributor` and `Category` append `cover` (first media of the `cover` collection), loaded once per result
+set through `IPreloadsAppendedRelations` under the media permission and ACL of the caller; on the `api` guard it is the
+safe media projection, and `null` when the caller may not read it. `ContentTranslation`, `TagTranslation`,
+`CommentTranslation`, `ContributorTranslation`, `ContentReference` and `ContentRating` are parts of their parent
+(`IsPartOfParent`). Anonymous responses share one cache entry per entity that uses the response cache; contents do not
+use it. Full behaviour: `Modules/Core/docs/rag/API_ACCESS_CONTROL.md`.
 
 ### Filament module integration
 
