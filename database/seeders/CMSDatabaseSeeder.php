@@ -10,6 +10,8 @@ use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Models\Category;
 use Modules\CMS\Models\Comment;
 use Modules\CMS\Models\Content;
+use Modules\CMS\Models\ContentRating;
+use Modules\CMS\Models\ContentReference;
 use Modules\CMS\Models\Contributor;
 use Modules\CMS\Models\Entity;
 use Modules\CMS\Models\Location;
@@ -20,11 +22,13 @@ use Modules\Core\Casts\FieldType;
 use Modules\Core\Casts\Filter;
 use Modules\Core\Casts\FilterOperator;
 use Modules\Core\Casts\FiltersGroup;
+use Modules\Core\Casts\RelationFilter;
 use Modules\Core\Casts\SettingTypeEnum;
 use Modules\Core\Casts\WhereClause;
 use Modules\Core\Database\Seeders\CoreDatabaseSeeder;
 use Modules\Core\Models\ACL;
 use Modules\Core\Models\Field;
+use Modules\Core\Models\Media;
 use Modules\Core\Models\Modification;
 use Modules\Core\Models\Permission;
 use Modules\Core\Models\Role;
@@ -35,9 +39,12 @@ use Modules\Core\Services\DynamicContentsService;
 use Modules\Core\Services\PresetVersioningService;
 use Modules\Core\Services\SettingsCacheCoordinator;
 use Modules\Core\Support\PermissionName;
+use Spatie\Permission\PermissionRegistrar;
 
 final class CMSDatabaseSeeder extends Seeder
 {
+    private const string PUBLISHER_ROLE = 'publisher';
+
     /**
      * @var Collection<string, Entity>
      */
@@ -74,9 +81,11 @@ final class CMSDatabaseSeeder extends Seeder
             $this->defaultFields();
             $this->defaultEntities();
             $this->defaultRoles();
-            $this->defaultContentAcls();
+            $this->defaultGuestApiGrants();
             $this->defaultSharedTableAcls();
         });
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         // The orchestrator already flushes the settings cache once after every node succeeds
         // (SeedOrchestrator::run()); a targeted flush here keeps standalone runs of this seeder
@@ -100,6 +109,30 @@ final class CMSDatabaseSeeder extends Seeder
             'group_name' => $group,
             'description' => $description,
         ];
+    }
+
+    /**
+     * The condition "published, visible and valid by date" of a content: it starts, and has not ended or never ends.
+     * Qualified by the table when it filters the contents themselves, bare when it is nested in a relation filter
+     * and evaluated on the related content.
+     */
+    private static function publishedContentFilters(?string $table = null): FiltersGroup
+    {
+        $prefix = $table === null ? '' : "{$table}.";
+
+        return new FiltersGroup(
+            filters: [
+                new Filter("{$prefix}valid_from", '@now', FilterOperator::LessEquals),
+                new FiltersGroup(
+                    filters: [
+                        new Filter("{$prefix}valid_to", '@now', FilterOperator::GreatEquals),
+                        new Filter("{$prefix}valid_to", null, FilterOperator::Equals),
+                    ],
+                    operator: WhereClause::Or,
+                ),
+            ],
+            operator: WhereClause::And,
+        );
     }
 
     private function defaultSettings(): void
@@ -283,7 +316,9 @@ final class CMSDatabaseSeeder extends Seeder
         /** @var class-string<Permission> $permission_class */
         $permission_class = config('permission.models.permission');
 
-        $all_roles = $role_class::query()->get(['id', 'name'])->keyBy('name');
+        // A role is identified by its name and its guard: the staff roles live on the guard of `/app`, and an
+        // `api` role may share a name with one of them without receiving its grants.
+        $web = CoreDatabaseSeeder::defaultGuard();
 
         // Permissions are named after the model table, so the CMS models must be the source:
         // categories and presets live in the shared `core_taxonomies` / `core_presets` tables,
@@ -293,12 +328,15 @@ final class CMSDatabaseSeeder extends Seeder
             [Content::class, Category::class, Preset::class, Comment::class],
         );
 
-        $name = 'publisher';
+        $name = self::PUBLISHER_ROLE;
 
-        if (! $all_roles->has($name)) {
+        if (! $role_class::query()->where(['name' => $name, 'guard_name' => $web])->exists()) {
             $this->create($role_class, [
                 'name' => $name,
-                'permissions' => fn () => $permission_class::whereIn('table_name', $cms_tables)
+                'guard_name' => $web,
+                'permissions' => fn () => $permission_class::query()
+                    ->where('guard_name', $web)
+                    ->whereIn('table_name', $cms_tables)
                     ->where(static fn ($query) => $query->where('name', 'like', '%.' . ActionEnum::Approve->value)
                         ->orWhere('name', 'like', '%.' . ActionEnum::Select->value))
                     ->get(),
@@ -308,32 +346,34 @@ final class CMSDatabaseSeeder extends Seeder
             $this->command?->line("    - {$name} already exists");
         }
 
-        $this->grantPublisherRelatedReads($role_class, $permission_class, $name);
+        $this->grantPublisherRelatedReads($role_class, $permission_class, $name, $web);
 
-        foreach (CoreDatabaseSeeder::getDefaultUserRoles() as $key => $role) {
-            $role = $all_roles->get($role);
+        $admin = $role_class::query()->where(['name' => CoreDatabaseSeeder::getDefaultUserRoles()['admin'], 'guard_name' => $web])->first();
 
-            if ($key === 'admin' && $role !== null) {
-                $role->permissions()->syncWithoutDetaching(
-                    $permission_class::where(static fn ($query) => $query->whereIn('table_name', $cms_tables)
-                        ->orWhere('name', 'like', '%.' . ActionEnum::Select->value))
-                        ->whereNot('name', 'like', '%.' . ActionEnum::Lock->value)->pluck('id'),
-                );
-            }
-        }
+        $admin?->permissions()->syncWithoutDetaching(
+            $permission_class::query()
+                ->where('guard_name', $web)
+                ->where(static fn ($query) => $query->whereIn('table_name', $cms_tables)
+                    ->orWhere('name', 'like', '%.' . ActionEnum::Select->value))
+                ->whereNot('name', 'like', '%.' . ActionEnum::Lock->value)
+                ->pluck('id'),
+        );
     }
 
     /**
      * Related records obey their own permission, so the publisher reads the entities its screens load with a
      * content: the tags, locations and contributors of the content form, the pending modifications of the
-     * content list. Given on every run, so an existing publisher role gains them too.
+     * content list, and the settings the content list reads (the per-model settings it hydrates are checked
+     * against `core_settings.select`), the latter narrowed to the public ones by an ACL, and the CMS entities that
+     * categories and presets resolve (`core_entities.select`, narrowed to the CMS types by
+     * {@see self::defaultSharedTableAcls()}). Given on every run, so an existing publisher role gains them too.
      *
      * @param  class-string<Role>  $role_class
      * @param  class-string<Permission>  $permission_class
      */
-    private function grantPublisherRelatedReads(string $role_class, string $permission_class, string $name): void
+    private function grantPublisherRelatedReads(string $role_class, string $permission_class, string $name, string $guard): void
     {
-        $publisher = $role_class::query()->where('name', $name)->first(['id', 'guard_name']);
+        $publisher = $role_class::query()->where(['name' => $name, 'guard_name' => $guard])->first(['id', 'guard_name']);
 
         if ($publisher === null) {
             return;
@@ -341,22 +381,38 @@ final class CMSDatabaseSeeder extends Seeder
 
         $names = array_map(
             static fn (string $model): string => PermissionName::forClass($model, ActionEnum::Select->value),
-            [Tag::class, Location::class, Contributor::class, Modification::class],
+            [Tag::class, Location::class, Contributor::class, Modification::class, Setting::class, Entity::class],
         );
 
         $publisher->permissions()->syncWithoutDetaching(
-            $permission_class::query()->whereIn('name', $names)->where('guard_name', $publisher->guard_name)->pluck('id'),
+            $permission_class::query()->whereIn('name', $names)->where('guard_name', $guard)->pluck('id'),
+        );
+
+        $settings_table = (new Setting)->getTable();
+
+        $this->ensureAcl(
+            $permission_class,
+            $publisher,
+            PermissionName::forClass(Setting::class, ActionEnum::Select->value),
+            new FiltersGroup(
+                filters: [new Filter("{$settings_table}.is_public", true, FilterOperator::Equals)],
+                operator: WhereClause::And,
+            ),
+            'Publishers read only the public settings.',
         );
     }
 
     /**
-     * Seed the default row-level ACL that limits the anonymous/public reader (the
-     * `guest` role) to published contents. Validity (valid_from/valid_to) is no
-     * longer a global scope: this role-scoped ACL on `cms_contents.select` filters
-     * the guest to the current publication window via the `@now` placeholder, while
-     * staff roles (no ACL on that permission) read every content.
+     * Grant the `guest` role of the api guard the CMS part of the public list, each entity narrowed by its ACL:
+     * the contents currently published, the references and media of those contents only (so a media of an
+     * unpublished content, or a ticket attachment, is never public), and tags, locations, contributors,
+     * comments and ratings with no default ACL. Validity (valid_from/valid_to) is not a global scope: the
+     * `@now` placeholder of the ACL limits the anonymous reader to the current publication window, while staff
+     * roles (no ACL on the permission) read every content.
+     *
+     * Core grants the settings of the list on the same role.
      */
-    private function defaultContentAcls(): void
+    private function defaultGuestApiGrants(): void
     {
         $this->logOperation(ACL::class);
 
@@ -366,60 +422,80 @@ final class CMSDatabaseSeeder extends Seeder
         /** @var class-string<Role> $role_class */
         $role_class = config('permission.models.role');
 
-        $guest = $role_class::query()->where('name', config('permission.roles.guest'))->first(['id']);
+        $guest = $role_class::query()
+            ->where(['name' => CoreDatabaseSeeder::getDefaultUserRoles()['guest'], 'guard_name' => CoreDatabaseSeeder::API_GUARD])
+            ->first(['id', 'guard_name']);
 
         if ($guest === null) {
-            $this->command?->line('    - guest role missing, skipping content ACL');
+            $this->command?->line('    - api guest role missing, skipping public grants');
 
             return;
         }
 
-        $content = new Content;
-        $permission_name = PermissionName::forModel($content, ActionEnum::Select->value);
+        $grants = [
+            Content::class => new FiltersGroup(filters: self::publishedContentFilters((new Content)->getTable())->filters, operator: WhereClause::And),
+            ContentReference::class => new FiltersGroup([new RelationFilter('content', self::publishedContentFilters())]),
+            Media::class => new FiltersGroup([new RelationFilter('model', self::publishedContentFilters(), [Content::class])]),
+            Tag::class => null,
+            Location::class => null,
+            Contributor::class => null,
+            Comment::class => null,
+            ContentRating::class => null,
+        ];
 
-        $permission = $permission_class::query()->where('name', $permission_name)->first(['id']);
+        foreach ($grants as $model_class => $filters) {
+            $permission_name = PermissionName::forClass($model_class, ActionEnum::Select->value);
+            $permission_id = $permission_class::query()->where(['name' => $permission_name, 'guard_name' => $guest->guard_name])->value('id');
+
+            if ($permission_id === null) {
+                $this->command?->line("    - permission {$permission_name} missing, skipping its public grant");
+
+                continue;
+            }
+
+            $guest->permissions()->syncWithoutDetaching([$permission_id]);
+
+            if ($filters instanceof FiltersGroup) {
+                $this->ensureAcl($permission_class, $guest, $permission_name, $filters, 'Anonymous readers of the api read only what is published.');
+            }
+        }
+    }
+
+    /**
+     * Create the ACL of a permission for a role unless one exists: a re-seed never overwrites what an operator changed.
+     *
+     * @param  class-string<Permission>  $permission_class
+     */
+    private function ensureAcl(string $permission_class, Role $role, string $permission_name, FiltersGroup $filters, string $description): void
+    {
+        $permission = $permission_class::query()->where(['name' => $permission_name, 'guard_name' => $role->guard_name])->first(['id']);
 
         if ($permission === null) {
-            $this->command?->line("    - permission {$permission_name} missing, skipping content ACL");
+            $this->command?->line("    - permission {$permission_name} missing, skipping its ACL");
 
             return;
         }
 
-        if (ACL::query()->where('permission_id', $permission->id)->where('role_id', $guest->id)->exists()) {
-            $this->command?->line('    - content guest ACL already exists');
+        if (ACL::query()->where('permission_id', $permission->id)->where('role_id', $role->id)->exists()) {
+            $this->command?->line("    - {$permission_name} ACL already exists");
 
             return;
         }
-
-        $table = $content->getTable();
-        $filters = new FiltersGroup(
-            filters: [
-                new Filter("{$table}.valid_from", '@now', FilterOperator::LessEquals),
-                new FiltersGroup(
-                    filters: [
-                        new Filter("{$table}.valid_to", '@now', FilterOperator::GreatEquals),
-                        new Filter("{$table}.valid_to", null, FilterOperator::Equals),
-                    ],
-                    operator: WhereClause::Or,
-                ),
-            ],
-            operator: WhereClause::And,
-        );
 
         $acl = new ACL;
         $acl->setSkipValidation(true);
         $acl->forceFill([
             'permission_id' => $permission->id,
-            'role_id' => $guest->id,
+            'role_id' => $role->id,
             'filters' => $filters,
-            'description' => 'Guests (anonymous/public) read only currently-published contents.',
+            'description' => $description,
             'unrestricted' => false,
             'priority' => 100,
             'is_active' => true,
         ]);
         $acl->save();
 
-        $this->command?->line('    - content guest ACL <fg=green>created</>');
+        $this->command?->line("    - {$permission_name} ACL <fg=green>created</>");
     }
 
     /**
@@ -439,7 +515,7 @@ final class CMSDatabaseSeeder extends Seeder
         /** @var class-string<Role> $role_class */
         $role_class = config('permission.models.role');
 
-        $publisher = $role_class::query()->where('name', 'publisher')->first(['id']);
+        $publisher = $role_class::query()->where(['name' => self::PUBLISHER_ROLE, 'guard_name' => CoreDatabaseSeeder::defaultGuard()])->first(['id', 'guard_name']);
 
         if ($publisher === null) {
             $this->command?->line('    - publisher role missing, skipping shared-table ACLs');
@@ -447,42 +523,27 @@ final class CMSDatabaseSeeder extends Seeder
             return;
         }
 
-        $path = [Category::class => 'presettable.entity.type', Preset::class => 'entity.type'];
+        // A condition on the entity type of the related record, as a relation filter: a dotted column path is
+        // not a column of the table the ACL narrows.
+        $cms_entity = new RelationFilter('entity', new FiltersGroup(
+            filters: [new Filter('type', EntityType::values(), FilterOperator::In)],
+            operator: WhereClause::And,
+        ));
 
-        foreach ($path as $model_class => $property) {
-            $model = new $model_class;
-            $permission_name = PermissionName::forModel($model, ActionEnum::Select->value);
-            $permission = $permission_class::query()->where('name', $permission_name)->first(['id']);
+        $acls = [
+            Category::class => new FiltersGroup([new RelationFilter('presettable', new FiltersGroup([$cms_entity]))]),
+            Preset::class => new FiltersGroup([$cms_entity]),
+            Entity::class => new FiltersGroup([new Filter('type', EntityType::values(), FilterOperator::In)]),
+        ];
 
-            if ($permission === null) {
-                $this->command?->line("    - permission {$permission_name} missing, skipping its ACL");
-
-                continue;
-            }
-
-            if (ACL::query()->where('permission_id', $permission->id)->where('role_id', $publisher->id)->exists()) {
-                $this->command?->line("    - {$permission_name} publisher ACL already exists");
-
-                continue;
-            }
-
-            $acl = new ACL;
-            $acl->setSkipValidation(true);
-            $acl->forceFill([
-                'permission_id' => $permission->id,
-                'role_id' => $publisher->id,
-                'filters' => new FiltersGroup(
-                    filters: [new Filter($property, EntityType::values(), FilterOperator::In)],
-                    operator: WhereClause::And,
-                ),
-                'description' => 'Publishers read only the CMS rows of a table shared with other modules.',
-                'unrestricted' => false,
-                'priority' => 100,
-                'is_active' => true,
-            ]);
-            $acl->save();
-
-            $this->command?->line("    - {$permission_name} publisher ACL <fg=green>created</>");
+        foreach ($acls as $model_class => $filters) {
+            $this->ensureAcl(
+                $permission_class,
+                $publisher,
+                PermissionName::forModel(new $model_class, ActionEnum::Select->value),
+                $filters,
+                'Publishers read only the CMS rows of a table shared with other modules.',
+            );
         }
     }
 

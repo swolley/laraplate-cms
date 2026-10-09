@@ -513,7 +513,7 @@ describe('the pending modifications of a content', function (): void {
 
     it('are refused to the anonymous caller with 401', function (): void {
         config()->set('permission.users.guest', 'anonymous');
-        $anonymous = User::query()->where('name', 'anonymous')->first() ?? User::factory()->create(['name' => 'anonymous', 'username' => 'anonymous']);
+        $anonymous = App\Models\User::query()->where('name', 'anonymous')->first() ?? App\Models\User::query()->findOrFail(User::factory()->create(['name' => 'anonymous', 'username' => 'anonymous'])->getKey());
         $role = Role::factory()->create(['name' => 'relrec_guest_' . uniqid(), 'guard_name' => 'api']);
         $role->givePermissionTo(Permission::query()->firstOrCreate(['name' => PermissionName::forClass(Content::class, 'select'), 'guard_name' => 'api']));
         $anonymous->assignRole($role);
