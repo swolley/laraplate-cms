@@ -23,6 +23,7 @@ use Modules\Core\Search\Services\FallbackSearchPlanner;
 use Modules\Core\Search\Services\SimpleQueryIntentParser;
 use Modules\Core\Services\Authorization\AuthorizationService;
 use Modules\Core\Services\Crud\QueryBuilder;
+use Modules\Core\Tests\Stubs\Search\FixedSearchStrategyResolver;
 
 uses(TestCase::class, RefreshDatabase::class);
 
@@ -80,8 +81,7 @@ function cms_retrieval_provider_with_hits(array $hits, array $meta = []): CmsApp
     ));
 
     $search = new AdvancedSearchService(
-        new SimpleQueryIntentParser,
-        new FallbackSearchPlanner,
+        new FixedSearchStrategyResolver(planner: new FallbackSearchPlanner, intent_parser: new SimpleQueryIntentParser),
         $ensemble,
         app(),
     );
@@ -253,8 +253,7 @@ it('degrades to an authorized deterministic lexical title search', function (): 
     $ensemble->shouldReceive('search')->once()->andThrow(new RuntimeException('Search backend details'));
     $provider = new CmsApplicationContentRetrievalProvider(
         new AdvancedSearchService(
-            new SimpleQueryIntentParser,
-            new FallbackSearchPlanner,
+            new FixedSearchStrategyResolver(planner: new FallbackSearchPlanner, intent_parser: new SimpleQueryIntentParser),
             $ensemble,
             app(),
         ),
