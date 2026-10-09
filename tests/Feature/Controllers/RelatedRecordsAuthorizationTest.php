@@ -499,3 +499,46 @@ describe('an ACL on an intermediate relation', function (): void {
         expect(relrec_contributor_names($response->json('data.0')))->toBe(['relrec_visible']);
     });
 });
+
+describe('the pending modifications of a content', function (): void {
+    beforeEach(function (): void {
+        $this->content = Content::factory()->create(['valid_from' => now()->subDay(), 'valid_to' => null]);
+        Modules\Core\Models\Modification::query()->create([
+            'modifiable_type' => $this->content->getMorphClass(),
+            'modifiable_id' => $this->content->id,
+            'md5' => md5('relrec'),
+            'modifications' => ['valid_to' => ['modified' => '2099-01-01 00:00:00']],
+        ]);
+    });
+
+    it('are refused to the anonymous caller with 401', function (): void {
+        config()->set('permission.users.guest', 'anonymous');
+        $anonymous = User::query()->where('name', 'anonymous')->first() ?? User::factory()->create(['name' => 'anonymous', 'username' => 'anonymous']);
+        $role = Role::factory()->create(['name' => 'relrec_guest_' . uniqid(), 'guard_name' => 'api']);
+        $role->givePermissionTo(Permission::query()->firstOrCreate(['name' => PermissionName::forClass(Content::class, 'select'), 'guard_name' => 'api']));
+        $anonymous->assignRole($role);
+
+        $this->getJson('/api/v1/detail/cms/contents?' . http_build_query(['id' => $this->content->id]))->assertOk();
+        $this->getJson('/api/v1/detail/cms/contents?' . http_build_query(['id' => $this->content->id, 'relations' => ['modifications']]))->assertUnauthorized();
+    });
+
+    it('are refused with 403 to a reader who may only select the content', function (): void {
+        $reader = relrec_reader([Content::class => null]);
+
+        $this->actingAs($reader)
+            ->getJson('/api/v1/detail/cms/contents?' . http_build_query(['id' => $this->content->id, 'relations' => ['modifications']]))
+            ->assertForbidden();
+        $this->actingAs($reader)
+            ->getJson('/api/v1/select/cms/contents?' . http_build_query(['group_by' => ['modifications.id']]))
+            ->assertForbidden();
+    });
+
+    it('are given to a reader who may update or approve the content', function (string $operation): void {
+        $reader = relrec_reader([Content::class => null], [PermissionName::forClass(Content::class, $operation)]);
+
+        $response = $this->actingAs($reader)->getJson('/api/v1/detail/cms/contents?' . http_build_query(['id' => $this->content->id, 'relations' => ['modifications']]));
+
+        $response->assertOk();
+        expect($response->json('data.modifications'))->toHaveCount(1);
+    })->with(['update', 'approve']);
+});
