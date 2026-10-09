@@ -7,11 +7,12 @@ namespace Modules\CMS\Models\Translations;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Comment;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
-final class CommentTranslation extends Model implements ITranslated
+final class CommentTranslation extends Model implements IsPartOfParent, ITranslated
 {
     /**
      * @var string
@@ -28,6 +29,15 @@ final class CommentTranslation extends Model implements ITranslated
         'locale',
         'body',
     ];
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'comment';
+    }
 
     /**
      * @return BelongsTo<Comment, $this>

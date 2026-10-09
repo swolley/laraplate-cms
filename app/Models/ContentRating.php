@@ -7,12 +7,13 @@ namespace Modules\CMS\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\CMS\Database\Factories\ContentRatingFactory;
 use Modules\CMS\Enums\CMSTables;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Enums\CoreTables;
 use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
 use Override;
 
-final class ContentRating extends Model
+final class ContentRating extends Model implements IsPartOfParent
 {
     /**
      * @var string
@@ -30,6 +31,15 @@ final class ContentRating extends Model
         'comment_id',
         'score',
     ];
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'content';
+    }
 
     /**
      * @return BelongsTo<Content, $this>

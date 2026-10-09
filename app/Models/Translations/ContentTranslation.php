@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\CMS\Enums\AiAssistance;
 use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Content;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Models\Concerns\HasSlug;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
-final class ContentTranslation extends Model implements ITranslated
+final class ContentTranslation extends Model implements IsPartOfParent, ITranslated
 {
     use HasSlug;
 
@@ -41,6 +42,15 @@ final class ContentTranslation extends Model implements ITranslated
         'components' => '[]',
         'ai_assistance' => 'none',
     ];
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'content';
+    }
 
     /**
      * The content that belongs to the translation.

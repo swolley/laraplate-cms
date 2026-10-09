@@ -10,8 +10,11 @@ use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Models\Category;
 use Modules\CMS\Models\Comment;
 use Modules\CMS\Models\Content;
+use Modules\CMS\Models\Contributor;
 use Modules\CMS\Models\Entity;
+use Modules\CMS\Models\Location;
 use Modules\CMS\Models\Preset;
+use Modules\CMS\Models\Tag;
 use Modules\Core\Casts\ActionEnum;
 use Modules\Core\Casts\FieldType;
 use Modules\Core\Casts\Filter;
@@ -22,6 +25,7 @@ use Modules\Core\Casts\WhereClause;
 use Modules\Core\Database\Seeders\CoreDatabaseSeeder;
 use Modules\Core\Models\ACL;
 use Modules\Core\Models\Field;
+use Modules\Core\Models\Modification;
 use Modules\Core\Models\Permission;
 use Modules\Core\Models\Role;
 use Modules\Core\Models\Setting;
@@ -304,6 +308,8 @@ final class CMSDatabaseSeeder extends Seeder
             $this->command?->line("    - {$name} already exists");
         }
 
+        $this->grantPublisherRelatedReads($role_class, $permission_class, $name);
+
         foreach (CoreDatabaseSeeder::getDefaultUserRoles() as $key => $role) {
             $role = $all_roles->get($role);
 
@@ -315,6 +321,32 @@ final class CMSDatabaseSeeder extends Seeder
                 );
             }
         }
+    }
+
+    /**
+     * Related records obey their own permission, so the publisher reads the entities its screens load with a
+     * content: the tags, locations and contributors of the content form, the pending modifications of the
+     * content list. Given on every run, so an existing publisher role gains them too.
+     *
+     * @param  class-string<Role>  $role_class
+     * @param  class-string<Permission>  $permission_class
+     */
+    private function grantPublisherRelatedReads(string $role_class, string $permission_class, string $name): void
+    {
+        $publisher = $role_class::query()->where('name', $name)->first(['id', 'guard_name']);
+
+        if ($publisher === null) {
+            return;
+        }
+
+        $names = array_map(
+            static fn (string $model): string => PermissionName::forClass($model, ActionEnum::Select->value),
+            [Tag::class, Location::class, Contributor::class, Modification::class],
+        );
+
+        $publisher->permissions()->syncWithoutDetaching(
+            $permission_class::query()->whereIn('name', $names)->where('guard_name', $publisher->guard_name)->pluck('id'),
+        );
     }
 
     /**

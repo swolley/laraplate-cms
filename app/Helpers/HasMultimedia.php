@@ -7,6 +7,7 @@ namespace Modules\CMS\Helpers;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Modules\Core\Helpers\HasMedia;
 use Modules\Core\Models\Media as CmsMedia;
+use Modules\Core\Services\Crud\RelationAuthorizer;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -63,12 +64,20 @@ trait HasMultimedia
     }
 
     /**
+     * The first media of the `cover` collection, read under the media's own permission and ACL: null for a
+     * caller who may not select media or whose media ACL hides it (spec 8.1, R6). The media relation it reads
+     * is loaded narrowed by that ACL.
+     *
      * @return Attribute<?Media, never>
      */
     protected function cover(): Attribute
     {
         return Attribute::make(
             get: function (): ?Media {
+                if (! resolve(RelationAuthorizer::class)->loadForAppendedAttribute($this, 'media')) {
+                    return null;
+                }
+
                 $media = $this->getFirstMedia('cover');
 
                 return $media instanceof CmsMedia ? $media : null;

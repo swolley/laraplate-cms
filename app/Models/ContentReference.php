@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\CMS\Database\Factories\ContentReferenceFactory;
 use Modules\CMS\Enums\CMSTables;
+use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Models\Concerns\SortableTrait;
 use Modules\Core\Overrides\Model;
 use Override;
 use Spatie\EloquentSortable\Sortable;
 
-final class ContentReference extends Model implements Sortable
+final class ContentReference extends Model implements IsPartOfParent, Sortable
 {
     use SortableTrait;
 
@@ -41,6 +42,15 @@ final class ContentReference extends Model implements Sortable
         'order_column_name' => 'order_column',
         'sort_when_creating' => true,
     ];
+
+    /**
+     * The relation to the record this one only exists inside, whose visibility it inherits.
+     */
+    #[Override]
+    public function parentRelation(): string
+    {
+        return 'content';
+    }
 
     /**
      * @return BelongsTo<Content, $this>
