@@ -158,6 +158,9 @@ it('never returns the embeddings of a content, as a relation explicitly requeste
 
     $response = $this->getJson(readcols_url('/api/v1/select/cms/contents', ['relations' => ['embeddings']]));
 
-    expect($response->getContent())->not->toContain('readcols-model-key')
+    // The black-listed relation is dropped, not refused: the list answers, without it.
+    $response->assertOk();
+    expect(collect($response->json('data'))->firstWhere('id', $content->id))->not->toBeNull()->not->toHaveKey('embeddings')
+        ->and($response->getContent())->not->toContain('readcols-model-key')
         ->and($response->getContent())->not->toContain('0.5678');
 });
