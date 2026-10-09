@@ -404,3 +404,98 @@ describe('a relation a package declares only in PHPDoc', function (): void {
         expect($response->json('data.parent.id'))->toBe($parent->id);
     });
 });
+
+describe('group_by through a relation', function (): void {
+    it('is refused to a caller who may not select the related entity', function (): void {
+        relrec_content_with_contributors();
+        $reader = relrec_reader([Contributor::class => null]);
+
+        $this->actingAs($reader)->getJson('/api/v1/select/cms/contributors?' . http_build_query(['group_by' => ['user.name']]))->assertForbidden();
+    });
+
+    it('groups only by the related values the related ACL allows', function (): void {
+        relrec_content_with_contributors();
+        $reader = relrec_reader([Contributor::class => null, User::class => relrec_only_visible()]);
+
+        $response = $this->actingAs($reader)->getJson('/api/v1/select/cms/contributors?' . http_build_query(['group_by' => ['user.name']]));
+
+        $response->assertOk();
+        expect(array_keys((array) $response->json('data')))->toContain('relrec_visible')->not->toContain('relrec_hidden');
+    });
+});
+
+describe('group_by through a relation the model does not load on its own', function (): void {
+    it('groups only by the related records the related ACL allows', function (): void {
+        $live = Content::factory()->create(['valid_from' => now()->subDay(), 'valid_to' => null]);
+        $draft = Content::factory()->create(['valid_from' => now()->subDay(), 'valid_to' => null]);
+        Modules\CMS\Models\ContentReference::factory()->create(['content_id' => $live->id]);
+        Modules\CMS\Models\ContentReference::factory()->create(['content_id' => $draft->id]);
+
+        $reader = relrec_reader([
+            Modules\CMS\Models\ContentReference::class => null,
+            Content::class => new FiltersGroup([new Filter('id', [$live->id], FilterOperator::In)], WhereClause::And),
+        ]);
+
+        $response = $this->actingAs($reader)->getJson('/api/v1/select/cms/content_reference?' . http_build_query(['group_by' => ['content.id']]));
+
+        // The groups come back as a list (integer keys): what tells them apart is the content each row loaded.
+        $response->assertOk();
+        $loaded = collect($response->json('data'))->flatten(1)->pluck('content.id')->filter()->values()->all();
+
+        expect($loaded)->toContain($live->id)->not->toContain($draft->id);
+    });
+});
+
+describe('facets through a relation', function (): void {
+    it('refuse a related column facet, a related label and a related filter to a caller without the related permission', function (string $url): void {
+        relrec_content_with_contributors();
+        $reader = relrec_reader([Content::class => null, Contributor::class => null]);
+
+        $this->actingAs($reader)->getJson($url)->assertForbidden();
+    })->with([
+        'related column' => '/api/v1/facets/cms/contributors?' . http_build_query(['facet' => ['groupBy' => 'user.name']]),
+        'related label field' => '/api/v1/facets/cms/contributors?' . http_build_query(['facet' => ['groupBy' => 'user_id', 'fields' => ['user.name']]]),
+        'related label search' => '/api/v1/facets/cms/contributors?' . http_build_query(['facet' => ['groupBy' => 'user_id', 'labelField' => 'user.name', 'search' => 'relrec']]),
+        'request relation filter' => '/api/v1/facets/cms/contributors?' . http_build_query(['columns' => ['name'], 'filters' => [['property' => 'user.name', 'operator' => 'eq', 'value' => 'relrec_hidden']]]),
+    ]);
+
+    it('refuse a many-to-many relation facet to a caller without the related permission', function (): void {
+        relrec_content_with_contributors();
+        $reader = relrec_reader([Content::class => null]);
+
+        $this->actingAs($reader)
+            ->getJson('/api/v1/facets/cms/contents?' . http_build_query(['facet' => ['groupBy' => 'id', 'relation' => 'contributors']]))
+            ->assertForbidden();
+    });
+
+    it('keep only the related values the related ACL allows', function (): void {
+        relrec_content_with_contributors();
+        $reader = relrec_reader([Content::class => null, Contributor::class => relrec_only_visible(), User::class => relrec_only_visible()]);
+        $visible = Contributor::query()->where('name', 'relrec_visible')->sole();
+        $hidden_user = User::query()->where('name', 'relrec_hidden')->sole();
+
+        $column = $this->actingAs($reader)->getJson('/api/v1/facets/cms/contributors?' . http_build_query(['facet' => ['groupBy' => 'user.name']]));
+        $relation = $this->actingAs($reader)->getJson('/api/v1/facets/cms/contents?' . http_build_query(['facet' => ['groupBy' => 'id', 'relation' => 'contributors']]));
+        $labels = $this->actingAs($reader)->getJson('/api/v1/facets/cms/contributors?' . http_build_query(['facet' => ['groupBy' => 'user_id', 'fields' => ['user.name']]]));
+
+        $column->assertOk();
+        $relation->assertOk();
+        $labels->assertOk();
+        expect(collect($column->json('data.values'))->pluck('key')->all())->toBe(['relrec_visible'])
+            ->and(collect($relation->json('data.values'))->pluck('key')->all())->toBe([$visible->id])
+            ->and(collect($labels->json('data.values'))->pluck('attributes')->pluck('user.name')->filter()->values()->all())->not->toContain('relrec_hidden')
+            ->and(collect($labels->json('data.values'))->firstWhere('key', $hidden_user->id)['attributes']['user.name'] ?? null)->toBeNull();
+    });
+});
+
+describe('an ACL on an intermediate relation', function (): void {
+    it('narrows the intermediate hop of a nested path', function (): void {
+        relrec_content_with_contributors();
+        $reader = relrec_reader([Content::class => null, Contributor::class => relrec_only_visible(), User::class => null]);
+
+        $response = $this->actingAs($reader)->getJson('/api/v1/select/cms/contents?' . http_build_query(['relations' => ['contributors.user']]));
+
+        $response->assertOk();
+        expect(relrec_contributor_names($response->json('data.0')))->toBe(['relrec_visible']);
+    });
+});
