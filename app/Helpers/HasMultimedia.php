@@ -10,6 +10,7 @@ use Modules\Core\Contracts\IPreloadsAppendedRelations;
 use Modules\Core\Helpers\HasMedia;
 use Modules\Core\Models\Media as CmsMedia;
 use Modules\Core\Services\Crud\RelationAuthorizer;
+use Override;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -50,6 +51,7 @@ trait HasMultimedia
     /**
      * @return list<string>
      */
+    #[Override]
     public function appendedAttributeRelations(): array
     {
         return ['coverMedia'];

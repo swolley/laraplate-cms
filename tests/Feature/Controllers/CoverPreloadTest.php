@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Database\Seeders\CMSDatabaseSeeder;
+use Modules\CMS\Models\Category;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Contributor;
 use Modules\CMS\Tests\TestCase;
@@ -232,6 +233,63 @@ describe('the media queries of the other read routes', function (): void {
     });
 });
 
+describe('the media queries of a tree', function (): void {
+    /**
+     * Adds a category with the given number of children, each with a cover, and reads the tree of every category
+     * with the descendants of each. The route is called with a JSON body, which keeps `children` a boolean as the
+     * request data types it. Asking for one root by its id is not possible: the single-record tree matches two rows
+     * on categories (a known problem of that route, unrelated to the cover), so the tree of all of them is read.
+     *
+     * The tree relation of a category is hidden from its serialization, so the nodes are loaded, with the relations
+     * they read on their own, but their covers are not printed: what is counted is the loading.
+     *
+     * @return array{0: TestResponse, 1: int}
+     */
+    function coverpreload_tree(array $bearer, int $children): array
+    {
+        $root = Category::factory()->create();
+        DB::table($root->getTable())->where('id', $root->id)->update(['parent_id' => null, 'valid_from' => now()->subDay()]);
+        coverpreload_cover($root);
+
+        foreach (range(1, $children) as $ignored) {
+            $child = Category::factory()->create();
+            DB::table($child->getTable())->where('id', $child->id)->update(['parent_id' => $root->id, 'valid_from' => now()->subDay()]);
+            coverpreload_cover($child);
+        }
+
+        $response = null;
+        $queries = coverpreload_media_queries(function () use ($bearer, &$response): void {
+            $response = test()->json('GET', '/api/v1/tree/cms/categories', ['children' => true], $bearer);
+        }, cover_only: true);
+
+        return [$response, $queries];
+    }
+
+    it('load the covers of the roots in one query and the covers of all the nodes in one more, whatever their number', function (): void {
+        setupCMSEntities([EntityType::Categories]);
+        $bearer = coverpreload_bearer([Category::class, Media::class]);
+
+        [$few_response, $few] = coverpreload_tree($bearer, 2);
+        [$many_response, $many] = coverpreload_tree($bearer, 8);
+
+        $few_response->assertOk();
+        $many_response->assertOk();
+
+        expect($few)->toBe(2)
+            ->and($many)->toBe(2);
+    });
+
+    it('leave the nodes without a cover query when the caller may not read media', function (): void {
+        setupCMSEntities([EntityType::Categories]);
+        $bearer = coverpreload_bearer([Category::class]);
+
+        [$response, $queries] = coverpreload_tree($bearer, 3);
+
+        $response->assertOk();
+        expect($queries)->toBe(0);
+    });
+});
+
 describe('the preloaded cover', function (): void {
     it('is the right media of each row, in the projection on the api guard', function (): void {
         $first = coverpreload_content();
@@ -269,14 +327,17 @@ describe('the preloaded cover', function (): void {
             ->and($queries)->toBe(0);
     });
 
-    it('is narrowed by the media ACL of the caller: the guest sees the cover only of a published content', function (): void {
-        $live = coverpreload_content();
-        $draft = Content::factory()->create(['valid_from' => now()->addWeek(), 'valid_to' => null]);
-        coverpreload_cover($draft);
+    it('is narrowed by the media ACL of the guest: the cover of a published content, not the one of its contributor', function (): void {
+        $content = coverpreload_content();
+        $contributor = Contributor::factory()->create(['user_id' => null]);
+        coverpreload_cover($contributor);
+        $content->contributors()->attach($contributor->id);
 
-        $response = $this->getJson('/api/v1/select/cms/contents')->assertOk();
+        $response = $this->getJson('/api/v1/detail/cms/contents?' . http_build_query(['id' => $content->id, 'relations' => ['contributors']]))->assertOk();
 
-        expect(collect($response->json('data'))->pluck('id')->all())->toBe([$live->id])
-            ->and($response->json('data.0.cover.id'))->not->toBeNull();
+        expect($response->json('data.cover.id'))->not->toBeNull()
+            ->and($response->json('data.contributors'))->toHaveCount(1)
+            ->and($response->json('data.contributors.0'))->toHaveKey('cover')
+            ->and($response->json('data.contributors.0.cover'))->toBeNull();
     });
 });
