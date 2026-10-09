@@ -15,6 +15,7 @@ use Modules\CMS\Helpers\HasTags;
 use Modules\CMS\Models\Pivot\Contributable;
 use Modules\Core\Contracts\IDynamicEntityTypable;
 use Modules\Core\Contracts\IHidesAttributesFromAnonymous;
+use Modules\Core\Contracts\IPreloadsAppendedRelations;
 use Modules\Core\Models\Concerns\HasPath;
 use Modules\Core\Models\Concerns\HasTranslatedDynamicContents;
 use Modules\Core\Models\Concerns\HidesAttributesFromAnonymous;
@@ -27,7 +28,7 @@ use Spatie\MediaLibrary\HasMedia as IMediable;
  * @phpstan-use HasMultimedia<Contributor>
  * @phpstan-use HasTranslatedDynamicContents<Contributor>
  */
-final class Contributor extends Model implements IHidesAttributesFromAnonymous, IMediable, Taggable
+final class Contributor extends Model implements IHidesAttributesFromAnonymous, IMediable, IPreloadsAppendedRelations, Taggable
 {
     // region Traits
     use HasMultimedia;

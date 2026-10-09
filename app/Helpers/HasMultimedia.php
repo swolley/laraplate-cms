@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Modules\CMS\Helpers;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Modules\Core\Contracts\IPreloadsAppendedRelations;
 use Modules\Core\Helpers\HasMedia;
 use Modules\Core\Models\Media as CmsMedia;
 use Modules\Core\Services\Crud\RelationAuthorizer;
@@ -23,6 +25,34 @@ trait HasMultimedia
         if (! in_array('cover', $this->appends, true)) {
             $this->appends[] = 'cover';
         }
+
+        if (! in_array('coverMedia', $this->hidden, true)) {
+            $this->hidden[] = 'coverMedia';
+        }
+    }
+
+    /**
+     * The relation the `cover` attribute reads: the first media of the `cover` collection. It is hidden from the
+     * serialization, which carries the cover as the `cover` attribute and no other media, and it is never loaded by
+     * default: the CRUD read loads it once for the whole result set, under the media permission and ACL of the
+     * caller (see {@see IPreloadsAppendedRelations}).
+     *
+     * @return MorphOne<CmsMedia, $this>
+     */
+    public function coverMedia(): MorphOne
+    {
+        return $this->morphOne(CmsMedia::class, 'model')
+            ->where('collection_name', 'cover')
+            ->orderBy('order_column')
+            ->orderBy('id');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function appendedAttributeRelations(): array
+    {
+        return ['coverMedia'];
     }
 
     public function registerMediaCollections(): void
@@ -65,8 +95,9 @@ trait HasMultimedia
 
     /**
      * The first media of the `cover` collection, read under the media's own permission and ACL: null for a
-     * caller who may not select media or whose media ACL hides it (spec 8.1, R6). The media relation it reads
-     * is loaded narrowed by that ACL.
+     * caller who may not select media or whose media ACL hides it (spec 8.1, R6). A relation the CRUD read
+     * preloaded is used as it is: it was loaded narrowed by that ACL, or left out when the caller may not read
+     * media. Otherwise the relation is loaded here, narrowed the same way.
      *
      * @return Attribute<?Media, never>
      */
@@ -74,11 +105,16 @@ trait HasMultimedia
     {
         return Attribute::make(
             get: function (): ?Media {
-                if (! resolve(RelationAuthorizer::class)->loadForAppendedAttribute($this, 'media')) {
-                    return null;
+                if (! $this->relationLoaded('coverMedia')) {
+                    if (! resolve(RelationAuthorizer::class)->loadForAppendedAttribute($this, 'coverMedia')) {
+                        return null;
+                    }
+
+                    // With no acting user (console, queue) there is no caller to hide it from, and nothing was loaded.
+                    $this->loadMissing('coverMedia');
                 }
 
-                $media = $this->getFirstMedia('cover');
+                $media = $this->getRelation('coverMedia');
 
                 return $media instanceof CmsMedia ? $media : null;
             },

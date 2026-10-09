@@ -14,6 +14,7 @@ use Modules\CMS\Helpers\HasTags;
 use Modules\CMS\Models\Pivot\Categorizable;
 use Modules\CMS\Models\Pivot\Presettable;
 use Modules\Core\Contracts\IDynamicEntityTypable;
+use Modules\Core\Contracts\IPreloadsAppendedRelations;
 use Modules\Core\Contracts\ProvidesFacetLabelSources;
 use Modules\Core\Models\Taxonomy;
 use Modules\Core\Services\Crud\DTOs\FacetLabelSource;
@@ -24,7 +25,7 @@ use Spatie\MediaLibrary\HasMedia as IMediable;
 /**
  * @phpstan-use HasMultimedia<Category>
  */
-final class Category extends Taxonomy implements IMediable, ProvidesFacetLabelSources, Sortable, Taggable
+final class Category extends Taxonomy implements IMediable, IPreloadsAppendedRelations, ProvidesFacetLabelSources, Sortable, Taggable
 {
     // region Traits
     use HasMultimedia;
