@@ -7,14 +7,18 @@ namespace Modules\CMS\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\CMS\Database\Factories\ContentRatingFactory;
 use Modules\CMS\Enums\CMSTables;
+use Modules\Core\Contracts\IHidesAttributesFromAnonymous;
 use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Enums\CoreTables;
+use Modules\Core\Models\Concerns\HidesAttributesFromAnonymous;
 use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
 use Override;
 
-final class ContentRating extends Model implements IsPartOfParent
+final class ContentRating extends Model implements IHidesAttributesFromAnonymous, IsPartOfParent
 {
+    use HidesAttributesFromAnonymous;
+
     /**
      * @var string
      */
@@ -31,6 +35,17 @@ final class ContentRating extends Model implements IsPartOfParent
         'comment_id',
         'score',
     ];
+
+    /**
+     * The author of a rating is never returned to the anonymous user.
+     *
+     * @return list<string>
+     */
+    #[Override]
+    public function anonymousHiddenAttributes(): array
+    {
+        return ['user_id'];
+    }
 
     /**
      * The relation to the record this one only exists inside, whose visibility it inherits.

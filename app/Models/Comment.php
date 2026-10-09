@@ -14,19 +14,21 @@ use Modules\CMS\Services\CommentApprovalCapture;
 use Modules\CMS\Services\ContentRatingService;
 use Modules\Core\Approvals\Operation;
 use Modules\Core\Casts\ActionEnum;
+use Modules\Core\Contracts\IHidesAttributesFromAnonymous;
 use Modules\Core\Enums\CoreTables;
 use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Models\Concerns\HasApprovals;
 use Modules\Core\Models\Concerns\HasTranslations;
 use Modules\Core\Models\Concerns\HasTypedRecursiveRelationships;
+use Modules\Core\Models\Concerns\HidesAttributesFromAnonymous;
 use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Support\PermissionName;
 use Override;
 
-final class Comment extends Model
+final class Comment extends Model implements IHidesAttributesFromAnonymous
 {
-    use HasApprovals, HasTranslations, HasTypedRecursiveRelationships {
+    use HasApprovals, HasTranslations, HasTypedRecursiveRelationships, HidesAttributesFromAnonymous {
         HasApprovals::toArray as private approvalsToArray;
         HasTranslations::toArray as private translationsToArray;
     }
@@ -120,6 +122,17 @@ final class Comment extends Model
         }
 
         return $attributes;
+    }
+
+    /**
+     * The author is never returned to the anonymous user.
+     *
+     * @return list<string>
+     */
+    #[Override]
+    public function anonymousHiddenAttributes(): array
+    {
+        return ['user_id'];
     }
 
     /**

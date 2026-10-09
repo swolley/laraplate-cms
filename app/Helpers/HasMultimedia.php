@@ -18,7 +18,7 @@ trait HasMultimedia
 {
     use HasMedia;
 
-    public function initializeHasMultiMedia(): void
+    public function initializeHasMultimedia(): void
     {
         if (! in_array('cover', $this->appends, true)) {
             $this->appends[] = 'cover';

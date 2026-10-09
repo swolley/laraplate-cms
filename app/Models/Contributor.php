@@ -14,8 +14,10 @@ use Modules\CMS\Helpers\HasMultimedia;
 use Modules\CMS\Helpers\HasTags;
 use Modules\CMS\Models\Pivot\Contributable;
 use Modules\Core\Contracts\IDynamicEntityTypable;
+use Modules\Core\Contracts\IHidesAttributesFromAnonymous;
 use Modules\Core\Models\Concerns\HasPath;
 use Modules\Core\Models\Concerns\HasTranslatedDynamicContents;
+use Modules\Core\Models\Concerns\HidesAttributesFromAnonymous;
 use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
 use Override;
@@ -25,7 +27,7 @@ use Spatie\MediaLibrary\HasMedia as IMediable;
  * @phpstan-use HasMultimedia<Contributor>
  * @phpstan-use HasTranslatedDynamicContents<Contributor>
  */
-final class Contributor extends Model implements IMediable, Taggable
+final class Contributor extends Model implements IHidesAttributesFromAnonymous, IMediable, Taggable
 {
     // region Traits
     use HasMultimedia;
@@ -35,6 +37,7 @@ final class Contributor extends Model implements IMediable, Taggable
         HasTranslatedDynamicContents::getRules as private getRulesTranslatedDynamicContents;
         HasTranslatedDynamicContents::casts as private translatedDynamicContentsCasts;
     }
+    use HidesAttributesFromAnonymous;
     // endregion
 
     /**
@@ -69,6 +72,19 @@ final class Contributor extends Model implements IMediable, Taggable
     public static function getEntityModelClass(): string
     {
         return Entity::class;
+    }
+
+    /**
+     * The bridged user and the contact data of the contributor are never returned to the anonymous user. The
+     * contributor presets keep `public_email`, `phone` and the social profile addresses in `shared_components`,
+     * so the whole column is declared, not only the keys known today.
+     *
+     * @return list<string>
+     */
+    #[Override]
+    public function anonymousHiddenAttributes(): array
+    {
+        return ['user_id', 'user', 'shared_components'];
     }
 
     /**

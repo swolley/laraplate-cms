@@ -7,9 +7,13 @@ use Modules\CMS\Tests\TestCase;
 
 uses(TestCase::class);
 
-it('appends cover after initializeHasMultiMedia', function (): void {
+it('appends cover to a model as soon as it is built, through the conventional trait initializer', function (): void {
+    expect((new Category)->getAppends())->toContain('cover');
+});
+
+it('appends cover after initializeHasMultimedia', function (): void {
     $category = new Category;
-    $category->initializeHasMultiMedia();
+    $category->initializeHasMultimedia();
 
     expect($category->getAppends())->toContain('cover');
 });
@@ -17,7 +21,7 @@ it('appends cover after initializeHasMultiMedia', function (): void {
 it('does not duplicate cover in appends when called twice', function (): void {
     $category = new Category;
     $category->mergeAppends(['cover']);
-    $category->initializeHasMultiMedia();
+    $category->initializeHasMultimedia();
 
     expect(array_count_values($category->getAppends())['cover'] ?? 0)->toBe(1);
 });
