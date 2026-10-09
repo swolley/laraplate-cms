@@ -18,15 +18,15 @@ use Modules\Core\Enums\CoreTables;
 use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Models\Concerns\HasApprovals;
 use Modules\Core\Models\Concerns\HasTranslations;
+use Modules\Core\Models\Concerns\HasTypedRecursiveRelationships;
 use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Support\PermissionName;
 use Override;
-use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 
 final class Comment extends Model
 {
-    use HasApprovals, HasRecursiveRelationships, HasTranslations {
+    use HasApprovals, HasTranslations, HasTypedRecursiveRelationships {
         HasApprovals::toArray as private approvalsToArray;
         HasTranslations::toArray as private translationsToArray;
     }

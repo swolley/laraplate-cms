@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Database\Seeders\CMSDatabaseSeeder;
+use Modules\CMS\Models\Category;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Contributor;
 use Modules\CMS\Tests\TestCase;
@@ -380,5 +381,26 @@ describe('the seeded staff roles through /app', function (): void {
             'id' => $content->id,
             'relations' => ['tags', 'categories', 'locations', 'contributors', 'modifications'],
         ]))->assertOk();
+    });
+});
+
+describe('a relation a package declares only in PHPDoc', function (): void {
+    it('loads the parent of a category, now that the relation declares its return type', function (): void {
+        setupCMSEntities([EntityType::Categories]);
+
+        $parent = Category::factory()->create();
+        $parent->parent_id = null;
+        $parent->save();
+
+        $child = Category::factory()->create();
+        $child->parent_id = $parent->id;
+        $child->save();
+
+        $reader = relrec_reader([Category::class => null]);
+
+        $response = $this->actingAs($reader)->getJson('/api/v1/detail/cms/categories?' . http_build_query(['id' => $child->id, 'relations' => ['parent']]));
+
+        $response->assertOk();
+        expect($response->json('data.parent.id'))->toBe($parent->id);
     });
 });
