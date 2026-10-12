@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Models\Content;
+use Modules\CMS\Models\ContentRating;
 use Modules\CMS\Models\ContentReference;
 use Modules\CMS\Tests\TestCase;
 use Modules\Core\Models\Permission;
@@ -20,10 +21,11 @@ use Modules\Core\Support\PermissionName;
 uses(TestCase::class, RefreshDatabase::class);
 
 /*
- * A part of its parent (the references of a content) inherits the parent's visibility: hydrating it asks the
- * parent's select permission, within the token's abilities, never the part's own. A caller who reads the content
- * reads its references, whether or not its role or its token names the references' permission; a caller who
- * may not read the parent does not read its parts.
+ * A part of its parent (the references and ratings of a content) inherits the parent's visibility: hydrating it
+ * accepts the parent's select permission or its own, within the token's abilities. A caller who reads the content
+ * reads its references, whether or not its role or its token names the references' permission; a caller holding
+ * the references' own permissions reads and updates them from their own endpoint without the content's; a caller
+ * holding neither does not hydrate them.
  */
 
 beforeEach(function (): void {
@@ -36,13 +38,16 @@ beforeEach(function (): void {
 
 /**
  * @param  list<class-string<Illuminate\Database\Eloquent\Model>>  $model_classes
+ * @param  list<string>  $operations
  */
-function partsparent_user(string $guard, array $model_classes): User
+function partsparent_user(string $guard, array $model_classes, array $operations = ['select']): User
 {
     $role = Role::factory()->create(['name' => 'partsparent_' . uniqid(), 'guard_name' => $guard]);
 
     foreach ($model_classes as $model_class) {
-        $role->givePermissionTo(Permission::query()->where(['name' => PermissionName::forClass($model_class, 'select'), 'guard_name' => $guard])->firstOrFail());
+        foreach ($operations as $operation) {
+            $role->givePermissionTo(Permission::query()->where(['name' => PermissionName::forClass($model_class, $operation), 'guard_name' => $guard])->firstOrFail());
+        }
     }
 
     $user = User::query()->findOrFail(Modules\Core\Models\User::factory()->create()->getKey());
@@ -83,9 +88,83 @@ it('loads the references of a content for a session role holding only the conten
     expect(collect($response->json('data.references'))->pluck('label')->all())->toBe(['partsparent-reference']);
 });
 
-it('does not hydrate a reference for a caller who may not read its content', function (): void {
+it('loads the ratings of a content for a token carrying only the content ability', function (): void {
+    $content = partsparent_content();
+    ContentRating::factory()->create(['content_id' => $content->id, 'score' => 4]);
+    $user = partsparent_user('api', [Content::class, ContentRating::class]);
+    $token = $user->createToken('partsparent', [PermissionName::forClass(Content::class, 'select')])->plainTextToken;
+
+    $response = $this->getJson(
+        '/api/v1/detail/cms/contents?' . http_build_query(['id' => $content->id, 'relations' => ['ratings']]),
+        ['Authorization' => 'Bearer ' . $token],
+    );
+
+    $response->assertOk();
+    expect(collect($response->json('data.ratings'))->pluck('score')->all())->toBe([4]);
+});
+
+it('reads a reference from its own endpoint with its own permission only', function (): void {
+    $reference = partsparent_content()->references()->firstOrFail();
+    $user = partsparent_user('api', [ContentReference::class]);
+    $token = $user->createToken('partsparent', [PermissionName::forClass(ContentReference::class, 'select')])->plainTextToken;
+
+    $this->getJson('/api/v1/detail/cms/content_reference?' . http_build_query(['id' => $reference->id]), ['Authorization' => 'Bearer ' . $token])
+        ->assertOk()
+        ->assertJsonPath('data.label', 'partsparent-reference');
+});
+
+it('reads and updates a rating from its own endpoint with its own permissions only', function (): void {
+    $rating = ContentRating::factory()->create(['content_id' => partsparent_content()->id, 'score' => 2]);
+    $user = partsparent_user('api', [ContentRating::class], ['select', 'update']);
+    $token = $user->createToken('partsparent', [
+        PermissionName::forClass(ContentRating::class, 'select'),
+        PermissionName::forClass(ContentRating::class, 'update'),
+    ])->plainTextToken;
+    $headers = ['Authorization' => 'Bearer ' . $token];
+
+    $this->getJson('/api/v1/detail/cms/content_rating?' . http_build_query(['id' => $rating->id]), $headers)
+        ->assertOk()
+        ->assertJsonPath('data.score', 2);
+
+    $this->patchJson('/api/v1/update/cms/content_rating', ['id' => $rating->id, 'score' => 5], $headers)
+        ->assertOk();
+
+    expect(ContentRating::query()->toBase()->where('id', $rating->id)->value('score'))->toBe(5);
+});
+
+it('refuses a reference to a token holding neither its permission nor its content\'s', function (): void {
+    $reference = partsparent_content()->references()->firstOrFail();
+    $user = partsparent_user('api', [ContentRating::class]);
+    $token = $user->createToken('partsparent', [PermissionName::forClass(ContentRating::class, 'select')])->plainTextToken;
+
+    $this->getJson('/api/v1/detail/cms/content_reference?' . http_build_query(['id' => $reference->id]), ['Authorization' => 'Bearer ' . $token])
+        ->assertForbidden();
+});
+
+it('hydrates a reference for a caller holding only its own select permission', function (): void {
     $reference = partsparent_content()->references()->firstOrFail();
     Auth::login(partsparent_user('web', [ContentReference::class]));
 
-    expect(fn (): ?ContentReference => ContentReference::query()->find($reference->getKey()))->toThrow(AuthorizationException::class);
+    expect(ContentReference::query()->find($reference->getKey())?->label)->toBe('partsparent-reference');
+});
+
+it('does not hydrate a reference for a caller who may read neither it nor its content', function (): void {
+    $reference = partsparent_content()->references()->firstOrFail();
+    Auth::login(partsparent_user('web', [ContentRating::class]));
+
+    expect(fn (): ?ContentReference => ContentReference::query()->find($reference->getKey()))->toThrow(
+        AuthorizationException::class,
+        sprintf('User cannot select %s nor its owner %s', new ContentReference()->getTable(), new Content()->getTable()),
+    );
+});
+
+it('checks the reference\'s own permission when its content has no registered permission', function (): void {
+    $reference = partsparent_content()->references()->firstOrFail();
+    Permission::query()->where('name', PermissionName::forClass(Content::class, 'select'))->delete();
+    Auth::login(partsparent_user('web', [ContentRating::class]));
+
+    expect(fn (): ?ContentReference => ContentReference::query()->find($reference->getKey()))->toThrow(
+        AuthorizationException::class,
+        'User cannot select ' . new ContentReference()->getTable(),
+    );
 });
