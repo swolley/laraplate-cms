@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Category;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Contributor;
@@ -165,6 +166,31 @@ it('belongs to many tags', function (): void {
 
     expect($this->content->tags)->toHaveCount(2);
     expect($this->content->tags->pluck('name')->toArray())->toContain('laravel', 'php');
+});
+
+it('keeps its tags when it is soft deleted', function (): void {
+    $this->content->attachTags(['laravel', 'php']);
+
+    $this->content->delete();
+
+    expect($this->content->tags()->count())->toBe(2);
+});
+
+it('has its tags back when it is restored from the bin', function (): void {
+    $this->content->attachTags(['laravel', 'php']);
+    $this->content->delete();
+
+    $this->content->restore();
+
+    expect($this->content->tags()->get()->pluck('name')->all())->toContain('laravel', 'php');
+});
+
+it('detaches its tags when it is force deleted', function (): void {
+    $this->content->attachTags(['laravel', 'php']);
+
+    $this->content->forceDelete();
+
+    $this->assertDatabaseCount(CMSTables::Taggables->value, 0);
 });
 
 it('belongs to many locations', function (): void {

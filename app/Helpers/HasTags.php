@@ -57,6 +57,12 @@ trait HasTags
                 return;
             }
 
+            // A soft delete keeps the row, and its tags with it, for the restore. Only a row that is
+            // gone has to be detached: the taggables table has no foreign key on the taggable side.
+            if ($deleted_model->exists) {
+                return;
+            }
+
             $deleted_model->detachModelTags();
         });
     }
