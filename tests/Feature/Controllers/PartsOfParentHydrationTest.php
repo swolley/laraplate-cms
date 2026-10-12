@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Once;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\ContentRating;
@@ -161,10 +162,14 @@ it('does not hydrate a reference for a caller who may read neither it nor its co
 it('checks the reference\'s own permission when its content has no registered permission', function (): void {
     $reference = partsparent_content()->references()->firstOrFail();
     Permission::query()->where('name', PermissionName::forClass(Content::class, 'select'))->delete();
+
+    // Hydrating the reference above memoized the content's permission as registered, for the process: forget it,
+    // or the owner branch would still be in charge and a fail-open fallback would go unnoticed.
+    Once::flush();
     Auth::login(partsparent_user('web', [ContentRating::class]));
 
+    // An exception instance is compared by its exact message, not as a substring.
     expect(fn (): ?ContentReference => ContentReference::query()->find($reference->getKey()))->toThrow(
-        AuthorizationException::class,
-        'User cannot select ' . new ContentReference()->getTable(),
+        new AuthorizationException('User cannot select ' . new ContentReference()->getTable()),
     );
 });
