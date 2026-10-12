@@ -293,7 +293,8 @@ while an import drops a malformed link from its source and keeps the record.
 `order_column` sorted per content through `buildSortQuery()`. Soft-deleted like the rest of CMS.
 References are part of their content (`ContentReference` implements Core's `IsPartOfParent`) and are indexed in the
 content's search document as the `references` text field (each label and the URL host with `www.` stripped); a reference
-change re-sends its content through `ContentReferenceObserver`. Existing indexes need a rebuild to gain the field
+change re-sends its content through `ContentReferenceObserver`, as a system read (Core's
+`RetrievedSelectGuard::forSystemRead()`), so a caller holding only the reference's own permissions can change it. Existing indexes need a rebuild to gain the field
 (`php artisan scout:sync-mapping` then `php artisan scout:reindex` for `Modules\CMS\Models\Content`).
 
 **AI-assistance disclosure** lives per translation, not per content, because a piece can be written

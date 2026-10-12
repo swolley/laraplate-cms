@@ -8,12 +8,14 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Once;
 use Modules\CMS\Casts\EntityType;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\ContentRating;
 use Modules\CMS\Models\ContentReference;
 use Modules\CMS\Tests\TestCase;
+use Modules\Core\Events\ModelRequiresIndexing;
 use Modules\Core\Models\Permission;
 use Modules\Core\Models\Role;
 use Modules\Core\Support\CrudApiExposure;
@@ -131,6 +133,33 @@ it('reads and updates a rating from its own endpoint with its own permissions on
         ->assertOk();
 
     expect(ContentRating::query()->toBase()->where('id', $rating->id)->value('score'))->toBe(5);
+});
+
+it('updates and deletes a reference with its own permissions only, and re-indexes its content', function (): void {
+    $content = partsparent_content();
+    $reference = $content->references()->firstOrFail();
+    $operations = ['select', 'update', 'delete', 'forceDelete'];
+    $user = partsparent_user('api', [ContentReference::class], $operations);
+    $token = $user->createToken(
+        'partsparent',
+        array_map(static fn (string $operation): string => PermissionName::forClass(ContentReference::class, $operation), $operations),
+    )->plainTextToken;
+    $headers = ['Authorization' => 'Bearer ' . $token];
+    Event::fake([ModelRequiresIndexing::class]);
+
+    $this->patchJson('/api/v1/update/cms/content_reference', ['id' => $reference->id, 'label' => 'partsparent-renamed'], $headers)
+        ->assertOk();
+
+    expect(ContentReference::query()->toBase()->where('id', $reference->id)->value('label'))->toBe('partsparent-renamed');
+
+    $this->deleteJson('/api/v1/delete/cms/content_reference', ['id' => $reference->id], $headers)
+        ->assertOk();
+
+    expect(ContentReference::query()->toBase()->where('id', $reference->id)->exists())->toBeFalse()
+        ->and(Event::dispatched(
+            ModelRequiresIndexing::class,
+            fn (ModelRequiresIndexing $event): bool => $event->model instanceof Content && $event->model->is($content),
+        ))->toHaveCount(2);
 });
 
 it('refuses a reference to a token holding neither its permission nor its content\'s', function (): void {
