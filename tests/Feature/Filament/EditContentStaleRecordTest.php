@@ -29,6 +29,19 @@ function validContentFormState(Content $content, array $changes = []): array
     ];
 }
 
+it('saves a content that nobody changed since the form was opened', function (): void {
+    $content = createMinimalTestContentForComments();
+    $content->forceFill(['valid_from' => now()->subWeek(), 'valid_to' => now()->subDay()])->saveQuietly();
+    HttpContext::panelActorWithoutApproval(new Content, ['select', 'update']);
+
+    Livewire::test(EditContent::class, ['record' => $content->getKey()])
+        ->fillForm(validContentFormState($content, ['order_column' => 99]))
+        ->call('save')
+        ->assertNotified('Saved');
+
+    expect($content->fresh()->order_column)->toBe(99);
+});
+
 it('refuses a save when the content changed after the form was opened', function (): void {
     $content = createMinimalTestContentForComments();
     HttpContext::panelActorWithoutApproval(new Content, ['select', 'update']);
