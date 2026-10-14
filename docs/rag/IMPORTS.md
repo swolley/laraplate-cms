@@ -37,6 +37,10 @@ Every upserted record gets a row in `core_record_origins`, written through `Exte
 
 An importer that has no url for a taxonomy leaves `originUrl` null; the origin row is still written and the record stays identifiable.
 
+## Position of categories and tags
+
+`ImportCategoryDto::$orderColumn` and `ImportTagDto::$orderColumn` are nullable. A number is the record's position in the source: the upserter writes it, also when it creates the record (`keepPositionWhenCreating()`). Null means the source has no order of its own: an existing record keeps the position an editor gave it, and a new one goes last. The CSV category importer carries no position and behaves as null. Naxos sends a position for sections, event categories and folders when the payload has `order`; Naxos tags, feed and Spaceflight send null.
+
 ## Compatibility and boundaries
 
 The CMS marker extends Core's neutral `import(?OutputInterface $output = null): int` contract, preserving existing Naxos importer namespaces. When the console output is passed (from `cms:import`), CMS forwards it to `ImportPipeline` / `ImportProgressLogger` for per-content progress lines; omitting it keeps pipeline-only runs quiet. CMS still owns content DTOs, mapping contracts, `ImportPipeline`, upserters, preset provisioning, reference resolution, and post-processing. External packages own source clients, credentials, readers, normalization, and source-specific mappings.

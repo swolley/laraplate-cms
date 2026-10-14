@@ -85,7 +85,14 @@ final class CategoryUpserter
         }
 
         $category->is_active = $dto->isActive;
-        $category->order_column = $dto->orderColumn;
+
+        // The source owns the position when it has one; otherwise the category keeps its own, and a new one
+        // goes last.
+        if ($dto->orderColumn !== null) {
+            $category->order_column = $dto->orderColumn;
+            $category->keepPositionWhenCreating();
+        }
+
         $category->shared_components = $dto->sharedComponents;
         $category->save();
 

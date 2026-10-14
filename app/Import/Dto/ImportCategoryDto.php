@@ -23,7 +23,11 @@ final readonly class ImportCategoryDto
         public array $components,
         public array $sharedComponents,
         public bool $isActive,
-        public int $orderColumn,
+        /**
+         * Position in the source, or null when the source has no order of its own: the record then
+         * keeps the position it has, and a new one goes last.
+         */
+        public ?int $orderColumn,
         public ?string $createdAt,
         public ?string $updatedAt,
         public ?string $deletedAt,

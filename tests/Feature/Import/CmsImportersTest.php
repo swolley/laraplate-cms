@@ -89,3 +89,17 @@ test('the category importer builds a hierarchy via the parent column', function 
     expect($politics->parent_id)->toBe($news->id)
         ->and($news->parent_id)->toBeNull();
 });
+
+test('the category importer keeps the position of a category it imports again', function (): void {
+    setupCMSEntities([EntityType::Categories]);
+
+    app(ImportRunner::class)->process(cmsImportSession('cms.category', "name\nNews\n", ['name' => 'name']));
+    $news = Category::query()->withoutGlobalScopes()->whereHas('translations', fn ($q) => $q->where('slug', 'news'))->sole();
+    Category::query()->withoutGlobalScopes()->whereKey($news->id)->update(['order_column' => 9]);
+
+    $again = cmsImportSession('cms.category', "name\nNews\n", ['name' => 'name']);
+    app(ImportRunner::class)->process($again);
+
+    expect($again->fresh()->updated_rows)->toBe(1)
+        ->and($news->fresh()->order_column)->toBe(9);
+});

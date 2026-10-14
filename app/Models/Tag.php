@@ -52,6 +52,14 @@ final class Tag extends Model implements Sortable
     protected bool $translation_fallback_enabled = true;
 
     /**
+     * @var array<string, mixed>
+     */
+    protected array $sortable = [
+        'order_column_name' => 'order_column',
+        'sort_when_creating' => true,
+    ];
+
+    /**
      * @param  string|Tag|array<int|string, string|Tag>|ArrayAccess<int|string, string|Tag>  $values
      * @return ($values is string ? self : ($values is Tag ? self : Collection<int, self>))
      */
@@ -161,14 +169,6 @@ final class Tag extends Model implements Sortable
         return $this->morphedByMany(Content::class, 'taggable', CMSTables::Taggables->value)
             ->using(Taggable::class)
             ->withTimestamps();
-    }
-
-    /**
-     * Determine if model should be sorted when creating.
-     */
-    public function shouldSortWhenCreating(): bool
-    {
-        return true;
     }
 
     /**

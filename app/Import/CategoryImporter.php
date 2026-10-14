@@ -107,9 +107,9 @@ final readonly class CategoryImporter implements EntityImporterInterface
         }
 
         // Mirror CategoryUpserter: set every column the dynamic-content machinery
-        // reads, so the model is never left in a partial-attribute state.
+        // reads, so the model is never left in a partial-attribute state. The file
+        // carries no position: a category keeps its own, and a new one goes last.
         $category->is_active = true;
-        $category->order_column = 0;
         $category->shared_components = [];
         $category->save();
 

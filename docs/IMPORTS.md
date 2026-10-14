@@ -34,6 +34,8 @@ Imported records are indexed in deferred bulk flushes, not one by one: every `--
 
 Within one run the pipeline writes each category, contributor and tag once: a later article that carries the same entity with an identical payload reuses the local id already in the run's `ImportIdMap` instead of loading, saving and registering it again. A changed payload is written again, and a graph that rolls back clears the map, so the next article writes its entities afresh. Nothing is carried between runs.
 
+An import owns the position of a category or tag only when the source orders them. A DTO that carries a number in `orderColumn` places the record there, new or not; a DTO that carries null leaves an existing record where an editor put it and puts a new one last. An importer whose source has no order of its own passes null, never 0: a 0 would move every record of the source to the top at each run. The CSV category import carries no position.
+
 The command injects `dryRun` and `limit` as named constructor parameters. Source-specific arguments are intentionally not part of the common command contract.
 
 ## Dry-run boundary

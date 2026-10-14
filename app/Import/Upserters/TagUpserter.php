@@ -45,10 +45,7 @@ final class TagUpserter
             // must still be found (and reused) rather than crashing the import.
             $tag = $tag_model->newQueryWithoutScopes()->whereKey($existing_id)->firstOrFail();
         } else {
-            $tag = $tag_model->newInstance([
-                'type' => $dto->type,
-                'order_column' => $dto->orderColumn,
-            ]);
+            $tag = $tag_model->newInstance(['type' => $dto->type]);
         }
 
         // A record that reappears in the source must be revived before it can be
@@ -60,7 +57,13 @@ final class TagUpserter
         }
 
         $tag->type = $dto->type;
-        $tag->order_column = $dto->orderColumn;
+
+        // The source owns the position when it has one; otherwise the tag keeps its own, and a new one goes last.
+        if ($dto->orderColumn !== null) {
+            $tag->order_column = $dto->orderColumn;
+            $tag->keepPositionWhenCreating();
+        }
+
         $tag->save();
 
         $tag->setTranslation($this->locale, [
