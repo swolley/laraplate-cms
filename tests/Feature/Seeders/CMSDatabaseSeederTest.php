@@ -23,6 +23,7 @@ use Modules\Core\Casts\Filter;
 use Modules\Core\Casts\FilterOperator;
 use Modules\Core\Casts\FiltersGroup;
 use Modules\Core\Casts\RelationFilter;
+use Modules\Core\Casts\ScopeFilter;
 use Modules\Core\Casts\WhereClause;
 use Modules\Core\Database\Seeders\CoreDatabaseSeeder;
 use Modules\Core\Models\ACL;
@@ -179,22 +180,54 @@ it('limits the guest of the api guard on the contents, references and media, and
         ->and($published($media->filters->filters[0]->filters))->toBeTrue();
 });
 
-it('limits the guest of the api guard to the active, valid categories of the CMS in the shared taxonomies table', function (): void {
+it('limits the guest of the api guard to the active, valid categories of the CMS in the shared taxonomies table, by scopes', function (): void {
     seedCmsRoles($this);
 
     $guest = Role::query()->where(['name' => config('permission.roles.guest'), 'guard_name' => 'api'])->firstOrFail();
     $permission_id = Permission::query()->where(['name' => PermissionName::forClass(Category::class, 'select'), 'guard_name' => 'api'])->value('id');
     $filters = ACL::query()->where(['role_id' => $guest->id, 'permission_id' => $permission_id])->sole()->filters->filters;
-    $entity = $filters[3]->filters->filters[0];
+    $entity = $filters[2]->filters->filters[0];
 
-    expect($filters)->toHaveCount(4)
-        ->and($filters[0]->property)->toBe('core_taxonomies.is_active')
-        ->and($filters[0]->value)->toBeTrue()
-        ->and($filters[3])->toBeInstanceOf(RelationFilter::class)
-        ->and($filters[3]->relation)->toBe('presettable')
+    expect($filters)->toHaveCount(3)
+        ->and($filters[0])->toBeInstanceOf(ScopeFilter::class)
+        ->and($filters[0]->scope)->toBe('valid')
+        ->and($filters[0]->parameters)->toBe([])
+        ->and($filters[1])->toBeInstanceOf(ScopeFilter::class)
+        ->and($filters[1]->scope)->toBe('active')
+        ->and($filters[2])->toBeInstanceOf(RelationFilter::class)
+        ->and($filters[2]->relation)->toBe('presettable')
         ->and($entity)->toBeInstanceOf(RelationFilter::class)
         ->and($entity->relation)->toBe('entity')
         ->and($entity->filters->filters[0]->value)->toBe(EntityType::values());
+});
+
+it('leaves a stored column ACL of the guest categories untouched on a re-seed', function (): void {
+    $this->artisan('permission:refresh', ['--quiet' => true])->assertSuccessful();
+    $this->seed(CoreDatabaseSeeder::class);
+
+    $guest = Role::query()->where(['name' => config('permission.roles.guest'), 'guard_name' => 'api'])->firstOrFail();
+    $permission = Permission::query()->where(['name' => PermissionName::forClass(Category::class, 'select'), 'guard_name' => 'api'])->firstOrFail();
+    $column_filters = new FiltersGroup([new Filter('core_taxonomies.is_active', true, FilterOperator::Equals)]);
+
+    $acl = new ACL;
+    $acl->setSkipValidation(true);
+    $acl->forceFill([
+        'permission_id' => $permission->id,
+        'role_id' => $guest->id,
+        'filters' => $column_filters,
+        'description' => 'Stored by an earlier installation.',
+        'unrestricted' => false,
+        'priority' => 100,
+        'is_active' => true,
+    ])->save();
+
+    $this->seed(CMSDatabaseSeeder::class);
+
+    $stored = ACL::query()->where(['role_id' => $guest->id, 'permission_id' => $permission->id])->sole()->filters->filters;
+
+    expect($stored)->toHaveCount(1)
+        ->and($stored[0])->toBeInstanceOf(Filter::class)
+        ->and($stored[0]->property)->toBe('core_taxonomies.is_active');
 });
 
 it('gives the publisher the settings it needs to open the staff screens, narrowed to the public ones, and keeps its related reads', function (): void {

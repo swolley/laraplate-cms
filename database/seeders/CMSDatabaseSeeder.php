@@ -23,6 +23,7 @@ use Modules\Core\Casts\Filter;
 use Modules\Core\Casts\FilterOperator;
 use Modules\Core\Casts\FiltersGroup;
 use Modules\Core\Casts\RelationFilter;
+use Modules\Core\Casts\ScopeFilter;
 use Modules\Core\Casts\SettingTypeEnum;
 use Modules\Core\Casts\WhereClause;
 use Modules\Core\Database\Seeders\CoreDatabaseSeeder;
@@ -130,16 +131,16 @@ final class CMSDatabaseSeeder extends Seeder
 
     /**
      * The categories an anonymous reader sees: the CMS rows of the shared taxonomies table, active, and inside
-     * their validity window, the same window as a published content.
+     * their validity window, the same window as a published content. Expressed with the `valid` and `active`
+     * scopes of the taxonomy, so the window is not copied into the ACL. Contents keep column conditions: search
+     * engines never receive a scope node, so a scope there would skew the totals of an anonymous content search.
      */
     private static function publicCategoryFilters(): FiltersGroup
     {
-        $table = (new Category)->getTable();
-
         return new FiltersGroup(
             filters: [
-                new Filter("{$table}.is_active", true, FilterOperator::Equals),
-                ...self::publishedContentFilters($table)->filters,
+                new ScopeFilter('valid'),
+                new ScopeFilter('active'),
                 new RelationFilter('presettable', new FiltersGroup([self::cmsEntityFilter()])),
             ],
             operator: WhereClause::And,
