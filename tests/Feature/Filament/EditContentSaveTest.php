@@ -34,3 +34,11 @@ it('writes the translated fields and the order that the form edits', function ()
         ->and($translation->slug)->toBe('edited-in-the-panel')
         ->and($content->fresh()->order_column)->toBe(55);
 });
+
+it('offers the position when editing', function (): void {
+    $content = createMinimalTestContentForComments();
+    HttpContext::panelActorWithoutApproval(new Content, ['select', 'update']);
+
+    Livewire::test(EditContent::class, ['record' => $content->getKey()])
+        ->assertFormFieldVisible('order_column');
+});

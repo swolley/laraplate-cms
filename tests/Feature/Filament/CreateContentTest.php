@@ -23,7 +23,6 @@ it('creates a content with the translated fields that the form edits', function 
             'title' => 'Created in the panel',
             'components' => '[]',
             'slug' => 'created-in-the-panel',
-            'order_column' => 42,
         ])
         ->call('create')
         ->assertHasNoFormErrors();
@@ -32,4 +31,12 @@ it('creates a content with the translated fields that the form edits', function 
 
     expect($translation->title)->toBe('Created in the panel')
         ->and($translation->content_id)->not->toBe($existing->getKey());
+});
+
+it('does not offer the position when creating, since a new content goes last', function (): void {
+    createMinimalTestContentForComments();
+    HttpContext::panelActorWithoutApproval(new Content, ['select', 'insert']);
+
+    Livewire::test(CreateContent::class)
+        ->assertFormFieldHidden('order_column');
 });
