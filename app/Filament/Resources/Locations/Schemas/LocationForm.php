@@ -6,7 +6,6 @@ namespace Modules\CMS\Filament\Resources\Locations\Schemas;
 
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -37,8 +36,6 @@ final class LocationForm
                 TextInput::make('postcode'),
                 TextInput::make('zone'),
                 TextInput::make('geolocation'),
-                Toggle::make('is_deleted')
-                    ->required(),
                 // Lock state is coordination metadata, not editable data: it is taken and
                 // released through the lock actions, never by typing. `locked_user_id` used to
                 // be rendered as a date picker because the column was wrongly declared a

@@ -29,8 +29,6 @@ final class PresetForm
                     ->required(),
                 Select::make('template_id')
                     ->relationship('template', 'name'),
-                Toggle::make('is_deleted')
-                    ->required(),
             ]);
     }
 }

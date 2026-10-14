@@ -30,12 +30,15 @@ final class CategoryForm
                 TextInput::make('logo_full'),
                 Toggle::make('is_active')
                     ->required(),
+                // A new category goes last whatever is typed (`sort_when_creating`), so the position is edited only
+                // once the category exists.
                 TextInput::make('order_column')
+                    ->label('Position')
                     ->required()
                     ->numeric()
-                    ->default(0),
-                Toggle::make('is_deleted')
-                    ->required(),
+                    ->default(0)
+                    ->hiddenOn('create')
+                    ->helperText('Position in the list; on a tie the older category comes first. Dragging the rows of the list rewrites the positions.'),
                 // Lock state is coordination metadata, not editable data: it is taken and
                 // released through the lock actions, never by typing. `locked_user_id` used to
                 // be rendered as a date picker because the column was wrongly declared a
