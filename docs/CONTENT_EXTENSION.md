@@ -69,3 +69,27 @@ indexed field. An opt-in surface (e.g. a shop search) queries extended contents 
 
 End-to-end ES/Typesense verification is left to the first consumer's integration (the database engine's
 own `search('*')` over `Content` has a pre-existing, unrelated column-set limitation in tests).
+
+## The extender in the CRUD API
+
+An extender that merges its content in PHP (`Shop`'s `Product` reads and writes `$product->title`) presents
+the same merge to the CRUD API, so a client never has to know the content is a separate record.
+
+- **Serialization.** `toArray()` overlays the merged content's own array (translation and expanded dynamic
+  fields included) onto the extender's, for the keys the extender does not own. `id`, `created_at`, the
+  relations and every column of the extender stay its own. The nested `content` object stays too, for readers
+  that already use it. The content serializes through its own rules, so a key it hides is not overlaid. Like
+  the translation and place overlays, the overlay does not follow the `columns` a client requests. An
+  unloaded content adds nothing and never triggers a lazy load.
+- **Filters.** The extender implements `Modules\Core\Contracts\IMountsRelatedAttributes`
+  (`mountedRelation()` is `content`, `isMountedAttribute()` is "not a native key"). A plain filter property
+  the extender does not own (`title`, `slug`, a dynamic field) becomes the same filter on `content`, which
+  resolves it in the locale of the request (see `Modules/Core/docs/CRUD_SYSTEM.md`, "Translated and Dynamic
+  Fields"). `product.title` on a variant works through the ordinary relation path.
+- **Where the code lives.** For now in `Product`, next to the `getAttribute()` and `setAttribute()` it
+  completes; when a second extender exists the merge moves into `ExtendsContentTrait`.
+- **Not resource classes.** The CRUD wraps every model in a generic `JsonResource` that calls `toArray()`, and
+  the output rules (hidden attributes, anonymous hiding, requested columns, relation authorization) hang on
+  model attributes, so the overlay lives in the model like `HasTranslations::toArray` and
+  `HasPlace::toArray`. Not covered: sorting and facets on mounted attributes, and references between modules.
+
