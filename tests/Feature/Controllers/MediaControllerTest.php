@@ -283,25 +283,24 @@ test('hides an ACL-restricted content row on the per-id media endpoints', functi
     expect($hidden->fresh()->media()->count())->toBe(1);
 });
 
-test('never widens the per-id media endpoints to rows a scope ACL hides', function (): void {
-    Once::flush();
-
-    $draft = $this->content;
-    $draft->forceFill(['valid_from' => null, 'valid_to' => null])->saveQuietly();
-
+/**
+ * A role on the content `select` permission narrowed by an ACL with the given filters, assigned to a new user.
+ */
+function contentReaderNarrowedBy(FiltersGroup $filters): User
+{
     $content = new Content;
     $permission = Permission::firstOrCreate(
         ['name' => PermissionName::build($content->getConnectionName() ?? 'default', $content->getTable(), 'select')],
         ['guard_name' => 'web'],
     );
-    $role = Role::findOrCreate('cms_scope_acl_' . uniqid(), 'web');
+    $role = Role::findOrCreate('cms_narrowed_acl_' . uniqid(), 'web');
     $role->givePermissionTo($permission);
 
     $acl = new ACL;
     $acl->forceFill([
         'permission_id' => $permission->id,
         'role_id' => $role->id,
-        'filters' => new FiltersGroup([new ScopeFilter('valid')]),
+        'filters' => $filters,
         'priority' => 100,
         'is_active' => true,
     ]);
@@ -310,9 +309,45 @@ test('never widens the per-id media endpoints to rows a scope ACL hides', functi
     $user = User::factory()->create();
     $user->assignRole($role);
 
-    $response = $this->actingAs($user)->getJson(route('core.crud.media.list', mediaRouteParams($draft)));
+    return $user;
+}
 
-    expect($response->status())->toBeGreaterThanOrEqual(400);
+test('never widens the per-id media endpoints to rows a scope ACL hides', function (): void {
+    Once::flush();
+
+    $draft = $this->content;
+    $draft->forceFill(['valid_from' => null, 'valid_to' => null])->saveQuietly();
+    $published = Content::factory()->create();
+    $published->forceFill(['valid_from' => now()->subDay(), 'valid_to' => null])->saveQuietly();
+
+    $user = contentReaderNarrowedBy(new FiltersGroup([new ScopeFilter('valid')]));
+
+    $this->actingAs($user)
+        ->getJson(route('core.crud.media.list', mediaRouteParams($draft)))
+        ->assertStatus(Response::HTTP_NOT_FOUND);
+
+    $this->actingAs($user)
+        ->getJson(route('core.crud.media.list', mediaRouteParams($published)))
+        ->assertOk();
+});
+
+test('resolves the placeholders of the ACL on the per-id media endpoints', function (): void {
+    Once::flush();
+
+    $scheduled = $this->content;
+    $scheduled->forceFill(['valid_from' => now()->addWeek(), 'valid_to' => null])->saveQuietly();
+    $published = Content::factory()->create();
+    $published->forceFill(['valid_from' => now()->subDay(), 'valid_to' => null])->saveQuietly();
+
+    $user = contentReaderNarrowedBy(new FiltersGroup([new Filter('valid_from', '@now', FilterOperator::LessEquals)]));
+
+    $this->actingAs($user)
+        ->getJson(route('core.crud.media.list', mediaRouteParams($scheduled)))
+        ->assertStatus(Response::HTTP_NOT_FOUND);
+
+    $this->actingAs($user)
+        ->getJson(route('core.crud.media.list', mediaRouteParams($published)))
+        ->assertOk();
 });
 
 test('stages a pending upload without an owner id and returns 201', function (): void {
