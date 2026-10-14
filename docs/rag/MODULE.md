@@ -369,11 +369,15 @@ flowchart LR
 
 CMS grants the anonymous reader of `/api/v1` (the `guest` role of the `api` guard) `select` on contents, references,
 media, categories, tags, locations, contributors, comments and ratings, through `CMSDatabaseSeeder::defaultGuestApiGrants()`.
-Categories live in the shared `core_taxonomies` table, so their ACL keeps the CMS rows only, active and inside the
-published window.
-Contents are narrowed by the published window ACL (`valid_from <= @now`, `valid_to >= @now` or null); references and
-media are narrowed by relation filters on their owner content (media with the morph type `Content`), so a media of an
-unpublished content or another module's attachment is never public. Contributors hide `user_id`, `user` and
+Categories live in the shared `core_taxonomies` table, so their ACL keeps the CMS rows only (a relation filter on the
+entity type), active and inside the published window: it is expressed with Core's scope filters (`valid` and `active`,
+see `Modules/Core/docs/ACL_SYSTEM.md`), so the window follows the model.
+Contents are narrowed by the published window ACL on columns (`valid_from <= @now`, `valid_to >= @now` or null); references
+and media are narrowed by relation filters on their owner content, also on columns (media with the morph type `Content`),
+so a media of an unpublished content or another module's attachment is never public. These three stay on columns because
+search engines never receive a scope node: a scope in them would be enforced only when the hits are reloaded and would skew
+the totals and page sizes of anonymous content search. A scope ACL seeded here is not rewritten into existing
+installations (the seeder never overwrites an ACL), and a stored column ACL for categories keeps working. Contributors hide `user_id`, `user` and
 `shared_components`, comments and ratings hide `user_id`, from the anonymous user
 (`IHidesAttributesFromAnonymous`). The `guest` role of `web` holds no permission. A re-seed creates an ACL only when none
 exists for the role and permission. The `publisher` role (on `web`) also reads public settings and the CMS entity
