@@ -13,6 +13,7 @@ use Modules\CMS\Tests\TestCase;
 use Modules\Core\Casts\Filter;
 use Modules\Core\Casts\FilterOperator;
 use Modules\Core\Casts\FiltersGroup;
+use Modules\Core\Casts\ScopeFilter;
 use Modules\Core\Casts\WhereClause;
 use Modules\Core\Models\ACL;
 use Modules\Core\Models\MediaDraft;
@@ -280,6 +281,38 @@ test('hides an ACL-restricted content row on the per-id media endpoints', functi
         ->assertStatus(Response::HTTP_NOT_FOUND);
 
     expect($hidden->fresh()->media()->count())->toBe(1);
+});
+
+test('never widens the per-id media endpoints to rows a scope ACL hides', function (): void {
+    Once::flush();
+
+    $draft = $this->content;
+    $draft->forceFill(['valid_from' => null, 'valid_to' => null])->saveQuietly();
+
+    $content = new Content;
+    $permission = Permission::firstOrCreate(
+        ['name' => PermissionName::build($content->getConnectionName() ?? 'default', $content->getTable(), 'select')],
+        ['guard_name' => 'web'],
+    );
+    $role = Role::findOrCreate('cms_scope_acl_' . uniqid(), 'web');
+    $role->givePermissionTo($permission);
+
+    $acl = new ACL;
+    $acl->forceFill([
+        'permission_id' => $permission->id,
+        'role_id' => $role->id,
+        'filters' => new FiltersGroup([new ScopeFilter('valid')]),
+        'priority' => 100,
+        'is_active' => true,
+    ]);
+    $acl->save();
+
+    $user = User::factory()->create();
+    $user->assignRole($role);
+
+    $response = $this->actingAs($user)->getJson(route('core.crud.media.list', mediaRouteParams($draft)));
+
+    expect($response->status())->toBeGreaterThanOrEqual(400);
 });
 
 test('stages a pending upload without an owner id and returns 201', function (): void {
