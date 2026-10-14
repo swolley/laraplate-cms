@@ -102,7 +102,7 @@ function seedCmsRoles(object $test): void
  */
 function publicApiEntities(): array
 {
-    return [Setting::class, Content::class, ContentReference::class, Media::class, Tag::class, Location::class, Contributor::class, Comment::class, ContentRating::class];
+    return [Setting::class, Content::class, ContentReference::class, Media::class, Category::class, Tag::class, Location::class, Contributor::class, Comment::class, ContentRating::class];
 }
 
 /**
@@ -177,6 +177,24 @@ it('limits the guest of the api guard on the contents, references and media, and
         ->and($media->filters->filters[0]->relation)->toBe('model')
         ->and($media->filters->filters[0]->morph_types)->toBe([Content::class])
         ->and($published($media->filters->filters[0]->filters))->toBeTrue();
+});
+
+it('limits the guest of the api guard to the active, valid categories of the CMS in the shared taxonomies table', function (): void {
+    seedCmsRoles($this);
+
+    $guest = Role::query()->where(['name' => config('permission.roles.guest'), 'guard_name' => 'api'])->firstOrFail();
+    $permission_id = Permission::query()->where(['name' => PermissionName::forClass(Category::class, 'select'), 'guard_name' => 'api'])->value('id');
+    $filters = ACL::query()->where(['role_id' => $guest->id, 'permission_id' => $permission_id])->sole()->filters->filters;
+    $entity = $filters[3]->filters->filters[0];
+
+    expect($filters)->toHaveCount(4)
+        ->and($filters[0]->property)->toBe('core_taxonomies.is_active')
+        ->and($filters[0]->value)->toBeTrue()
+        ->and($filters[3])->toBeInstanceOf(RelationFilter::class)
+        ->and($filters[3]->relation)->toBe('presettable')
+        ->and($entity)->toBeInstanceOf(RelationFilter::class)
+        ->and($entity->relation)->toBe('entity')
+        ->and($entity->filters->filters[0]->value)->toBe(EntityType::values());
 });
 
 it('gives the publisher the settings it needs to open the staff screens, narrowed to the public ones, and keeps its related reads', function (): void {

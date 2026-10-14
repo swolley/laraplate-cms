@@ -368,7 +368,9 @@ flowchart LR
 ### Public API access
 
 CMS grants the anonymous reader of `/api/v1` (the `guest` role of the `api` guard) `select` on contents, references,
-media, tags, locations, contributors, comments and ratings, through `CMSDatabaseSeeder::defaultGuestApiGrants()`.
+media, categories, tags, locations, contributors, comments and ratings, through `CMSDatabaseSeeder::defaultGuestApiGrants()`.
+Categories live in the shared `core_taxonomies` table, so their ACL keeps the CMS rows only, active and inside the
+published window.
 Contents are narrowed by the published window ACL (`valid_from <= @now`, `valid_to >= @now` or null); references and
 media are narrowed by relation filters on their owner content (media with the morph type `Content`), so a media of an
 unpublished content or another module's attachment is never public. Contributors hide `user_id`, `user` and

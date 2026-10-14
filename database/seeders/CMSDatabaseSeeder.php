@@ -116,6 +116,36 @@ final class CMSDatabaseSeeder extends Seeder
      * Qualified by the table when it filters the contents themselves, bare when it is nested in a relation filter
      * and evaluated on the related content.
      */
+    /**
+     * A condition on the entity type of the related record, as a relation filter: a dotted column path is not a
+     * column of the table the ACL narrows. It keeps a table shared with other modules to its CMS rows.
+     */
+    private static function cmsEntityFilter(): RelationFilter
+    {
+        return new RelationFilter('entity', new FiltersGroup(
+            filters: [new Filter('type', EntityType::values(), FilterOperator::In)],
+            operator: WhereClause::And,
+        ));
+    }
+
+    /**
+     * The categories an anonymous reader sees: the CMS rows of the shared taxonomies table, active, and inside
+     * their validity window, the same window as a published content.
+     */
+    private static function publicCategoryFilters(): FiltersGroup
+    {
+        $table = (new Category)->getTable();
+
+        return new FiltersGroup(
+            filters: [
+                new Filter("{$table}.is_active", true, FilterOperator::Equals),
+                ...self::publishedContentFilters($table)->filters,
+                new RelationFilter('presettable', new FiltersGroup([self::cmsEntityFilter()])),
+            ],
+            operator: WhereClause::And,
+        );
+    }
+
     private static function publishedContentFilters(?string $table = null): FiltersGroup
     {
         $prefix = $table === null ? '' : "{$table}.";
@@ -405,8 +435,9 @@ final class CMSDatabaseSeeder extends Seeder
     /**
      * Grant the `guest` role of the api guard the CMS part of the public list, each entity narrowed by its ACL:
      * the contents currently published, the references and media of those contents only (so a media of an
-     * unpublished content, or a ticket attachment, is never public), and tags, locations, contributors,
-     * comments and ratings with no default ACL. Validity (valid_from/valid_to) is not a global scope: the
+     * unpublished content, or a ticket attachment, is never public), the active and valid CMS categories (their
+     * table is shared with other modules), and tags, locations, contributors, comments and ratings with no
+     * default ACL. Validity (valid_from/valid_to) is not a global scope: the
      * `@now` placeholder of the ACL limits the anonymous reader to the current publication window, while staff
      * roles (no ACL on the permission) read every content.
      *
@@ -436,6 +467,7 @@ final class CMSDatabaseSeeder extends Seeder
             Content::class => new FiltersGroup(filters: self::publishedContentFilters((new Content)->getTable())->filters, operator: WhereClause::And),
             ContentReference::class => new FiltersGroup([new RelationFilter('content', self::publishedContentFilters())]),
             Media::class => new FiltersGroup([new RelationFilter('model', self::publishedContentFilters(), [Content::class])]),
+            Category::class => self::publicCategoryFilters(),
             Tag::class => null,
             Location::class => null,
             Contributor::class => null,
@@ -523,12 +555,7 @@ final class CMSDatabaseSeeder extends Seeder
             return;
         }
 
-        // A condition on the entity type of the related record, as a relation filter: a dotted column path is
-        // not a column of the table the ACL narrows.
-        $cms_entity = new RelationFilter('entity', new FiltersGroup(
-            filters: [new Filter('type', EntityType::values(), FilterOperator::In)],
-            operator: WhereClause::And,
-        ));
+        $cms_entity = self::cmsEntityFilter();
 
         $acls = [
             Category::class => new FiltersGroup([new RelationFilter('presettable', new FiltersGroup([$cms_entity]))]),

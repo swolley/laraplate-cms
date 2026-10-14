@@ -65,6 +65,7 @@ The CMS `/api/v1` surface is read-only for the anonymous user once the Core `exp
 | `cms_contents` | published: `valid_from <= @now` and (`valid_to >= @now` or no `valid_to`) | |
 | `cms_contents_references` | relation filter: the owner content is published | |
 | `vend_media` | relation filter: the owner is a CMS content that is published (morph type `Content`), so media of unpublished contents and other modules' attachments are never public | returned in the safe media projection |
+| `core_taxonomies` (categories) | the CMS categories only (the table is shared with other modules), active (`is_active`) and inside the published window (`valid_from <= @now` and (`valid_to >= @now` or no `valid_to`)) | |
 | `cms_tags`, `cms_locations` | none | |
 | `cms_contributors` | none | `user_id`, `user`, `shared_components` |
 | `cms_comments` | none (only approved comments exist as rows) | `user_id` |
