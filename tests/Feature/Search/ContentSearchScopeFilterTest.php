@@ -212,7 +212,7 @@ it('combines an ACL scope with a request scope by AND', function (): void {
 });
 
 it('keeps a request OR group applied at the reload inside its own condition, so it never widens the ACL', function (): void {
-    $all = scopesearch_contents();
+    scopesearch_contents();
     $reader = scopesearch_reader(new FiltersGroup([new ScopeFilter('valid')]));
 
     $response = scopesearch_search($reader, ['operator' => 'or', 'filters' => [
@@ -221,6 +221,5 @@ it('keeps a request OR group applied at the reload inside its own condition, so 
     ]]);
 
     $response->assertOk();
-    expect(scopesearch_ids($response))->toBe([])
-        ->and(scopesearch_ids($response))->not->toContain($all['expired']->id);
+    expect(scopesearch_ids($response))->toBe([]);
 });
