@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Modules\CMS\Filament\Resources\Tags;
 
 use BackedEnum;
-// use Filament\Resources\Resource;
 use Coolsam\Modules\Resource;
+// use Filament\Resources\Resource;
 use Filament\Panel;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -19,11 +19,14 @@ use Modules\CMS\Filament\Resources\Tags\Pages\ListTags;
 use Modules\CMS\Filament\Resources\Tags\Schemas\TagForm;
 use Modules\CMS\Filament\Resources\Tags\Tables\TagsTable;
 use Modules\CMS\Models\Tag;
+use Modules\Core\Filament\Utils\HasTranslatedResourceLabels;
 use Override;
 use UnitEnum;
 
 final class TagResource extends Resource
 {
+    use HasTranslatedResourceLabels;
+
     #[Override]
     protected static ?string $model = Tag::class;
 
@@ -31,7 +34,7 @@ final class TagResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'CMS';
+    protected static string|UnitEnum|null $navigationGroup = 'cms.navigation.main';
 
     #[Override]
     protected static ?int $navigationSort = 8;

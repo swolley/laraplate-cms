@@ -15,6 +15,7 @@ use Modules\CMS\Filament\Resources\Comments\Pages\ListComments;
 use Modules\CMS\Filament\Resources\Comments\Schemas\CommentForm;
 use Modules\CMS\Filament\Resources\Comments\Tables\CommentsTable;
 use Modules\CMS\Models\Comment;
+use Modules\Core\Filament\Utils\HasTranslatedResourceLabels;
 use Override;
 use UnitEnum;
 
@@ -24,6 +25,8 @@ use UnitEnum;
  */
 final class CommentResource extends Resource
 {
+    use HasTranslatedResourceLabels;
+
     #[Override]
     protected static ?string $model = Comment::class;
 
@@ -31,7 +34,7 @@ final class CommentResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChatBubbleLeftRight;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'CMS';
+    protected static string|UnitEnum|null $navigationGroup = 'cms.navigation.main';
 
     #[Override]
     protected static ?int $navigationSort = 3;

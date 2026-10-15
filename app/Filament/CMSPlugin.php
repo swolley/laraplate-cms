@@ -44,8 +44,8 @@ final class CMSPlugin implements Plugin
         }
 
         $panel->navigationGroups([
-            NavigationGroup::make()
-                ->label('CMS')
+            'cms.navigation.main' => NavigationGroup::make()
+                ->label(static fn (): string => (string) __('cms.navigation.main'))
                 ->icon(Heroicon::OutlinedNewspaper),
         ]);
     }

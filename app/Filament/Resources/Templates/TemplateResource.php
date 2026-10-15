@@ -15,12 +15,15 @@ use Modules\CMS\Filament\Resources\Templates\Pages\EditTemplate;
 use Modules\CMS\Filament\Resources\Templates\Pages\ListTemplates;
 use Modules\CMS\Filament\Resources\Templates\Schemas\TemplateForm;
 use Modules\CMS\Filament\Resources\Templates\Tables\TemplatesTable;
+use Modules\Core\Filament\Utils\HasTranslatedResourceLabels;
 use Modules\Core\Models\Template;
 use Override;
 use UnitEnum;
 
 final class TemplateResource extends Resource
 {
+    use HasTranslatedResourceLabels;
+
     #[Override]
     protected static ?string $model = Template::class;
 
@@ -28,7 +31,7 @@ final class TemplateResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCodeBracket;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'CMS';
+    protected static string|UnitEnum|null $navigationGroup = 'cms.navigation.main';
 
     #[Override]
     protected static ?int $navigationSort = 9;

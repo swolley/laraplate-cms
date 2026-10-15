@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Modules\CMS\Filament\Resources\Entities;
 
 use BackedEnum;
-// use Filament\Resources\Resource;
 use Coolsam\Modules\Resource;
+// use Filament\Resources\Resource;
 use Filament\Panel;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -17,11 +17,14 @@ use Modules\CMS\Filament\Resources\Entities\Pages\ListEntities;
 use Modules\CMS\Filament\Resources\Entities\Schemas\EntityForm;
 use Modules\CMS\Filament\Resources\Entities\Tables\EntitiesTable;
 use Modules\CMS\Models\Entity;
+use Modules\Core\Filament\Utils\HasTranslatedResourceLabels;
 use Override;
 use UnitEnum;
 
 final class EntityResource extends Resource
 {
+    use HasTranslatedResourceLabels;
+
     #[Override]
     protected static ?string $model = Entity::class;
 
@@ -29,7 +32,7 @@ final class EntityResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedListBullet;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'CMS';
+    protected static string|UnitEnum|null $navigationGroup = 'cms.navigation.main';
 
     #[Override]
     protected static ?int $navigationSort = 5;

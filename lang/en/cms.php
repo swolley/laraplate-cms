@@ -1,73 +1,90 @@
 <?php
 
+declare(strict_types=1);
+
 return [
-  'actions' => [
-    'approve' => 'Approve',
-    'confirmReject' => 'Confirm rejection',
-    'geocode' => 'Geocode',
-    'reject' => 'Reject',
-    'resumeFromRejection' => 'Resume from rejection',
-  ],
-  'entities' => [
-    'categories' => [
-      'plural' => 'Categories',
-      'singular' => 'Category',
+    'actions' => [
+        'approve' => 'Approve',
+        'confirmReject' => 'Confirm rejection',
+        'geocode' => 'Geocode',
+        'reject' => 'Reject',
+        'resumeFromRejection' => 'Resume from rejection',
     ],
-    'contents' => [
-      'plural' => 'Contents',
-      'singular' => 'Content',
+    'entities' => [
+        'categories' => [
+            'plural' => 'Categories',
+            'singular' => 'Category',
+        ],
+        'comments' => [
+            'singular' => 'Comment',
+            'plural' => 'Comments',
+        ],
+        'contents' => [
+            'plural' => 'Contents',
+            'singular' => 'Content',
+        ],
+        'contributors' => [
+            'plural' => 'Contributors',
+            'singular' => 'Contributor',
+        ],
+        'entities' => [
+            'singular' => 'Entity',
+            'plural' => 'Entities',
+        ],
+        'locations' => [
+            'plural' => 'Locations',
+            'singular' => 'Location',
+        ],
+        'presets' => [
+            'singular' => 'Preset',
+            'plural' => 'Presets',
+        ],
+        'tags' => [
+            'plural' => 'Tags',
+            'singular' => 'Tag',
+        ],
     ],
-    'contributors' => [
-      'plural' => 'Contributors',
-      'singular' => 'Contributor',
+    'fields' => [
+        'address' => 'Address',
+        'approvers_remaining' => 'Votes remaining',
+        'category' => 'Category',
+        'city' => 'City',
+        'contributor' => 'Contributor',
+        'country' => 'Country',
+        'location' => 'Location',
+        'parent' => 'Parent',
+        'postcode' => 'Postcode',
+        'province' => 'Province',
+        'queued_at' => 'Queued since',
+        'slug' => 'Slug',
+        'status' => 'Status',
+        'tag' => 'Tag',
+        'title' => 'Title',
+        'type' => 'Type',
     ],
-    'locations' => [
-      'plural' => 'Locations',
-      'singular' => 'Location',
+    'messages' => [
+        'approveFailed' => 'Approval failed.',
+        'approved' => 'Revision approved.',
+        'geocodeFailed' => 'Geocoding failed.',
+        'geocodeFilled' => 'Geographic fields resolved.',
+        'geocodeNeedQuery' => 'Enter an address or name first (min 3 chars].',
+        'geocodeNoResult' => 'No match found for this query.',
+        'rejectFailed' => 'Rejection failed.',
+        'rejectReasonRequired' => 'Provide a reason to reject.',
+        'rejected' => 'Revision rejected.',
+        'relationsSaved' => 'Relations updated.',
+        'sentForReview' => 'Changes submitted for review.',
     ],
-    'tags' => [
-      'plural' => 'Tags',
-      'singular' => 'Tag',
+    'navigation' => [
+        'main' => 'CMS',
     ],
-  ],
-  'fields' => [
-    'address' => 'Address',
-    'approvers_remaining' => 'Votes remaining',
-    'category' => 'Category',
-    'city' => 'City',
-    'contributor' => 'Contributor',
-    'country' => 'Country',
-    'location' => 'Location',
-    'parent' => 'Parent',
-    'postcode' => 'Postcode',
-    'province' => 'Province',
-    'queued_at' => 'Queued since',
-    'slug' => 'Slug',
-    'status' => 'Status',
-    'tag' => 'Tag',
-    'title' => 'Title',
-    'type' => 'Type',
-  ],
-  'messages' => [
-    'approveFailed' => 'Approval failed.',
-    'approved' => 'Revision approved.',
-    'geocodeFailed' => 'Geocoding failed.',
-    'geocodeFilled' => 'Geographic fields resolved.',
-    'geocodeNeedQuery' => 'Enter an address or name first (min 3 chars].',
-    'geocodeNoResult' => 'No match found for this query.',
-    'rejectFailed' => 'Rejection failed.',
-    'rejectReasonRequired' => 'Provide a reason to reject.',
-    'rejected' => 'Revision rejected.',
-    'relationsSaved' => 'Relations updated.',
-    'sentForReview' => 'Changes submitted for review.',
-  ],
-  'status' => [
-    'expired' => 'Expired',
-    'live' => 'Live',
-    'locked' => 'Locked',
-    'pendingApprove' => 'To approve',
-    'pendingWait' => 'In review',
-    'scheduled' => 'Scheduled',
-    'unpublished' => 'Unpublished',
-  ],
+    'status' => [
+        'expired' => 'Expired',
+        'live' => 'Live',
+        'locked' => 'Locked',
+        'pendingApprove' => 'To approve',
+        'pendingWait' => 'In review',
+        'scheduled' => 'Scheduled',
+        'unpublished' => 'Unpublished',
+    ],
 ];

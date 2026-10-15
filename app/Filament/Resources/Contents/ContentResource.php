@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Modules\CMS\Filament\Resources\Contents;
 
 use BackedEnum;
-// use Filament\Resources\Resource;
 use Coolsam\Modules\Resource;
+// use Filament\Resources\Resource;
 use Filament\Panel;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -20,11 +20,14 @@ use Modules\CMS\Filament\Resources\Contents\Schemas\ContentForm;
 use Modules\CMS\Filament\Resources\Contents\Tables\ContentsTable;
 use Modules\CMS\Models\Content;
 use Modules\Core\Filament\RelationManagers\MediaRelationManager;
+use Modules\Core\Filament\Utils\HasTranslatedResourceLabels;
 use Override;
 use UnitEnum;
 
 final class ContentResource extends Resource
 {
+    use HasTranslatedResourceLabels;
+
     #[Override]
     protected static ?string $model = Content::class;
 
@@ -32,7 +35,7 @@ final class ContentResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPencil;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'CMS';
+    protected static string|UnitEnum|null $navigationGroup = 'cms.navigation.main';
 
     #[Override]
     protected static ?int $navigationSort = 2;

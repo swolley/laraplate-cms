@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Modules\CMS\Filament\Resources\Locations;
 
 use BackedEnum;
-// use Filament\Resources\Resource;
 use Coolsam\Modules\Resource;
+// use Filament\Resources\Resource;
 use Filament\Panel;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -19,11 +19,14 @@ use Modules\CMS\Filament\Resources\Locations\Pages\ListLocations;
 use Modules\CMS\Filament\Resources\Locations\Schemas\LocationForm;
 use Modules\CMS\Filament\Resources\Locations\Tables\LocationsTable;
 use Modules\CMS\Models\Location;
+use Modules\Core\Filament\Utils\HasTranslatedResourceLabels;
 use Override;
 use UnitEnum;
 
 final class LocationResource extends Resource
 {
+    use HasTranslatedResourceLabels;
+
     #[Override]
     protected static ?string $model = Location::class;
 
@@ -31,7 +34,7 @@ final class LocationResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMapPin;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'CMS';
+    protected static string|UnitEnum|null $navigationGroup = 'cms.navigation.main';
 
     #[Override]
     protected static ?int $navigationSort = 7;

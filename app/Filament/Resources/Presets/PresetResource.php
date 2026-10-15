@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Modules\CMS\Filament\Resources\Presets;
 
 use BackedEnum;
-// use Filament\Resources\Resource;
 use Coolsam\Modules\Resource;
+// use Filament\Resources\Resource;
 use Filament\Panel;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -21,11 +21,14 @@ use Modules\CMS\Filament\Resources\Presets\Schemas\PresetForm;
 use Modules\CMS\Filament\Resources\Presets\Tables\PresetsTable;
 use Modules\CMS\Models\Entity;
 use Modules\CMS\Models\Preset;
+use Modules\Core\Filament\Utils\HasTranslatedResourceLabels;
 use Override;
 use UnitEnum;
 
 final class PresetResource extends Resource
 {
+    use HasTranslatedResourceLabels;
+
     #[Override]
     protected static ?string $model = Preset::class;
 
@@ -33,7 +36,7 @@ final class PresetResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleGroup;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'CMS';
+    protected static string|UnitEnum|null $navigationGroup = 'cms.navigation.main';
 
     #[Override]
     protected static ?int $navigationSort = 6;

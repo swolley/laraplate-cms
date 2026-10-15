@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Modules\CMS\Filament\Resources\Categories;
 
 use BackedEnum;
-// use Filament\Resources\Resource;
 use Coolsam\Modules\Resource;
+// use Filament\Resources\Resource;
 use Filament\Panel;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -19,11 +19,14 @@ use Modules\CMS\Filament\Resources\Categories\Pages\ListCategories;
 use Modules\CMS\Filament\Resources\Categories\Schemas\CategoryForm;
 use Modules\CMS\Filament\Resources\Categories\Tables\CategoriesTable;
 use Modules\CMS\Models\Category;
+use Modules\Core\Filament\Utils\HasTranslatedResourceLabels;
 use Override;
 use UnitEnum;
 
 final class CategoryResource extends Resource
 {
+    use HasTranslatedResourceLabels;
+
     #[Override]
     protected static ?string $model = Category::class;
 
@@ -31,7 +34,7 @@ final class CategoryResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFolder;
 
     #[Override]
-    protected static string|UnitEnum|null $navigationGroup = 'CMS';
+    protected static string|UnitEnum|null $navigationGroup = 'cms.navigation.main';
 
     #[Override]
     protected static ?int $navigationSort = 4;
@@ -39,6 +42,14 @@ final class CategoryResource extends Resource
     public static function getSlug(?Panel $panel = null): string
     {
         return 'cms/categories';
+    }
+
+    /**
+     * Categories are a role over the taxonomies table, so they are named after the role.
+     */
+    public static function getEntityLabelKey(): string
+    {
+        return 'cms.entities.categories';
     }
 
     public static function form(Schema $schema): Schema
