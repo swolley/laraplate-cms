@@ -16,8 +16,8 @@ return [
             'singular' => 'Categoria',
         ],
         'comments' => [
-            'singular' => 'Commento',
             'plural' => 'Commenti',
+            'singular' => 'Commento',
         ],
         'contents' => [
             'plural' => 'Contenuti',
@@ -28,16 +28,16 @@ return [
             'singular' => 'Contributore',
         ],
         'entities' => [
-            'singular' => 'Entità',
             'plural' => 'Entità',
+            'singular' => 'Entità',
         ],
         'locations' => [
             'plural' => 'Luoghi',
             'singular' => 'Luogo',
         ],
         'presets' => [
-            'singular' => 'Preset',
             'plural' => 'Preset',
+            'singular' => 'Preset',
         ],
         'tags' => [
             'plural' => 'Tag',

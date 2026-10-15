@@ -16,8 +16,8 @@ return [
             'singular' => 'Kategorija',
         ],
         'comments' => [
-            'singular' => 'Komentar',
             'plural' => 'Komentarji',
+            'singular' => 'Komentar',
         ],
         'contents' => [
             'plural' => 'Vsebine',
@@ -28,16 +28,16 @@ return [
             'singular' => 'Sodelavec',
         ],
         'entities' => [
-            'singular' => 'Entiteta',
             'plural' => 'Entitete',
+            'singular' => 'Entiteta',
         ],
         'locations' => [
             'plural' => 'Lokacije',
             'singular' => 'Lokacija',
         ],
         'presets' => [
-            'singular' => 'Prednastavitev',
             'plural' => 'Prednastavitve',
+            'singular' => 'Prednastavitev',
         ],
         'tags' => [
             'plural' => 'Oznake',

@@ -16,8 +16,8 @@ return [
             'singular' => 'Kategorie',
         ],
         'comments' => [
-            'singular' => 'Kommentar',
             'plural' => 'Kommentare',
+            'singular' => 'Kommentar',
         ],
         'contents' => [
             'plural' => 'Inhalte',
@@ -28,16 +28,16 @@ return [
             'singular' => 'Mitwirkender',
         ],
         'entities' => [
-            'singular' => 'Entität',
             'plural' => 'Entitäten',
+            'singular' => 'Entität',
         ],
         'locations' => [
             'plural' => 'Orte',
             'singular' => 'Ort',
         ],
         'presets' => [
-            'singular' => 'Vorlage',
             'plural' => 'Vorlagen',
+            'singular' => 'Vorlage',
         ],
         'tags' => [
             'plural' => 'Tags',
