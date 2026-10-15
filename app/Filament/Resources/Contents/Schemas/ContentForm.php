@@ -20,7 +20,8 @@ final class ContentForm
                 TextInput::make('title')
                     ->required(),
                 TextInput::make('components')
-                    ->required(),
+                    ->required()
+                    ->rule('json'),
                 TextInput::make('slug')
                     ->required(),
                 // A new content goes last whatever is typed (`sort_when_creating`), so the position is edited only

@@ -22,7 +22,8 @@ final class ContributorForm
                 TextInput::make('name')
                     ->required(),
                 TextInput::make('components')
-                    ->required(),
+                    ->required()
+                    ->rule('json'),
             ]),
         );
     }

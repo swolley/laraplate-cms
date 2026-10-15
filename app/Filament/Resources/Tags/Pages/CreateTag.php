@@ -6,11 +6,13 @@ namespace Modules\CMS\Filament\Resources\Tags\Pages;
 
 use Filament\Resources\Pages\CreateRecord;
 use Modules\CMS\Filament\Resources\Tags\TagResource;
+use Modules\Core\Filament\Utils\CreatesRecordFromFormState;
 use Modules\Core\Filament\Utils\HasCloseOrCancelFormAction;
 use Override;
 
 final class CreateTag extends CreateRecord
 {
+    use CreatesRecordFromFormState;
     use HasCloseOrCancelFormAction;
 
     #[Override]

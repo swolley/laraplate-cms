@@ -25,7 +25,8 @@ final class CategoryForm
                 TextInput::make('slug')
                     ->required(),
                 TextInput::make('components')
-                    ->required(),
+                    ->required()
+                    ->rule('json'),
                 TextInput::make('logo'),
                 TextInput::make('logo_full'),
                 Toggle::make('is_active')

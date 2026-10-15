@@ -10,11 +10,13 @@ use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 use Modules\CMS\Filament\Resources\Tags\TagResource;
 use Modules\Core\Filament\Utils\HasCloseOrCancelFormAction;
+use Modules\Core\Filament\Utils\UpdatesRecordFromFormState;
 use Override;
 
 final class EditTag extends EditRecord
 {
     use HasCloseOrCancelFormAction;
+    use UpdatesRecordFromFormState;
 
     #[Override]
     protected static string $resource = TagResource::class;

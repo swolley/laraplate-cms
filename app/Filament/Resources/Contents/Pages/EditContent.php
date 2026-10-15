@@ -8,7 +8,6 @@ use Filament\Resources\Pages\EditRecord;
 use Modules\CMS\Filament\Resources\Contents\ContentResource;
 use Modules\Core\Filament\Utils\GuardsAgainstStaleRecord;
 use Modules\Core\Filament\Utils\HasCloseOrCancelFormAction;
-use Modules\Core\Filament\Utils\HasFilamentFormDataSanitizer;
 use Modules\Core\Filament\Utils\HasRecordLease;
 use Modules\Core\Filament\Utils\ReportsApprovalOutcome;
 use Override;
@@ -17,7 +16,6 @@ final class EditContent extends EditRecord
 {
     use GuardsAgainstStaleRecord;
     use HasCloseOrCancelFormAction;
-    use HasFilamentFormDataSanitizer;
     use HasRecordLease;
     use ReportsApprovalOutcome;
 
