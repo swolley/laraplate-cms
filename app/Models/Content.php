@@ -522,7 +522,7 @@ final class Content extends Model implements HasMedia, IDynamicContentModel, ILo
         // Add fields for each locale
         $available_locales = LocaleContext::getAvailable();
         $default_translation = $this->findContentTranslation(
-            is_string(config('app.locale')) ? config('app.locale') : 'en',
+            LocaleContext::getDefault(),
         );
 
         // Get component fields from default translation

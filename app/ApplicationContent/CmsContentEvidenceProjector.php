@@ -8,6 +8,7 @@ use Carbon\CarbonInterface;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Translations\ContentTranslation;
 use Modules\Core\ApplicationContent\Data\ApplicationContentHit;
+use Modules\Core\Helpers\LocaleContext;
 
 final class CmsContentEvidenceProjector
 {
@@ -101,7 +102,7 @@ final class CmsContentEvidenceProjector
             return null;
         }
 
-        $default_locale = (string) config('app.locale', 'en');
+        $default_locale = LocaleContext::getDefault();
         $fallback = $translations->firstWhere('locale', $default_locale);
 
         return $fallback instanceof ContentTranslation ? $fallback : null;

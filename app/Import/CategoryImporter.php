@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Modules\CMS\Import\Support\EntityPresetResolver;
 use Modules\CMS\Import\Support\ImportEntityNames;
 use Modules\CMS\Models\Category;
+use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Import\Contracts\EntityImporterInterface;
 use Modules\Core\Import\Enums\ImportRowOutcome;
 use Modules\Core\Import\Exceptions\RowImportException;
@@ -174,7 +175,7 @@ final readonly class CategoryImporter implements EntityImporterInterface
 
     private function locale(): string
     {
-        $locale = config('cms.import.locale') ?? config('app.locale');
+        $locale = config('cms.import.locale') ?? LocaleContext::getDefault();
 
         return is_string($locale) ? $locale : 'en';
     }

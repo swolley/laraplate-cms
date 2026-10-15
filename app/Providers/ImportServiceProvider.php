@@ -20,6 +20,7 @@ use Modules\CMS\Import\Upserters\ContentUpserter;
 use Modules\CMS\Import\Upserters\ContributorUpserter;
 use Modules\CMS\Import\Upserters\LocationUpserter;
 use Modules\CMS\Import\Upserters\TagUpserter;
+use Modules\Core\Helpers\LocaleContext;
 use Override;
 
 final class ImportServiceProvider extends \Illuminate\Support\ServiceProvider
@@ -27,7 +28,7 @@ final class ImportServiceProvider extends \Illuminate\Support\ServiceProvider
     #[Override]
     public function register(): void
     {
-        $locale = static fn (): string => (string) config('cms.import.locale', config('app.locale'));
+        $locale = static fn (): string => (string) config('cms.import.locale', LocaleContext::getDefault());
 
         $this->app->singleton(ImportIdMap::class);
         $this->app->singleton(ImportReferenceResolver::class);

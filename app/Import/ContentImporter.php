@@ -13,6 +13,7 @@ use Modules\CMS\Models\Category;
 use Modules\CMS\Models\Content;
 use Modules\CMS\Models\Contributor;
 use Modules\CMS\Models\Tag;
+use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Import\Contracts\EntityImporterInterface;
 use Modules\Core\Import\Enums\ImportRowOutcome;
 use Modules\Core\Import\Enums\OnMissingRelation;
@@ -224,7 +225,7 @@ final readonly class ContentImporter implements EntityImporterInterface
 
     private function locale(): string
     {
-        $locale = config('cms.import.locale') ?? config('app.locale');
+        $locale = config('cms.import.locale') ?? LocaleContext::getDefault();
 
         return is_string($locale) ? $locale : 'en';
     }

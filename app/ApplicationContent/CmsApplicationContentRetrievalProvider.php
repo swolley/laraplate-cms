@@ -40,7 +40,7 @@ final readonly class CmsApplicationContentRetrievalProvider implements Applicati
     public function descriptor(): ApplicationContentSourceDescriptor
     {
         $locales = array_values(array_unique(array_filter(
-            array_merge(LocaleContext::getAvailable(), [(string) config('app.locale', 'en')]),
+            array_merge(LocaleContext::getAvailable(), [LocaleContext::getDefault()]),
             static fn (mixed $locale): bool => is_string($locale)
                 && preg_match('/^[a-z]{2,3}(?:[-_][A-Z]{2})?$/', $locale) === 1,
         )));
@@ -121,7 +121,7 @@ final readonly class CmsApplicationContentRetrievalProvider implements Applicati
         ApplicationContentAuthorization $authorization,
     ): AdvancedSearchResult {
         $database_query = $this->authorizedQuery($authorization);
-        $default_locale = (string) config('app.locale', 'en');
+        $default_locale = LocaleContext::getDefault();
         $locales = array_values(array_unique([$query->locale, $default_locale]));
         $needle = '%' . addcslashes($query->query, '\\%_') . '%';
 

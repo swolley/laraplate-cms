@@ -6,6 +6,7 @@ namespace Modules\CMS\Import;
 
 use Illuminate\Support\Facades\Validator;
 use Modules\CMS\Models\Tag;
+use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Import\Contracts\EntityImporterInterface;
 use Modules\Core\Import\Enums\ImportRowOutcome;
 use Modules\Core\Import\Exceptions\RowImportException;
@@ -88,7 +89,7 @@ final readonly class TagImporter implements EntityImporterInterface
 
     private function locale(): string
     {
-        $locale = config('cms.import.locale') ?? config('app.locale');
+        $locale = config('cms.import.locale') ?? LocaleContext::getDefault();
 
         return is_string($locale) ? $locale : 'en';
     }

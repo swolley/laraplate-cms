@@ -15,6 +15,7 @@ use Modules\CMS\Database\Factories\TagFactory;
 use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Pivot\Taggable;
 use Modules\CMS\Models\Translations\TagTranslation;
+use Modules\Core\Helpers\LocaleContext;
 use Modules\Core\Models\Concerns\HasPath;
 use Modules\Core\Models\Concerns\HasTranslations;
 use Modules\Core\Models\Concerns\SortableTrait;
@@ -136,7 +137,7 @@ final class Tag extends Model implements Sortable
                 'type' => $type,
             ]);
             // Set name in default locale translation
-            $locale = is_string(config('app.locale')) ? config('app.locale') : 'en';
+            $locale = LocaleContext::getDefault();
             $tag->setTranslation($locale, [
                 'name' => $name,
             ]);
