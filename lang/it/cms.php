@@ -32,7 +32,7 @@ return [
   ],
   'fields' => [
     'address' => 'Indirizzo',
-    'approversRemaining' => 'Voti mancanti',
+    'approvers_remaining' => 'Voti mancanti',
     'category' => 'Categoria',
     'city' => 'Città',
     'contributor' => 'Contributore',
@@ -41,7 +41,7 @@ return [
     'parent' => 'Padre',
     'postcode' => 'CAP',
     'province' => 'Provincia',
-    'queuedAt' => 'In coda da',
+    'queued_at' => 'In coda da',
     'slug' => 'Slug',
     'status' => 'Stato',
     'tag' => 'Tag',

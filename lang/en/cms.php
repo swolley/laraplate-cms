@@ -32,7 +32,7 @@ return [
   ],
   'fields' => [
     'address' => 'Address',
-    'approversRemaining' => 'Votes remaining',
+    'approvers_remaining' => 'Votes remaining',
     'category' => 'Category',
     'city' => 'City',
     'contributor' => 'Contributor',
@@ -41,7 +41,7 @@ return [
     'parent' => 'Parent',
     'postcode' => 'Postcode',
     'province' => 'Province',
-    'queuedAt' => 'Queued since',
+    'queued_at' => 'Queued since',
     'slug' => 'Slug',
     'status' => 'Status',
     'tag' => 'Tag',

@@ -32,7 +32,7 @@ return [
   ],
   'fields' => [
     'address' => 'Adresse',
-    'approversRemaining' => 'Verbleibende Stimmen',
+    'approvers_remaining' => 'Verbleibende Stimmen',
     'category' => 'Kategorie',
     'city' => 'Stadt',
     'contributor' => 'Mitwirkender',
@@ -41,7 +41,7 @@ return [
     'parent' => 'Übergeordnet',
     'postcode' => 'PLZ',
     'province' => 'Provinz',
-    'queuedAt' => 'In Warteschlange seit',
+    'queued_at' => 'In Warteschlange seit',
     'slug' => 'Slug',
     'status' => 'Status',
     'tag' => 'Tag',

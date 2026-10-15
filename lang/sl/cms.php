@@ -32,7 +32,7 @@ return [
   ],
   'fields' => [
     'address' => 'Naslov',
-    'approversRemaining' => 'Preostali glasovi',
+    'approvers_remaining' => 'Preostali glasovi',
     'category' => 'Kategorija',
     'city' => 'Mesto',
     'contributor' => 'Sodelavec',
@@ -41,7 +41,7 @@ return [
     'parent' => 'Nadrejeno',
     'postcode' => 'Poštna številka',
     'province' => 'Pokrajina',
-    'queuedAt' => 'V čakalni vrsti od',
+    'queued_at' => 'V čakalni vrsti od',
     'slug' => 'Slug',
     'status' => 'Stanje',
     'tag' => 'Oznaka',
