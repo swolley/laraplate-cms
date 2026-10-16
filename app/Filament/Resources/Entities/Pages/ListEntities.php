@@ -48,7 +48,7 @@ final class ListEntities extends ListRecords
         }
 
         $tabs = [
-            'all' => Tab::make('All')->badge($counts['all']),
+            'all' => Tab::make(__('app.sections.all'))->badge($counts['all']),
         ];
 
         $type_column = (new Entity())->qualifyColumn('type');
@@ -70,7 +70,7 @@ final class ListEntities extends ListRecords
         }
 
         $this->groups[] = Group::make('type')
-            ->label('Type')
+            ->label(__('cms.fields.type'))
             ->getTitleFromRecordUsing(fn (Entity $record): string => Str::studly($record->type->toScalar()));
 
         return $tabs;

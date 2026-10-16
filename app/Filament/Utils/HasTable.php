@@ -42,9 +42,9 @@ trait HasTable
             if (self::hasDynamicContents($model_instance)) {
                 $table->groups([
                     Group::make('presettable.entity.name')
-                        ->label('Entity'),
+                        ->label(__('cms.fields.entity')),
                     Group::make('presettable.preset.name')
-                        ->label('Preset'),
+                        ->label(__('cms.fields.preset')),
                 ]);
             }
         }
@@ -113,7 +113,6 @@ trait HasTable
         if ($entity_type instanceof EntityType) {
             $table->pushFilters([
                 SelectFilter::make('preset')
-                    ->label('Preset')
                     ->multiple()
                     ->options(fn (): array => self::presetSelectFilterOptions($entity_type))
                     // `preset_id` lives on the presettable pivot, never on the entity table:

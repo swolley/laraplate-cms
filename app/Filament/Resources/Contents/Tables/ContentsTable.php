@@ -37,7 +37,6 @@ final class ContentsTable
                         ->searchable()
                         ->toggleable(isToggledHiddenByDefault: true),
                     ImageColumn::make('media.images')
-                        ->label('Images')
                         ->state(static function (Content $record): SupportCollection {
                             $urls = [];
                             $cover = $record->getFirstMedia('cover');

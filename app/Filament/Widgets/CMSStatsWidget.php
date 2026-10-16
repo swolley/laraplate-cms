@@ -47,23 +47,23 @@ final class CMSStatsWidget extends BaseWidget
         ]);
 
         return [
-            Stat::make('Contents to approve', $data['pending_contents'])
-                ->description('Changes awaiting moderation')
+            Stat::make(__('cms.widgets.contentsToApprove'), $data['pending_contents'])
+                ->description(__('cms.widgets.contentsToApproveHint'))
                 ->descriptionIcon('heroicon-o-shield-check')
                 ->color($data['pending_contents'] > 0 ? 'warning' : 'gray')
                 ->descriptionColor('cms'),
-            Stat::make('Comments to moderate', $data['pending_comments'])
-                ->description('Comments awaiting moderation')
+            Stat::make(__('cms.widgets.commentsToModerate'), $data['pending_comments'])
+                ->description(__('cms.widgets.commentsToModerateHint'))
                 ->descriptionIcon('heroicon-o-chat-bubble-left-right')
                 ->color($data['pending_comments'] > 0 ? 'warning' : 'gray')
                 ->descriptionColor('cms'),
-            Stat::make('Scheduled', $data['scheduled'])
-                ->description('Contents waiting to go live')
+            Stat::make(__('cms.widgets.scheduled'), $data['scheduled'])
+                ->description(__('cms.widgets.scheduledHint'))
                 ->descriptionIcon('heroicon-o-calendar-days')
                 ->color('info')
                 ->descriptionColor('cms'),
-            Stat::make('Expiring soon', $data['expiring'])
-                ->description('Published contents about to expire')
+            Stat::make(__('cms.widgets.expiringSoon'), $data['expiring'])
+                ->description(__('cms.widgets.expiringSoonHint'))
                 ->descriptionIcon('heroicon-o-clock')
                 ->color($data['expiring'] > 0 ? 'warning' : 'gray')
                 ->descriptionColor('cms'),

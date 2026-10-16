@@ -35,15 +35,15 @@ final class PresetsTable
             actions: static function (Collection $actions): void {
                 $actions->push(
                     Action::make('migrate')
-                        ->label('Migrate Contents to the last version')
+                        ->label(__('cms.actions.migrateContents'))
                         ->modal(true)
                         ->modalDescription(static function (Preset $record): string {
                             $contents = $record->contents()->count();
 
-                            return "Are you sure you want to migrate {$contents} contents to the last version?";
+                            return (string) __('cms.messages.confirmMigrateContents', ['count' => $contents]);
                         })
-                        ->modalSubmitActionLabel('Yes, migrate')
-                        ->modalCancelActionLabel('No, cancel')
+                        ->modalSubmitActionLabel(__('cms.actions.confirmMigrate'))
+                        ->modalCancelActionLabel(__('cms.actions.noCancel'))
                         ->action(static function (Preset $record): void {
                             $record->migrateContentsToLastVersion();
                         })

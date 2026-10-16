@@ -26,12 +26,11 @@ final class TagForm
                 // A new tag goes last whatever is typed (`sort_when_creating`), so the position is edited only
                 // once the tag exists.
                 TextInput::make('order_column')
-                    ->label('Position')
                     ->required()
                     ->numeric()
                     ->default(0)
                     ->hiddenOn('create')
-                    ->helperText('Position in the list; on a tie the older tag comes first. Dragging the rows of the list rewrites the positions.'),
+                    ->helperText(__('cms.help.tagPosition')),
             ]);
     }
 }

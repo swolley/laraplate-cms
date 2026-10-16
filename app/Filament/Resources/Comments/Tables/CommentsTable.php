@@ -20,10 +20,9 @@ final class CommentsTable
             columns: static function (Collection $columns): void {
                 $columns->unshift(...[
                     TextColumn::make('content.title')
-                        ->label('Content')
                         ->limit(60),
                     TextColumn::make('user.name')
-                        ->label('Author')
+                        ->label(__('cms.fields.author'))
                         ->searchable(),
                     TextColumn::make('body')
                         ->limit(80)

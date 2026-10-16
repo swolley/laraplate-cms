@@ -46,7 +46,7 @@ trait HasRecords
         }
 
         $tabs = [
-            'all' => Tab::make('All')->badge($counts['all']),
+            'all' => Tab::make(__('app.sections.all'))->badge($counts['all']),
         ];
 
         $entity_column = $model::query()->getModel()->getTable() . '.entity_id';
@@ -76,7 +76,7 @@ trait HasRecords
         }
 
         $this->groups[] = Group::make('presettable.preset_id')
-            ->label('Preset')
+            ->label(__('cms.fields.preset'))
             ->getTitleFromRecordUsing(fn (Model $record): string => $this->presetGroupTitle($record));
 
         return $tabs;

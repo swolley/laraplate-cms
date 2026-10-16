@@ -23,7 +23,7 @@ final class ContributorsTable
             columns: static function (Collection $columns): void {
                 $columns->unshift(...[
                     IconColumn::make('user.id')
-                        ->label('Type')
+                        ->label(__('cms.fields.type'))
                         ->trueIcon('heroicon-o-user')
                         ->falseIcon('heroicon-o-pencil')
                         ->falseColor('gray')
@@ -38,7 +38,7 @@ final class ContributorsTable
                         ->grow(false)
                         ->width(100),
                     ImageColumn::make('user.cover')
-                        ->label('Avatar')
+                        ->label(__('cms.fields.avatar'))
                         ->circular()
                         ->toggleable(isToggledHiddenByDefault: false)
                         ->grow(false)
@@ -102,7 +102,7 @@ final class ContributorsTable
                         ->sortable()
                         ->grow(true),
                     TextColumn::make('components.email')
-                        ->label('Email')
+                        ->label(__('app.fields.email'))
                         ->searchable()
                         ->sortable()
                         ->toggleable()

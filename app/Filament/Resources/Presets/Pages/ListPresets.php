@@ -51,7 +51,7 @@ final class ListPresets extends ListRecords
         }
 
         $tabs = [
-            'all' => Tab::make('All')->badge($counts['all']),
+            'all' => Tab::make(__('app.sections.all'))->badge($counts['all']),
         ];
 
         $entity_column = (new Preset())->qualifyColumn('entity_id');
@@ -67,7 +67,7 @@ final class ListPresets extends ListRecords
                 continue;
             }
 
-            $entity_name =  Str::studly($entity->name);
+            $entity_name = Str::studly($entity->name);
             $tabs[(string) $entity_id] = Tab::make($entity_name)
                 ->badge($count)
                 ->modifyQueryUsing(
@@ -76,7 +76,7 @@ final class ListPresets extends ListRecords
         }
 
         $this->groups[] = Group::make('entity_id')
-            ->label('Entity')
+            ->label(__('cms.fields.entity'))
             ->getTitleFromRecordUsing(function (Preset $record): string {
                 $entity = $record->entity;
 
