@@ -375,3 +375,33 @@ it('containing scope matches translation name substring for default locale', fun
     expect($ids)->toContain($tag_match->id)
         ->and($ids)->not->toContain($tag_other->id);
 });
+
+it('writes again a translation that was removed, instead of inserting a duplicate', function (): void {
+    $tag = Tag::factory()->create();
+    $tag->setTranslation('de', ['name' => 'Alt', 'slug' => 'alt']);
+    $tag->translations()->where('locale', 'de')->delete();
+
+    $tag->setTranslation('de', ['name' => 'Neu', 'slug' => 'neu']);
+
+    $translations = TagTranslation::query()->withTrashed()->where('tag_id', $tag->id)->where('locale', 'de')->get();
+
+    expect($translations)->toHaveCount(1)
+        ->and($translations->sole()->trashed())->toBeFalse()
+        ->and($translations->sole()->name)->toBe('Neu');
+});
+
+it('saves a translated field into a translation that was removed', function (): void {
+    $tag = Tag::factory()->create();
+    $tag->setTranslation('de', ['name' => 'Alt', 'slug' => 'alt']);
+    $tag->translations()->where('locale', 'de')->delete();
+
+    Modules\Core\Helpers\LocaleContext::set('de');
+    $tag->name = 'Neu';
+    $tag->slug = 'neu';
+    $tag->save();
+
+    $translation = TagTranslation::query()->withTrashed()->where('tag_id', $tag->id)->where('locale', 'de')->sole();
+
+    expect($translation->trashed())->toBeFalse()
+        ->and($translation->name)->toBe('Neu');
+});

@@ -162,7 +162,7 @@ it('names the locale it edits', function (): void {
     LocaleContext::set('de');
     HttpContext::panelActorWithoutApproval(new Tag, ['select', 'update']);
 
-    Livewire::test(EditTag::class, ['record' => $tag->getKey()])->assertSee('Translation: de');
+    Livewire::test(EditTag::class, ['record' => $tag->getKey()])->assertSee(__('app.form.translationLocale', ['locale' => 'de']));
 });
 
 it('refuses components that are not JSON', function (): void {
@@ -196,4 +196,18 @@ it('labels and reports a category deletion that needs approval', function (): vo
 
     expect($category->fresh()->trashed())->toBeFalse()
         ->and($category->modifications()->activeOnly()->sole()->operation)->toBe(Operation::Delete);
+});
+
+it('opens a record in the backoffice without a translation in the content language, which is the default one', function (): void {
+    $tag = Tag::factory()->create();
+    $tag->setTranslation('it', ['name' => 'Solo italiano', 'slug' => 'solo-italiano']);
+    $tag->translations()->where('locale', '!=', 'it')->forceDelete();
+    // The factory leaves half of its users unverified, and the panel sends those to verify their email.
+    $actor = Modules\Core\Models\User::factory()->create(['lang' => 'de', 'email_verified_at' => now()]);
+    $actor->assignRole(Modules\Core\Models\Role::findOrCreate(config('permission.roles.superadmin'), 'web'));
+
+    $this->actingAs($actor, 'admin')
+        ->get(Modules\CMS\Filament\Resources\Tags\TagResource::getUrl('edit', ['record' => $tag]))
+        ->assertOk()
+        ->assertSee(__('app.form.translationLocale', ['locale' => 'en'], 'de'));
 });

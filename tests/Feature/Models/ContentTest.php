@@ -417,6 +417,8 @@ it('provides the text a reranker reads: the title and the text components in the
 
 it('leaves out the contents with no translation in the language asked', function (): void {
     $kept = Content::factory()->create();
+    // The factory translates into a random subset of the locales, so the one asked is set explicitly.
+    $kept->setTranslation('it', ['title' => 'Tenuto', 'slug' => 'tenuto', 'components' => []]);
     $without = Content::factory()->create();
     $without->translations()->where('locale', 'it')->delete();
 
