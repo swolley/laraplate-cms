@@ -13,7 +13,8 @@ uses(TestCase::class, RefreshDatabase::class);
 
 /**
  * The embeddings and the modifications of a record hang from it by a polymorphic key, with no foreign key to
- * take them along: a hard delete must remove them, a move to the bin must not.
+ * take them along. A hard delete removes the embeddings and closes the modifications still pending, which can
+ * no longer be applied; the modifications stay as the record of the approvals. A move to the bin changes nothing.
  */
 beforeEach(function (): void {
     setupCMSEntities();
@@ -31,20 +32,23 @@ beforeEach(function (): void {
 
 function children_of(Content $content): array
 {
+    $modifications = Modification::query()->where('modifiable_type', $content->getMorphClass())->where('modifiable_id', $content->getKey());
+
     return [
         ModelEmbedding::query()->where('model_type', $content->getMorphClass())->where('model_id', $content->getKey())->count(),
-        Modification::query()->where('modifiable_type', $content->getMorphClass())->where('modifiable_id', $content->getKey())->count(),
+        (clone $modifications)->count(),
+        (clone $modifications)->where('active', true)->count(),
     ];
 }
 
-it('removes the embeddings and the modifications of a record deleted for good', function (): void {
+it('removes the embeddings and closes the pending modifications of a record deleted for good', function (): void {
     $this->content->forceDelete();
 
-    expect(children_of($this->content))->toBe([0, 0]);
+    expect(children_of($this->content))->toBe([0, 1, 0]);
 });
 
 it('keeps them when the record only goes to the bin', function (): void {
     $this->content->delete();
 
-    expect(children_of($this->content))->toBe([1, 1]);
+    expect(children_of($this->content))->toBe([1, 1, 1]);
 });
