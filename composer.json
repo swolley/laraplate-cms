@@ -1,6 +1,6 @@
 {
-  "name": "swolley/laraplate-cms",
-  "vendor": "swolley",
+  "name": "getlaraplate/laraplate-cms",
+  "vendor": "getlaraplate",
   "description": "CMS module contains all the necessary functionalities to build a new content management system.",
   "version": "v1.47.0",
   "keywords": [
