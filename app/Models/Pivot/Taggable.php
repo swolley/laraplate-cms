@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\CMS\Models\Pivot;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphPivot;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Tag;
+use Modules\Core\Models\Concerns\TouchesOwnerOnChange;
 use Override;
 
 /**
@@ -18,6 +21,8 @@ use Override;
  */
 final class Taggable extends MorphPivot
 {
+    use TouchesOwnerOnChange;
+
     #[Override]
     public $incrementing = false;
 
@@ -50,5 +55,25 @@ final class Taggable extends MorphPivot
             'tag_id' => 'integer',
             'taggable_id' => 'integer',
         ];
+    }
+
+    /**
+     * The tagged record this link belongs to, resolved through the morph map: its `updated_at` moves when the
+     * link changes (D37).
+     *
+     * @return array{0: Model, 1: int|string}|null
+     */
+    protected function ownerToTouch(): ?array
+    {
+        $type = $this->getAttribute('taggable_type');
+        $key = $this->getAttribute('taggable_id');
+
+        if (! is_string($type) || ! (is_int($key) || is_string($key))) {
+            return null;
+        }
+
+        $class = Relation::getMorphedModel($type) ?? $type;
+
+        return class_exists($class) && is_subclass_of($class, Model::class) ? [new $class, $key] : null;
     }
 }

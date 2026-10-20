@@ -10,6 +10,7 @@ use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Content;
 use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Models\Concerns\HasSlug;
+use Modules\Core\Models\Concerns\TouchesOwnerOnChange;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
@@ -17,6 +18,7 @@ use Override;
 final class ContentTranslation extends Model implements IsPartOfParent, ITranslated
 {
     use HasSlug;
+    use TouchesOwnerOnChange;
 
     /**
      * @var string
@@ -68,5 +70,15 @@ final class ContentTranslation extends Model implements IsPartOfParent, ITransla
             'components' => 'json',
             'ai_assistance' => AiAssistance::class,
         ];
+    }
+
+    /**
+     * The record this translation belongs to: its `updated_at` moves when the translation changes (D30).
+     *
+     * @return array{0: \Illuminate\Database\Eloquent\Model, 1: int|string}|null
+     */
+    protected function ownerToTouch(): ?array
+    {
+        return $this->ownerThrough($this->content());
     }
 }

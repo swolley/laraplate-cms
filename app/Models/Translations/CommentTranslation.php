@@ -8,12 +8,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Comment;
 use Modules\Core\Contracts\IsPartOfParent;
+use Modules\Core\Models\Concerns\TouchesOwnerOnChange;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
 use Override;
 
 final class CommentTranslation extends Model implements IsPartOfParent, ITranslated
 {
+    use TouchesOwnerOnChange;
+
     /**
      * @var string
      */
@@ -53,5 +56,15 @@ final class CommentTranslation extends Model implements IsPartOfParent, ITransla
             'created_at' => 'immutable_datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    /**
+     * The record this translation belongs to: its `updated_at` moves when the translation changes (D30).
+     *
+     * @return array{0: \Illuminate\Database\Eloquent\Model, 1: int|string}|null
+     */
+    protected function ownerToTouch(): ?array
+    {
+        return $this->ownerThrough($this->comment());
     }
 }
