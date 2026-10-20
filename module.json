@@ -2,7 +2,7 @@
     "name": "CMS",
     "laraplate_owned": true,
     "alias": "cms",
-    "description": "Content Management System Module",
+    "description": "Laraplate CMS module: contents, categories, tags, moderated comments, presets and multilingual publishing.",
     "color": "cyan",
     "keywords": [
         "cms",
