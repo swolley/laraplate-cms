@@ -1,7 +1,7 @@
 {
   "name": "getlaraplate/laraplate-cms",
   "vendor": "getlaraplate",
-  "description": "CMS module contains all the necessary functionalities to build a new content management system.",
+  "description": "Laraplate CMS module: contents, categories, tags, moderated comments, presets and multilingual publishing.",
   "version": "v1.47.0",
   "keywords": [
     "laravel",
