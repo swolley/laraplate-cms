@@ -2,6 +2,80 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.47.1] - 2026-10-21
+
+### 🚀 Features
+
+- *(cms)* Related records obey their own permission and ACL
+- Guest is empty on web and holds the public list on api
+- Hide attributes from anonymous callers and project media on the api guard
+- Read the cover from a relation preloaded once per result set
+- *(cms)* Index content references in the content document
+- *(cms)* The content edit page refuses a stale save
+- *(cms)* Anonymous api readers see active, valid CMS categories by default
+- *(cms)* Guest categories ACL by valid and active scopes
+- *(cms)* Translation keys named like the database
+- *(cms)* Translated resource names and navigation groups
+- *(cms)* Backoffice strings from the cms lang file
+- *(cms)* A content's updated_at follows its translations and relations
+
+### 🐛 Bug Fixes
+
+- *(cms)* Comments use the typed adjacency relations; read requests run no undeclared content method
+- *(cms)* A soft delete keeps the tags of a content, only a hard delete detaches them
+- *(cms)* Re-index a reference's content as a system read
+- *(cms)* The content create page writes the translated fields
+- *(cms)* The content position is edited only once the content exists
+- *(cms)* Hide the tag and category position on create, drop is_deleted toggles
+- *(cms)* An import owns a taxonomy position only when its source orders it
+- *(cms)* Read the default locale through LocaleContext
+- *(cms)* Tag, category and contributor pages load and save translated fields
+- *(cms)* Restore singular translations for comments, entities, and presets in multiple languages
+- *(cms)* Add missing newline at end of module.json
+
+### 📚 Documentation
+
+- API access control
+- Verbatim AGPL-3.0 licence text, copyright in the README
+- *(cms)* Anonymous categories ACL on scope filters, contents kept on columns
+- *(extension)* The extender in the CRUD API
+- Point the links to the getlaraplate organization
+- Fix a typo in the work in progress notice
+- Use the Laraplate brand logo in the README
+
+### 🧪 Testing
+
+- Follow the renamed API switch
+- An authenticated denial answers 403
+- Add AclRelationFilter tests for published content and media access
+- *(cms)* Isolate content-extender-registry assertions from production extenders
+- Build AdvancedSearchService from a strategy resolver
+- *(cms)* Related records through group_by, facets and nested paths obey their permission and ACL
+- *(cms)* The pending modifications of a content need the content's update or approve permission
+- History access by entity, tree cover loading, cover ACL narrowing
+- *(cms)* Anonymous readable columns and embeddings on the api
+- *(cms)* References hydrated with the content permission, dynamic fields in history
+- *(cms)* Parts hydrate with their own select or the content's
+- *(cms)* The reference fallback test exercises the fallback
+- *(cms)* A scope ACL never widens the per-id media endpoints
+- *(cms)* Pin the per-id media outcome of scope and placeholder ACLs (scope filters task 3)
+- *(contents)* Filter on translated and dynamic fields by plain name
+- *(contents)* Operators, OR groups and relation leaves on stored properties
+- *(cms)* Scope filters in content search requests and ACLs (scope filters task 5)
+- *(cms)* Facets stay within the ACL under a request root OR (scope filters task 5 review)
+- *(cms)* Backoffice content language, removed translations, stable fixtures
+- *(cms)* A content deleted for good takes its embeddings and modifications
+- *(cms)* A hard delete closes the pending modifications and keeps them
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cms)* Remove the unused nwidart module scaffold
+- Rename the Composer package to the getlaraplate vendor
+- Align the package description with the repository description
+- Align the module description with the repository description
+- Call the organization CLA workflow
+- Rename the repository and package from laraplate-<module> to lara<module>
+
 ## [1.47.0] - 2026-10-07
 
 ### 🚀 Features
