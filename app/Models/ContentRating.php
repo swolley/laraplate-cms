@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\CMS\Database\Factories\ContentRatingFactory;
 use Modules\CMS\Enums\CMSTables;
 use Modules\Core\Contracts\IHidesAttributesFromAnonymous;
+use Modules\Core\Contracts\INeverVersionedModel;
 use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Enums\CoreTables;
 use Modules\Core\Models\Concerns\HidesAttributesFromAnonymous;
@@ -15,7 +16,7 @@ use Modules\Core\Models\User;
 use Modules\Core\Overrides\Model;
 use Override;
 
-final class ContentRating extends Model implements IHidesAttributesFromAnonymous, IsPartOfParent
+final class ContentRating extends Model implements IHidesAttributesFromAnonymous, INeverVersionedModel, IsPartOfParent
 {
     use HidesAttributesFromAnonymous;
 
