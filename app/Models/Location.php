@@ -67,7 +67,7 @@ final class Location extends Model implements ISearchableModel, Taggable
     /**
      * Typesense mapping to avoid empty schema errors.
      *
-     * @return array<int, array<string, mixed>>
+     * @return array<string, mixed>
      */
     public function getSearchMapping(): array
     {
