@@ -387,7 +387,8 @@ types, because related records obey their own permission.
 set through `IPreloadsAppendedRelations` under the media permission and ACL of the caller; on the `api` guard it is the
 safe media projection, and `null` when the caller may not read it. `ContentTranslation`, `TagTranslation`,
 `CommentTranslation`, `ContributorTranslation`, `ContentReference` and `ContentRating` are parts of their parent
-(`IsPartOfParent`). Anonymous responses share one cache entry per entity that uses the response cache; contents do not
+(`IsPartOfParent`). Comments, ratings and the translation models have no version history of their own: comments and
+ratings are not part of the document (`INeverVersionedModel`), and a translation's state belongs to its owner. Anonymous responses share one cache entry per entity that uses the response cache; contents do not
 use it. Full behaviour: `Modules/Core/docs/rag/API_ACCESS_CONTROL.md`.
 
 ### Filament module integration
