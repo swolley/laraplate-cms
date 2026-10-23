@@ -9,6 +9,7 @@ use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Tag;
 use Modules\Core\Contracts\IsPartOfParent;
 use Modules\Core\Models\Concerns\HasSlug;
+use Modules\Core\Models\Concerns\RecordsChangesOnOwner;
 use Modules\Core\Models\Concerns\TouchesOwnerOnChange;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
@@ -17,6 +18,7 @@ use Override;
 final class TagTranslation extends Model implements IsPartOfParent, ITranslated
 {
     use HasSlug;
+    use RecordsChangesOnOwner;
     use TouchesOwnerOnChange;
 
     /**

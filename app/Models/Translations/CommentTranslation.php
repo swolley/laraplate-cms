@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\CMS\Enums\CMSTables;
 use Modules\CMS\Models\Comment;
 use Modules\Core\Contracts\IsPartOfParent;
+use Modules\Core\Models\Concerns\RecordsChangesOnOwner;
 use Modules\Core\Models\Concerns\TouchesOwnerOnChange;
 use Modules\Core\Overrides\Model;
 use Modules\Core\Services\Translation\Definitions\ITranslated;
@@ -15,6 +16,7 @@ use Override;
 
 final class CommentTranslation extends Model implements IsPartOfParent, ITranslated
 {
+    use RecordsChangesOnOwner;
     use TouchesOwnerOnChange;
 
     /**
